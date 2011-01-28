@@ -8,6 +8,7 @@
 			<Button android:layout_height="wrap_content" android:id="@+id/TakePictureButton" android:text="Take Picture" android:layout_width="wrap_content"></Button>
 			<Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/SavePictureButton" android:visibility="gone" android:text="Save Picture"></Button>
 			<Button android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/CancelButton" android:visibility="gone" android:text="Cancel"></Button>
+			<Button android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="Erase Metadata" android:id="@+id/EraseMetaDataButton"></Button>
 		</LinearLayout>
 	</LinearLayout>
 </FrameLayout>
