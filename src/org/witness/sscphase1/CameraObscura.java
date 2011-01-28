@@ -14,6 +14,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Bitmap.CompressFormat;
 import android.media.FaceDetector;
 import android.media.FaceDetector.Face;
@@ -34,16 +36,17 @@ import android.widget.Toast;
 public class CameraObscura extends Activity implements OnClickListener, OnTouchListener {
     
 	final static String LOGTAG = "CAMERA OBSCRUA";
-	
-	final static int MAX_FACES = 10;
-	
+		
 	final static int CAMERA_RESULT = 0;
 	final static int GALLERY_RESULT = 1;
 
 	ImageView imv;
 	Button choosePictureButton, takePictureButton;
 	Button savePictureButton, cancelButton;
+	Button eraseMetaDataButton;
 
+	Uri originalImageUri;
+	
 	// Be sure to delete this
 	File tmpImageFile;
 	//Uri.fromFile(tmpImageFile)
@@ -57,8 +60,7 @@ public class CameraObscura extends Activity implements OnClickListener, OnTouchL
 	float upx = 0;
 	float upy = 0;
 	
-	FaceDetector faceDetector;
-    Face[] faces = new Face[MAX_FACES];   	
+	GoogleFaceDetection gfd;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -80,6 +82,9 @@ public class CameraObscura extends Activity implements OnClickListener, OnTouchL
     	
     	cancelButton = (Button) this.findViewById(R.id.CancelButton);
     	cancelButton.setOnClickListener(this);
+    	
+    	eraseMetaDataButton = (Button) this.findViewById(R.id.EraseMetaDataButton);
+    	eraseMetaDataButton.setOnClickListener(this);
     	
     	// Out in the open
     	tmpImageFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/myfavoritepicture.jpg");
@@ -115,13 +120,29 @@ public class CameraObscura extends Activity implements OnClickListener, OnTouchL
 			}			
 			cancelButton.setVisibility(View.GONE);
 			savePictureButton.setVisibility(View.GONE);
+			eraseMetaDataButton.setVisibility(View.GONE);
 			takePictureButton.setVisibility(View.VISIBLE);
 			choosePictureButton.setVisibility(View.VISIBLE);
 		} else if (v == cancelButton) {
 			cancelButton.setVisibility(View.GONE);
 			savePictureButton.setVisibility(View.GONE);
+			eraseMetaDataButton.setVisibility(View.GONE);
 			takePictureButton.setVisibility(View.VISIBLE);
 			choosePictureButton.setVisibility(View.VISIBLE);
+		} else if (v == eraseMetaDataButton) {
+			if (originalImageUri != null) {
+				try {
+					EXIFWiper ew = new EXIFWiper(originalImageUri.getPath());
+					ew.wipeIt();
+					// Notify user
+					Toast t = Toast.makeText(this, "MetaData Erased In Original", Toast.LENGTH_SHORT);
+					t.show();
+				} catch (IOException ioe) {
+					Toast t = Toast.makeText(this, "Error", Toast.LENGTH_SHORT);
+					t.show();
+					ioe.printStackTrace();
+				}
+			}
 		}
 	}
 
@@ -184,24 +205,17 @@ public class CameraObscura extends Activity implements OnClickListener, OnTouchL
 					canvas.drawBitmap(bmp, 0, 0, paint);
 					
 					// Face Detection
-					faceDetector = new FaceDetector(bmp.getWidth(), bmp.getHeight(), MAX_FACES);
-		            int numFaces = faceDetector.findFaces(bmp, faces);
-		           
+					gfd = new GoogleFaceDetection(bmp);
+					int numFaces = gfd.findFaces();
 		            Log.v(LOGTAG,"Num Faces Found: " + numFaces); 
-		            
+		            Rect[] faceRects = gfd.getFaces();
+
+	                paint.setColor(Color.BLUE);
+
 		            if (numFaces > 0) {
-		                paint.setColor(Color.BLUE);
-		            	
-		                for (int i = 0; i < faces.length; i++) {
-		                	if (faces[i] != null) {
-				            	PointF midPoint = new PointF();
-				            	
-				            	float eyeDistance = faces[i].eyesDistance();
-				            	faces[i].getMidPoint(midPoint);
-				            	
-				            	// Paint over face
-				            	canvas.drawRect(midPoint.x-eyeDistance*2, midPoint.x-eyeDistance*2, midPoint.x+eyeDistance*2, midPoint.x+eyeDistance*2, paint);
-		                	}
+		                for (int i = 0; i < faceRects.length; i++) {				            	
+			            	// Paint over face
+			            	canvas.drawRect(faceRects[i], paint);
 		                }
 		            }				
 					
@@ -212,6 +226,7 @@ public class CameraObscura extends Activity implements OnClickListener, OnTouchL
 					choosePictureButton.setVisibility(View.GONE);
 					savePictureButton.setVisibility(View.VISIBLE);
 					cancelButton.setVisibility(View.VISIBLE);
+					eraseMetaDataButton.setVisibility(View.VISIBLE);
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
