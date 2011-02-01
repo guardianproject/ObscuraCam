@@ -39,6 +39,11 @@ public class CameraObscura extends Activity implements OnClickListener, OnTouchL
 		
 	final static int CAMERA_RESULT = 0;
 	final static int GALLERY_RESULT = 1;
+		
+	final static int OBSCURE_SQUARE = 0;
+	final static int OBSCURE_BLUR = 1;
+	
+	int obscureMethod = OBSCURE_SQUARE;
 
 	ImageView imv;
 	Button choosePictureButton, takePictureButton;
@@ -210,12 +215,20 @@ public class CameraObscura extends Activity implements OnClickListener, OnTouchL
 		            Log.v(LOGTAG,"Num Faces Found: " + numFaces); 
 		            Rect[] faceRects = gfd.getFaces();
 
-	                paint.setColor(Color.BLUE);
-
+		            // Using the interface
+		            ObscureMethod om;
+		            
+		            // Load the appropriate class/method based on obscureMethod variable/constants
+		            if (obscureMethod == OBSCURE_BLUR) {
+		            	om = new BlurObscure(alteredBitmap);
+		            } else {
+		            	om = new PaintSquareObscure();		            	
+		            }
+		            
 		            if (numFaces > 0) {
 		                for (int i = 0; i < faceRects.length; i++) {				            	
-			            	// Paint over face
-			            	canvas.drawRect(faceRects[i], paint);
+			            	// Apply the obscure method
+		                	om.obscureRect(faceRects[i], canvas);
 		                }
 		            }				
 					
