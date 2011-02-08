@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:orientation="vertical">
+	<TextView android:text="@string/WalkThroughTextView" 
+		android:id="@+id/WalkThroughTextView" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content"
+		android:gravity="center">
+	</TextView>
+	<!-- 
+	<Button android:text="@string/WalkThroughSkipButton" 
+		android:id="@+id/WalkThroughSkipButton" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content"
+		android:gravity="center">
+	</Button>
+	-->
+	<TextView android:text="@string/WalkThroughPrefSliderLabel" 
+		android:id="@+id/WalkThroughPrefSliderLabel" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content"
+		android:gravity="center"></TextView>
+	
+	<SeekBar android:id="@+id/WalkThroughPrefSlider" 
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content" 
+		android:layout_margin="10dp"></SeekBar>
+	
+	<TextView android:text="High Risk" 
+		android:id="@+id/WalkThroughPrefSliderOutput" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content"
+		android:gravity="center"></TextView>
+	
+	<Button android:text="@string/WalkThroughContinueButton"
+		android:id="@+id/WalkThroughContinueButton"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:gravity="center">
+	</Button>	
+</LinearLayout>

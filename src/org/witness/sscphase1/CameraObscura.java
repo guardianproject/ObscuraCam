@@ -25,6 +25,8 @@ import android.os.Environment;
 import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.view.Display;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -44,6 +46,9 @@ public class CameraObscura extends Activity implements OnClickListener, OnTouchL
 	final static int OBSCURE_BLUR = 1;
 	
 	int obscureMethod = OBSCURE_SQUARE;
+	
+	public final static int PREFERENCES_MENU_ITEM = 0;
+	public final static int PANIC_MENU_ITEM = 1;
 
 	ImageView imv;
 	Button choosePictureButton, takePictureButton;
@@ -274,4 +279,26 @@ public class CameraObscura extends Activity implements OnClickListener, OnTouchL
 		}
 		return true;
 	}
+	
+	
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+    	MenuItem panicMenuItem = menu.add(Menu.NONE, PANIC_MENU_ITEM, Menu.NONE, "Panic");
+        MenuItem preferencesMenuItem = menu.add(Menu.NONE, PREFERENCES_MENU_ITEM, Menu.NONE, "Preferences");
+        return true;
+    }
+    
+    public boolean onOptionsItemSelected(MenuItem item) {
+    	switch (item.getItemId()) {
+        	case PREFERENCES_MENU_ITEM:
+        	 	// Load Preferences Activity
+        		Intent intent = new Intent(this, PreferencesActivity.class);
+        		startActivity(intent);	
+        		return true;
+        	case PANIC_MENU_ITEM:
+        		// Look up preferences and do what is required
+    		default:
+    			return false;
+    	}
+    }
 }
