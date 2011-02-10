@@ -1,0 +1,16 @@
+body {
+	font-family:arial;
+}
+
+table {
+	padding:20px;
+}
+
+table td {
+	padding:5px 20px 10px 0;
+}
+
+.thead {
+	font-weight:bold;
+	text-decoration:underline;
+}
