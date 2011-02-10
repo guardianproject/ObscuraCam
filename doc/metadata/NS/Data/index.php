@@ -5,6 +5,8 @@
 	</head>
 <body>
 <h1>Data</h1>
+<p>Child of <a href="../Object">the Object</a>.</p>
+<p>Instead of a custom schema, objects here will pull from other namespaces.</p>
 <table>
 	<tr>
 		<td class="thead" width="100">Name</td>

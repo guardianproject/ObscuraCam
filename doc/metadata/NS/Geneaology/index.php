@@ -5,6 +5,8 @@
 	</head>
 <body>
 <h1>Geneaology</h1>
+<p>Child of <a href="../Object">the Object</a>.</p>
+
 <table>
 	<tr>
 		<td class="thead" width="100">Name</td>
