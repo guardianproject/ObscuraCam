@@ -67,6 +67,7 @@ public class SplashScreenActivity extends Activity implements OnClickListener, O
         super.onResume();
         
         prefs = new CameraObscuraPreferences(this);
+        //prefs.setDefaults();
 		walkThroughPrefSliderOutput.setText(prefs.getRiskLevelLabel(CameraObscuraPreferences.RISK_1));
     }    
 
