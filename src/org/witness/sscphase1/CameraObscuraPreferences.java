@@ -30,6 +30,7 @@ public class CameraObscuraPreferences {
 	
 	public CameraObscuraPreferences(Context context) {
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+		
 		editor = sharedPreferences.edit();
 		
 		//setDefaults();
@@ -62,6 +63,7 @@ public class CameraObscuraPreferences {
 	}
 	
 	public void setDefaults() {
+		editor.clear();
 		setRiskLevel(RISK_1);
 	}
 	
@@ -123,7 +125,7 @@ public class CameraObscuraPreferences {
 	}
 
 	public void setOriginalImagePref(int originalImagePref) {
-		editor.putInt("OriginalImagePref", originalImagePref);
+		editor.putString("OriginalImagePref", ""+originalImagePref);
 		editor.commit();
 	}
 
@@ -132,7 +134,7 @@ public class CameraObscuraPreferences {
 	}
 
 	public void setPanicButtonPref(int panicButtonPref) {
-		editor.putInt("PanicButtonPref", panicButtonPref);
+		editor.putString("PanicButtonPref", ""+panicButtonPref);
 		editor.commit();
 	}	
 }
