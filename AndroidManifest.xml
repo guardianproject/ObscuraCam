@@ -13,7 +13,19 @@
         <activity android:name=".CameraObscura"></activity>
         <activity android:name=".PreferencesActivity"></activity>
         <activity android:name=".CameraObscuraMainMenu"></activity>
-        <activity android:name=".ImageEditor"></activity>
+        <activity android:name=".ImageEditor">
+			<intent-filter>
+                 <action android:name="android.intent.action.VIEW" />
+                 <action android:name="android.intent.action.EDIT" />
+                 <action android:name="android.intent.action.SEND" />
+                 
+                 <category android:name="android.intent.category.DEFAULT" />
+                 <category android:name="android.intent.category.ALTERNATIVE" /> 
+                 <category android:name="android.intent.category.SELECTED_ALTERNATIVE" /> 
+                 
+                 <data android:mimeType="image/*" />
+             </intent-filter>        
+        </activity>
     </application>
     <uses-sdk android:minSdkVersion="7" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
