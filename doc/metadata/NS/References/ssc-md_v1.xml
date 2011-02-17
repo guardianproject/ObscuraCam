@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Object xmlns:CameraObscura='http://www.witness.org/CameraObscura/NS/Object'>
+	<CameraObscura:Intent xmlns:Intent='http://www.witness.org/CameraObscura/NS/Intent' Ownership="" OwnershipType="">
+		<Intent:SecurityLevel></Intent:SecurityLevel>
+		<Intent:PublicKey></Intent:PublicKey>
+		<Intent:SociallySharable></Intent:SociallySharable>
+	</CameraObscura:Intent>
+	<CameraObscura:Consent xmlns:Consent='http://www.witness.org/CameraObscura/NS/Consent' NumTags="">
+		<Consent:Subject xmlns:Subject='http://www.witness.org/CameraObscura/NS/Subject'>
+			<Subject:EntityName></Subject:EntityName>
+			<Subject:InformedConsentGiven></Subject:InformedConsentGiven>
+			<Subject:ConsentTimecode></Subject:ConsentTimecode>
+			<Subject:ObfuscationType></Subject:ObfuscationType>
+			<Subject:ObfuscationTimeblock xmlns:ObfuscationTimeblock='http://www.witness.org/CameraObscura/NS/ObfuscationTimeblock'>
+				<ObfuscationTimeblock:TimecodeStart></ObfuscationTimeblock:TimecodeStart>
+				<ObfuscationTimeblock:TimecodeEnd></ObfuscationTimeblock:TimecodeEnd>
+				<ObfuscationTimeblock:InitialCoordinates></ObfuscationTimeblock:InitialCoordinates>
+				<ObfuscationTimeblock:ObjectPath xmlns:ObjectPath='http://www.witness.org/CameraObscura/NS/ObjectPath' Relevance="">
+					<!-- this is to record the path of any blob when we get to video.  This gets a relevance value of null if the object is of the still image type. -->
+				</ObfuscationTimeblock:ObjectPath>
+			</Subject:ObfuscationTimeblock>
+		</Consent:Subject>
+	</CameraObscura:Consent>
+	<CameraObscura:Data xmlns:Data='http://www.witness.org/CameraObscura/NS/Data' MediaType="">
+		<Data:Orientation_Flip_Horizontal></Data:Orientation_Flip_Horizontal>
+		<Data:Orientation_Flip_Vertical></Data:Orientation_Flip_Vertical>
+		<Data:Orientation_Normal></Data:Orientation_Normal>
+		<Data:Orientation_Rotate_180></Data:Orientation_Rotate_180>
+		<Data:Orientation_Rotate_270></Data:Orientation_Rotate_270>
+		<Data:Orientation_Rotate_90></Data:Orientation_Rotate_90>
+		<Data:Orientation_Transpose></Data:Orientation_Transpose>
+		<Data:Orientation_Transverse></Data:Orientation_Transverse>
+		<Data:Orientation_Undefined></Data:Orientation_Undefined>
+		<Data:Tag_Datetime></Data:Tag_Datetime>
+		<Data:Tag_Flash></Data:Tag_Flash>
+		<Data:Tag_Focal_Length></Data:Tag_Focal_Length>
+		<Data:Tag_GPS_Altitude></Data:Tag_GPS_Altitude>
+		<Data:Tag_GPS_Altitude_Ref></Data:Tag_GPS_Altitude_Ref>
+		<Data:Tag_GPS_Datestamp></Data:Tag_GPS_Datestamp>
+		<Data:Tag_GPS_Latitude></Data:Tag_GPS_Latitude>
+		<Data:Tag_GPS_Latitude_Ref></Data:Tag_GPS_Latitude_Ref>
+		<Data:Tag_GPS_Longitude></Data:Tag_GPS_Longitude>
+		<Data:Tag_GPS_Longitude_Ref></Data:Tag_GPS_Longitude_Ref>
+		<Data:Tag_GPS_Processing_Method></Data:Tag_GPS_Processing_Method>
+		<Data:Tag_GPS_Timestamp></Data:Tag_GPS_Timestamp>
+		<Data:Tag_Image_Length></Data:Tag_Image_Length>
+		<Data:Tag_Image_Width></Data:Tag_Image_Width>
+		<Data:Tag_Make></Data:Tag_Make>
+		<Data:Tag_Model></Data:Tag_Model>
+		<Data:Tag_Orientation></Data:Tag_Orientation>
+		<Data:Tag_White_Balance></Data:Tag_White_Balance>
+		<Data:Whitebalance_Auto></Data:Whitebalance_Auto>
+		<Data:Whitebalance_Manual></Data:Whitebalance_Manual>
+		<Data:Software></Data:Software>
+		<!-- the following tags are only applicable to video, and receive null values if the media type is image -->
+		<Data:Video_Duration></Data:Video_Duration>
+		<Data:VideoPaths xmlns:VideoPaths='http://www.witness.org/CameraObscura/NS/VideoPaths' NumPaths="">
+			<VideoPaths:Tag_GPS_Altitude></VideoPaths:Tag_GPS_Altitude>
+			<VideoPaths:Tag_GPS_Altitude_Ref></VideoPaths:Tag_GPS_Altitude_Ref>
+			<VideoPaths:Tag_GPS_Latitude></VideoPaths:Tag_GPS_Latitude>
+			<VideoPaths:Tag_GPS_Latitude_Ref></VideoPaths:Tag_GPS_Latitude_Ref>
+			<VideoPaths:Tag_GPS_Longitude></VideoPaths:Tag_GPS_Longitude>
+			<VideoPaths:Tag_GPS_Longitude_Ref></VideoPaths:Tag_GPS_Longitude_Ref>
+			<VideoPaths:Tag_GPS_Timestamp></VideoPaths:Tag_GPS_Timestamp>
+		</Data:VideoPaths>
+	</CameraObscura:Data>
+	<CameraObscura:Geneaology xmlns:Geneaology='http://www.witness.org/CameraObscura/NS/Geneaology'>
+		<Geneaology:Origin></Geneaology:Origin>
+		<Geneaology:ParentEntity></Geneaology:ParentEntity>
+		<Geneaology:DateAcquired></Geneaology:DateAcquired>
+		<Geneaology:SourceService></Geneaology:SourceService>
+	</CameraObscura:Geneaology>
+</Object>

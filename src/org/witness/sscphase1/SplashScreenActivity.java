@@ -67,6 +67,7 @@ public class SplashScreenActivity extends Activity implements OnClickListener, O
         super.onResume();
         
         prefs = new CameraObscuraPreferences(this);
+        //prefs.setDefaults();
 		walkThroughPrefSliderOutput.setText(prefs.getRiskLevelLabel(CameraObscuraPreferences.RISK_1));
     }    
 
@@ -80,7 +81,7 @@ public class SplashScreenActivity extends Activity implements OnClickListener, O
     		startActivity(intent);
     		finish();
 		} */ else if (view == walkThroughContinueButton) {
-			Intent intent = new Intent(this, CameraObscura.class);
+			Intent intent = new Intent(this, CameraObscuraMainMenu.class);
 			startActivity(intent);
 		}
 	}
