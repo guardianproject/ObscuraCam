@@ -1,4 +1,4 @@
-package com.lvh.SSCCameraObscura;
+package org.witness.sscphase1;
 
 import android.app.Activity;
 import android.content.Context;
@@ -281,7 +281,7 @@ public class SSCCameraObscura extends Activity implements
 	public void makeToast(String t) {
 		Toast.makeText(this, t, Toast.LENGTH_LONG);
 	}
-	
+	/*  This seems to be missing
 	  public boolean onCreateOptionsMenu(Menu m) {
 	    	mi = getMenuInflater();
 	    	mi.inflate(R.menu.menu, m);
@@ -307,7 +307,7 @@ public class SSCCameraObscura extends Activity implements
 	    		return super.onOptionsItemSelected(item);
 	    	}
 	    }
-	    
+	*/    
     
     protected void onConfigurationChanged() {
     	// I might need to handle this, but i set against in in the manifest for the main activity, so maybe not.
