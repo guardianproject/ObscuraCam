@@ -7,7 +7,6 @@
 	<string name="WalkThroughContinueButton">Continue</string>
 	<string name="WalkThroughTextView">This is an application which helps protect the privacy of individuals that may appear in pictures.</string>
 	<string name="WalkThroughPrefSliderLabel">Select Risk Level</string>
-    <string name="app_name">Camera Obscura - UI</string>
     <string name="menu_undo">Undo</string>
     <string name="menu_newtag">New Tag</string>
     <string name="menu_save">Undo</string>
