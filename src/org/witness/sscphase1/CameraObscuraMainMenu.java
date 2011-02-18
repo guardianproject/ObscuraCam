@@ -70,9 +70,11 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 
 			if (resultCode == RESULT_OK) {
 				if (requestCode == GALLERY_RESULT || requestCode == CAMERA_RESULT) {
-					Uri imageFileUri = Uri.fromFile(tmpImageFile);
 					
-					if (requestCode == GALLERY_RESULT) {
+					Uri imageFileUri;
+					if (requestCode == CAMERA_RESULT) {
+						imageFileUri = Uri.fromFile(tmpImageFile);
+					} else { //if (requestCode == GALLERY_RESULT) {
 						imageFileUri = intent.getData();
 					}
 					Log.v(LOGTAG,imageFileUri.toString());					
