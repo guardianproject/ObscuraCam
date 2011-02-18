@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/editView"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:background="#ffffff"
+	android:weightSum="1.0"
+	>
+	<ImageButton
+		android:id="@+id/uiTrashTag"
+		android:layout_width="fill_parent"
+		android:layout_height="0dip"
+		android:layout_weight="0.17"
+		android:background="#000000"
+		/>
+</RelativeLayout>

@@ -2,9 +2,21 @@
 <resources>
     <string name="hello">Hello World</string>
     <string name="app_name">Camera Obscura</string>
-<string name="SplashTextViewString">Camera Obscura</string>
-<string name="WalkThroughSkipButton">Skip</string>
-<string name="WalkThroughContinueButton">Continue</string>
-<string name="WalkThroughTextView">This is an application which helps protect the privacy of individuals that may appear in pictures.</string>
-<string name="WalkThroughPrefSliderLabel">Select Risk Level</string>
+	<string name="SplashTextViewString">Camera Obscura</string>
+	<string name="WalkThroughSkipButton">Skip</string>
+	<string name="WalkThroughContinueButton">Continue</string>
+	<string name="WalkThroughTextView">This is an application which helps protect the privacy of individuals that may appear in pictures.</string>
+	<string name="WalkThroughPrefSliderLabel">Select Risk Level</string>
+    <string name="app_name">Camera Obscura - UI</string>
+    <string name="menu_undo">Undo</string>
+    <string name="menu_newtag">New Tag</string>
+    <string name="menu_save">Undo</string>
+ 	<string name="menu_imageprefs">Image Prefs</string>
+    <string name="menu_share">Share</string>
+    <string name="menu_more">More</string>
+    <string name="imgprefs_h1">Preferences for this image</string>
+    <string name="imgprefs_undo">Undo</string>
+    <string name="imgprefs_save">Save Preferences</string>
+    <string name="imgprefs_panic">P A N I C !</string>
+    <string name="imgprefs_eraseexif">Erase All Exif Data</string>
 </resources>
