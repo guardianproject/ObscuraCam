@@ -1,6 +1,8 @@
 package org.witness.sscphase1;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Vector;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -28,18 +30,21 @@ import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.widget.AbsoluteLayout;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener {
 
 	final static String LOGTAG = "CAMERA OBSCRUA";
 
 	// Colors for region squares
-	public final static int DRAW_COLOR = Color.GREEN;
-	public final static int DETECTED_COLOR = Color.BLUE;
-	public final static int OBSCURED_COLOR = Color.RED;
-	public final static int TAGGED_COLOR = Color.YELLOW;
+	public final static int DRAW_COLOR = Color.argb(128, 0, 255, 0);// Green
+	public final static int DETECTED_COLOR = Color.argb(128, 0, 0, 255); // Blue
+	public final static int OBSCURED_COLOR = Color.argb(128, 255, 0, 0); // Red
+	public final static int TAGGED_COLOR = Color.argb(128, 128, 128, 0); // Something else
 	
 	
 	public final static int PREFERENCES_MENU_ITEM = 0;
@@ -73,6 +78,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	ImageView imageView;
 	ImageView overlayImageView;
 	
+	RelativeLayout regionButtonsLayout;
+	
 	// Touch Timer Related (Long Clicks)
 	Handler touchTimerHandler;
 	Runnable touchTimerRunnable;
@@ -83,7 +90,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	Canvas overlayCanvas;
 	Paint overlayPaint;
 	
-	ImageRegion imageRegion;
+	Vector<ImageRegion> imageRegions = new Vector();  // Being lazy 
+	//ImageRegion[] imageRegions;
 	
 	int originalImageWidth;
 	int originalImageHeight;
@@ -160,12 +168,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			overlayCanvas = new Canvas(overlayBitmap);
 			overlayPaint = new Paint();
 			overlayImageView.setImageBitmap(overlayBitmap); 
-			redrawOverlay();
+			//redrawOverlay();
 				
 			overlayImageView.setOnTouchListener(this);
 			//overlayImageView.setOnLongClickListener(this); // What about normal onClick??\
 			// Long click doesn't give place.. :-(
 			
+			// Layout for Image Regions
+			regionButtonsLayout = (RelativeLayout) this.findViewById(R.id.RegionButtonsLayout);
+
 		}
 	}
 	
@@ -274,10 +285,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 				if (mode == DRAW) {
 					// Create Region
-					imageRegion = new ImageRegion((int)startPoint.x, (int)startPoint.y, (int)event.getX(), (int)event.getY(), overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight);
+					ImageRegion imageRegion = new ImageRegion(this, (int)startPoint.x, (int)startPoint.y, (int)event.getX(), (int)event.getY(), overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
+					imageRegions.add(imageRegion);
+					addImageRegionToLayout(imageRegion);
+					clearOverlay();
 				}
-
-				redrawOverlay();
 
 				mode = NONE;
 				Log.v(LOGTAG,"mode=NONE");
@@ -309,10 +321,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					startPoint.set(event.getX(), event.getY());
 
 					putOnScreen();
-					redrawOverlay();
+					redrawRegions();
 
 				} else if (mode == DRAW) { 
 					
+					clearOverlay();
 					overlayPaint.setColor(DRAW_COLOR);
 					overlayPaint.setStyle(Paint.Style.STROKE);
 					overlayCanvas.drawRect(startPoint.x, startPoint.y, event.getX(), event.getY(), overlayPaint);
@@ -352,6 +365,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						overlayImageView.setImageMatrix(matrix);
 						
 						putOnScreen();
+						redrawRegions();
 
 						// Reset Start Finger Spacing
 						float esx = event.getX(0) - event.getX(1);
@@ -363,7 +377,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						float ysum = event.getY(0) + event.getY(1);
 						startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
 					}
-					redrawOverlay();
 				}
 				break;
 		}
@@ -403,17 +416,54 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		overlayImageView.setImageMatrix(matrix);
 	}
 	
-	public void redrawOverlay() {
+	public void clearOverlay() {
 				
 		Paint clearPaint = new Paint();
 		clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
 		overlayCanvas.drawRect(0, 0, overlayCanvas.getWidth(), overlayCanvas.getHeight(), clearPaint);
 		
-		if (imageRegion != null) {
-			overlayCanvas.drawRect(imageRegion.getScaledRect(overlayCanvas.getWidth(), overlayCanvas.getHeight()), overlayPaint);
-		}
 		overlayImageView.invalidate();
 		
+	}
+
+	public void addImageRegionToLayout(ImageRegion imageRegion) {
+		Rect regionScaledRect = imageRegion.getScaledRect(overlayCanvas.getWidth(), overlayCanvas.getHeight());
+    	RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(regionScaledRect.width(),regionScaledRect.height());
+    	lp.leftMargin = regionScaledRect.left;
+    	lp.topMargin = regionScaledRect.top;
+    	imageRegion.setLayoutParams(lp);
+    	imageRegion.setOnClickListener(this);
+    	regionButtonsLayout.addView(imageRegion,lp);		
+	}
+	
+	public void drawRegions() {
+		Iterator<ImageRegion> i = imageRegions.iterator();
+	    while (i.hasNext()) {
+	    	ImageRegion currentRegion = i.next();
+	    	addImageRegionToLayout(currentRegion);
+	    }
+	}
+	
+	public void redrawRegions() {
+		// Easier ??
+		regionButtonsLayout.removeAllViews();
+		drawRegions();
+		
+		// Put the buttons in the right place
+		/* Not working
+		Iterator<ImageRegion> i = imageRegions.iterator();
+	    while (i.hasNext()) {
+	    	ImageRegion currentRegion = i.next();
+	    	Rect scaledRect = currentRegion.getScaledRect(overlayCanvas.getWidth(), overlayCanvas.getHeight());
+	    	RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) currentRegion.getLayoutParams();
+	    	params.leftMargin = scaledRect.left;
+	    	params.topMargin = scaledRect.top;
+	    	params.height = scaledRect.height();
+	    	params.width = scaledRect.width();
+	    	currentRegion.setLayoutParams(params);
+	    	currentRegion.invalidate();
+	    }		
+	    */
 	}
 
 	public void onClick(View v) {
@@ -425,7 +475,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			imageView.setImageMatrix(matrix);
 			overlayImageView.setImageMatrix(matrix);
 			putOnScreen();
-			redrawOverlay();			
+			redrawRegions();
 		} else if (v == zoomOut) {
 			float scale = 0.75f;
 
@@ -434,7 +484,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			imageView.setImageMatrix(matrix);
 			overlayImageView.setImageMatrix(matrix);
 			putOnScreen();
-			redrawOverlay();
+			redrawRegions();
 		}
 	}
 	
