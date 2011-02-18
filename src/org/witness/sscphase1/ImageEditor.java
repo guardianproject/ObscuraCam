@@ -35,6 +35,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener {
 
@@ -485,6 +486,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			overlayImageView.setImageMatrix(matrix);
 			putOnScreen();
 			redrawRegions();
+		} else if (v instanceof ImageRegion) {
+			// Menu goes here
+			Toast t = Toast.makeText(this, "ImageRegion Clicked", Toast.LENGTH_SHORT);
+			t.show();
 		}
 	}
 	
