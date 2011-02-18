@@ -1,4 +1,4 @@
-package com.lvh.SSCCameraObscura;
+package org.witness.sscphase1;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -13,6 +13,5 @@ public class SSCImagePrefs extends Activity {
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
                 WindowManager.LayoutParams.FLAG_FULLSCREEN );
         setContentView(R.layout.imageprefs);
-        
     }
 }
