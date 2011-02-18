@@ -1,4 +1,4 @@
-package com.lvh.SSCCameraObscura;
+package org.witness.sscphase1;
 
 import org.json.JSONObject;
 
