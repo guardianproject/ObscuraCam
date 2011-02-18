@@ -1,8 +1,10 @@
 package org.witness.sscphase1;
 
+import android.content.Context;
 import android.graphics.Rect;
+import android.widget.Button;
 
-public class ImageRegion {
+public class ImageRegion extends Button {
 
 	float startX;
 	float startY;
@@ -11,9 +13,10 @@ public class ImageRegion {
 	
 	int imageWidth;
 	int imageHeight;
-	
-		
-	public ImageRegion(int _scaledStartX, int _scaledStartY, int _scaledEndX, int _scaledEndY, int _scaledImageWidth, int _scaledImageHeight, int _imageWidth, int _imageHeight) {
+			
+	public ImageRegion(Context context, int _scaledStartX, int _scaledStartY, int _scaledEndX, int _scaledEndY, int _scaledImageWidth, int _scaledImageHeight, int _imageWidth, int _imageHeight, int _backgroundColor)
+	{
+		super(context);
 		
 		/*
 		original 300
@@ -32,6 +35,8 @@ public class ImageRegion {
 				
 		imageWidth = _imageWidth;
 		imageHeight = _imageHeight;
+		
+		setBackgroundColor(_backgroundColor);
 	}
 	
 	public Rect getScaledRect(int _scaledImageWidth, int _scaledImageHeight) {
