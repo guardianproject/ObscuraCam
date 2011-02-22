@@ -6,6 +6,7 @@ import java.util.Vector;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.database.SQLException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -30,16 +31,14 @@ import android.view.View;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
-import android.widget.AbsoluteLayout;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener {
 
-	final static String LOGTAG = "CAMERA OBSCRUA";
+	final static String LOGTAG = "[CAMERA OBSCRUA] **************************** ";
 
 	// Colors for region squares
 	public final static int DRAW_COLOR = Color.argb(128, 0, 255, 0);// Green
@@ -96,6 +95,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	int originalImageWidth;
 	int originalImageHeight;
+	
+	// For database handling of metadata
+	Uri imageUri;
+	SSCMetadataHandler mdh;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -113,7 +116,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		zoomIn.setOnClickListener(this);
 		zoomOut.setOnClickListener(this);
 
-		Uri imageUri = getIntent().getData();
+		// I made this URI global, as we should require it in other methods (HNH 2/22/11)
+		imageUri = getIntent().getData();
 		if (imageUri != null) {
 			
 			try {
@@ -163,6 +167,21 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			
+			
+			// TODO: call SSCMetadataHandler to make a new entry into the database
+			// imageUri not properly resolved... arrrgh.
+			mdh = new SSCMetadataHandler(this);
+			try {
+				mdh.createDatabase();
+			} catch(IOException e) {}
+			try {
+				mdh.openDataBase();
+			} catch(SQLException e) {}
+			
+			try {
+				mdh.initiateMedia(imageUri,1);
+			} catch (IOException e) {}
 			
 			// Canvas for drawing
 			overlayBitmap = Bitmap.createBitmap(imageBitmap.getWidth(), imageBitmap.getHeight(), Config.ARGB_8888);
@@ -293,7 +312,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				}
 
 				mode = NONE;
-				Log.v(LOGTAG,"mode=NONE");
+				Log.v(LOGTAG,"mode=NONE and some");
 				break;
 				
 			case MotionEvent.ACTION_POINTER_UP:
