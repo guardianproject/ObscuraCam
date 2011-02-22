@@ -65,6 +65,7 @@
 		</Data:VideoPaths>
 	</CameraObscura:Data>
 	<CameraObscura:Geneaology xmlns:Geneaology='http://www.witness.org/CameraObscura/NS/Geneaology'>
+		<Geneaology:LocalMediaPath></Geneaology:LocalMediaPath>
 		<Geneaology:Origin></Geneaology:Origin>
 		<Geneaology:ParentEntity></Geneaology:ParentEntity>
 		<Geneaology:DateAcquired></Geneaology:DateAcquired>

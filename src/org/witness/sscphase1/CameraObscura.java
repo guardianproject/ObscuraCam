@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.SQLException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -245,6 +246,7 @@ public class CameraObscura extends Activity implements OnClickListener, OnTouchL
 					savePictureButton.setVisibility(View.VISIBLE);
 					cancelButton.setVisibility(View.VISIBLE);
 					eraseMetaDataButton.setVisibility(View.VISIBLE);
+
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
