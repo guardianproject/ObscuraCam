@@ -119,7 +119,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		this.uriPath = uriString.getPath();
 		
 		// insert initial info into database, creating a new record, then return its index.
-		index = insertIntoDatabase("camera_obscura","(g_localMediaPath)","\"" + uriString.toString() + "\"");
+		this.index = insertIntoDatabase("camera_obscura","(g_localMediaPath)","\"" + uriString.toString() + "\"");
 		
 		switch(mediaType) {
 		case 1:
