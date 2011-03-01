@@ -98,7 +98,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	// For database handling of metadata
 	Uri imageUri;
-	SSCMetadataHandler mdh;
+	//SSCMetadataHandler mdh;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -171,6 +171,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			
 			// TODO: call SSCMetadataHandler to make a new entry into the database
 			// imageUri not properly resolved... arrrgh.
+			/*
 			mdh = new SSCMetadataHandler(this);
 			try {
 				mdh.createDatabase();
@@ -182,6 +183,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			try {
 				mdh.initiateMedia(imageUri,1);
 			} catch (IOException e) {}
+			*/
 			
 			// Canvas for drawing
 			overlayBitmap = Bitmap.createBitmap(imageBitmap.getWidth(), imageBitmap.getHeight(), Config.ARGB_8888);
