@@ -26,6 +26,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	
 	public static final int WIPE_EXIF_DATA = -1;
 	public static final int CLONE_EXIF_DATA = -2;
+	public static final int RANDOMIZE_EXIF_DATA = -3;
 	
 	private static final String SSC = "[Camera Obscura : SSCMetadataHandler] ****************************";
 
@@ -75,12 +76,8 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	}
 	
 	public boolean openDataBase() throws SQLException {
-		boolean result = false;
 		db = SQLiteDatabase.openDatabase(DB_PATH + DB_NAME, null, SQLiteDatabase.OPEN_READWRITE);
-		if(db != null) {
-			result = true;
-		}
-		return result;
+		return db != null ? true : false;
 	}
 	
 	public int insertIntoDatabase(String tableName, String targetColumn, String values) throws SQLException {
@@ -106,6 +103,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	public Cursor readFromDatabase(String tableName,String refKey, String refVal) {
 		Cursor dbResponse = null;
 		dbResponse = db.rawQuery("SELECT * FROM " + tableName + " WHERE " + refKey + " = " + refVal,null);
+		dbResponse.close();
 		return dbResponse;
 	}
 	
@@ -126,7 +124,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			// image
 			try {
 				ExifInterface ei = new ExifInterface(uriPath);
-				Log.v(SSC,"SHOWING: " + exifDump(ei));
+				//Log.v(SSC,"SHOWING: " + exifDump(ei));
 			} catch (IOException e) {
 				Log.d(SSC,"ioexception : " + e);
 			}
@@ -146,6 +144,17 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			updateValues[x] = ei.getAttribute(exifTags[x]);
 		}
 		updateMetadata(CLONE_EXIF_DATA,updateValues,index);
+		return response;
+	}
+	
+	public String exifRandomize(ExifInterface ei) {
+		String response = "EXIF:\n";
+		String[] exifTags = c.getResources().getStringArray(R.array.ExifTags);
+		String[] updateValues = new String[exifTags.length];
+		for(int x=0;x<exifTags.length;x++) {
+			
+		}
+		updateMetadata(RANDOMIZE_EXIF_DATA,updateValues,index);
 		return response;
 	}
 	
@@ -186,6 +195,15 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			key = key.substring(0,key.length() -1);
 			theQuery = "UPDATE " + tableName + " SET " + key + " WHERE _id = " + index;
 			break;
+		case RANDOMIZE_EXIF_DATA:
+			tableName = "camera_obscura";
+			key = "";
+			for(x=0;x<exifTags.length;x++) {
+				key += (exifTags[x] + " = " + value[x] + ",");
+			}
+			key = key.substring(0,key.length() -1);
+			theQuery = "UPDATE " + tableName + " SET " + key + " WHERE _id = " + index;
+			break;
 		default:
 			tableName = "camera_obscura";
 			key = "";
@@ -193,6 +211,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			if(dbNames != null) {
 				key = dbNames.getColumnName(target);
 			}
+			dbNames.close();
 			theQuery = "UPDATE " + tableName + " SET " + key + " = " + value[0] + " WHERE _id = " + index;
 			break;
 		}
