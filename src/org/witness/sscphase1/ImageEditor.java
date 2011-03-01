@@ -28,6 +28,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
@@ -73,7 +74,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	// For Dragging
 	PointF startPoint = new PointF();
-
+	
+	//float minMoveDistance = 10f; // 10 pixels??  Perhaps should be density independent
+	float minMoveDistanceDP = 10f;
+	float minMoveDistance; // = ViewConfiguration.get(this).getScaledTouchSlop();
+	float scale; // Current display scale
+	
 	Button zoomIn, zoomOut;
 	ImageView imageView;
 	ImageView overlayImageView;
@@ -106,6 +112,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
         requestWindowFeature(Window.FEATURE_NO_TITLE);  
 		setContentView(R.layout.imageviewer);
+		
+		scale = this.getResources().getDisplayMetrics().density;
+		minMoveDistance = minMoveDistanceDP * scale + 0.5f;
 		
 		imageView = (ImageView) findViewById(R.id.ImageEditorImageView);
 		overlayImageView = (ImageView) findViewById(R.id.ImageEditorOverlayImageView);
@@ -209,7 +218,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		Canvas canvas = new Canvas(alteredBitmap);
 		Paint paint = new Paint();
 		canvas.drawBitmap(imageBitmap, 0, 0, paint);
-
 		
 		int OBSCURE_SQUARE = 0;
 		int OBSCURE_BLUR = 1;
@@ -332,74 +340,82 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// TODO: needs attention... does mode == DRAW get called?
 				// check start position, see it it's been moved a far enough distance (10 pxls?)
 				// from origin
-				if (touchTimerRunnable != null) {
-					touchTimerHandler.removeCallbacks(touchTimerRunnable);
-				}
 				
-				if (mode == DRAG) {
+				float distance = (float) (Math.sqrt(Math.abs(startPoint.x - event.getX()) + Math.abs(startPoint.y - event.getY())));
+				Log.v(LOGTAG,"Move Distance: " + distance);
+				Log.v(LOGTAG,"Min Distance: " + minMoveDistance);
 				
-					matrix.postTranslate(event.getX() - startPoint.x, event.getY() - startPoint.y);
-					imageView.setImageMatrix(matrix);
-					overlayImageView.setImageMatrix(matrix);
-					// Reset the start point
-					startPoint.set(event.getX(), event.getY());
-
-					putOnScreen();
-					redrawRegions();
-
-				} else if (mode == DRAW) { 
+				if (distance > minMoveDistance) {
+				
+					if (touchTimerRunnable != null) {
+						touchTimerHandler.removeCallbacks(touchTimerRunnable);
+					}
 					
-					clearOverlay();
-					overlayPaint.setColor(DRAW_COLOR);
-					overlayPaint.setStyle(Paint.Style.STROKE);
-					overlayCanvas.drawRect(startPoint.x, startPoint.y, event.getX(), event.getY(), overlayPaint);
-					overlayImageView.invalidate();
-
-				} else if (mode == ZOOM) {
+					if (mode == DRAG) {
 					
-					// Save the current matrix so that if zoom goes to big, we can revert
-					savedMatrix.set(matrix);
-					
-					// Get the spacing of the fingers, 2 fingers
-					float ex = event.getX(0) - event.getX(1);
-					float ey = event.getY(0) - event.getY(1);
-					endFingerSpacing = (float) Math.sqrt(ex * ex + ey * ey);
-
-					Log.d(LOGTAG, "End Finger Spacing=" + endFingerSpacing);
-	
-					if (endFingerSpacing > 10f) {
-						
-						// Ratio of spacing..  If it was 5 and goes to 10 the image is 2x as big
-						float scale = endFingerSpacing / startFingerSpacing;
-						// Scale from the midpoint
-						matrix.postScale(scale, scale, startFingerSpacingMidPoint.x, startFingerSpacingMidPoint.y);
-	
-						float[] matrixValues = new float[9];
-						matrix.getValues(matrixValues);
-						Log.v(LOGTAG, "Total Scale: " + matrixValues[0]);
-						Log.v(LOGTAG, "" + matrixValues[0] + " " + matrixValues[1]
-								+ " " + matrixValues[2] + " " + matrixValues[3]
-								+ " " + matrixValues[4] + " " + matrixValues[5]
-								+ " " + matrixValues[6] + " " + matrixValues[7]
-								+ " " + matrixValues[8]);
-						if (matrixValues[0] > MAX_SCALE) {
-							matrix.set(savedMatrix);
-						}
+						matrix.postTranslate(event.getX() - startPoint.x, event.getY() - startPoint.y);
 						imageView.setImageMatrix(matrix);
 						overlayImageView.setImageMatrix(matrix);
-						
+						// Reset the start point
+						startPoint.set(event.getX(), event.getY());
+	
 						putOnScreen();
 						redrawRegions();
-
-						// Reset Start Finger Spacing
-						float esx = event.getX(0) - event.getX(1);
-						float esy = event.getY(0) - event.getY(1);
-						startFingerSpacing = (float) Math.sqrt(esx * esx + esy * esy);
-						Log.d(LOGTAG, "New Start Finger Spacing=" + startFingerSpacing);
+	
+					} else if (mode == DRAW) { 
 						
-						float xsum = event.getX(0) + event.getX(1);
-						float ysum = event.getY(0) + event.getY(1);
-						startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
+						clearOverlay();
+						overlayPaint.setColor(DRAW_COLOR);
+						overlayPaint.setStyle(Paint.Style.STROKE);
+						overlayCanvas.drawRect(startPoint.x, startPoint.y, event.getX(), event.getY(), overlayPaint);
+						overlayImageView.invalidate();
+	
+					} else if (mode == ZOOM) {
+						
+						// Save the current matrix so that if zoom goes to big, we can revert
+						savedMatrix.set(matrix);
+						
+						// Get the spacing of the fingers, 2 fingers
+						float ex = event.getX(0) - event.getX(1);
+						float ey = event.getY(0) - event.getY(1);
+						endFingerSpacing = (float) Math.sqrt(ex * ex + ey * ey);
+	
+						Log.d(LOGTAG, "End Finger Spacing=" + endFingerSpacing);
+		
+						if (endFingerSpacing > 10f) {
+							
+							// Ratio of spacing..  If it was 5 and goes to 10 the image is 2x as big
+							float scale = endFingerSpacing / startFingerSpacing;
+							// Scale from the midpoint
+							matrix.postScale(scale, scale, startFingerSpacingMidPoint.x, startFingerSpacingMidPoint.y);
+		
+							float[] matrixValues = new float[9];
+							matrix.getValues(matrixValues);
+							Log.v(LOGTAG, "Total Scale: " + matrixValues[0]);
+							Log.v(LOGTAG, "" + matrixValues[0] + " " + matrixValues[1]
+									+ " " + matrixValues[2] + " " + matrixValues[3]
+									+ " " + matrixValues[4] + " " + matrixValues[5]
+									+ " " + matrixValues[6] + " " + matrixValues[7]
+									+ " " + matrixValues[8]);
+							if (matrixValues[0] > MAX_SCALE) {
+								matrix.set(savedMatrix);
+							}
+							imageView.setImageMatrix(matrix);
+							overlayImageView.setImageMatrix(matrix);
+							
+							putOnScreen();
+							redrawRegions();
+	
+							// Reset Start Finger Spacing
+							float esx = event.getX(0) - event.getX(1);
+							float esy = event.getY(0) - event.getY(1);
+							startFingerSpacing = (float) Math.sqrt(esx * esx + esy * esy);
+							Log.d(LOGTAG, "New Start Finger Spacing=" + startFingerSpacing);
+							
+							float xsum = event.getX(0) + event.getX(1);
+							float ysum = event.getY(0) + event.getY(1);
+							startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
+						}
 					}
 				}
 				break;
