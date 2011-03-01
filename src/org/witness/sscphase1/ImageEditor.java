@@ -312,7 +312,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				}
 
 				mode = NONE;
-				Log.v(LOGTAG,"mode=NONE and some");
+				Log.v(LOGTAG,"mode=NONE");
 				break;
 				
 			case MotionEvent.ACTION_POINTER_UP:
@@ -327,7 +327,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				break;
 				
 			case MotionEvent.ACTION_MOVE:
-				
+				// TODO: needs attention... does mode == DRAW get called?
+				// check start position, see it it's been moved a far enough distance (10 pxls?)
+				// from origin
 				if (touchTimerRunnable != null) {
 					touchTimerHandler.removeCallbacks(touchTimerRunnable);
 				}
