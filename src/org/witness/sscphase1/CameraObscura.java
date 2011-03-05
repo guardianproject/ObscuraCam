@@ -38,7 +38,7 @@ import android.widget.Toast;
 
 public class CameraObscura extends Activity implements OnClickListener, OnTouchListener {
     
-	final static String LOGTAG = "CAMERA OBSCRUA";
+	final static String LOGTAG = "[Camera Obscura : Camera Obscura] ***************************";
 		
 	final static int CAMERA_RESULT = 0;
 	final static int GALLERY_RESULT = 1;
@@ -163,6 +163,7 @@ public class CameraObscura extends Activity implements OnClickListener, OnTouchL
 		if (resultCode == RESULT_OK) {
 			if (requestCode == GALLERY_RESULT || requestCode == CAMERA_RESULT) 
 			{
+				Log.v(LOGTAG,"Coming back from :" + requestCode);
 				try {
 					// Size the image for the screen/memory
 					
@@ -248,7 +249,6 @@ public class CameraObscura extends Activity implements OnClickListener, OnTouchL
 					eraseMetaDataButton.setVisibility(View.VISIBLE);
 
 				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}

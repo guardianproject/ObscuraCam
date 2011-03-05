@@ -22,22 +22,12 @@
 		<item>1</item>
 	</string-array>
 
-	<!--  All EXIF Tags to be Queried -->
+	<!--  All EXIF Tags to be Queried, but this doesn't work.  keeping it here in case i need it -->
 	<string-array name="ExifTags">
-		<item>ExifInterface.ORIENTATION_FLIP_HORIZONTAL</item>
-		<item>ExifInterface.ORIENTATION_FLIP_VERTICAL</item>
-		<item>ExifInterface.ORIENTATION_NORMAL</item>
-		<item>ExifInterface.ORIENTATION_ROTATE_180</item>
-		<item>ExifInterface.ORIENTATION_ROTATE_270</item>
-		<item>ExifInterface.ORIENTATION_ROTATE_90</item>
-		<item>ExifInterface.ORIENTATION_TRANSPOSE</item>
-		<item>ExifInterface.ORIENTATION_TRANSVERSE</item>
-		<item>ExifInterface.ORIENTATION_UNDEFINED</item>
+
 		<item>ExifInterface.TAG_DATETIME</item>
 		<item>ExifInterface.TAG_FLASH</item>
 		<item>ExifInterface.TAG_FOCAL_LENGTH</item>
-		<item>ExifInterface.TAG_GPS_ALTITUDE</item>
-		<item>ExifInterface.TAG_GPS_ALTITUDE_REF</item>
 		<item>ExifInterface.TAG_GPS_DATESTAMP</item>
 		<item>ExifInterface.TAG_GPS_LATITUDE</item>
 		<item>ExifInterface.TAG_GPS_LATITUDE_REF</item>
@@ -51,25 +41,12 @@
 		<item>ExifInterface.TAG_MODEL</item>
 		<item>ExifInterface.TAG_ORIENTATION</item>
 		<item>ExifInterface.TAG_WHITE_BALANCE</item>
-		<item>ExifInterface.WHITEBALANCE_AUTO</item>
-		<item>ExifInterface.WHITEBALANCE_MANUAL</item>
 	</string-array>
 
 	<string-array name="ExifTagsDB">
-		<item>d_orientationFlipHorizontal</item>
-		<item>d_orientationFlipVertical</item>
-		<item>d_orientationNormal</item>
-		<item>d_orientationRotate180</item>
-		<item>d_orientationRotate270</item>
-		<item>d_orientationRotate90</item>
-		<item>d_orientationTranspose</item>
-		<item>d_orientationTransverse</item>
-		<item>d_orientationUndefined</item>
 		<item>d_tagDateTime</item>
 		<item>d_tagFlash</item>
 		<item>d_tagFocalLength</item>
-		<item>d_tagGPSAltitude</item>
-		<item>d_tagGPSAltitudeRef</item>
 		<item>d_tagGPSDateStamp</item>
 		<item>d_tagGPSLatitude</item>
 		<item>d_tagGPSLatitudeRef</item>
@@ -83,7 +60,5 @@
 		<item>d_tagModel</item>
 		<item>d_tagOrientation</item>
 		<item>d_tagWhiteBalance</item>
-		<item>d_whiteBalanceAuto</item>
-		<item>d_whiteBalanceManual</item>
 	</string-array>
 </resources>

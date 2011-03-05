@@ -16,7 +16,7 @@ import android.widget.Button;
 
 public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    
-		final static String LOGTAG = "CAMERA OBSCRUA";
+		final static String LOGTAG = "[Camera Obscura : CameraObscuraMainMenu] **********************************";
 			
 		final static int CAMERA_RESULT = 0;
 		final static int GALLERY_RESULT = 1;
@@ -28,6 +28,7 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 		Button choosePictureButton, takePictureButton;
 		
 		File tmpImageFile;
+		int imageSource;
 		
 	    @Override
 	    public void onCreate(Bundle savedInstanceState) {
@@ -70,17 +71,19 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 
 			if (resultCode == RESULT_OK) {
 				if (requestCode == GALLERY_RESULT || requestCode == CAMERA_RESULT) {
-					
 					Uri imageFileUri;
 					if (requestCode == CAMERA_RESULT) {
 						imageFileUri = Uri.fromFile(tmpImageFile);
+						imageSource = 1;
 					} else { //if (requestCode == GALLERY_RESULT) {
 						imageFileUri = intent.getData();
+						imageSource = 2;
 					}
 					Log.v(LOGTAG,imageFileUri.toString());					
 					
 					Intent passingIntent = new Intent(this,ImageEditor.class);
 					passingIntent.setData(imageFileUri);
+					passingIntent.putExtra("imageSource",imageSource);
 					startActivityForResult(passingIntent, IMAGE_EDITOR);					
 				}
 			}

@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.util.Log;
 
 public class SSCMetadataHandler extends SQLiteOpenHelper {
@@ -41,7 +42,6 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			this.getReadableDatabase();
 			try {
 				copyDataBase();
-				Log.v(SSC,"OK DB created!");
 			} catch(IOException e) {
 				Log.d(SSC,"DB COPY Error: " + e);
 			}
@@ -94,37 +94,56 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		if(dbCount != null) {
 			dbCount.moveToLast();
 			i = dbCount.getPosition();
+			dbCount.close();
 			Log.v(SSC,"DB COUNT = " + i);
 		}
-		dbCount.close();
 		return i;
 	}
 	
 	public Cursor readFromDatabase(String tableName,String refKey, String refVal) {
 		Cursor dbResponse = null;
 		dbResponse = db.rawQuery("SELECT * FROM " + tableName + " WHERE " + refKey + " = " + refVal,null);
-		dbResponse.close();
+		// TODO: and what are we going to do with the returned cursor?
 		return dbResponse;
 	}
 	
-	public void initiateMedia(Uri uriString, int mediaType) throws IOException {
+	public String getFileNameFromUri(Uri uriString) {
+		String fileName = null;
+		String[] projection = {MediaStore.Images.Media.DATA};
+		Cursor msData = c.getContentResolver().query(uriString, projection, null, null, null);
+		msData.moveToFirst();
+		fileName = msData.getString(msData.getColumnIndex(projection[0]));
+		msData.close();
+		return fileName;
+	}
+	
+	public void initiateMedia(Uri uriString, int mediaType, int imageSource) throws IOException {
 		/*
 		 *  this method requires the mediaType to be passed (image or video)
 		 *  although we're only dealing with images now, I think we'll
-		 *  have to branch off behaviors when we deal with video in the fuure
+		 *  have to branch off behaviors when we deal with video in the future
 		 */
 		this.uriString = uriString;
-		this.uriPath = uriString.getPath();
-		
+
 		// insert initial info into database, creating a new record, then return its index.
 		this.index = insertIntoDatabase("camera_obscura","(g_localMediaPath)","\"" + uriString.toString() + "\"");
 		
 		switch(mediaType) {
 		case 1:
 			// image
+			switch(imageSource) {
+			// the uriPath will be different, depending on the source of the image...
+			case 1:
+				this.uriPath = uriString.getPath();
+				break;
+			case 2:
+				this.uriPath = getFileNameFromUri(uriString);
+				break;
+			}
+			
 			try {
 				ExifInterface ei = new ExifInterface(uriPath);
-				//Log.v(SSC,"SHOWING: " + exifDump(ei));
+				exifParser(ei,CLONE_EXIF_DATA);
 			} catch (IOException e) {
 				Log.d(SSC,"ioexception : " + e);
 			}
@@ -134,74 +153,82 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		}
 	}
 	
-	public String exifDump(ExifInterface ei) {
-		// in testing, these values are all null.  why?
-		String response = "EXIF:\n";
-		String[] exifTags = c.getResources().getStringArray(R.array.ExifTags);
-		String[] updateValues = new String[exifTags.length];
-		for(int x=0;x<exifTags.length;x++) {
-			response += ("tag: " + exifTags[x] + ", value: " + ei.getAttribute(exifTags[x]) + "\n");
-			updateValues[x] = ei.getAttribute(exifTags[x]);
+	public String exifParser(ExifInterface ei, int mode) {
+		String exifValues = "";
+		String[] exifTags = c.getResources().getStringArray(R.array.ExifTagsDB);
+		switch(mode) {
+		case CLONE_EXIF_DATA:
+			// get all exif values and input them into the database
+			exifValues += exifTags[0] + "='" + ei.getAttribute(ExifInterface.TAG_DATETIME) + "',";
+			exifValues += exifTags[1] + "='" + ei.getAttribute(ExifInterface.TAG_FLASH) + "',";
+			exifValues += exifTags[2] + "='" + ei.getAttribute(ExifInterface.TAG_FOCAL_LENGTH) + "',";
+			exifValues += exifTags[3] + "='" + ei.getAttribute(ExifInterface.TAG_GPS_DATESTAMP) + "',";
+			exifValues += exifTags[4] + "='" + ei.getAttribute(ExifInterface.TAG_GPS_LATITUDE) + "',";
+			exifValues += exifTags[5] + "='" + ei.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF) + "',";
+			exifValues += exifTags[6] + "='" + ei.getAttribute(ExifInterface.TAG_GPS_LONGITUDE) + "',";
+			exifValues += exifTags[7] + "='" + ei.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF) + "',";
+			exifValues += exifTags[8] + "='" + ei.getAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD) + "',";
+			exifValues += exifTags[9] + "='" + ei.getAttribute(ExifInterface.TAG_GPS_TIMESTAMP) + "',";
+			exifValues += exifTags[10] + "='" + ei.getAttribute(ExifInterface.TAG_IMAGE_LENGTH) + "',";
+			exifValues += exifTags[11] + "='" + ei.getAttribute(ExifInterface.TAG_IMAGE_WIDTH) + "',";
+			exifValues += exifTags[12] + "='" + ei.getAttribute(ExifInterface.TAG_MAKE) + "',";
+			exifValues += exifTags[13] + "='" + ei.getAttribute(ExifInterface.TAG_MODEL) + "',";
+			exifValues += exifTags[14] + "='" + ei.getAttribute(ExifInterface.TAG_ORIENTATION) + "',";
+			exifValues += exifTags[15] + "='" + ei.getAttribute(ExifInterface.TAG_WHITE_BALANCE) + "'";
+			updateMetadata(CLONE_EXIF_DATA,exifValues,index);
+			break;
+		case RANDOMIZE_EXIF_DATA:
+			// TODO: create a random string of realistic data and put it into the database
+			break;
+		case WIPE_EXIF_DATA:
+			// set all values to null
+			for(int x=0;x<exifTags.length;x++) {
+				exifValues += exifTags[x] + "=null,";
+			}
+			exifValues = exifValues.substring(0,-1);
+			ei.setAttribute(ExifInterface.TAG_DATETIME,null);
+			ei.setAttribute(ExifInterface.TAG_FLASH,null);
+			ei.setAttribute(ExifInterface.TAG_FOCAL_LENGTH,null);
+			ei.setAttribute(ExifInterface.TAG_GPS_DATESTAMP,null);
+			ei.setAttribute(ExifInterface.TAG_GPS_LATITUDE,null);
+			ei.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF,null);
+			ei.setAttribute(ExifInterface.TAG_GPS_LONGITUDE,null);
+			ei.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF,null);
+			ei.setAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD,null);
+			ei.setAttribute(ExifInterface.TAG_GPS_TIMESTAMP,null);
+			ei.setAttribute(ExifInterface.TAG_IMAGE_LENGTH,null);
+			ei.setAttribute(ExifInterface.TAG_IMAGE_WIDTH,null);
+			ei.setAttribute(ExifInterface.TAG_MAKE,null);
+			ei.setAttribute(ExifInterface.TAG_MODEL,null);
+			ei.setAttribute(ExifInterface.TAG_ORIENTATION,null);
+			ei.setAttribute(ExifInterface.TAG_WHITE_BALANCE,null);
+			updateMetadata(WIPE_EXIF_DATA,exifValues,index);
+			break;
 		}
-		updateMetadata(CLONE_EXIF_DATA,updateValues,index);
-		return response;
+		return exifValues;
 	}
 	
-	public String exifRandomize(ExifInterface ei) {
-		String response = "EXIF:\n";
-		String[] exifTags = c.getResources().getStringArray(R.array.ExifTags);
-		String[] updateValues = new String[exifTags.length];
-		for(int x=0;x<exifTags.length;x++) {
-			
-		}
-		updateMetadata(RANDOMIZE_EXIF_DATA,updateValues,index);
-		return response;
-	}
-	
-	public void exifWipe(ExifInterface ei) {
-		// should Toast to user that this cannot be undone!
-		String[] exifTags = c.getResources().getStringArray(R.array.ExifTags);
-		for(int x=0;x<exifTags.length;x++) {
-			ei.setAttribute(exifTags[x],null);
-		}
-		updateMetadata(WIPE_EXIF_DATA,null,index);
-	}
-	
-	public void updateMetadata(int target, String[] value, int index) {
+	public void updateMetadata(int target, String value, int index) {
 		/* special batch updating is coded in the negatives
 		 * otherwise, the integer passed is the column number
 		 * and naturally pertains to the "main" camera_obscura table on the database.
 		 */
 		String theQuery;
 		String tableName, key;
-		String[] exifTags = c.getResources().getStringArray(R.array.ExifTagsDB);
-		int x;
 		switch(target) {
 		case WIPE_EXIF_DATA:
 			tableName = "camera_obscura";
-			key = "";
-			for(x=0;x<exifTags.length;x++) {
-				key += (exifTags[x] + " = null,"); 
-			}
-			key = key.substring(0,key.length() - 1);
+			key = value;
 			theQuery = "UPDATE " + tableName + " SET " + key + " WHERE _id = " + index; 
 			break;
 		case CLONE_EXIF_DATA:
 			tableName = "camera_obscura";
-			key = "";
-			for(x=0;x<exifTags.length;x++) {
-				key += (exifTags[x] + " = " + value[x] + ",");
-			}
-			key = key.substring(0,key.length() -1);
+			key = value;
 			theQuery = "UPDATE " + tableName + " SET " + key + " WHERE _id = " + index;
 			break;
 		case RANDOMIZE_EXIF_DATA:
 			tableName = "camera_obscura";
-			key = "";
-			for(x=0;x<exifTags.length;x++) {
-				key += (exifTags[x] + " = " + value[x] + ",");
-			}
-			key = key.substring(0,key.length() -1);
+			key = value;
 			theQuery = "UPDATE " + tableName + " SET " + key + " WHERE _id = " + index;
 			break;
 		default:
@@ -212,7 +239,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 				key = dbNames.getColumnName(target);
 			}
 			dbNames.close();
-			theQuery = "UPDATE " + tableName + " SET " + key + " = " + value[0] + " WHERE _id = " + index;
+			theQuery = "UPDATE " + tableName + " SET " + key + " = " + value + " WHERE _id = " + index;
 			break;
 		}
 		db.execSQL(theQuery);

@@ -39,7 +39,7 @@ import android.widget.Toast;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener {
 
-	final static String LOGTAG = "[CAMERA OBSCRUA] **************************** ";
+	final static String LOGTAG = "[Camera Obscura : ImageEditor] **************************** ";
 
 	// Colors for region squares
 	public final static int DRAW_COLOR = Color.argb(128, 0, 255, 0);// Green
@@ -102,9 +102,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	int originalImageWidth;
 	int originalImageHeight;
 	
-	// For database handling of metadata
+	/* For database handling of metadata
+	 * imageUriSource added because if user takes a photo
+	 * with the camera, a file URI is returned
+	 * but if user chooses a gallery image, URI has to be looked up.
+	 */
+	Bundle imageSource;
 	Uri imageUri;
-	//SSCMetadataHandler mdh;
+	SSCMetadataHandler mdh;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -127,6 +132,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		// I made this URI global, as we should require it in other methods (HNH 2/22/11)
 		imageUri = getIntent().getData();
+		imageSource = getIntent().getExtras();
+		
 		if (imageUri != null) {
 			
 			try {
@@ -178,9 +185,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			}
 			
 			
-			// TODO: call SSCMetadataHandler to make a new entry into the database
-			// imageUri not properly resolved... arrrgh.
-			/*
+			// Call SSCMetadataHandler to make a new entry into the database
 			mdh = new SSCMetadataHandler(this);
 			try {
 				mdh.createDatabase();
@@ -190,9 +195,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			} catch(SQLException e) {}
 			
 			try {
-				mdh.initiateMedia(imageUri,1);
+				mdh.initiateMedia(imageUri,1,imageSource.getInt("imageSource"));
 			} catch (IOException e) {}
-			*/
 			
 			// Canvas for drawing
 			overlayBitmap = Bitmap.createBitmap(imageBitmap.getWidth(), imageBitmap.getHeight(), Config.ARGB_8888);
