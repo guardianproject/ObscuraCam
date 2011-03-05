@@ -52,6 +52,11 @@
 		<Data:Whitebalance_Auto></Data:Whitebalance_Auto>
 		<Data:Whitebalance_Manual></Data:Whitebalance_Manual>
 		<Data:Software></Data:Software>
+		<Data:Bluetooth_Neighbors></Data:Bluetooth_Neighbors>
+		<Data:Accelerometer_Axis_Amount></Data:Accelerometer_Axis_Amount>
+		<Data:Accelerometer_Axis_Initial_X></Data:Accelerometer_Axis_Initial_X>
+		<Data:Accelerometer_Axis_Initial_Y></Data:Accelerometer_Axis_Initial_Y>
+		<Data:Accelerometer_Axis_Initial_Z></Data:Accelerometer_Axis_Initial_Z>
 		<!-- the following tags are only applicable to video, and receive null values if the media type is image -->
 		<Data:Video_Duration></Data:Video_Duration>
 		<Data:VideoPaths xmlns:VideoPaths='http://www.witness.org/CameraObscura/NS/VideoPaths' NumPaths="">
