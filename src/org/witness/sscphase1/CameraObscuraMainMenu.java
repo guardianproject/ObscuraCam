@@ -40,6 +40,12 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    	
 	    	takePictureButton = (Button) this.findViewById(R.id.TakePictureButton);
 	    	takePictureButton.setOnClickListener(this);
+	    	
+	    	/*
+	    	 * start service for sensor reading
+	    	 */
+	    	Intent ss = new Intent(this,SSCSensorSucker.class);
+	    	startService(ss);
 	    }
 
 		public void onClick(View v) {
