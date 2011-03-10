@@ -3,7 +3,12 @@ package org.witness.sscphase1;
 import java.io.File;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -29,6 +34,12 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 		
 		File tmpImageFile;
 		int imageSource;
+				
+		boolean logBT,logGeo,logAcc;
+		private final boolean ALLOWED = true;
+		private final boolean NOT_ALLOWED = false;
+		
+		Intent ss;
 		
 	    @Override
 	    public void onCreate(Bundle savedInstanceState) {
@@ -42,9 +53,16 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    	takePictureButton.setOnClickListener(this);
 	    	
 	    	/*
-	    	 * start service for sensor reading
+	    	 * TODO: parse preference file for user's stance on sensor logging
+	    	 * for now, i set them all as "allowed"
 	    	 */
-	    	Intent ss = new Intent(this,SSCSensorSucker.class);
+	    	logBT = logGeo = logAcc = ALLOWED;
+	    	
+	    	// start service for sensor reading
+	    	ss = new Intent(this,SSCSensorSucker.class);
+	    	ss.putExtra("logBT", logBT);
+	    	ss.putExtra("logAcc", logAcc);
+	    	ss.putExtra("logGeo", logGeo);
 	    	startService(ss);
 	    }
 
@@ -81,6 +99,7 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 					if (requestCode == CAMERA_RESULT) {
 						imageFileUri = Uri.fromFile(tmpImageFile);
 						imageSource = 1;
+						// TODO: Might we also have to pass some sensor data here? 
 					} else { //if (requestCode == GALLERY_RESULT) {
 						imageFileUri = intent.getData();
 						imageSource = 2;
@@ -114,5 +133,11 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    		default:
 	    			return false;
 	    	}
+	    }
+	    
+	    @Override
+	    protected void onDestroy() {
+	    	super.onDestroy();
+	    	stopService(ss);
 	    }
 }
