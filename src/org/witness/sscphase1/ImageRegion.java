@@ -2,6 +2,7 @@ package org.witness.sscphase1;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.util.Log;
 import android.widget.Button;
 
 public class ImageRegion extends Button {
@@ -13,6 +14,10 @@ public class ImageRegion extends Button {
 	
 	int imageWidth;
 	int imageHeight;
+	
+	int index;
+	
+	public static final String SSC = "[Camera Obscura : ImageRegion] **************************** ";
 			
 	public ImageRegion(
 			Context context, 
@@ -20,7 +25,8 @@ public class ImageRegion extends Button {
 			int _scaledEndX, int _scaledEndY, 
 			int _scaledImageWidth, int _scaledImageHeight, 
 			int _imageWidth, int _imageHeight, 
-			int _backgroundColor)
+			int _backgroundColor,
+			int _index)
 	{
 		super(context);
 		
@@ -41,6 +47,7 @@ public class ImageRegion extends Button {
 				
 		imageWidth = _imageWidth;
 		imageHeight = _imageHeight;
+		index = _index;
 		
 		setBackgroundColor(_backgroundColor);
 	}
@@ -53,5 +60,19 @@ public class ImageRegion extends Button {
 		float scaledEndY = (float)endY * (float)_scaledImageHeight/(float)imageHeight;
 
 		return new Rect((int)scaledStartX, (int)scaledStartY, (int)scaledEndX, (int)scaledEndY);
+	}
+	
+	public String attachTags() {
+	   	/*
+    	 * this method adds the returned coordinates to our array of ROIs
+    	 * and creates a JSON String for identifying it permanently
+    	 */
+		float[] tagCoords = {startX,startY,endX,endY};
+    	String newTagCoordsDescription = "{\"id\":" + index + ",\"coords\":[";
+    	for(int x=0;x<4;x++) {
+    		newTagCoordsDescription += Float.toString(tagCoords[x]) + ",";
+    	}
+    	newTagCoordsDescription = newTagCoordsDescription.substring(0,newTagCoordsDescription.length() - 1) + "]}";
+    	return newTagCoordsDescription;
 	}
 }

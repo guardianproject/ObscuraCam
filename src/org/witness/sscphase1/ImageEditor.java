@@ -5,11 +5,13 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.database.SQLException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -28,14 +30,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener {
 
@@ -85,6 +86,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	ImageView overlayImageView;
 	
 	RelativeLayout regionButtonsLayout;
+	FrameLayout frameRoot;
 	
 	// Touch Timer Related (Long Clicks)
 	Handler touchTimerHandler;
@@ -99,6 +101,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	Vector<ImageRegion> imageRegions = new Vector();  // Being lazy 
 	//ImageRegion[] imageRegions;
 	
+	int ImageRegionIndex = 0;
+	int[] buttonIDs;
+	
 	int originalImageWidth;
 	int originalImageHeight;
 	
@@ -110,6 +115,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	Bundle imageSource;
 	Uri imageUri;
 	SSCMetadataHandler mdh;
+	
+	Vibrator vibe;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -123,6 +130,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		imageView = (ImageView) findViewById(R.id.ImageEditorImageView);
 		overlayImageView = (ImageView) findViewById(R.id.ImageEditorOverlayImageView);
+		frameRoot = (FrameLayout) findViewById(R.id.frameRoot);
 
 		zoomIn = (Button) this.findViewById(R.id.ZoomIn);
 		zoomOut = (Button) this.findViewById(R.id.ZoomOut);
@@ -133,6 +141,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// I made this URI global, as we should require it in other methods (HNH 2/22/11)
 		imageUri = getIntent().getData();
 		imageSource = getIntent().getExtras();
+		
+		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
 		
 		if (imageUri != null) {
 			
@@ -319,8 +330,21 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 				if (mode == DRAW) {
 					// Create Region
-					ImageRegion imageRegion = new ImageRegion(this, (int)startPoint.x, (int)startPoint.y, (int)event.getX(), (int)event.getY(), overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
+					vibe.vibrate(50);
+					ImageRegion imageRegion = new ImageRegion(
+							this, 
+							(int)startPoint.x, 
+							(int)startPoint.y, 
+							(int)event.getX(), 
+							(int)event.getY(), 
+							overlayCanvas.getWidth(), 
+							overlayCanvas.getHeight(), 
+							originalImageWidth, 
+							originalImageHeight, 
+							DRAW_COLOR,
+							ImageRegionIndex);
 					imageRegions.add(imageRegion);
+					ImageRegionIndex++;
 					addImageRegionToLayout(imageRegion);
 					clearOverlay();
 				}
@@ -477,6 +501,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	lp.topMargin = regionScaledRect.top;
     	imageRegion.setLayoutParams(lp);
     	imageRegion.setOnClickListener(this);
+    	imageRegion.setContentDescription(imageRegion.attachTags());
     	regionButtonsLayout.addView(imageRegion,lp);		
 	}
 	
@@ -531,8 +556,30 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			redrawRegions();
 		} else if (v instanceof ImageRegion) {
 			// Menu goes here
-			Toast t = Toast.makeText(this, "ImageRegion Clicked", Toast.LENGTH_SHORT);
-			t.show();
+			Log.v(LOGTAG,"imageRegion clicked = " + v.getContentDescription());
+	    	SSCEditTag et = new SSCEditTag(v.getContentDescription(), regionButtonsLayout);
+	    	buttonIDs = et.getButtonIDs();
+	    	OnClickListener ocl = new OnClickListener() {
+				public void onClick(View v) {
+					if(v.getId() == buttonIDs[0]) {
+						// Edit Tag
+						Log.v(LOGTAG,"Edit Tag clicked");
+					} else if(v.getId() == buttonIDs[1]) {
+						// ID Tag
+						Log.v(LOGTAG,"ID Tag clicked");
+					} else if(v.getId() == buttonIDs[2]) {
+						// Blur Tag
+						Log.v(LOGTAG,"Blur Tag clicked");
+					} else if(v.getId() == buttonIDs[3]) {
+						// Image Prefs
+						Log.v(LOGTAG,"Image Prefs clicked");
+						launchImagePrefs();
+					}
+				}
+	    	};
+	    	et.addActions(ocl);
+	    	et.show();
+
 		}
 	}
 	
@@ -550,8 +597,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	switch (item.getItemId()) {
         	case PREFERENCES_MENU_ITEM:
         	 	// Load Preferences Activity
-        		Intent intent = new Intent(this, PreferencesActivity.class);
-        		startActivity(intent);	
+        		launchImagePrefs();
         		return true;
         	case PANIC_MENU_ITEM:
         		// Look up preferences and do what is required
@@ -565,5 +611,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     		default:
     			return false;
     	}
-    }	
+    }
+    
+    // TODO: let's handle the menu activities here...
+    public void launchImagePrefs() {
+		Intent intent = new Intent(this, PreferencesActivity.class);
+		startActivity(intent);
+    }
 }
