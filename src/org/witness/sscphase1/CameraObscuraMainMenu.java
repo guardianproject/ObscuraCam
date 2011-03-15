@@ -39,6 +39,7 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    @Override
 	    public void onCreate(Bundle savedInstanceState) {
 	        super.onCreate(savedInstanceState);
+	        	        
 	        setContentView(R.layout.mainmenu);
 	        
 	    	choosePictureButton = (Button) this.findViewById(R.id.ChoosePictureButton);
@@ -135,4 +136,19 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    	super.onDestroy();
 	    	stopService(ss);
 	    }
+	    
+	    @Override
+	    public void onRestoreInstanceState(Bundle savedInstanceState) {
+	        if (savedInstanceState.containsKey("tmpImageFile")) {
+	        	tmpImageFile = (File) savedInstanceState.getSerializable("tmpImageFile");
+	        }
+	    }
+	    
+	    @Override
+	    public void onSaveInstanceState(Bundle savedInstanceState) {
+	      if (tmpImageFile != null) {
+	    	  savedInstanceState.putSerializable("tmpImageFile", tmpImageFile);
+	      }
+	      super.onSaveInstanceState(savedInstanceState);
+	    }	    
 }
