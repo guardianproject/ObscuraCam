@@ -520,10 +520,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	}
 
 	public void addImageRegionToLayout(ImageRegion imageRegion) {
-		Rect regionScaledRect = imageRegion.getScaledRect(overlayCanvas.getWidth(), overlayCanvas.getHeight());
+
+		// Get Rectangle of Current Tranformed Image
+		RectF theRect = new RectF(0,0,imageBitmap.getWidth(), imageBitmap.getHeight());
+		matrix.mapRect(theRect);
+		Log.v(LOGTAG,"New Width:" + theRect.width());
+
+		Rect regionScaledRect = imageRegion.getScaledRect((int)theRect.width(), (int)theRect.height());
     	RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(regionScaledRect.width(),regionScaledRect.height());
-    	lp.leftMargin = regionScaledRect.left;
-    	lp.topMargin = regionScaledRect.top;
+    	lp.leftMargin = (int)theRect.left + regionScaledRect.left;
+    	lp.topMargin = (int)theRect.top + regionScaledRect.top;
     	imageRegion.setLayoutParams(lp);
     	imageRegion.setOnClickListener(this);
     	imageRegion.setContentDescription(imageRegion.attachTags());
