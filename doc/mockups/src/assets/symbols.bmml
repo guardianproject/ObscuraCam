@@ -1,0 +1,33 @@
+<mockup version="1.0" skin="sketch" measuredW="260" measuredH="352" mockupW="200" mockupH="332">
+  <controls>
+    <control controlID="0" controlTypeID="__group__" x="60" y="20" w="200" h="332" measuredW="200" measuredH="332" zOrder="0" locked="false" isInGroup="-1">
+      <controlProperties>
+        <controlName>UI_Frame</controlName>
+      </controlProperties>
+      <groupChildrenDescriptors>
+        <control controlID="0" controlTypeID="com.balsamiq.mockups::Canvas" x="0" y="0" w="200" h="332" measuredW="100" measuredH="70" zOrder="0" locked="false" isInGroup="0"/>
+        <control controlID="41" controlTypeID="__group__" x="0" y="0" w="200" h="22" measuredW="200" measuredH="22" zOrder="1" locked="false" isInGroup="0">
+          <groupChildrenDescriptors>
+            <control controlID="7" controlTypeID="com.balsamiq.mockups::Canvas" x="0" y="0" w="200" h="22" measuredW="100" measuredH="70" zOrder="0" locked="false" isInGroup="41"/>
+            <control controlID="8" controlTypeID="com.balsamiq.mockups::Icon" x="116" y="3" w="-1" h="-1" measuredW="16" measuredH="16" zOrder="1" locked="false" isInGroup="41">
+              <controlProperties>
+                <icon>CellBarsIcon%7Cxsmall</icon>
+              </controlProperties>
+            </control>
+            <control controlID="9" controlTypeID="com.balsamiq.mockups::Icon" x="136" y="5" w="-1" h="-1" measuredW="16" measuredH="16" zOrder="2" locked="false" isInGroup="41">
+              <controlProperties>
+                <icon>BatteryIcon%7Cxsmall</icon>
+              </controlProperties>
+            </control>
+            <control controlID="14" controlTypeID="com.balsamiq.mockups::Label" x="154" y="3" w="42" h="19" measuredW="42" measuredH="19" zOrder="3" locked="false" isInGroup="41">
+              <controlProperties>
+                <size>10</size>
+                <text>9%3A01%20AM</text>
+              </controlProperties>
+            </control>
+          </groupChildrenDescriptors>
+        </control>
+      </groupChildrenDescriptors>
+    </control>
+  </controls>
+</mockup>
