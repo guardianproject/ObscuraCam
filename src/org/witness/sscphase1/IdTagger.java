@@ -88,6 +88,7 @@ public class IdTagger extends Activity {
 	}
 	
 	public void saveSubject(String subjectName) {
-		int subjectIndex = mdh.insertIntoDatabase("ssc_subjects", "(s_entityName,associatedMedia)", "\"" + subjectName + "\"," + b.getInt("imageResourceCursor"));
+		// TODO: debug, pls.
+		//int subjectIndex = mdh.insertIntoDatabase("ssc_subjects", "(s_entityName,associatedMedia)", "\"" + subjectName + "\"," + b.getInt("imageResourceCursor"));
 	}
 }
