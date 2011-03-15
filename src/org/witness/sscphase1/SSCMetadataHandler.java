@@ -4,6 +4,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -83,7 +85,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	public int insertIntoDatabase(String tableName, String targetColumn, String values) throws SQLException {
 		String theQuery = "INSERT INTO " + tableName;
 		if(targetColumn != null) {
-			theQuery += targetColumn;
+			theQuery += " " + targetColumn;
 		}
 		theQuery += " VALUES (" + values + ")";
 		db.execSQL(theQuery);
@@ -104,11 +106,26 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		return index;
 	}
 	
-	public Cursor readFromDatabase(String tableName,String refKey, String refVal) {
+	public Cursor readItemFromDatabase(String tableName,String refKey, String refVal) {
 		Cursor dbResponse = null;
 		dbResponse = db.rawQuery("SELECT * FROM " + tableName + " WHERE " + refKey + " = " + refVal,null);
-		// TODO: and what are we going to do with the returned cursor?
+		// TODO: and what are we going to do with the returned cursor?  Should this even return cursor?
 		return dbResponse;
+	}
+	
+	public ArrayList<String> readBatchFromDatabase(String tableName, String colName, String orderBy) {
+		Cursor dbResponse = null;
+		ArrayList<String> batch = new ArrayList<String>();
+		dbResponse = db.rawQuery("SELECT " + colName + " FROM " + tableName,null);
+		if(dbResponse != null) {
+			dbResponse.moveToFirst();
+			while(dbResponse.isAfterLast() == false) {
+				batch.add(dbResponse.getString(1));
+				dbResponse.moveToNext();
+			}
+		}
+		dbResponse.close();
+		return batch;
 	}
 	
 	public String getFileNameFromUri(Uri uriString) {
