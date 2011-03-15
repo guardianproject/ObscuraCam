@@ -100,6 +100,10 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		return i;
 	}
 	
+	public int getImageResourceCursor() {
+		return index;
+	}
+	
 	public Cursor readFromDatabase(String tableName,String refKey, String refVal) {
 		Cursor dbResponse = null;
 		dbResponse = db.rawQuery("SELECT * FROM " + tableName + " WHERE " + refKey + " = " + refVal,null);

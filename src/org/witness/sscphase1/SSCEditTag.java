@@ -61,6 +61,7 @@ public class SSCEditTag {
 		int[] buttonIDs = new int[4];
 		for(int x=0;x<4;x++) {
 			buttonIDs[x] = popupTracks.getChildAt(x).getId();
+			popupTracks.getChildAt(x).setContentDescription("{\"id\":" + vID + "}");
 		}
 		return buttonIDs;
 	}
@@ -69,7 +70,6 @@ public class SSCEditTag {
 		for(int x=0;x<4;x++) {
 			popupTracks.getChildAt(x).setOnClickListener(ocl);
 		}
-		
 	}
 	
 	public void show() {
