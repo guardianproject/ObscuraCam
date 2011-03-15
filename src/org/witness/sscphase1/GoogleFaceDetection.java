@@ -1,7 +1,6 @@
 package org.witness.sscphase1;
 
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.media.FaceDetector;
@@ -10,6 +9,8 @@ import android.util.Log;
 
 public class GoogleFaceDetection implements FaceDetection {
 
+	public static final String LOGTAG = "GoogleFaceDetection"; 
+	
 	public static int MAX_FACES = 100;
 
 	Face[] faces = new Face[MAX_FACES];   	
@@ -25,6 +26,7 @@ public class GoogleFaceDetection implements FaceDetection {
 
 	public int findFaces() {
 		numFaces = faceDetector.findFaces(bmp, faces);
+		Log.v(LOGTAG,"Found " + numFaces + " faces");
 		return numFaces;
 	}
 

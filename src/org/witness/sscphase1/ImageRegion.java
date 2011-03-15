@@ -62,6 +62,7 @@ public class ImageRegion extends Button {
 		return new Rect((int)scaledStartX, (int)scaledStartY, (int)scaledEndX, (int)scaledEndY);
 	}
 	
+	/* Is this being used??  If not, we don't need index */
 	public String attachTags() {
 	   	/*
     	 * this method adds the returned coordinates to our array of ROIs

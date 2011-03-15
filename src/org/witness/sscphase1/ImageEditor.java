@@ -101,7 +101,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	Vector<ImageRegion> imageRegions = new Vector();  // Being lazy 
 	//ImageRegion[] imageRegions;
 	
-	int ImageRegionIndex = 0;
+	int imageRegionIndex = 0;
 	int[] buttonIDs;
 	
 	int originalImageWidth;
@@ -151,6 +151,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Load up the image's dimensions not the image itself
 				BitmapFactory.Options bmpFactoryOptions = new BitmapFactory.Options();
 				bmpFactoryOptions.inJustDecodeBounds = true;
+
+				// Needs to be this config for Google Face Detection 
+				bmpFactoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
 				
 				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri), null, bmpFactoryOptions);
 				
@@ -180,7 +183,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Decode it for real
 				bmpFactoryOptions.inJustDecodeBounds = false;
 				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri), null, bmpFactoryOptions);
-				
+				Log.v(LOGTAG,"Was: " + imageBitmap.getConfig());
+
 				if (imageBitmap == null) {
 					Log.v(LOGTAG,"bmp is null");
 				}
@@ -222,6 +226,29 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			
 			// Layout for Image Regions
 			regionButtonsLayout = (RelativeLayout) this.findViewById(R.id.RegionButtonsLayout);
+			
+			Log.v(LOGTAG,"**START**");
+			Rect[] autodetectedRects = runFaceDetection();
+			for (int adr = 0; adr < autodetectedRects.length; adr++) {
+				Log.v(LOGTAG,autodetectedRects[adr].toString());
+				ImageRegion imageRegion = new ImageRegion(
+						this, 
+						autodetectedRects[adr].left,
+						autodetectedRects[adr].top,
+						autodetectedRects[adr].right,
+						autodetectedRects[adr].bottom,
+						overlayCanvas.getWidth(), 
+						overlayCanvas.getHeight(), 
+						originalImageWidth, 
+						originalImageHeight, 
+						DETECTED_COLOR,
+						imageRegionIndex);
+				imageRegions.add(imageRegion);
+				imageRegionIndex++;
+				addImageRegionToLayout(imageRegion);
+			}
+			clearOverlay();			
+			Log.v(LOGTAG,"**END**");
 
 		}
 	}
@@ -342,9 +369,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							originalImageWidth, 
 							originalImageHeight, 
 							DRAW_COLOR,
-							ImageRegionIndex);
+							imageRegionIndex);
 					imageRegions.add(imageRegion);
-					ImageRegionIndex++;
+					//Should just be using imageRegions.size() instead of a counter??
+					imageRegionIndex++;
 					addImageRegionToLayout(imageRegion);
 					clearOverlay();
 				}
@@ -365,9 +393,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				break;
 				
 			case MotionEvent.ACTION_MOVE:
-				// TODO: needs attention... does mode == DRAW get called?
-				// check start position, see it it's been moved a far enough distance (10 pxls?)
-				// from origin
 				
 				float distance = (float) (Math.sqrt(Math.abs(startPoint.x - event.getX()) + Math.abs(startPoint.y - event.getY())));
 				Log.v(LOGTAG,"Move Distance: " + distance);
