@@ -19,6 +19,9 @@
     <string name="imgprefs_panic">P A N I C !</string>
     <string name="imgprefs_eraseexif">Erase All Exif Data</string>
     
+    <string name="idtaggerh1">ID Someone</string>
+    <string name="idtaggerp">Type a name (or any identifier), or choose from people you\'ve already tagged.</string>
+    
     
      <!-- APG related -->
     <string name="error_activity_not_found">No suitable application for this action found.</string>

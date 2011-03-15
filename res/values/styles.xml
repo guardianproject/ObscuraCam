@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="CustomTheme">        
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:paddingTop">10px</item>
+  </style>
+  <style name="Theme.CustomDialog" parent="android:style/Theme.Dialog">
+  	<item name="android:windowNoTitle">true</item>
+  	<item name="android:padding">10px</item>
+  </style>
+</resources>

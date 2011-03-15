@@ -144,7 +144,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-		
 		if (imageUri != null) {
 			
 			try {
@@ -585,16 +584,20 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	SSCEditTag et = new SSCEditTag(v.getContentDescription(), regionButtonsLayout);
 	    	buttonIDs = et.getButtonIDs();
 	    	OnClickListener ocl = new OnClickListener() {
+	    		// each button (except the image prefs button, which is gloabl)
+	    		// is linked with the image tag --
+	    		// call v.getContentDescription
 				public void onClick(View v) {
 					if(v.getId() == buttonIDs[0]) {
 						// Edit Tag
-						Log.v(LOGTAG,"Edit Tag clicked");
+						Log.v(LOGTAG,"Edit Tag clicked for tag# " + v.getContentDescription());
 					} else if(v.getId() == buttonIDs[1]) {
 						// ID Tag
-						Log.v(LOGTAG,"ID Tag clicked");
+						launchIdTagger((String) v.getContentDescription());
+						Log.v(LOGTAG,"ID Tag clicked for tag# " + v.getContentDescription());
 					} else if(v.getId() == buttonIDs[2]) {
 						// Blur Tag
-						Log.v(LOGTAG,"Blur Tag clicked");
+						Log.v(LOGTAG,"Blur Tag clicked for tag# " + v.getContentDescription());
 					} else if(v.getId() == buttonIDs[3]) {
 						// Image Prefs
 						Log.v(LOGTAG,"Image Prefs clicked");
@@ -604,7 +607,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	};
 	    	et.addActions(ocl);
 	    	et.show();
-
 		}
 	}
 	
@@ -640,7 +642,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
     // TODO: let's handle the menu activities here...
     public void launchImagePrefs() {
+    	// save state here?
 		Intent intent = new Intent(this, PreferencesActivity.class);
 		startActivity(intent);
+    }
+    
+    public void launchIdTagger(String id) {
+    	Intent intent = new Intent(this, IdTagger.class);
+    	intent.putExtra("imageResourceCursor", mdh.getImageResourceCursor());
+    	intent.putExtra("tagIndex", id);
+    	startActivity(intent);
     }
 }

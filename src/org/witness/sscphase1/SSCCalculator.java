@@ -19,6 +19,11 @@ public class SSCCalculator {
 		return dimensions;
 	}
 	
+	public int jsonGetTagId(String json) throws Exception {
+		JSONObject j = jsonGetAll(json);
+		return j.getInt("id");
+	}
+	
 	public float[] jsonDeflate(int key, String json) throws Exception {
 		JSONObject j = new JSONObject(json);
 		float[] response = null;
