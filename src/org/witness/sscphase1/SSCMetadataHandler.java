@@ -118,9 +118,10 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		ArrayList<String> batch = new ArrayList<String>();
 		dbResponse = db.rawQuery("SELECT " + colName + " FROM " + tableName,null);
 		if(dbResponse != null) {
+			Log.d(SSC,"CURSOR STATS:\nentries found= " + dbResponse.getCount());
 			dbResponse.moveToFirst();
 			while(dbResponse.isAfterLast() == false) {
-				batch.add(dbResponse.getString(1));
+				batch.add(dbResponse.getString(dbResponse.getPosition()));
 				dbResponse.moveToNext();
 			}
 		}
