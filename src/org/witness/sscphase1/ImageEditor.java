@@ -520,7 +520,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	public void addImageRegionToLayout(ImageRegion imageRegion) {
 
-		// Get Rectangle of Current Tranformed Image
+		// Get Rectangle of Current Transformed Image
 		RectF theRect = new RectF(0,0,imageBitmap.getWidth(), imageBitmap.getHeight());
 		matrix.mapRect(theRect);
 		Log.v(LOGTAG,"New Width:" + theRect.width());
@@ -532,6 +532,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	imageRegion.setLayoutParams(lp);
     	imageRegion.setOnClickListener(this);
     	imageRegion.setContentDescription(imageRegion.attachTags());
+    	
+    	// TODO: update database
+    	mdh.registerTag((String) imageRegion.getContentDescription());
+    	
     	regionButtonsLayout.addView(imageRegion,lp);		
 	}
 	
@@ -605,9 +609,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						// Blur Tag
 						Log.v(LOGTAG,"Blur Tag clicked for tag# " + v.getContentDescription());
 					} else if(v.getId() == buttonIDs[3]) {
-						// Image Prefs
+						// Encrypt/Decrypt image region
 						Log.v(LOGTAG,"Image Prefs clicked");
-						launchImagePrefs();
+						launchEncryptTagger((String) v.getContentDescription());
 					}
 				}
 	    	};
@@ -651,6 +655,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	// save state here?
 		Intent intent = new Intent(this, PreferencesActivity.class);
 		startActivity(intent);
+    }
+    
+    public void launchEncryptTagger(String id) {
+    	Intent intent = new Intent(this, EncryptTagger.class);
+    	intent.putExtra("imageResourceCursor", mdh.getImageResourceCursor());
+    	intent.putExtra("tagIndex", id);
+    	startActivity(intent);
     }
     
     public void launchIdTagger(String id) {

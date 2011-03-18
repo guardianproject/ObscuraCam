@@ -21,6 +21,8 @@
     
     <string name="idtaggerh1">ID Someone</string>
     <string name="idtaggerp">Type a name (or any identifier), or choose from people you\'ve already tagged.</string>
+    <string name="encrypttaggerh1">Encrypt This Tag</string>
+    <string name="encrypttaggerp">Type a name to allow them to see the unencrypted version of this tag.  Note: people selected here will be able to view this image region in its unencrypted state.</string>
     
     
      <!-- APG related -->
