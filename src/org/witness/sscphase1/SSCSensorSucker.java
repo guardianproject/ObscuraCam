@@ -21,6 +21,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.SQLException;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -36,16 +40,19 @@ public class SSCSensorSucker extends Service {
 	IntentFilter iF;
 	
 	boolean logBT,logGeo,logAcc;
-	private final boolean ALLOWED = true;
-	private final boolean NOT_ALLOWED = false;
+	public final boolean ALLOWED = true;
+	public final boolean NOT_ALLOWED = false;
 	
 	BluetoothAdapter ba;
-	List<String> bluetoothNeighbors;
+	ArrayList<String> bluetoothNeighbors;
 	
 	LocationManager lm;
 	Location loc;
 	
-	List<String> acc;
+	private static Sensor sensor;
+	private static SensorManager sm;
+	ArrayList<String> acc;
+	float[] sensorValues;
 	
 	@Override
 	public void onCreate() {}
@@ -77,23 +84,32 @@ public class SSCSensorSucker extends Service {
 				handler.post(new Runnable() {
 					public void run() {
 						if(logGeo) {
-							//loc = updateLocation();
+							loc = updateLocation();
 						}
 						
 						if(logBT) {
-							bluetoothNeighbors = updateBluetooth();
+							doDiscovery();
 						}
 						
 						if(logAcc) {
 							acc = updateAccelerometer();
 						}
+						String btListToString = "";
+						String accListToString = "";
+						for(int x=0;x<bluetoothNeighbors.size();x++) {
+							btListToString += bluetoothNeighbors.get(x) + ",\n";
+						}
+						Log.v(SSC,"Data dump:\nBT: " + btListToString);
+						Log.v(SSC,"Data dump:\nLOC: " + loc.getLatitude() + "," + loc.getLongitude());
+						Log.v(SSC,"Data dump:\nACC: " + accListToString);
 					}
 				});
 			}
-    	}, 100L, 60000L);
+    	}, 100L, 1 * (60000L));
 	}
 	
 	public void startBT() {
+		bluetoothNeighbors = new ArrayList<String>();
 		iF = new IntentFilter(BluetoothDevice.ACTION_FOUND);
 		this.registerReceiver(br, iF);
 	
@@ -116,19 +132,26 @@ public class SSCSensorSucker extends Service {
 	}
 	
 	public void startAcc() {
-		
+		sm = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+		List<Sensor> slist = sm.getSensorList(Sensor.TYPE_ACCELEROMETER);
+		if(slist.size() <= 0) {
+			Log.d(SSC,"this user\'s device does not support accelerometers");
+			logAcc = false;
+		} else {
+			sensor = slist.get(0);
+			sm.registerListener(sl,sensor, 0);
+		}
 	}
 	
 	public void startGeo() {
-		
+		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 	}
 	
 	private void doDiscovery() {
-		Log.v(SSC,"some more info about this BT connection:" +
-				"\nAddress: " + ba.getAddress() +
-				"\nName: " + ba.getName() +
-				"\nScan Mode: " + ba.getScanMode() +
-				"\nState: " + ba.getState());
+		if(ba.isDiscovering()) {
+			ba.cancelDiscovery();
+		}
+		ba.startDiscovery();
 	}
 	
 	
@@ -144,19 +167,19 @@ public class SSCSensorSucker extends Service {
 	
 	public Location updateLocation() {
 		Location l = lm.getLastKnownLocation(lm.getProviders(true).get(0));
-		//Log.v(SSC,"attempting to update location");
 		return l;
 	}
 	
-	public List<String> updateBluetooth() {
-		List<String> bt = new ArrayList<String>();
-		//Log.v(SSC,"attempting to update bluetooth");
-		return bt;
+	public void updateBluetooth(String neighbor) {
+		if(ba.isDiscovering()) {
+			ba.cancelDiscovery();
+		}
+		ba.enable();
+		ba.startDiscovery();
 	}
 	
-	public List<String> updateAccelerometer() {
-		List<String> acc = new ArrayList<String>();
-		//Log.v(SSC,"attempting to update accelerometer data");
+	public ArrayList<String> updateAccelerometer() {
+		ArrayList<String> acc = new ArrayList<String>();
 		return acc;
 	}
 	
@@ -170,6 +193,7 @@ public class SSCSensorSucker extends Service {
 		timer.cancel();
 		if(ba != null) {
 			ba.cancelDiscovery();
+			this.unregisterReceiver(br);
 		}
 	}
 	
@@ -179,15 +203,27 @@ public class SSCSensorSucker extends Service {
 			String action = intent.getAction();
 			
 			if(BluetoothDevice.ACTION_FOUND.equals(action)) {
+				Log.v(SSC,"Bluetooth discovering...");
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-				Log.v(SSC,"Bluetooth Device found: " + device.getName() + " @ " + device.getAddress());
+				bluetoothNeighbors.add(device.getName() + ";" + device.getAddress());
 			} else if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
 				Log.v(SSC,"Bluetooth discovery finished.");
 				ba.disable();
 			} else if(BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
 				Log.v(SSC,"Bluetooth discovery starting...");
+				bluetoothNeighbors.clear();
 			}
 		}
+    };
+    
+    private final SensorEventListener sl = new SensorEventListener() {
+		@Override
+		public void onSensorChanged(SensorEvent event) {
+			sensorValues = event.values;			
+		}
+		
+		@Override
+		public void onAccuracyChanged(Sensor sensor, int accuracy) {}
     };
 
 }

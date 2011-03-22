@@ -545,6 +545,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	imageRegion.setOnClickListener(this);
     	imageRegion.setContentDescription(imageRegion.attachTags());
     	
+    	// TODO: this is throwing an error when tags are re-drawn - update database
+    	// mdh.registerTag((String) imageRegion.getContentDescription());
+    	
     	regionButtonsLayout.addView(imageRegion,lp);		
 	}
 	
