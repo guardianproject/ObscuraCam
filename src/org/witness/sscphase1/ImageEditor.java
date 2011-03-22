@@ -1,5 +1,6 @@
 package org.witness.sscphase1;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Vector;
@@ -659,4 +660,20 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	intent.putExtra("tagIndex", id);
     	startActivity(intent);
     }
+    
+    /*
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        if (savedInstanceState.containsKey("imageRegions")) {
+        	imageRegions = (Vector) savedInstanceState.getSerializable("imageRegions");
+        	redrawRegions();
+        }
+    }
+    
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+    	savedInstanceState.putSerializable("imageRegions", imageRegions);
+    	super.onSaveInstanceState(savedInstanceState);
+    }
+    */	    
 }
