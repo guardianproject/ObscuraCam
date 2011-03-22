@@ -23,6 +23,11 @@ public class ImageRegion extends Button implements Serializable {
 	
 	public static final String SSC = "[Camera Obscura : ImageRegion] **************************** ";
 			
+	//public ImageRegion(Context context, String jsonVersion) {
+		// Implement this from JSON
+		//this(context, _scaledStartX, _scaledStartY, _scaledEndX, _scaledEndY, _scaledImageWidth, _scaledImageHeight, _imageWidth, _imageHeight, _backgroundColor);	
+	//}
+	
 	public ImageRegion(
 			Context context, 
 			int _scaledStartX, int _scaledStartY, 
@@ -68,6 +73,11 @@ public class ImageRegion extends Button implements Serializable {
 	
 	/* Is this being used??  If not, we don't need index */
 	/* it is being used! (HNH 3/19/11) */
+	/* Need to make a unique id that isn't passed in, hash the data */
+	//http://download.oracle.com/javase/1.5.0/docs/api/java/util/UUID.html
+	//http://code.google.com/p/google-gson/
+	//http://javaexchange.com/aboutRandomGUID.html
+	//http://benjii.me/2010/04/deserializing-json-in-android-using-gson/
 	public String attachTags() {
 	   	/*
     	 * this method adds the returned coordinates to our array of ROIs
