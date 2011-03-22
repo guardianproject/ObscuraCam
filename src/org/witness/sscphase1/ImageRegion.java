@@ -1,11 +1,15 @@
 package org.witness.sscphase1;
 
+import java.io.Serializable;
+
 import android.content.Context;
 import android.graphics.Rect;
 import android.util.Log;
 import android.widget.Button;
 
-public class ImageRegion extends Button {
+public class ImageRegion extends Button implements Serializable {
+
+	private static final long serialVersionUID = -244965540057504061L;
 
 	float startX;
 	float startY;
