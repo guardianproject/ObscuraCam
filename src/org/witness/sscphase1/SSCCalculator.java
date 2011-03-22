@@ -3,8 +3,12 @@ package org.witness.sscphase1;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import android.util.Log;
+
 public class SSCCalculator {
 	boolean calc;
+	final static String SSC = "[Camera Obscura : SSCCalculator] **************************** ";
+
 	
 	public SSCCalculator() {
 		// it inits but I don't foresee it needing anything...
@@ -24,6 +28,27 @@ public class SSCCalculator {
 		return j.getInt("id");
 	}
 	
+	public float[] jsonGetTagCoords(String json) throws Exception {
+		JSONObject j = jsonGetAll(json);
+		float[] coords = null;
+		JSONArray jCoords = j.getJSONArray("coords");
+		for(int x=0;x<jCoords.length();x++) {
+			coords[x] = (float) jCoords.getInt(x);
+		}
+		return coords;
+	}
+	
+	public String jsonGetTagCoordsAsString(String json) throws Exception {
+		String coords = "{";
+		JSONObject j = new JSONObject(json);
+		JSONArray jCoords = j.getJSONArray("coords");
+		for(int x=0;x<jCoords.length();x++) {
+			coords += ((float) jCoords.getInt(x) + ",");
+		}
+		coords = coords.substring(0,coords.length() -1) + "}";
+		return coords;
+	}
+	
 	public float[] jsonDeflate(int key, String json) throws Exception {
 		JSONObject j = new JSONObject(json);
 		float[] response = null;
@@ -40,7 +65,7 @@ public class SSCCalculator {
 	}
 	
 	public JSONObject jsonGetAll(String json) throws Exception {
-		JSONObject response = new JSONObject(json);
-		return response;
+		JSONObject j = new JSONObject(json);
+		return j;
 	}
 }

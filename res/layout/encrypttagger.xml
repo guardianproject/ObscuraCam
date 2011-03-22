@@ -9,11 +9,11 @@
 		android:layout_height="wrap_content"
 		android:textStyle="bold"
 		android:textSize="24px"
-		android:text="@string/idtaggerh1" />
+		android:text="@string/encrypttaggerh1" />
 	<TextView
 		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
-		android:text="@string/idtaggerp" />
+		android:text="@string/encrypttaggerp" />
 	<LinearLayout
 		xmlns:android="http://schemas.android.com/apk/res/android"
 		android:layout_width="fill_parent"
@@ -24,13 +24,7 @@
 			android:layout_width="0dip"
 			android:layout_height="wrap_content"
 			android:id="@+id/namespace"
-			android:layout_weight="0.6" />
-		<CheckBox
-			android:id="@+id/consentCheckbox"
-			android:checked="false"
-			android:layout_width="0dip"
-			android:layout_height="wrap_content"
-			android:layout_weight="0.2" />
+			android:layout_weight="0.8" />
 		<ImageButton
 			android:layout_width="0dip"
 			android:layout_height="wrap_content"

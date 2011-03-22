@@ -28,10 +28,10 @@
     	android:background="@drawable/transpxl"
     />
     <ImageButton
-    	android:id="@+id/uiPopupImagePrefs"
+    	android:id="@+id/uiPopupEncrypt"
     	android:layout_width="wrap_content"
     	android:layout_height="wrap_content"
-    	android:src="@drawable/uiimageprefs"
+    	android:src="@drawable/uienctag"
     	android:background="@drawable/transpxl"
     />
 </LinearLayout>

@@ -67,6 +67,7 @@ public class ImageRegion extends Button implements Serializable {
 	}
 	
 	/* Is this being used??  If not, we don't need index */
+	/* it is being used! (HNH 3/19/11) */
 	public String attachTags() {
 	   	/*
     	 * this method adds the returned coordinates to our array of ROIs

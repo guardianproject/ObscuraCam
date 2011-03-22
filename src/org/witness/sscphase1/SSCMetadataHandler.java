@@ -4,6 +4,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -25,6 +27,8 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	public String uriPath;
 	public int index;
 	
+	public SSCCalculator calc;
+	
 	public static final int WIPE_EXIF_DATA = -1;
 	public static final int CLONE_EXIF_DATA = -2;
 	public static final int RANDOMIZE_EXIF_DATA = -3;
@@ -34,6 +38,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	public SSCMetadataHandler(Context context) {
 		super(context, DB_NAME, null, 1);
 		this.c = context;
+		this.calc = new SSCCalculator();
 	}
 	
 	public void createDatabase() throws IOException {
@@ -83,7 +88,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	public int insertIntoDatabase(String tableName, String targetColumn, String values) throws SQLException {
 		String theQuery = "INSERT INTO " + tableName;
 		if(targetColumn != null) {
-			theQuery += targetColumn;
+			theQuery += " " + targetColumn;
 		}
 		theQuery += " VALUES (" + values + ")";
 		db.execSQL(theQuery);
@@ -95,7 +100,6 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			dbCount.moveToLast();
 			i = dbCount.getPosition();
 			dbCount.close();
-			Log.v(SSC,"DB COUNT = " + i);
 		}
 		return i;
 	}
@@ -104,11 +108,66 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		return index;
 	}
 	
-	public Cursor readFromDatabase(String tableName,String refKey, String refVal) {
+	public Cursor readItemFromDatabase(String tableName,String refKey, String refVal) {
 		Cursor dbResponse = null;
 		dbResponse = db.rawQuery("SELECT * FROM " + tableName + " WHERE " + refKey + " = " + refVal,null);
-		// TODO: and what are we going to do with the returned cursor?
+		// TODO: and what are we going to do with the returned cursor?  Should this even return cursor?
 		return dbResponse;
+	}
+	
+	public ArrayList<String> readBatchFromDatabase(String tableName, String colName, String orderBy) {
+		Cursor dbResponse = null;
+		ArrayList<String> batch = new ArrayList<String>();
+		dbResponse = db.rawQuery("SELECT " + colName + " FROM " + tableName,null);
+		if(dbResponse != null) {
+			dbResponse.moveToFirst();
+			while(dbResponse.isAfterLast() == false) {
+				batch.add(dbResponse.getString(0));
+				dbResponse.moveToNext();
+			}
+		}
+		dbResponse.close();
+		return batch;
+	}
+	
+	public void createJoinTable(int tableType, String tableName) {
+		/*
+		 *  this method creates join tables for the image regions, encrypt keys, and list of subjects
+		 *  1. imageRegions_[index]
+		 *  2. associatedKeys_[index]_[tagIndex]
+		 *  3. associatedSubjects_[index]_[tagIndex]
+		*/
+		String qString = "CREATE TABLE ";
+		switch(tableType) {
+		case 1:
+			qString += (tableName + " (" +
+					"_id INTEGER PRIMARY KEY," +
+					"coordinates TEXT," +
+					"associatedKeys TEXT," +
+					"associatedSubjects TEXT)"
+					);
+			break;
+		case 2:
+			qString += (tableName + " (" +
+					"_id INTEGER PRIMARY KEY," +
+					"d_associatedTag INTEGER," +
+					"i_keyHolder TEXT," +
+					"i_key TEXT)"
+					);
+			break;
+		case 3:
+			qString += (tableName + " (" +
+					"_id INTEGER PRIMARY KEY," +
+					"d_associatedTag INTEGER," +
+					"s_entityName TEXT," +
+					"s_informedConsentGiven INTEGER," +
+					"s_consentTimecode TEXT," +
+					"s_obfuscationType INTEGER," +
+					"s_obfuscationTimeblock TEXT)" // this is a reference to another table
+					);
+			break;
+		}
+		db.execSQL(qString);
 	}
 	
 	public String getFileNameFromUri(Uri uriString) {
@@ -131,6 +190,9 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 
 		// insert initial info into database, creating a new record, then return its index.
 		this.index = insertIntoDatabase("camera_obscura","(g_localMediaPath)","\"" + uriString.toString() + "\"");
+		
+		// create additional tables for joining: image regions, associated subjects, associated AGP keys
+		createJoinTable(1,"imageRegions_" + index);
 		
 		switch(mediaType) {
 		case 1:
@@ -155,6 +217,24 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		case 2:
 			break;
 		}
+	}
+	
+	public void registerTag(String tagData) {
+		int tagId = 0;
+		String tagCoords = "";
+		try {
+			tagId = calc.jsonGetTagId(tagData);
+			tagCoords = calc.jsonGetTagCoordsAsString(tagData);
+		} catch (Exception e) {
+			Log.d(SSC,"FUCKING EXCPETION: " + e);
+		}
+		insertIntoDatabase(
+				"imageRegions_" + index,
+				"(coordinates,associatedKeys,associatedSubjects)",
+				"\"" + tagCoords + "\",\"associatedKeys_" + index + "_" + tagId + "\",\"associatedSubjects_" + index + "_" + tagId + "\""
+				);
+		createJoinTable(2,"associatedKeys_" + index + "_" + tagId);
+		createJoinTable(3,"associatedSubjects_" + index + "_" + tagId);
 	}
 	
 	public String exifParser(ExifInterface ei, int mode) {
