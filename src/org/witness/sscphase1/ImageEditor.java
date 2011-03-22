@@ -231,8 +231,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			Rect[] autodetectedRects = runFaceDetection();
 			for (int adr = 0; adr < autodetectedRects.length; adr++) {
 				Log.v(LOGTAG,autodetectedRects[adr].toString());
-				ImageRegion imageRegion = new ImageRegion(
-						this, 
+				createImageRegion(
 						autodetectedRects[adr].left,
 						autodetectedRects[adr].top,
 						autodetectedRects[adr].right,
@@ -241,11 +240,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						overlayCanvas.getHeight(), 
 						originalImageWidth, 
 						originalImageHeight, 
-						DETECTED_COLOR,
-						imageRegionIndex);
-				imageRegions.add(imageRegion);
-				imageRegionIndex++;
-				addImageRegionToLayout(imageRegion);
+						DETECTED_COLOR);
+				
+
 			}
 			clearOverlay();			
 			Log.v(LOGTAG,"**END**");
@@ -353,28 +350,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				if (touchTimerRunnable != null) {
 					touchTimerHandler.removeCallbacks(touchTimerRunnable);
 				}
-
 				
 				if (mode == DRAW) {
 					// Create Region
 					vibe.vibrate(50);
-					ImageRegion imageRegion = new ImageRegion(
-							this, 
-							(int)startPoint.x, 
-							(int)startPoint.y, 
-							(int)event.getX(), 
-							(int)event.getY(), 
-							overlayCanvas.getWidth(), 
-							overlayCanvas.getHeight(), 
-							originalImageWidth, 
-							originalImageHeight, 
-							DRAW_COLOR,
-							imageRegionIndex);
-					imageRegions.add(imageRegion);
-					//Should just be using imageRegions.size() instead of a counter??
-					imageRegionIndex++;
-					addImageRegionToLayout(imageRegion);
-					clearOverlay();
+					
+					createImageRegion((int)startPoint.x, (int)startPoint.y, (int)event.getX(), (int)event.getY(), overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
 				}
 
 				mode = NONE;
@@ -518,6 +499,36 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		overlayImageView.invalidate();
 		
 	}
+	
+	public void createImageRegion(int _scaledStartX, int _scaledStartY, 
+			int _scaledEndX, int _scaledEndY, 
+			int _scaledImageWidth, int _scaledImageHeight, 
+			int _imageWidth, int _imageHeight, 
+			int _backgroundColor) {
+		
+		ImageRegion imageRegion = new ImageRegion(
+				this, 
+				_scaledStartX, 
+				_scaledStartY, 
+				_scaledEndX, 
+				_scaledEndY, 
+				_scaledImageWidth, 
+				_scaledImageHeight, 
+				_imageWidth, 
+				_imageHeight, 
+				_backgroundColor,
+				imageRegionIndex);
+		imageRegions.add(imageRegion);
+		//Should just be using imageRegions.size() instead of a counter??
+		imageRegionIndex++;
+		addImageRegionToLayout(imageRegion);
+		clearOverlay();		
+		
+    	// TODO: update database
+		mdh.registerTag(imageRegion.toString());
+    	//mdh.registerTag((String) imageRegion.getContentDescription());
+
+	}
 
 	public void addImageRegionToLayout(ImageRegion imageRegion) {
 
@@ -533,9 +544,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	imageRegion.setLayoutParams(lp);
     	imageRegion.setOnClickListener(this);
     	imageRegion.setContentDescription(imageRegion.attachTags());
-    	
-    	// TODO: update database
-    	mdh.registerTag((String) imageRegion.getContentDescription());
     	
     	regionButtonsLayout.addView(imageRegion,lp);		
 	}
