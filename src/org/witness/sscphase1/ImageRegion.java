@@ -5,9 +5,14 @@ import java.io.Serializable;
 import android.content.Context;
 import android.graphics.Rect;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.widget.Button;
+import android.widget.FrameLayout;
 
-public class ImageRegion extends Button implements Serializable {
+public class ImageRegion extends FrameLayout implements OnTouchListener, OnClickListener, Serializable {
 
 	private static final long serialVersionUID = -244965540057504061L;
 
@@ -21,6 +26,10 @@ public class ImageRegion extends Button implements Serializable {
 	
 	int index;
 	
+	public static final int EDIT_MODE = 0;
+	public static final int NORMAL_MODE = 1;
+	int mode = EDIT_MODE;
+	
 	public static final String SSC = "[Camera Obscura : ImageRegion] **************************** ";
 			
 	//public ImageRegion(Context context, String jsonVersion) {
@@ -28,6 +37,9 @@ public class ImageRegion extends Button implements Serializable {
 		//this(context, _scaledStartX, _scaledStartY, _scaledEndX, _scaledEndY, _scaledImageWidth, _scaledImageHeight, _imageWidth, _imageHeight, _backgroundColor);	
 	//}
 	
+	Button leftCorner;
+	Button rightCorner;
+		
 	public ImageRegion(
 			Context context, 
 			int _scaledStartX, int _scaledStartY, 
@@ -35,7 +47,7 @@ public class ImageRegion extends Button implements Serializable {
 			int _scaledImageWidth, int _scaledImageHeight, 
 			int _imageWidth, int _imageHeight, 
 			int _backgroundColor,
-			int _index)
+			int _index) 
 	{
 		super(context);
 		
@@ -59,6 +71,23 @@ public class ImageRegion extends Button implements Serializable {
 		index = _index;
 		
 		setBackgroundColor(_backgroundColor);
+	
+		// FIgure out how to do layout
+		///this.setLayout(R.layout.imageregion);
+		// Implement buttons/whatever
+		//rightCorner = (Button) 
+		
+	}
+	
+	public void changeMode(int newMode) {
+		mode = newMode;
+		if (mode == EDIT_MODE) {
+			leftCorner.setVisibility(View.VISIBLE);
+			rightCorner.setVisibility(View.VISIBLE);
+		} else {
+			leftCorner.setVisibility(View.GONE);
+			rightCorner.setVisibility(View.GONE);
+		}
 	}
 	
 	public Rect getScaledRect(int _scaledImageWidth, int _scaledImageHeight) {
@@ -90,5 +119,15 @@ public class ImageRegion extends Button implements Serializable {
     	}
     	newTagCoordsDescription = newTagCoordsDescription.substring(0,newTagCoordsDescription.length() - 1) + "]}";
     	return newTagCoordsDescription;
+	}
+
+	public boolean onTouch(View v, MotionEvent event) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public void onClick(View v) {
+		// TODO Auto-generated method stub
+		
 	}
 }
