@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/FrameLayout" android:layout_width="wrap_content" android:layout_height="wrap_content">
-	<ImageView android:id="@+id/ImageView" android:layout_width="wrap_content" android:layout_height="wrap_content"></ImageView>
 	<LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
 		<TextView android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="Camera Obscura" />
-		<LinearLayout android:id="@+id/ButtonsLinearLayout" android:orientation="vertical" android:layout_gravity="center_horizontal" android:gravity="center_horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content">
-			<Button android:layout_height="wrap_content" android:id="@+id/TakePictureButton" android:text="Capture Media" android:layout_width="wrap_content"></Button>
+		<LinearLayout android:id="@+id/ButtonsLinearLayoutRow1" android:orientation="horizontal" android:layout_gravity="center_horizontal" android:gravity="center_horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content">
+			<Button android:layout_height="wrap_content" android:id="@+id/TakePictureButton" android:text="Take Picture" android:layout_width="wrap_content"></Button>
 			<Button android:layout_height="wrap_content" android:id="@+id/ChoosePictureButton" android:text="Choose Media" android:layout_width="wrap_content"></Button>
 		</LinearLayout>
+		<LinearLayout android:id="@+id/ButtonsLinearLayoutRow2" android:orientation="horizontal" android:layout_gravity="center_horizontal" android:gravity="center_horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content">
+			<Button android:layout_height="wrap_content" android:id="@+id/DatastoreButton" android:text="SSC Datastore" android:layout_width="wrap_content"></Button>
+			<Button android:layout_height="wrap_content" android:id="@+id/PreferencesButton" android:text="Preferences" android:layout_width="wrap_content"></Button>
+		</LinearLayout>		
+		<LinearLayout android:id="@+id/ButtonsLinearLayoutRow3" android:orientation="horizontal" android:layout_gravity="center_horizontal" android:gravity="center_horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content">
+			<Button android:layout_height="wrap_content" android:id="@+id/PanicButton" android:text="Panic" android:layout_width="wrap_content"></Button>
+		</LinearLayout>		
 	</LinearLayout>
 </FrameLayout>
