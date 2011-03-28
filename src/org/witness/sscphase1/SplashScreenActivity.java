@@ -10,16 +10,20 @@ package org.witness.sscphase1;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class SplashScreenActivity extends Activity implements OnClickListener, OnSeekBarChangeListener {
+
+	// See wireframes:  Logo in middle and link to Guardian page
 	
 	CameraObscuraPreferences prefs;
 	
@@ -27,6 +31,9 @@ public class SplashScreenActivity extends Activity implements OnClickListener, O
 	View walkThroughView;
 	
 	TextView splashScreenTextView;
+	ImageView splashScreenImageView;
+	TextView creditsTextView;
+	
 	Button walkThroughSkipButton;
 	Button walkThroughContinueButton;
 	SeekBar walkThroughPrefSlider;
@@ -41,8 +48,15 @@ public class SplashScreenActivity extends Activity implements OnClickListener, O
         LayoutInflater inflater = LayoutInflater.from(this);
         
         splashScreenView = inflater.inflate(R.layout.splashscreen, null);
+        
         splashScreenTextView = (TextView) splashScreenView.findViewById(R.id.SplashTextView);
         splashScreenTextView.setOnClickListener(this);
+        
+        splashScreenImageView = (ImageView) splashScreenView.findViewById(R.id.SplashImageView);
+        splashScreenImageView.setOnClickListener(this);
+        
+        creditsTextView = (TextView) splashScreenView.findViewById(R.id.CreditsTextView);
+        creditsTextView.setOnClickListener(this);
         
     	walkThroughView = inflater.inflate(R.layout.walkthrough, null);
     	//walkThroughSkipButton = (Button) walkThroughView.findViewById(R.id.WalkThroughSkipButton);
@@ -72,9 +86,14 @@ public class SplashScreenActivity extends Activity implements OnClickListener, O
     }    
 
 	public void onClick(View view) {
-		if (view == splashScreenTextView) {
+		if (view == splashScreenTextView || view == splashScreenImageView) {
 			// Display Walk Through
-			setContentView(walkThroughView);
+			if (prefs.getWalkThroughPref()) {
+				setContentView(walkThroughView);
+			} else {
+				Intent intent = new Intent(this, CameraObscuraMainMenu.class);
+				startActivity(intent);				
+			}
 		} /* else if (view == walkThroughSkipButton) {
 			// Load Main View Through an Intent
 			Intent intent = new Intent(this, CameraObscura.class);
@@ -83,6 +102,11 @@ public class SplashScreenActivity extends Activity implements OnClickListener, O
 		} */ else if (view == walkThroughContinueButton) {
 			Intent intent = new Intent(this, CameraObscuraMainMenu.class);
 			startActivity(intent);
+		} else if (view == creditsTextView) {
+			String url = "https://guardianproject.info/apps/securecam/";
+			Intent i = new Intent(Intent.ACTION_VIEW);
+			i.setData(Uri.parse(url));
+			startActivity(i);			
 		}
 	}
 
