@@ -217,12 +217,11 @@ public class SSCSensorSucker extends Service {
     };
     
     private final SensorEventListener sl = new SensorEventListener() {
-		@Override
+		
 		public void onSensorChanged(SensorEvent event) {
 			sensorValues = event.values;			
 		}
-		
-		@Override
+				
 		public void onAccuracyChanged(Sensor sensor, int accuracy) {}
     };
 
