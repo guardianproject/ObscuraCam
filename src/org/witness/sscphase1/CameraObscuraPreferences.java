@@ -28,6 +28,8 @@ public class CameraObscuraPreferences {
 	public static final int RISK_1 = 1; // Medium Level Risk
 	public static final int RISK_2 = 2; // Extreme Risk
 	
+	public static final int DEFAULT_RISK_LEVEL = RISK_1;
+	
 	public CameraObscuraPreferences(Context context) {
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		
@@ -66,8 +68,16 @@ public class CameraObscuraPreferences {
 		editor.clear();
 		setRiskLevel(RISK_1);
 	}
+
+	public int getRiskLevel() {
+		return sharedPreferences.getInt("RiskLevel", DEFAULT_RISK_LEVEL);		
+	}
 	
 	public void setRiskLevel(int riskLevel) {
+		
+		editor.putInt("RiskLevel", riskLevel);
+		editor.commit();
+		
 		switch (riskLevel) {
 			case CameraObscuraPreferences.RISK_0:
 				// No Risk
@@ -99,6 +109,15 @@ public class CameraObscuraPreferences {
 
 	public void setSplashScreenPref(boolean splashScreenPref) {
 		editor.putBoolean("SplashScreenPref", splashScreenPref);
+		editor.commit();
+	}
+	
+	public boolean getWalkThroughPref() {
+		return sharedPreferences.getBoolean("WalkThroughPref", true);
+	}
+	
+	public void setWalkThroughPref(boolean walkThroughPref) {
+		editor.putBoolean("WalkThroughPref", walkThroughPref);
 		editor.commit();
 	}
 
