@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    
@@ -26,6 +27,7 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 		public final static int PANIC_MENU_ITEM = 1;
 
 		Button choosePictureButton, takePictureButton;
+		Button datastoreButton, preferencesButton, panicButton;
 		
 		File tmpImageFile;
 		int imageSource;
@@ -48,6 +50,15 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    	takePictureButton = (Button) this.findViewById(R.id.TakePictureButton);
 	    	takePictureButton.setOnClickListener(this);
 	    	
+	    	datastoreButton = (Button) this.findViewById(R.id.DatastoreButton);
+	    	datastoreButton.setOnClickListener(this);
+	    	
+	    	preferencesButton = (Button) this.findViewById(R.id.PreferencesButton);
+	    	preferencesButton.setOnClickListener(this);
+	    	
+	    	panicButton = (Button) this.findViewById(R.id.PanicButton);
+	    	panicButton.setOnClickListener(this);
+	    	
 	    	/*
 	    	 * TODO: parse preference file for user's stance on sensor logging
 	    	 * for now, i set them all as "allowed"
@@ -59,7 +70,7 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    	ss.putExtra("logBT", logBT);
 	    	ss.putExtra("logAcc", logAcc);
 	    	ss.putExtra("logGeo", logGeo);
-	    	startService(ss);
+	    	//startService(ss);
 	    }
 
 		public void onClick(View v) {
@@ -83,6 +94,19 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 
 				takePictureButton.setVisibility(View.VISIBLE);
 				choosePictureButton.setVisibility(View.VISIBLE);
+				
+			} else if (v == datastoreButton) {
+				
+				Toast dataStoreToast = Toast.makeText(this, "Coming Soon", Toast.LENGTH_SHORT);
+				dataStoreToast.show();
+				
+			} else if (v == preferencesButton) {
+
+				showPreferences();
+				
+			} else if (v == panicButton) {
+
+				panic();				
 			}
 		}
 
@@ -120,13 +144,12 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    public boolean onOptionsItemSelected(MenuItem item) {
 	    	switch (item.getItemId()) {
 	        	case PREFERENCES_MENU_ITEM:
-	        	 	// Load Preferences Activity
-	        		Intent intent = new Intent(this, PreferencesActivity.class);
-	        		startActivity(intent);	
+	        		showPreferences();
 	        		return true;
 	        	case PANIC_MENU_ITEM:
-	        		// Look up preferences and do what is required
-	    		default:
+	        		panic();
+	        		return true;
+	        	default:
 	    			return false;
 	    	}
 	    }
@@ -150,5 +173,18 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    	  savedInstanceState.putSerializable("tmpImageFile", tmpImageFile);
 	      }
 	      super.onSaveInstanceState(savedInstanceState);
-	    }	    
+	    }	   
+	    
+	    public void showPreferences() {
+    	 	// Load Preferences Activity
+    		Intent intent = new Intent(this, PreferencesActivity.class);
+    		startActivity(intent);		    	
+	    }
+	    
+	    public void panic() {
+    		// Look up preferences and do what is required
+
+			Toast panicButtonToast = Toast.makeText(this, "Not Implemented Yet", Toast.LENGTH_SHORT);
+			panicButtonToast.show();
+	    }
 }
