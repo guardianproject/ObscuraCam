@@ -6,7 +6,10 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.SQLException;
 import android.net.Uri;
@@ -38,6 +41,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener {
 
@@ -69,6 +73,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	static final float MAX_SCALE = 10f;
 
+	static final int DIALOG_DO_AUTODETECTION = 0;
+	
 	// For Zooming
 	float startFingerSpacing = 0f;
 	float endFingerSpacing = 0f;
@@ -228,11 +234,42 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			regionButtonsLayout = (RelativeLayout) this.findViewById(R.id.RegionButtonsLayout);
 			
 			// Only want to do this if we are starting with a new image
-			//doAutoDetection();
 			// Do popup
+			showDialog(DIALOG_DO_AUTODETECTION);
+			
 
 		}
 	}
+	
+	protected Dialog onCreateDialog(int id) {
+		Log.v(LOGTAG,"Within onCreateDialog" + id);
+	    Dialog dialog = null;
+	    switch(id) {
+	    	case DIALOG_DO_AUTODETECTION:
+	    		Log.v(LOGTAG,"Within onCreateDialog right case");
+	    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	    		builder.setTitle("Scan Image?");
+	    		builder.setMessage("Would you like to scan this image for sensitive content?");
+	    		builder.setCancelable(false);
+	    		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+	    		           public void onClick(DialogInterface dialog, int id) {
+	    		                ImageEditor.this.doAutoDetection();
+	    		           }
+	    		       });
+	    		builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+	    		           public void onClick(DialogInterface dialog, int id) {
+	    		                dialog.cancel();
+	    		           }
+	    		       });
+	    		dialog = builder.create();	    		
+	    		break;
+	        
+	    	default:
+	    		dialog = null;
+	    }
+	    return dialog;
+	}	
+	
 	
 	private void doAutoDetection() {
 		// This should be called via a pop-up/alert mechanism
@@ -250,10 +287,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					originalImageWidth, 
 					originalImageHeight, 
 					DETECTED_COLOR);
-			
-			
 		}
-		// Toast regions found
+		
+		Toast autodetectedToast = Toast.makeText(this, "" + autodetectedRects.length + " faces deteceted", Toast.LENGTH_SHORT);
+		autodetectedToast.show();
+		
 		clearOverlay();			
 	}
 	
