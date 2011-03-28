@@ -227,27 +227,34 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			// Layout for Image Regions
 			regionButtonsLayout = (RelativeLayout) this.findViewById(R.id.RegionButtonsLayout);
 			
-			Log.v(LOGTAG,"**START**");
-			Rect[] autodetectedRects = runFaceDetection();
-			for (int adr = 0; adr < autodetectedRects.length; adr++) {
-				Log.v(LOGTAG,autodetectedRects[adr].toString());
-				createImageRegion(
-						autodetectedRects[adr].left,
-						autodetectedRects[adr].top,
-						autodetectedRects[adr].right,
-						autodetectedRects[adr].bottom,
-						overlayCanvas.getWidth(), 
-						overlayCanvas.getHeight(), 
-						originalImageWidth, 
-						originalImageHeight, 
-						DETECTED_COLOR);
-				
-
-			}
-			clearOverlay();			
-			Log.v(LOGTAG,"**END**");
+			// Only want to do this if we are starting with a new image
+			//doAutoDetection();
+			// Do popup
 
 		}
+	}
+	
+	private void doAutoDetection() {
+		// This should be called via a pop-up/alert mechanism
+		
+		Rect[] autodetectedRects = runFaceDetection();
+		for (int adr = 0; adr < autodetectedRects.length; adr++) {
+			Log.v(LOGTAG,autodetectedRects[adr].toString());
+			createImageRegion(
+					autodetectedRects[adr].left,
+					autodetectedRects[adr].top,
+					autodetectedRects[adr].right,
+					autodetectedRects[adr].bottom,
+					overlayCanvas.getWidth(), 
+					overlayCanvas.getHeight(), 
+					originalImageWidth, 
+					originalImageHeight, 
+					DETECTED_COLOR);
+			
+			
+		}
+		// Toast regions found
+		clearOverlay();			
 	}
 	
 	// This should really have a class for the regions to obscure, each with it's own information
@@ -548,8 +555,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	// TODO: this is throwing an error when tags are re-drawn - update database
     	// mdh.registerTag((String) imageRegion.getContentDescription());
     	
-    	regionButtonsLayout.addView(imageRegion,lp);		
-	}
+    	// should always have been removed
+    	//if (regionButtonsLayout.)
+    	regionButtonsLayout.addView(imageRegion,lp);
+    }
 	
 	public void drawRegions() {
 		Iterator<ImageRegion> i = imageRegions.iterator();
@@ -686,6 +695,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     /*
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
+    	Log.v(LOGTAG,"onRestoreInstanceState");
         if (savedInstanceState.containsKey("imageRegions")) {
         	imageRegions = (Vector) savedInstanceState.getSerializable("imageRegions");
         	redrawRegions();
@@ -694,8 +704,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
+    	Log.v(LOGTAG,"onSaveInstanceState");
     	savedInstanceState.putSerializable("imageRegions", imageRegions);
     	super.onSaveInstanceState(savedInstanceState);
     }
-    */	    
+    */
 }
