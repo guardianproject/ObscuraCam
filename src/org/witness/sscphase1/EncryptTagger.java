@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class EncryptTagger extends Activity {
 	Bundle b;
@@ -33,8 +34,10 @@ public class EncryptTagger extends Activity {
 	
 
 	private Apg _apg;
+	private long[] _selectedPublicKeys;
+	private long _selectedPrivateKey;
 	
-		private static final String SSC = "[Camera Obscura : EncryptTagger] ****************************";
+	private static final String SSC = "[Camera Obscura : EncryptTagger] ****************************";
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -42,7 +45,12 @@ public class EncryptTagger extends Activity {
 		setContentView(R.layout.encrypttagger);
 	
 		_apg = Apg.createInstance();
-		_apg.isAvailable(this);
+		
+		
+		if (!_apg.isAvailable(this))
+		{
+			//should prompt to install, open the market etc
+		}
 		
 		namespace = (EditText) findViewById(R.id.namespace);
 		//confirmTag = (ImageButton) findViewById(R.id.confirmTag);
@@ -77,27 +85,62 @@ public class EncryptTagger extends Activity {
 		_apg.selectEncryptionKeys(this, null);
 		
 	}
+	
+	private void selectPrivateKey ()
+	{
+		_apg.selectSecretKey(this);
+	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
 		
-		StringBuffer sb = new StringBuffer();
-		
-		long[] keys = _apg.getEncryptionKeys();
-		
-		
-		if (keys != null)
+		if (_apg.isAvailable(this))
 		{
-			for (int i = 0; i < keys.length; i++)
+			
+			
+			
+			//first check for the current set of select keys
+			long[] _selectedPublicKeys = _apg.getEncryptionKeys();
+			
+			if (_selectedPublicKeys != null)
 			{
-				String userId = _apg.getPublicUserId(this, keys[i]);
-				sb.append(userId);
-				sb.append(' ');
+				StringBuffer sb = new StringBuffer();
+				
+				for (long key : _selectedPublicKeys)
+				{
+					String userId = _apg.getPublicUserId(this, key);
+					sb.append(userId);
+					sb.append(',');
+					
+				}
+			
+				String keySet = sb.toString();
+				namespace.setText(keySet.substring(0,keySet.length()-1));
+			}
+			else
+			{
+				//load persisted key ids from database?
+			}
+			
+			_selectedPrivateKey = _apg.getSignatureKeyId();
+			
+			if (_selectedPrivateKey == 0)
+			{
+				Toast.makeText(this, "Please choose your private key", Toast.LENGTH_SHORT).show();
+				selectPrivateKey ();
+			}
+			
+			//then check if there is any encrypted data
+			String lastEncryptedData = _apg.getEncryptedData();
+			if (lastEncryptedData != null)
+			{
+				//this is base64 encode binary data
+				
+				Toast.makeText(this, "Secured! -> " + lastEncryptedData, Toast.LENGTH_LONG).show();
 				
 			}
 		}
-		namespace.setText(sb.toString());
 		
 	}
 
@@ -110,6 +153,16 @@ public class EncryptTagger extends Activity {
 		
 	}
 	
+	private void doEncryptionTest (String asecretmessage)
+	{
+		
+		//set the keys either just selected or loaded from database
+		_apg.setEncryptionKeys(_selectedPublicKeys);
+
+		//will encrypted using selected keys		
+		_apg.encrypt(this, asecretmessage);
+			
+	}
 	
 
 }
