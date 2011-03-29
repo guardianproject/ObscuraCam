@@ -1,7 +1,9 @@
 package org.witness.sscphase1;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -27,6 +29,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Bitmap.Config;
 import android.util.Log;
 import android.view.Display;
@@ -58,6 +61,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public final static int PANIC_MENU_ITEM = 1;
 	public final static int SAVE_MENU_ITEM = 2;
 	public final static int SHARE_MENU_ITEM = 3;
+	public final static int NEW_TAG_MENU_ITEM = 4;
 	
 	// Image Matrix
 	Matrix matrix = new Matrix();
@@ -124,6 +128,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	SSCMetadataHandler mdh;
 	
 	Vibrator vibe;
+	
+	// This will need to be updated when changes are made to the image
+	boolean imageSaved = false;
+	Uri savedImageUri = null;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -682,7 +690,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
-    	MenuItem panicMenuItem = menu.add(Menu.NONE, PANIC_MENU_ITEM, Menu.NONE, "Panic");
+    	MenuItem newTagMenuItem = menu.add(Menu.NONE, NEW_TAG_MENU_ITEM, Menu.NONE, "New Tag");
+		MenuItem panicMenuItem = menu.add(Menu.NONE, PANIC_MENU_ITEM, Menu.NONE, "Panic");
         MenuItem preferencesMenuItem = menu.add(Menu.NONE, PREFERENCES_MENU_ITEM, Menu.NONE, "Preferences");
         MenuItem saveMenuItem = menu.add(Menu.NONE, SAVE_MENU_ITEM, Menu.NONE, "Save");
         MenuItem shareMenuItem = menu.add(Menu.NONE, SHARE_MENU_ITEM, Menu.NONE, "Share");
@@ -697,16 +706,92 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         		return true;
         	case PANIC_MENU_ITEM:
         		// Look up preferences and do what is required
+        		
         		return true;
         	case SAVE_MENU_ITEM:
         		// Save Image
+        		saveImage();
+        		
         		return true;
         	case SHARE_MENU_ITEM:
         		// Share Image
+        		shareImage();
+        		
         		return true;
     		default:
     			return false;
     	}
+    }
+    
+    private void shareImage() {
+    	saveImage();
+    	
+    	Intent share = new Intent(Intent.ACTION_SEND);
+    	share.setType("image/jpeg");
+    	share.putExtra(Intent.EXTRA_STREAM, savedImageUri);
+    	startActivity(Intent.createChooser(share, "Share Image"));    	
+    }
+    
+    /*
+     * This may introduce memory issues and therefore have to be done in a 
+     * different activity
+     */
+    private Bitmap createObscuredBitmap() {
+    	Bitmap obscuredBmp = Bitmap.createBitmap( imageBitmap.getWidth(),imageBitmap.getHeight(),imageBitmap.getConfig());
+    	Canvas obscuredCanvas = new Canvas(obscuredBmp); 
+    	Paint obscuredPaint = new Paint(); 
+    	obscuredPaint.setColor(Color.GREEN); 
+    	obscuredPaint.setStrokeWidth(5);
+    	Matrix obscuredMatrix = new Matrix();
+    	obscuredCanvas.drawBitmap(imageBitmap, obscuredMatrix, obscuredPaint);
+
+    	Iterator<ImageRegion> i = imageRegions.iterator();
+	    while (i.hasNext()) {
+	    	ImageRegion currentRegion = i.next();
+	    	obscuredCanvas.drawRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredPaint);
+	    }
+	    
+    	return obscuredBmp;
+    }
+    
+    private void saveImage() {
+    	
+    	Bitmap obscuredBmp = createObscuredBitmap();
+    	
+    	// Uri is savedImageUri which is global
+    	if (savedImageUri == null) {
+    		// Create the Uri
+    		File newFile = createSecureFile();
+    		if (newFile != null) {
+    			savedImageUri = Uri.fromFile(newFile);
+    		} else {
+    			imageSaved = false;    			
+    			return;
+    		}
+    	}	
+		OutputStream imageFileOS;
+		try {
+			imageFileOS = getContentResolver().openOutputStream(savedImageUri);
+			obscuredBmp.compress(CompressFormat.JPEG, 90, imageFileOS);
+
+    		Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
+    		t.show();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		// Do the saving
+    	imageSaved = true;
+    }
+    
+    private File createSecureFile() {
+    	File newFile = null;
+    	try {
+			newFile = File.createTempFile("ssc", ".jpg");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	return newFile;
     }
     
     // TODO: let's handle the menu activities here...
