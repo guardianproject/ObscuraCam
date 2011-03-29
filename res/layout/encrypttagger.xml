@@ -24,7 +24,18 @@
 			android:layout_width="0dip"
 			android:layout_height="wrap_content"
 			android:id="@+id/namespace"
-			android:layout_weight="0.8" />
+			android:layout_weight="0.9" 
+			android:hint="@string/encrypttaggerhint"
+			/>
+			
+		<Button
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_weight=".1"
+			android:id="@+id/selectKey"
+			android:text="@string/apg_btn_select"
+			android:adjustViewBounds="true" />
+			<!-- 
 		<ImageButton
 			android:layout_width="0dip"
 			android:layout_height="wrap_content"
@@ -33,6 +44,7 @@
 			android:background="#ff000000"
 			android:adjustViewBounds="true"
 			android:src="@drawable/confirmtagbutton" />
+			 -->
 	</LinearLayout>
 	<ListView
 		android:layout_width="fill_parent"

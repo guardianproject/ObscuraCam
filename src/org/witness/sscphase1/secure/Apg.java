@@ -113,7 +113,7 @@ public class Apg extends CryptoProvider
             else
             {
                 Toast.makeText(context,
-                               R.string.error_apg_version_not_supported, Toast.LENGTH_SHORT).show();
+                               R.string.apg_error_apg_version_not_supported, Toast.LENGTH_SHORT).show();
             }
         }
         catch (NameNotFoundException e)
@@ -142,7 +142,7 @@ public class Apg extends CryptoProvider
         catch (ActivityNotFoundException e)
         {
             Toast.makeText(activity,
-                           R.string.error_activity_not_found,
+                           R.string.apg_error_activity_not_found,
                            Toast.LENGTH_SHORT).show();
             return false;
         }
@@ -217,7 +217,7 @@ public class Apg extends CryptoProvider
         catch (ActivityNotFoundException e)
         {
             Toast.makeText(activity,
-                           R.string.error_activity_not_found,
+                           R.string.apg_error_activity_not_found,
                            Toast.LENGTH_SHORT).show();
             return false;
         }
@@ -280,6 +280,48 @@ public class Apg extends CryptoProvider
         {
             Uri contentUri = ContentUris.withAppendedId(
                                      Apg.CONTENT_URI_SECRET_KEY_RING_BY_KEY_ID,
+                                     keyId);
+            Cursor c = context.getContentResolver().query(contentUri,
+                                                      new String[] { "user_id" },
+                                                      null, null, null);
+            if (c != null && c.moveToFirst())
+            {
+                userId = c.getString(0);
+            }
+
+            if (c != null)
+            {
+                c.close();
+            }
+        }
+        catch (SecurityException e)
+        {
+            Toast.makeText(context,
+                           context.getResources().getString(R.string.insufficient_apg_permissions),
+                           Toast.LENGTH_LONG).show();
+        }
+
+        if (userId == null)
+        {
+            userId = context.getString(R.string.unknown_crypto_signature_user_id);
+        }
+        return userId;
+    }
+    
+    /**
+     * Get the user id based on the key id.
+     *
+     * @param context
+     * @param keyId
+     * @return user id
+     */
+    public String getPublicUserId(Context context, long keyId)
+    {
+        String userId = null;
+        try
+        {
+            Uri contentUri = ContentUris.withAppendedId(
+                                     Apg.CONTENT_URI_PUBLIC_KEY_RING_BY_KEY_ID,
                                      keyId);
             Cursor c = context.getContentResolver().query(contentUri,
                                                       new String[] { "user_id" },
@@ -400,6 +442,8 @@ public class Apg extends CryptoProvider
     {
         android.content.Intent intent = new android.content.Intent(Intent.ENCRYPT_AND_RETURN);
         intent.setType("text/plain");
+        
+        
         intent.putExtra(Apg.EXTRA_TEXT, data);
         intent.putExtra(Apg.EXTRA_ENCRYPTION_KEY_IDS, mEncryptionKeyIds);
         intent.putExtra(Apg.EXTRA_SIGNATURE_KEY_ID, mSignatureKeyId);
@@ -411,7 +455,36 @@ public class Apg extends CryptoProvider
         catch (ActivityNotFoundException e)
         {
             Toast.makeText(activity,
-                           R.string.error_activity_not_found,
+                           R.string.apg_error_activity_not_found,
+                           Toast.LENGTH_SHORT).show();
+            return false;
+        }
+    }
+    
+    /**
+     * Start the encrypt activity.
+     *
+     * @param activity
+     * @param data
+     * @return success or failure
+     */
+    public boolean encrypt(Activity activity, String mimeType, byte[] data)
+    {
+        android.content.Intent intent = new android.content.Intent(Intent.ENCRYPT_AND_RETURN);
+        intent.setType(mimeType);
+        
+        intent.putExtra(Apg.EXTRA_DATA, data);
+        intent.putExtra(Apg.EXTRA_ENCRYPTION_KEY_IDS, mEncryptionKeyIds);
+        intent.putExtra(Apg.EXTRA_SIGNATURE_KEY_ID, mSignatureKeyId);
+        try
+        {
+            activity.startActivityForResult(intent, Apg.ENCRYPT_MESSAGE);
+            return true;
+        }
+        catch (ActivityNotFoundException e)
+        {
+            Toast.makeText(activity,
+                           R.string.apg_error_activity_not_found,
                            Toast.LENGTH_SHORT).show();
             return false;
         }
@@ -442,12 +515,36 @@ public class Apg extends CryptoProvider
         catch (ActivityNotFoundException e)
         {
             Toast.makeText(activity,
-                           R.string.error_activity_not_found,
+                           R.string.apg_error_activity_not_found,
                            Toast.LENGTH_SHORT).show();
             return false;
         }
     }
 
+    public boolean decrypt(Activity activity, String mimeType, byte[] data)
+    {
+        android.content.Intent intent = new android.content.Intent(Apg.Intent.DECRYPT_AND_RETURN);
+        intent.setType(mimeType);
+        
+        if (data == null)
+        {
+            return false;
+        }
+        try
+        {
+            intent.putExtra(EXTRA_DATA, data);
+            activity.startActivityForResult(intent, Apg.DECRYPT_MESSAGE);
+            return true;
+        }
+        catch (ActivityNotFoundException e)
+        {
+            Toast.makeText(activity,
+                           R.string.apg_error_activity_not_found,
+                           Toast.LENGTH_SHORT).show();
+            return false;
+        }
+    }
+    
     public boolean isEncrypted(String data)
     {
 

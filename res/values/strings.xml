@@ -23,16 +23,19 @@
     <string name="idtaggerh1">ID Someone</string>
     <string name="idtaggerp">Type a name (or any identifier), or choose from people you\'ve already tagged.</string>
     <string name="encrypttaggerh1">Encrypt This Tag</string>
-    <string name="encrypttaggerp">Type a name to allow them to see the unencrypted version of this tag.  Note: people selected here will be able to view this image region in its unencrypted state.</string>
+    <string name="encrypttaggerp">You can encrypt the selected region to a specific set of public keys, so that only the key holders will be able to view the original image region.</string>
+    <string name="encrypttaggerhint">Tap To Choose</string>
     
     
      <!-- APG related -->
-    <string name="error_activity_not_found">No suitable application for this action found.</string>
-    <string name="error_apg_version_not_supported">The installed APG version is not supported.</string>
-    <string name="btn_crypto_sign">Sign</string>
-    <string name="btn_encrypt">Encrypt</string>
-    <string name="btn_decrypt">Decrypt</string>
-    <string name="btn_verify">Verify</string>
+    <string name="apg_error_activity_not_found">No suitable application for this action found.</string>
+    <string name="apg_error_apg_version_not_supported">The installed APG version is not supported.</string>
+    <string name="apg_btn_crypto_sign">Sign</string>
+    <string name="apg_btn_encrypt">Encrypt</string>
+    <string name="apg_btn_decrypt">Decrypt</string>
+    <string name="apg_btn_verify">Verify</string>
+    <string name="apg_btn_select">Select</string>
+    
     <string name="unknown_crypto_signature_user_id">&lt;unknown&gt;</string>
     <string name="key_id">id: %s</string>
     <string name="insufficient_apg_permissions">K-9 doesn\'t have permission to access APG fully, please reinstall K-9 to fix that.</string>
