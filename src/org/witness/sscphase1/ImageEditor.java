@@ -748,7 +748,35 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	Iterator<ImageRegion> i = imageRegions.iterator();
 	    while (i.hasNext()) {
 	    	ImageRegion currentRegion = i.next();
-	    	obscuredCanvas.drawRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredPaint);
+	    	
+	    	/* REWORK THIS CODE
+	    	// If the currentRegion is to be obscured:
+            // Using the interface
+            ObscureMethod om;
+            
+            // Load the appropriate class/method based on obscureMethod variable/constants
+            if (currentRegion.obscureMethod == OBSCURE_BLUR) {
+            	om = new BlurObscure(alteredBitmap);
+            } else {
+            	om = new PaintSquareObscure();		            	
+            }
+            
+        	// Apply the obscure method
+        	om.obscureRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredCanvas);
+        	*/
+	    	
+	    	// WORKS
+	    	//obscuredCanvas.drawRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredPaint);
+	    	
+	    	// This should be determined by the currentRegion.whatever  
+	    	ObscureMethod om = new PaintSquareObscure();
+	    	om.obscureRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredCanvas);
+
+	    	// ObscureMethod could be the base class for an encrypt class as well?
+	    	
+	    	// If the currentRegion is to be encrypted:
+	    	//obscuredCanvas.drawRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredPaint);
+	    	
 	    }
 	    
     	return obscuredBmp;
