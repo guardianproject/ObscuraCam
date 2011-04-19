@@ -14,10 +14,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.SQLException;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Vibrator;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -31,6 +27,10 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Bitmap.Config;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -558,7 +558,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			int _scaledImageWidth, int _scaledImageHeight, 
 			int _imageWidth, int _imageHeight, 
 			int _backgroundColor) {
-		
 		ImageRegion imageRegion = new ImageRegion(
 				this, 
 				_scaledStartX, 
@@ -569,17 +568,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				_scaledImageHeight, 
 				_imageWidth, 
 				_imageHeight, 
-				_backgroundColor,
-				imageRegionIndex);
+				_backgroundColor);
 		imageRegions.add(imageRegion);
-		//Should just be using imageRegions.size() instead of a counter??
-		imageRegionIndex++;
 		addImageRegionToLayout(imageRegion);
-		clearOverlay();		
+		clearOverlay();
 		
     	// TODO: update database
-		mdh.registerTag(imageRegion.toString());
-    	//mdh.registerTag((String) imageRegion.getContentDescription());
+		mdh.registerImageRegion(imageRegion);
 
 	}
 
@@ -595,8 +590,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	lp.leftMargin = (int)theRect.left + regionScaledRect.left;
     	lp.topMargin = (int)theRect.top + regionScaledRect.top;
     	imageRegion.setLayoutParams(lp);
-    	imageRegion.setOnClickListener(this);
-    	imageRegion.setContentDescription(imageRegion.attachTags());
+    	//imageRegion.setOnClickListener(this);
+    	//imageRegion.setContentDescription(imageRegion.attachTags());
     	
     	// TODO: this is throwing an error when tags are re-drawn - update database
     	// mdh.registerTag((String) imageRegion.getContentDescription());
@@ -657,8 +652,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			redrawRegions();
 		} else if (v instanceof ImageRegion) {
 			// Menu goes here
-			Log.v(LOGTAG,"imageRegion clicked = " + v.getContentDescription());
-	    	SSCEditTag et = new SSCEditTag(v.getContentDescription(), regionButtonsLayout);
+			Log.v(LOGTAG,"CLICKED ON: " + v.toString());
+	    	/*
+			SSCEditTag et = new SSCEditTag(v.getContentDescription(), regionButtonsLayout);
 	    	buttonIDs = et.getButtonIDs();
 	    	OnClickListener ocl = new OnClickListener() {
 	    		// each button (except the image prefs button, which is gloabl)
@@ -684,6 +680,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	};
 	    	et.addActions(ocl);
 	    	et.show();
+	    	*/
 		}
 	}
 	

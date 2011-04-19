@@ -4,7 +4,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -17,6 +18,8 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
 public class SSCMetadataHandler extends SQLiteOpenHelper {
 	private static final String DB_PATH = "/data/data/org.witness.sscphase1/databases/";
 	private static final String DB_NAME = "camera_obscura.db";
@@ -26,19 +29,302 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	public Uri uriString;
 	public String uriPath;
 	public int index;
+	private String sscImageSerial;
 	
-	public SSCCalculator calc;
+	public ExifInterface ei;
 	
-	public static final int WIPE_EXIF_DATA = -1;
-	public static final int CLONE_EXIF_DATA = -2;
-	public static final int RANDOMIZE_EXIF_DATA = -3;
+	private String ownerName;
+	private int defaultExifPreference;
+	private int ownershipType;
+	private int securityLevel;
+	private String publicKey;
+	private int sociallySharable;
+	
+	private static final String CAMERAOBSCURA = "camera_obscura";
+	private static final String KNOWNSUBJECTS = "known_subjects";
+	private static final int CLONE_EXIF = 1;
+	private static final int RANDOMIZE_EXIF = 2;
+	private static final int WIPE_EXIF = 3;
+	
+	private String[] exifAttributes = {
+			ExifInterface.TAG_DATETIME,
+			ExifInterface.TAG_FLASH,
+			ExifInterface.TAG_FOCAL_LENGTH,
+			ExifInterface.TAG_GPS_DATESTAMP,
+			ExifInterface.TAG_GPS_LATITUDE,
+			ExifInterface.TAG_GPS_LATITUDE_REF,
+			ExifInterface.TAG_GPS_LONGITUDE,
+			ExifInterface.TAG_GPS_LONGITUDE_REF,
+			ExifInterface.TAG_GPS_PROCESSING_METHOD,
+			ExifInterface.TAG_GPS_TIMESTAMP,
+			ExifInterface.TAG_IMAGE_LENGTH,
+			ExifInterface.TAG_IMAGE_WIDTH,
+			ExifInterface.TAG_MAKE,
+			ExifInterface.TAG_MODEL,
+			ExifInterface.TAG_ORIENTATION,
+			ExifInterface.TAG_WHITE_BALANCE
+	};
+	private String[] exifTableValues = {"tagDateTime",
+			"tagFlash","tagFocalLength","tagGPSDateStamp",
+			"tagGPSLatitude","tagGPSLatitudeRef","tagGPSLongitude",
+			"tagLongitudeRef","tagGPSProcessingMethod","tagGPSTimeStamp",
+			"tagImageLength","tagImageWidth","tagMake","tagModel",
+			"tagOrientation","tagWhiteBalance"};
+	
+	private String[] dataTable = {"tagDateTime TEXT",
+			"tagFlash TEXT","tagFocalLength TEXT","tagGPSDateStamp TEXT",
+			"tagGPSLatitude TEXT","tagGPSLatitudeRef TEXT","tagGPSLongitude TEXT",
+			"tagLongitudeRef TEXT","tagGPSProcessingMethod TEXT","tagGPSTimeStamp TEXT",
+			"tagImageLength TEXT","tagImageWidth TEXT","tagMake TEXT","tagModel TEXT",
+			"tagOrientation TEXT","tagWhiteBalance TEXT","bluetoothNeighbors TEXT","accelerometerAxisAmount INTEGER",
+			"accelerometerAxisInitialX TEXT","accelerometerAxisInitialY TEXT","accelerometerAxisInitialZ TEXT",
+			"videoDuration INTEGER","numVideoPaths INTEGER","associatedImageRegions TEXT"};
+	private String[] associatedImageRegionTable = {"associatedImageRegion TEXT"};
+	private String[] imageRegionTable = {"coordinates TEXT","subjectSerial TEXT","informedConsentGiven INTEGER","consentTimeCodeserial TEXT",
+			"obfuscationType INTEGER","obfuscationTimeblock TEXT","associatedKeys TEXT","serial TEXT"};
+	private String[] subjectTable = {"associatedImages TEXT"};
 	
 	private static final String SSC = "[Camera Obscura : SSCMetadataHandler] ****************************";
 
 	public SSCMetadataHandler(Context context) {
 		super(context, DB_NAME, null, 1);
 		this.c = context;
-		this.calc = new SSCCalculator();
+	}
+	
+	public String getFileNameFromUri(Uri uriString) {
+		String fileName = null;
+		String[] projection = {MediaStore.Images.Media.DATA};
+		Cursor msData = c.getContentResolver().query(uriString, projection, null, null, null);
+		msData.moveToFirst();
+		fileName = msData.getString(msData.getColumnIndex(projection[0]));
+		msData.close();
+		return fileName;
+	}
+	
+	public void initiateMedia(Uri uriString, int mediaType, int imageSource) throws IOException {
+		/* this method creates a new media entry in the user's main table with the following:
+		 * 
+		 * media store URI
+		 * owner name/id [taken from preferences?]
+		 * owner type [individual or organization]
+		 * public key of owner
+		 * default sharing preference [taken from preferences]
+		 * origin of media: taken by camera, imported from gallery
+		 * timestamp
+		 * make/model of device that captured the media (often the phone itself, but read the exif data)
+		 * default security [taken from preferences]
+		 */
+		
+		/*
+		 *  this method requires the mediaType to be passed (image or video)
+		 *  although we're only dealing with images now, I think we'll
+		 *  have to branch off behaviors when we deal with video in the future
+		 */
+		// TODO: interface with preferences to get taken-for-granted data
+		this.defaultExifPreference = CLONE_EXIF;
+		this.ownerName = "OWNERNAME";
+		this.ownershipType = 1;
+		this.securityLevel = 3;
+		this.sociallySharable = 1;
+		this.publicKey = "XXX";
+		this.uriString = uriString;
+		
+		switch(imageSource) {
+		// the uriPath will be different, depending on the source of the image...
+		case 1:
+			this.uriPath = uriString.getPath();
+			break;
+		case 2:
+			this.uriPath = getFileNameFromUri(uriString);
+			break;
+		}
+		
+		this.sscImageSerial = makeHash(ownerName + System.currentTimeMillis());
+
+		// insert initial info into database, creating a new record, then return its index.
+		// TODO: Link this data up with the preferences stuff...
+		String[] tableNames = {"localMediaPath",
+				"ownerName",
+				"ownershipType",
+				"securityLevel",
+				"publicKey",
+				"sociallySharable",
+				"serial"};
+		String[] tableValues = {uriString.toString(),
+				ownerName,
+				Integer.toString(ownershipType),
+				Integer.toString(securityLevel),
+				publicKey,
+				Integer.toString(sociallySharable),
+				sscImageSerial};
+		this.index = insertIntoDatabase(CAMERAOBSCURA,tableNames,tableValues);
+		
+		// spawns a new table containing corresponding available data (EXIF, BT, ACC, Geo, and reference to image regions);
+		createTable(sscImageSerial,dataTable);
+		insertIntoDatabase(sscImageSerial, exifTableValues, writeExif(defaultExifPreference));
+		modifyRecord(sscImageSerial,"associatedImageRegions",makeHash(sscImageSerial + "_IR"),"_id",Integer.toString(0));
+		
+		// spawns a new table for the associated image regions, and updates the entry in the database pointing to it
+		String ir = makeHash(sscImageSerial + "_IR");
+		createTable(ir,imageRegionTable);
+	}
+
+	public int getImageResourceCursor() {
+		return index;
+	}
+	
+	public String[] writeExif(int intent) {
+		/*
+		 *  this method will make the specified modifications to the exif data
+		 *  
+		 *  this method takes a parameter: intent to determine whether the exif data will be:
+		 *  1. genuinely passed on from the media,
+		 *  2. recorded from user-input values,
+		 *  3. or wiped entirely (values set to null)
+		 */
+		String[] newExifValues = new String[exifAttributes.length];
+		try {
+			ei = new ExifInterface(uriPath);
+		} catch (IOException e) {}
+		
+		int c = 0;
+		switch(intent) {
+		case CLONE_EXIF:
+			newExifValues = readExif(ei);
+			break;
+		case RANDOMIZE_EXIF:
+			break;
+		case WIPE_EXIF:
+			for(String nef : exifAttributes) {
+				newExifValues[c] = "0";
+				ei.setAttribute(nef,newExifValues[c]);
+				c++;
+			}
+		}
+		return newExifValues;
+	}
+	
+	public String[] readExif(ExifInterface ei) {
+		/*
+		 * just a method for reading what's currently attached to the media and returning it.
+		 */
+		String[] exifData = new String[exifAttributes.length];
+		int c = 0;
+		for(String ea : exifAttributes) {
+			exifData[c] = ei.getAttribute(ea);
+			c++;
+		}
+		return exifData;
+	}
+	
+	public void registerSensorData() {
+		/*
+		 * this method will write the associated sensory data to the same table containing the exif data
+		 */
+		
+	}
+	
+	public void registerKeys() {
+		
+	}
+	
+	public void registerSubject() {
+		/*
+		 * this method will write data regarding a subject to a join table that can be associated with the image
+		 * 
+		 * if the corresponding subject join table does not exist, it will create it and name
+		 * it according to our taxonomy
+		 * 
+		 * this method populates the subject join table with the following:
+		 * 
+		 * Subject Name
+		 * Consent
+		 * Consent timecode (null if image)
+		 * 
+		 * this method will also spawn a new join table named after this subject (a hash of the name, i would say)
+		 * or append to it, in the case that the table already exists with
+		 * the ID of corresponding image (imageRegion?)
+		 * 
+		 */
+	}
+	
+	public void registerImageRegion(ImageRegion imageRegion) {
+		// TODO: first, check to see if this image region exists.
+		// insert into _ir database with known values
+		String[] tableNames = {"coordinates","serial"};
+		float[] coordinates = {
+				imageRegion.startX,
+				imageRegion.startY,
+				imageRegion.endX,
+				imageRegion.endY};
+		String[] tableValues = {gsonPack(coordinates),imageRegion.toString()};
+		insertIntoDatabase(makeHash(sscImageSerial + "_IR"),tableNames,tableValues);
+	}
+	
+	public int insertIntoDatabase(String tableName, String[] targetColumns, String[] values) throws SQLException {
+		String theQuery = "INSERT INTO " + tableName + " (";
+		if(targetColumns != null) {
+			StringBuffer sb = new StringBuffer();
+			for(String tc : targetColumns) {
+				sb.append(",");
+				sb.append(tc);
+			}
+			theQuery += (sb.toString().substring(1) + ") ");
+		}
+		StringBuffer sb = new StringBuffer();
+		for(String val : values) {
+			sb.append(",");
+			sb.append("\'" + val + "\'");
+		}
+		theQuery += "VALUES (" + sb.toString().substring(1) + ")";
+		Log.d(SSC,theQuery);
+		db.execSQL(theQuery);
+		
+		// return last row affected
+		int i = -1;
+		Cursor dbCount = db.rawQuery("SELECT * FROM " + tableName,null);
+		if(dbCount != null) {
+			dbCount.moveToLast();
+			i = dbCount.getPosition();
+			dbCount.close();
+		}
+		return i;
+	}
+	
+	// SINGULAR
+	private void modifyRecord(String tableName, String targetColumn,
+			String value, String matchColumn, String matchValue) {
+		String theQuery = "UPDATE " + tableName + 
+							" SET " + targetColumn + 
+							" = \'" + value + "\' WHERE " +
+							matchColumn + " = " + matchValue; 
+		Log.d(SSC,theQuery);
+		db.execSQL(theQuery);
+	}
+	
+	// PLURAL (overloaded)
+	public void modifyRecord(String tableName, String[] targetColumns, String[] values, String matchColumn, String matchValue) {
+		String theQuery = "UPDATE " + tableName + " SET ";
+		StringBuffer sb = new StringBuffer();
+		for(int x=0; x<targetColumns.length; x++) {
+			sb.append(",");
+			sb.append(targetColumns[x] + " = \'" + values[x] + "\'");
+		}
+		theQuery += sb.toString().substring(1) + " WHERE " + matchColumn + " = " + matchValue; 
+		Log.d(SSC,theQuery);
+		db.execSQL(theQuery);
+	}
+	
+	public void createTable(String tableName, String[] columns) {
+		String theQuery = "CREATE TABLE " + tableName + " (_id INTEGER PRIMARY KEY,";
+		StringBuffer sb = new StringBuffer();
+		for(String col : columns) {
+			sb.append(",");
+			sb.append(col);
+		}
+		theQuery += sb.toString().substring(1) + ")";
+		Log.d(SSC,theQuery);
+		db.execSQL(theQuery);
 	}
 	
 	public void createDatabase() throws IOException {
@@ -84,251 +370,6 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		db = SQLiteDatabase.openDatabase(DB_PATH + DB_NAME, null, SQLiteDatabase.OPEN_READWRITE);
 		return db != null ? true : false;
 	}
-	
-	public int insertIntoDatabase(String tableName, String targetColumn, String values) throws SQLException {
-		String theQuery = "INSERT INTO " + tableName;
-		if(targetColumn != null) {
-			theQuery += " " + targetColumn;
-		}
-		theQuery += " VALUES (" + values + ")";
-		db.execSQL(theQuery);
-		
-		// sloppy way of returning last row affected
-		int i = -1;
-		Cursor dbCount = db.rawQuery("SELECT * FROM " + tableName,null);
-		if(dbCount != null) {
-			dbCount.moveToLast();
-			i = dbCount.getPosition();
-			dbCount.close();
-		}
-		return i;
-	}
-	
-	public int getImageResourceCursor() {
-		return index;
-	}
-	
-	public Cursor readItemFromDatabase(String tableName,String refKey, String refVal) {
-		Cursor dbResponse = null;
-		dbResponse = db.rawQuery("SELECT * FROM " + tableName + " WHERE " + refKey + " = " + refVal,null);
-		// TODO: and what are we going to do with the returned cursor?  Should this even return cursor?
-		return dbResponse;
-	}
-	
-	public ArrayList<String> readBatchFromDatabase(String tableName, String colName, String orderBy) {
-		Cursor dbResponse = null;
-		ArrayList<String> batch = new ArrayList<String>();
-		dbResponse = db.rawQuery("SELECT " + colName + " FROM " + tableName,null);
-		if(dbResponse != null) {
-			dbResponse.moveToFirst();
-			while(dbResponse.isAfterLast() == false) {
-				batch.add(dbResponse.getString(0));
-				dbResponse.moveToNext();
-			}
-		}
-		dbResponse.close();
-		return batch;
-	}
-	
-	public void createJoinTable(int tableType, String tableName) {
-		/*
-		 *  this method creates join tables for the image regions, encrypt keys, and list of subjects
-		 *  1. imageRegions_[index]
-		 *  2. associatedKeys_[index]_[tagIndex]
-		 *  3. associatedSubjects_[index]_[tagIndex]
-		*/
-		String qString = "CREATE TABLE ";
-		switch(tableType) {
-		case 1:
-			qString += (tableName + " (" +
-					"_id INTEGER PRIMARY KEY," +
-					"coordinates TEXT," +
-					"associatedKeys TEXT," +
-					"associatedSubjects TEXT)"
-					);
-			break;
-		case 2:
-			qString += (tableName + " (" +
-					"_id INTEGER PRIMARY KEY," +
-					"d_associatedTag INTEGER," +
-					"i_keyHolder TEXT," +
-					"i_key TEXT)"
-					);
-			break;
-		case 3:
-			qString += (tableName + " (" +
-					"_id INTEGER PRIMARY KEY," +
-					"d_associatedTag INTEGER," +
-					"s_entityName TEXT," +
-					"s_informedConsentGiven INTEGER," +
-					"s_consentTimecode TEXT," +
-					"s_obfuscationType INTEGER," +
-					"s_obfuscationTimeblock TEXT)" // this is a reference to another table
-					);
-			break;
-		}
-		db.execSQL(qString);
-	}
-	
-	public String getFileNameFromUri(Uri uriString) {
-		String fileName = null;
-		String[] projection = {MediaStore.Images.Media.DATA};
-		Cursor msData = c.getContentResolver().query(uriString, projection, null, null, null);
-		msData.moveToFirst();
-		fileName = msData.getString(msData.getColumnIndex(projection[0]));
-		msData.close();
-		return fileName;
-	}
-	
-	public void initiateMedia(Uri uriString, int mediaType, int imageSource) throws IOException {
-		/*
-		 *  this method requires the mediaType to be passed (image or video)
-		 *  although we're only dealing with images now, I think we'll
-		 *  have to branch off behaviors when we deal with video in the future
-		 */
-		this.uriString = uriString;
-
-		// insert initial info into database, creating a new record, then return its index.
-		this.index = insertIntoDatabase("camera_obscura","(g_localMediaPath)","\"" + uriString.toString() + "\"");
-		
-		// create additional tables for joining: image regions, associated subjects, associated AGP keys
-		createJoinTable(1,"imageRegions_" + index);
-		
-		switch(mediaType) {
-		case 1:
-			// image
-			switch(imageSource) {
-			// the uriPath will be different, depending on the source of the image...
-			case 1:
-				this.uriPath = uriString.getPath();
-				break;
-			case 2:
-				this.uriPath = getFileNameFromUri(uriString);
-				break;
-			}
-			
-			try {
-				ExifInterface ei = new ExifInterface(uriPath);
-				exifParser(ei,CLONE_EXIF_DATA);
-			} catch (IOException e) {
-				Log.d(SSC,"ioexception : " + e);
-			}
-			break;
-		case 2:
-			break;
-		}
-	}
-	
-	public void registerTag(String tagData) {
-		int tagId = 0;
-		String tagCoords = "";
-		try {
-			tagId = calc.jsonGetTagId(tagData);
-			tagCoords = calc.jsonGetTagCoordsAsString(tagData);
-		} catch (Exception e) {
-			Log.d(SSC,"FUCKING EXCPETION: " + e);
-		}
-		insertIntoDatabase(
-				"imageRegions_" + index,
-				"(coordinates,associatedKeys,associatedSubjects)",
-				"\"" + tagCoords + "\",\"associatedKeys_" + index + "_" + tagId + "\",\"associatedSubjects_" + index + "_" + tagId + "\""
-				);
-		createJoinTable(2,"associatedKeys_" + index + "_" + tagId);
-		createJoinTable(3,"associatedSubjects_" + index + "_" + tagId);
-	}
-	
-	public String exifParser(ExifInterface ei, int mode) {
-		String exifValues = "";
-		String[] exifTags = c.getResources().getStringArray(R.array.ExifTagsDB);
-		switch(mode) {
-		case CLONE_EXIF_DATA:
-			// get all exif values and input them into the database
-			exifValues += exifTags[0] + "='" + ei.getAttribute(ExifInterface.TAG_DATETIME) + "',";
-			exifValues += exifTags[1] + "='" + ei.getAttribute(ExifInterface.TAG_FLASH) + "',";
-			exifValues += exifTags[2] + "='" + ei.getAttribute(ExifInterface.TAG_FOCAL_LENGTH) + "',";
-			exifValues += exifTags[3] + "='" + ei.getAttribute(ExifInterface.TAG_GPS_DATESTAMP) + "',";
-			exifValues += exifTags[4] + "='" + ei.getAttribute(ExifInterface.TAG_GPS_LATITUDE) + "',";
-			exifValues += exifTags[5] + "='" + ei.getAttribute(ExifInterface.TAG_GPS_LATITUDE_REF) + "',";
-			exifValues += exifTags[6] + "='" + ei.getAttribute(ExifInterface.TAG_GPS_LONGITUDE) + "',";
-			exifValues += exifTags[7] + "='" + ei.getAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF) + "',";
-			exifValues += exifTags[8] + "='" + ei.getAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD) + "',";
-			exifValues += exifTags[9] + "='" + ei.getAttribute(ExifInterface.TAG_GPS_TIMESTAMP) + "',";
-			exifValues += exifTags[10] + "='" + ei.getAttribute(ExifInterface.TAG_IMAGE_LENGTH) + "',";
-			exifValues += exifTags[11] + "='" + ei.getAttribute(ExifInterface.TAG_IMAGE_WIDTH) + "',";
-			exifValues += exifTags[12] + "='" + ei.getAttribute(ExifInterface.TAG_MAKE) + "',";
-			exifValues += exifTags[13] + "='" + ei.getAttribute(ExifInterface.TAG_MODEL) + "',";
-			exifValues += exifTags[14] + "='" + ei.getAttribute(ExifInterface.TAG_ORIENTATION) + "',";
-			exifValues += exifTags[15] + "='" + ei.getAttribute(ExifInterface.TAG_WHITE_BALANCE) + "'";
-			updateMetadata(CLONE_EXIF_DATA,exifValues,index);
-			break;
-		case RANDOMIZE_EXIF_DATA:
-			// TODO: create a random string of realistic data and put it into the database
-			break;
-		case WIPE_EXIF_DATA:
-			// set all values to null
-			for(int x=0;x<exifTags.length;x++) {
-				exifValues += exifTags[x] + "=null,";
-			}
-			exifValues = exifValues.substring(0,-1);
-			ei.setAttribute(ExifInterface.TAG_DATETIME,null);
-			ei.setAttribute(ExifInterface.TAG_FLASH,null);
-			ei.setAttribute(ExifInterface.TAG_FOCAL_LENGTH,null);
-			ei.setAttribute(ExifInterface.TAG_GPS_DATESTAMP,null);
-			ei.setAttribute(ExifInterface.TAG_GPS_LATITUDE,null);
-			ei.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF,null);
-			ei.setAttribute(ExifInterface.TAG_GPS_LONGITUDE,null);
-			ei.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF,null);
-			ei.setAttribute(ExifInterface.TAG_GPS_PROCESSING_METHOD,null);
-			ei.setAttribute(ExifInterface.TAG_GPS_TIMESTAMP,null);
-			ei.setAttribute(ExifInterface.TAG_IMAGE_LENGTH,null);
-			ei.setAttribute(ExifInterface.TAG_IMAGE_WIDTH,null);
-			ei.setAttribute(ExifInterface.TAG_MAKE,null);
-			ei.setAttribute(ExifInterface.TAG_MODEL,null);
-			ei.setAttribute(ExifInterface.TAG_ORIENTATION,null);
-			ei.setAttribute(ExifInterface.TAG_WHITE_BALANCE,null);
-			updateMetadata(WIPE_EXIF_DATA,exifValues,index);
-			break;
-		}
-		return exifValues;
-	}
-	
-	public void updateMetadata(int target, String value, int index) {
-		/* special batch updating is coded in the negatives
-		 * otherwise, the integer passed is the column number
-		 * and naturally pertains to the "main" camera_obscura table on the database.
-		 */
-		String theQuery;
-		String tableName, key;
-		switch(target) {
-		case WIPE_EXIF_DATA:
-			tableName = "camera_obscura";
-			key = value;
-			theQuery = "UPDATE " + tableName + " SET " + key + " WHERE _id = " + index; 
-			break;
-		case CLONE_EXIF_DATA:
-			tableName = "camera_obscura";
-			key = value;
-			theQuery = "UPDATE " + tableName + " SET " + key + " WHERE _id = " + index;
-			break;
-		case RANDOMIZE_EXIF_DATA:
-			tableName = "camera_obscura";
-			key = value;
-			theQuery = "UPDATE " + tableName + " SET " + key + " WHERE _id = " + index;
-			break;
-		default:
-			tableName = "camera_obscura";
-			key = "";
-			Cursor dbNames = db.rawQuery("PRAGMA table_info(" + tableName + ")",null);
-			if(dbNames != null) {
-				key = dbNames.getColumnName(target);
-			}
-			dbNames.close();
-			theQuery = "UPDATE " + tableName + " SET " + key + " = " + value + " WHERE _id = " + index;
-			break;
-		}
-		db.execSQL(theQuery);
-	}
-	
 	@Override
 	public synchronized void close() {
 		if(db != null) {
@@ -342,5 +383,28 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
-
+	
+	private String gsonPack(float[] values) {
+		Gson gson = new Gson();
+		return gson.toJson(values);
+	}
+	
+	private String makeHash(String s) {
+		String theHash = null;
+		MessageDigest md = null;
+		try {
+			md = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e) {
+			Log.d(SSC,"NO SUCH ALGO: " + e);
+		}
+		md.update(s.getBytes());
+		byte b[] = md.digest();
+		StringBuffer sb = new StringBuffer();
+		for(int x=0;x<b.length;x++) {
+			sb.append(Integer.toHexString(0xFF & b[x]));
+		}
+		theHash = "_" + sb.toString();
+		Log.d(SSC,s + " becomes " + theHash);
+		return theHash; 
+	}
 }
