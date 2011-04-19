@@ -768,9 +768,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	// WORKS
 	    	//obscuredCanvas.drawRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredPaint);
 	    	
-	    	// This should be determined by the currentRegion.whatever  
-	    	ObscureMethod om = new PaintSquareObscure();
-	    	om.obscureRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredCanvas);
+	    	if (currentRegion.whattodo == ImageRegion.OBSCURE) {
+	    		// This should be determined by the currentRegion.whatever  
+	    		ObscureMethod om = new PaintSquareObscure();
+	    		om.obscureRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredCanvas);
+	    	}
 
 	    	// ObscureMethod could be the base class for an encrypt class as well?
 	    	
@@ -810,6 +812,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		// Do the saving
     	imageSaved = true;
+    	
+    	// Encrypt Regions
+    	Iterator<ImageRegion> i = imageRegions.iterator();
+	    while (i.hasNext()) {
+	    	ImageRegion currentRegion = i.next();
+	    	if (currentRegion.whattodo == ImageRegion.ENCRYPT) {
+	    		// NATHAN
+	    	}
+	    }
     }
     
     private File createSecureFile() {
