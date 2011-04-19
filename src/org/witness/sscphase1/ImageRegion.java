@@ -37,8 +37,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	int whattodo = OBSCURE;
 	
 	// QuickAction items
-	ArrayList<ActionItem> actionItems;
 	String[] UIMenuItemNames;
+	ArrayList<ActionItem> aiList;
 	
 	public static final String SSC = "[Camera Obscura : ImageRegion] **************************** ";
 			
@@ -83,6 +83,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		inflatePopup();
 
 		this.setOnClickListener(this);
+		
 	
 		// FIgure out how to do layout
 		///this.setLayout(R.layout.imageregion);
@@ -92,20 +93,25 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	}
 	
 	public void inflatePopup() {
+		aiList = new ArrayList<ActionItem>();
 		UIMenuItemNames = this.getResources().getStringArray(R.array.UIMenuItemNames);
-		actionItems = new ArrayList<ActionItem>();
+		int[] UIMenuItemIcons = {
+				R.drawable.ic_context_edit,
+				R.drawable.ic_context_id,
+				R.drawable.ic_context_encrypt,
+				R.drawable.ic_context_destroy};
 		for(int x=0;x<UIMenuItemNames.length;x++) {
-			ActionItem ai = new ActionItem();			
+			ActionItem ai = new ActionItem();
 			ai.setTitle(UIMenuItemNames[x]);
+			ai.setIcon(this.getResources().getDrawable(UIMenuItemIcons[x]));
 			ai.setOnClickListener(new OnClickListener() {
-				public void onClick(View a) {
-					Log.d(SSC,"clicked on the inflated menu" + a.getId());
-				}				
+				public void onClick(View v) {
+					Log.v(SSC,"YOU CLICKED OPTION " + v.toString());
+				}
 			});
-			actionItems.add(ai);
-		}
+			aiList.add(ai);
+		}		
 	}
-	
 	
 	
 	public void changeMode(int newMode) {
@@ -137,7 +143,9 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	public void onClick(View v) {
 		Log.d(SSC,"CLICKED View " + v.toString());
 		QuickAction qa = new QuickAction(v);
-		qa.addActionItem(actionItems.get(0));
+		for(int x=0;x<aiList.size();x++) {
+			qa.addActionItem(aiList.get(x));
+		}
 		qa.setAnimStyle(QuickAction.ANIM_REFLECT);
 		qa.show();
 		
