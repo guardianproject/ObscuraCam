@@ -3,8 +3,6 @@ package org.witness.sscphase1;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import android.util.Log;
-
 public class SSCCalculator {
 	boolean calc;
 	final static String SSC = "[Camera Obscura : SSCCalculator] **************************** ";

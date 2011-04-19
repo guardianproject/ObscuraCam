@@ -10,8 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.PopupWindow;
 import android.view.View.OnClickListener;
+import android.widget.PopupWindow;
 
 public class SSCEditTag {
 	private static final String SSC = "[SSCCameraObscura : Edit Tag] ****************************";

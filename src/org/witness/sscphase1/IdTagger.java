@@ -68,6 +68,7 @@ public class IdTagger extends Activity {
 		try {
 			mdh.openDataBase();
 		} catch(SQLException e) {}
+		/*
 		try {
 			al = mdh.readBatchFromDatabase("ssc_subjects", "s_entityName", "ASC");
 			Log.v(SSC,"found " + al.size() + " tags in db");
@@ -75,6 +76,7 @@ public class IdTagger extends Activity {
 				shouldLookupNames = true;
 			}
 		} catch(SQLException e) {}
+		*/
 		
 		if(shouldLookupNames) {
 			namespace.addTextChangedListener(new TextWatcher() {
@@ -100,9 +102,11 @@ public class IdTagger extends Activity {
 	public void saveSubject(String subjectName) {
 		if(subjectName.compareTo("") != 0) {
 			// add subject into table of known subjects if this is a new subject.
+			/*
 			if(isNewSubject) {
 				int subjectIndex = mdh.insertIntoDatabase("ssc_subjects", "(s_entityName,associatedMedia)", "\"" + subjectName + "\"," + b.getInt("imageResourceCursor"));
 			}
+			*/
 			
 			int finalConsent = 0;
 			if(consentCheckbox.isChecked()) {
@@ -110,12 +114,13 @@ public class IdTagger extends Activity {
 			}
 			
 			// add subject to tag's table ("associatedSubjects_[imageId]_[tagId]")
+			/*
 			mdh.insertIntoDatabase(
 					"associatedSubjects_" + b.getInt("imageResourceCursor") + "_" + tagIndex,
 					"(d_associatedTag,s_entityName,s_informedConsentGiven)",
 					tagIndex + ",\"" + subjectName + "\"," + finalConsent
 					);
-			
+			*/
 			// and return to previous activity
 		} else {
 			// toast to the user that they didn't input anything

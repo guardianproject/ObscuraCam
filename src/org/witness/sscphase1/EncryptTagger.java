@@ -14,11 +14,10 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class EncryptTagger extends Activity {
+public class EncryptTagger extends Activity implements OnClickListener {
 	Bundle b;
 	
 	EditText namespace;
@@ -53,16 +52,10 @@ public class EncryptTagger extends Activity {
 		}
 		
 		namespace = (EditText) findViewById(R.id.namespace);
-		//confirmTag = (ImageButton) findViewById(R.id.confirmTag);
 		_btnSelectKey = (Button) findViewById(R.id.selectKey);
 		
-		_btnSelectKey.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				if(v == _btnSelectKey) {
-					selectPublicKeys();
-				}
-			}
-		});
+		namespace.setOnClickListener(this);
+		_btnSelectKey.setOnClickListener(this);
 		
 		b = getIntent().getExtras();
 		
@@ -109,6 +102,7 @@ public class EncryptTagger extends Activity {
 				
 				for (long key : _selectedPublicKeys)
 				{
+					Log.d(SSC,"key: " + key);
 					String userId = _apg.getPublicUserId(this, key);
 					sb.append(userId);
 					sb.append(',');
@@ -162,6 +156,17 @@ public class EncryptTagger extends Activity {
 		//will encrypted using selected keys		
 		_apg.encrypt(this, asecretmessage);
 			
+	}
+
+	public void onClick(View v) {
+		if(v == _btnSelectKey) {
+			Log.d(SSC,"i want to add this key: " + Apg.EXTRA_SELECTION);
+		} else if(v == namespace) {
+			selectPublicKeys();
+		}
+		
+		
+		
 	}
 	
 
