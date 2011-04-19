@@ -30,6 +30,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	public static final int NORMAL_MODE = 1;
 	int mode = EDIT_MODE;
 	
+	public static final int OBSCURE = 0;
+	public static final int ENCRYPT = 1;
+	int whattodo = OBSCURE;
+	
 	public static final String SSC = "[Camera Obscura : ImageRegion] **************************** ";
 			
 	//public ImageRegion(Context context, String jsonVersion) {
