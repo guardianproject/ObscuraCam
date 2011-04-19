@@ -1,5 +1,7 @@
 package net.londatiga.android;
 
+import org.witness.sscphase1.R;
+
 import android.content.Context;
 
 import android.graphics.Rect;

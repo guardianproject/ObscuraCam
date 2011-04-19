@@ -27,7 +27,7 @@
 		<item>Edit</item>
 		<item>ID</item>
 		<item>Encrypt</item>
-		<item>Destroy</item>
+		<item>Erase</item>
 	</string-array>
 
 	<!--  All EXIF Tags to be Queried, but this doesn't work.  keeping it here in case i need it -->

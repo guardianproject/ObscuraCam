@@ -1,7 +1,9 @@
 package org.witness.sscphase1;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
+import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
 
 import android.content.Context;
@@ -33,6 +35,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	public static final int OBSCURE = 0;
 	public static final int ENCRYPT = 1;
 	int whattodo = OBSCURE;
+	
+	// QuickAction items
+	ArrayList<ActionItem> actionItems;
+	String[] UIMenuItemNames;
 	
 	public static final String SSC = "[Camera Obscura : ImageRegion] **************************** ";
 			
@@ -74,8 +80,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		
 		setBackgroundColor(_backgroundColor);
 		
-		
-		
+		inflatePopup();
+
 		this.setOnClickListener(this);
 	
 		// FIgure out how to do layout
@@ -84,6 +90,23 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		//rightCorner = (Button) 
 		
 	}
+	
+	public void inflatePopup() {
+		UIMenuItemNames = this.getResources().getStringArray(R.array.UIMenuItemNames);
+		actionItems = new ArrayList<ActionItem>();
+		for(int x=0;x<UIMenuItemNames.length;x++) {
+			ActionItem ai = new ActionItem();			
+			ai.setTitle(UIMenuItemNames[x]);
+			ai.setOnClickListener(new OnClickListener() {
+				public void onClick(View a) {
+					Log.d(SSC,"clicked on the inflated menu" + a.getId());
+				}				
+			});
+			actionItems.add(ai);
+		}
+	}
+	
+	
 	
 	public void changeMode(int newMode) {
 		mode = newMode;
@@ -114,6 +137,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	public void onClick(View v) {
 		Log.d(SSC,"CLICKED View " + v.toString());
 		QuickAction qa = new QuickAction(v);
+		qa.addActionItem(actionItems.get(0));
+		qa.setAnimStyle(QuickAction.ANIM_REFLECT);
 		qa.show();
 		
 	}

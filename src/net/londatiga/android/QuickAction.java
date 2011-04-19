@@ -19,6 +19,8 @@ import android.view.ViewGroup;
 
 import java.util.ArrayList;
 
+import org.witness.sscphase1.R;
+
 /**
  * Popup window, shows action list as icon and text like the one in Gallery3D app. 
  * 
@@ -34,7 +36,7 @@ public class QuickAction extends CustomPopupWindow {
 	protected static final int ANIM_GROW_FROM_LEFT = 1;
 	protected static final int ANIM_GROW_FROM_RIGHT = 2;
 	protected static final int ANIM_GROW_FROM_CENTER = 3;
-	protected static final int ANIM_REFLECT = 4;
+	public static final int ANIM_REFLECT = 4;
 	protected static final int ANIM_AUTO = 5;
 	
 	private int animStyle;
