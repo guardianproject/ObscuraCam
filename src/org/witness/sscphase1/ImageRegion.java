@@ -3,10 +3,13 @@ package org.witness.sscphase1;
 import java.io.Serializable;
 import java.util.ArrayList;
 
+import org.witness.sscphase1.secure.EncryptTagger;
+
 import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Rect;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -36,9 +39,13 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	public static final int ENCRYPT = 1;
 	int whattodo = OBSCURE;
 	
+	private ImageEditor imageEditor;
+	
 	// QuickAction items
 	String[] UIMenuItemNames;
 	ArrayList<ActionItem> aiList;
+
+	QuickAction qa;
 	
 	public static final String SSC = "[Camera Obscura : ImageRegion] **************************** ";
 			
@@ -51,14 +58,16 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	Button rightCorner;
 		
 	public ImageRegion(
-			Context context, 
+			ImageEditor imageEditor, 
 			int _scaledStartX, int _scaledStartY, 
 			int _scaledEndX, int _scaledEndY, 
 			int _scaledImageWidth, int _scaledImageHeight, 
 			int _imageWidth, int _imageHeight, 
 			int _backgroundColor) 
 	{
-		super(context);
+		super(imageEditor);
+		
+		this.imageEditor = imageEditor;
 		
 		/*
 		original 300
@@ -102,18 +111,23 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 				R.drawable.ic_context_destroy};
 		for(int x=0;x<UIMenuItemNames.length;x++) {
 			ActionItem ai = new ActionItem();
-			ai.setTitle(UIMenuItemNames[x]);
+			ai.setTitle(UIMenuItemNames[x]);			
 			ai.setIcon(this.getResources().getDrawable(UIMenuItemIcons[x]));
 			ai.setOnClickListener(new OnClickListener() {
+				
 				public void onClick(View v) {
+					
 					Log.v(SSC,"YOU CLICKED OPTION " + v.toString());
+					v.getId();
 				}
 			});
+			
 			aiList.add(ai);
 		}		
 	}
 	
 	
+	    
 	public void changeMode(int newMode) {
 		mode = newMode;
 		if (mode == EDIT_MODE) {
@@ -140,12 +154,14 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		return false;
 	}
 
+	
 	public void onClick(View v) {
 		Log.d(SSC,"CLICKED View " + v.toString());
-		QuickAction qa = new QuickAction(v);
+		qa = new QuickAction(v);
 		for(int x=0;x<aiList.size();x++) {
 			qa.addActionItem(aiList.get(x));
 		}
+		
 		qa.setAnimStyle(QuickAction.ANIM_REFLECT);
 		qa.show();
 		

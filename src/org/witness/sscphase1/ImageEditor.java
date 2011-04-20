@@ -877,9 +877,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	}	
 		OutputStream imageFileOS;
 		try {
+			int quality = 100; //lossless?
 			imageFileOS = getContentResolver().openOutputStream(savedImageUri);
-			obscuredBmp.compress(CompressFormat.JPEG, 90, imageFileOS);
-
+			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
+			
     		Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
     		t.show();
 		} catch (FileNotFoundException e) {
@@ -900,12 +901,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }
     
     private File createSecureFile() {
+    	
     	File newFile = null;
     	try {
 			newFile = File.createTempFile("ssc", ".jpg");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
     	return newFile;
     }
     
@@ -916,9 +919,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		startActivity(intent);
     }
     
+   
+    
     private int RESULT_ENCRYPT_TAGGER = 9999;
     private int RESULT_ID_TAGGER = 9998;
-    
     
     public void launchEncryptTagger(String id) {
     	Intent intent = new Intent(this, EncryptTagger.class);
@@ -934,7 +938,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	startActivityForResult(intent,RESULT_ID_TAGGER);
     }
     
-    
+    /*
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
     	Log.v(LOGTAG,"onRestoreInstanceState");
@@ -949,6 +953,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	Log.v(LOGTAG,"onSaveInstanceState");
     	savedInstanceState.putSerializable("imageRegions", imageRegions);
     	super.onSaveInstanceState(savedInstanceState);
-    }
+    }*/
     
 }
