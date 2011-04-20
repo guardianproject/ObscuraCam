@@ -249,16 +249,20 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	}
 	
 	public void registerImageRegion(ImageRegion imageRegion) {
-		// TODO: first, check to see if this image region exists.
-		// insert into _ir database with known values
-		String[] tableNames = {"coordinates","serial"};
-		float[] coordinates = {
-				imageRegion.startX,
-				imageRegion.startY,
-				imageRegion.endX,
-				imageRegion.endY};
-		String[] tableValues = {gsonPack(coordinates),imageRegion.toString()};
-		insertIntoDatabase(makeHash(sscImageSerial + "_IR"),tableNames,tableValues);
+		// ... that is if this image region doesn't already exist.
+		Cursor dbCount = db.rawQuery("SELECT * FROM " + makeHash(sscImageSerial + "_IR") +
+				" WHERE serial = \'" + imageRegion.toString() + "\'",null);
+		if(dbCount != null && dbCount.getCount() == 0) {
+			String[] tableNames = {"coordinates","serial"};
+			float[] coordinates = {
+					imageRegion.startX,
+					imageRegion.startY,
+					imageRegion.endX,
+					imageRegion.endY};
+			String[] tableValues = {gsonPack(coordinates),imageRegion.toString()};
+			insertIntoDatabase(makeHash(sscImageSerial + "_IR"),tableNames,tableValues);
+		}
+		dbCount.close();		
 	}
 	
 	public int insertIntoDatabase(String tableName, String[] targetColumns, String[] values) throws SQLException {
@@ -313,6 +317,22 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		theQuery += sb.toString().substring(1) + " WHERE " + matchColumn + " = " + matchValue; 
 		Log.d(SSC,theQuery);
 		db.execSQL(theQuery);
+	}
+	
+	public String lookUp() {
+		/*
+		 * This class just performs the select query
+		 * I hate writing this, but I am operating under the assumption
+		 * that our secure media store will not necessarily
+		 * have all the functions as the built-in sql bundled with the device
+		 */
+		String result = null;
+		String theQuery = "SELECT ";
+		Cursor c = db.rawQuery(theQuery, null);
+		if(c != null && c.getCount() != 0) {
+			
+		}
+		return result;
 	}
 	
 	public void createTable(String tableName, String[] columns) {
@@ -370,6 +390,21 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		db = SQLiteDatabase.openDatabase(DB_PATH + DB_NAME, null, SQLiteDatabase.OPEN_READWRITE);
 		return db != null ? true : false;
 	}
+	
+	private Uri exportMetadataToFlatfile() throws IOException {
+		/*
+		 * this method puts together our snapshot from
+		 * the values in the database,
+		 * logs that to a flatfile
+		 * it returns the URI of that flatfile
+		 */
+		Uri ffURI = null;
+		
+		
+		
+		return ffURI;
+	}
+	
 	@Override
 	public synchronized void close() {
 		if(db != null) {

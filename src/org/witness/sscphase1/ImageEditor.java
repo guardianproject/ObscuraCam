@@ -293,8 +293,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					overlayCanvas.getWidth(), 
 					overlayCanvas.getHeight(), 
 					originalImageWidth, 
-					originalImageHeight, 
-					DETECTED_COLOR);
+					originalImageHeight);
 		}
 		
 		Toast autodetectedToast = Toast.makeText(this, "" + autodetectedRects.length + " faces deteceted", Toast.LENGTH_SHORT);
@@ -408,7 +407,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					// Create Region
 					vibe.vibrate(50);
 					
-					createImageRegion((int)startPoint.x, (int)startPoint.y, (int)event.getX(), (int)event.getY(), overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
+					createImageRegion((int)startPoint.x, (int)startPoint.y, (int)event.getX(), (int)event.getY(), overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight);
 				}
 
 				mode = NONE;
@@ -556,8 +555,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public void createImageRegion(int _scaledStartX, int _scaledStartY, 
 			int _scaledEndX, int _scaledEndY, 
 			int _scaledImageWidth, int _scaledImageHeight, 
-			int _imageWidth, int _imageHeight, 
-			int _backgroundColor) {
+			int _imageWidth, int _imageHeight) {
 		ImageRegion imageRegion = new ImageRegion(
 				this, 
 				_scaledStartX, 
@@ -567,15 +565,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				_scaledImageWidth, 
 				_scaledImageHeight, 
 				_imageWidth, 
-				_imageHeight, 
-				_backgroundColor);
+				_imageHeight);
 		imageRegions.add(imageRegion);
 		addImageRegionToLayout(imageRegion);
 		clearOverlay();
 		
-    	// TODO: update database
 		mdh.registerImageRegion(imageRegion);
-
 	}
 
 	public void addImageRegionToLayout(ImageRegion imageRegion) {
@@ -590,8 +585,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	lp.leftMargin = (int)theRect.left + regionScaledRect.left;
     	lp.topMargin = (int)theRect.top + regionScaledRect.top;
     	imageRegion.setLayoutParams(lp);
-    	//imageRegion.setOnClickListener(this);
-    	//imageRegion.setContentDescription(imageRegion.attachTags());
     	
     	// TODO: this is throwing an error when tags are re-drawn - update database
     	// mdh.registerTag((String) imageRegion.getContentDescription());
