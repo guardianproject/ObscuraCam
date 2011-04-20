@@ -22,6 +22,7 @@ public class GoogleFaceDetection implements FaceDetection {
 	public GoogleFaceDetection(Bitmap _bmp) {
 		setBitmap(_bmp);
 		faceDetector = new FaceDetector(bmp.getWidth(), bmp.getHeight(), MAX_FACES);
+		
 	}
 
 	public int findFaces() {
@@ -41,8 +42,9 @@ public class GoogleFaceDetection implements FaceDetection {
 	            	float eyeDistance = faces[i].eyesDistance();
 	            	faces[i].getMidPoint(midPoint);
 	            	
+	            	
 	            	// Create Rectangle
-	            	faceRects[i] = new Rect((int)(midPoint.x-eyeDistance*2), (int)(midPoint.x-eyeDistance*2), (int)(midPoint.x+eyeDistance*2), (int)(midPoint.x+eyeDistance*2));
+	            	faceRects[i] = new Rect((int)(midPoint.x-eyeDistance*2), (int)(midPoint.y-eyeDistance*2), (int)(midPoint.x+eyeDistance*2), (int)(midPoint.y+eyeDistance*2));
 	        	}
 	        }
 	    }	

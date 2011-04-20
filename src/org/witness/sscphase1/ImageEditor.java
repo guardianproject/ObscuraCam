@@ -3,13 +3,21 @@ package org.witness.sscphase1;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
+
+import org.witness.sscphase1.secure.Apg;
+import org.witness.sscphase1.secure.EncryptObscureMethod;
+import org.witness.sscphase1.secure.EncryptTagger;
+import org.witness.sscphase1.secure.MediaHasher;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -62,6 +70,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public final static int SAVE_MENU_ITEM = 2;
 	public final static int SHARE_MENU_ITEM = 3;
 	public final static int NEW_TAG_MENU_ITEM = 4;
+	public final static int HASH_MENU_ITEM = 5;
+	
 	
 	// Image Matrix
 	Matrix matrix = new Matrix();
@@ -203,6 +213,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					Log.v(LOGTAG,"bmp is null");
 				}
 				
+				
+				
 				float matrixScale = 1;
 				matrix.setScale(matrixScale, matrixScale);
 				imageView.setImageBitmap(imageBitmap);
@@ -257,7 +269,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    		Log.v(LOGTAG,"Within onCreateDialog right case");
 	    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 	    		builder.setTitle("Scan Image?");
-	    		builder.setMessage("Would you like to scan this image for sensitive content?");
+	    		builder.setMessage("Would you like to scan this image for faces?");
 	    		builder.setCancelable(false);
 	    		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
 	    		           public void onClick(DialogInterface dialog, int id) {
@@ -278,6 +290,27 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    return dialog;
 	}	
 	
+
+	/*
+	 * This handles the callbacks from the EncryptObscure hand off to APG, or any other
+	 * Result-based Intent launch
+	 */	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	
+		super.onActivityResult(requestCode, resultCode, data);
+		
+		if (requestCode ==  Apg.ENCRYPT_MESSAGE
+				|| requestCode == Apg.SELECT_PUBLIC_KEYS
+					|| requestCode == Apg.SELECT_SECRET_KEY)
+		{
+			Apg apg = Apg.getInstance();
+			apg.onActivityResult(this, requestCode, resultCode, data);
+			
+			String encryptedData = apg.getEncryptedData();
+			
+		}
+	}
 	
 	private void doAutoDetection() {
 		// This should be called via a pop-up/alert mechanism
@@ -304,6 +337,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	}
 	
 	// This should really have a class for the regions to obscure, each with it's own information
+	/*
 	private void createObscuredBmp(Rect[] obscureRects) {
 		// Canvas for drawing
 		Bitmap alteredBitmap = Bitmap.createBitmap(imageBitmap.getWidth(), imageBitmap.getHeight(), imageBitmap.getConfig());
@@ -330,8 +364,47 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			// Apply the obscure method
 			om.obscureRect(obscureRects[i], canvas);
 		}
-	}
+	}*/
 
+	
+	private void sendSecureHashSMS ()
+	{
+		Date hashTime = new Date();
+		String hash = generateSecureHash ();
+		
+		Intent sendIntent = new Intent(Intent.ACTION_VIEW);         
+		sendIntent.setData(Uri.parse("sms:"));
+		sendIntent.putExtra("sms_body", "Obscura hash: " + hash + " (" + hashTime.toGMTString() + ")"); 
+		startActivity(sendIntent);
+		 
+	}
+	
+	private String generateSecureHash ()
+	{
+		String result = "";
+	//	ProgressDialog progressDialog =ProgressDialog.show(this, "", "generating hash...");
+		
+		
+		try
+		{
+			InputStream is = getContentResolver().openInputStream(imageUri);		
+			result = MediaHasher.hash(is, "SHA-1");
+		
+		}
+		catch (Exception e)
+		{
+			Log.e(LOGTAG, "error generating hash",e);
+		}
+		finally
+		{
+		//	progressDialog.dismiss();
+		}
+		
+		
+		
+		return result;
+	}
+	
 	private Rect[] runFaceDetection() {
 		GoogleFaceDetection gfd = new GoogleFaceDetection(imageBitmap);
 		int numFaces = gfd.findFaces();
@@ -687,11 +760,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
+		
     	MenuItem newTagMenuItem = menu.add(Menu.NONE, NEW_TAG_MENU_ITEM, Menu.NONE, "New Tag");
 		MenuItem panicMenuItem = menu.add(Menu.NONE, PANIC_MENU_ITEM, Menu.NONE, "Panic");
         MenuItem preferencesMenuItem = menu.add(Menu.NONE, PREFERENCES_MENU_ITEM, Menu.NONE, "Preferences");
         MenuItem saveMenuItem = menu.add(Menu.NONE, SAVE_MENU_ITEM, Menu.NONE, "Save");
         MenuItem shareMenuItem = menu.add(Menu.NONE, SHARE_MENU_ITEM, Menu.NONE, "Share");
+        MenuItem hashMenuItem = menu.add(Menu.NONE, HASH_MENU_ITEM, Menu.NONE, "Send Hash");
+        
         return true;
     }
     
@@ -715,6 +791,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         		shareImage();
         		
         		return true;
+        	case HASH_MENU_ITEM:
+        		
+        		sendSecureHashSMS();
+        		
+        		return true;
     		default:
     			return false;
     	}
@@ -736,9 +817,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     private Bitmap createObscuredBitmap() {
     	Bitmap obscuredBmp = Bitmap.createBitmap( imageBitmap.getWidth(),imageBitmap.getHeight(),imageBitmap.getConfig());
     	Canvas obscuredCanvas = new Canvas(obscuredBmp); 
-    	Paint obscuredPaint = new Paint(); 
-    	obscuredPaint.setColor(Color.GREEN); 
-    	obscuredPaint.setStrokeWidth(5);
+    	
+    	Paint obscuredPaint = new Paint();     	
     	Matrix obscuredMatrix = new Matrix();
     	obscuredCanvas.drawBitmap(imageBitmap, obscuredMatrix, obscuredPaint);
 
@@ -746,36 +826,35 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    while (i.hasNext()) {
 	    	ImageRegion currentRegion = i.next();
 	    	
-	    	/* REWORK THIS CODE
+	    	//REWORK THIS CODE
 	    	// If the currentRegion is to be obscured:
             // Using the interface
             ObscureMethod om;
+            int obscureMethod = 1;
             
             // Load the appropriate class/method based on obscureMethod variable/constants
-            if (currentRegion.obscureMethod == OBSCURE_BLUR) {
-            	om = new BlurObscure(alteredBitmap);
-            } else {
+            if (obscureMethod == 1) {
+            	om = new BlurObscure(obscuredBmp);
+            }
+            else if (obscureMethod == 2)
+            {
+            	long signKey = 1;
+    	    	long encryptKeys[] = {1};
+    	    	om = new EncryptObscureMethod(this, obscuredBmp, signKey, encryptKeys);    	    		
+            }
+            else {
             	om = new PaintSquareObscure();		            	
             }
             
-        	// Apply the obscure method
-        	om.obscureRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredCanvas);
-        	*/
 	    	
 	    	// WORKS
 	    	//obscuredCanvas.drawRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredPaint);
 	    	
-	    	if (currentRegion.whattodo == ImageRegion.OBSCURE) {
-	    		// This should be determined by the currentRegion.whatever  
-	    		ObscureMethod om = new PaintSquareObscure();
-	    		om.obscureRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredCanvas);
-	    	}
+	    	// This should be determined by the currentRegion.whatever  
+	     		
+	    		//new PaintSquareObscure();
+	    	om.obscureRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredCanvas);
 
-	    	// ObscureMethod could be the base class for an encrypt class as well?
-	    	
-	    	// If the currentRegion is to be encrypted:
-	    	//obscuredCanvas.drawRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredPaint);
-	    	
 	    }
 	    
     	return obscuredBmp;
@@ -837,21 +916,25 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		startActivity(intent);
     }
     
+    private int RESULT_ENCRYPT_TAGGER = 9999;
+    private int RESULT_ID_TAGGER = 9998;
+    
+    
     public void launchEncryptTagger(String id) {
     	Intent intent = new Intent(this, EncryptTagger.class);
     	intent.putExtra("imageResourceCursor", mdh.getImageResourceCursor());
     	intent.putExtra("tagIndex", id);
-    	startActivity(intent);
+    	startActivityForResult(intent,RESULT_ENCRYPT_TAGGER);
     }
     
     public void launchIdTagger(String id) {
     	Intent intent = new Intent(this, IdTagger.class);
     	intent.putExtra("imageResourceCursor", mdh.getImageResourceCursor());
     	intent.putExtra("tagIndex", id);
-    	startActivity(intent);
+    	startActivityForResult(intent,RESULT_ID_TAGGER);
     }
     
-    /*
+    
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState) {
     	Log.v(LOGTAG,"onRestoreInstanceState");
@@ -867,5 +950,5 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	savedInstanceState.putSerializable("imageRegions", imageRegions);
     	super.onSaveInstanceState(savedInstanceState);
     }
-    */
+    
 }

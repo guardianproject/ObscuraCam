@@ -8,7 +8,8 @@
 		android:id="@+id/WalkThroughTextView" 
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content"
-		android:gravity="center">
+		android:gravity="left"		
+		android:textSize="12pt">
 	</TextView>
 	<!-- 
 	<Button android:text="@string/WalkThroughSkipButton" 
@@ -18,11 +19,21 @@
 		android:gravity="center">
 	</Button>
 	-->
+	<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:orientation="vertical"
+  android:background="#FFFF33"
+  >
 	<TextView android:text="@string/WalkThroughPrefSliderLabel" 
 		android:id="@+id/WalkThroughPrefSliderLabel" 
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content"
-		android:gravity="center"></TextView>
+		android:gravity="left"
+		android:textSize="10pt"
+		android:textColor="#000000"
+		></TextView>
 	
 	<SeekBar android:id="@+id/WalkThroughPrefSlider" 
 		android:layout_width="fill_parent" 
@@ -33,11 +44,15 @@
 		android:id="@+id/WalkThroughPrefSliderOutput" 
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content"
-		android:gravity="center"></TextView>
+		android:gravity="center"
+				android:textColor="#000000"
+		
+		></TextView>
+	</LinearLayout>
 	
 	<Button android:text="@string/WalkThroughContinueButton"
 		android:id="@+id/WalkThroughContinueButton"
-		android:layout_width="wrap_content"
+		android:layout_width="fill_parent"
 		android:layout_height="wrap_content"
 		android:gravity="center">
 	</Button>	

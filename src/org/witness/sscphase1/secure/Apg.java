@@ -88,9 +88,14 @@ public class Apg extends CryptoProvider
             Pattern.compile(".*?(-----BEGIN PGP SIGNED MESSAGE-----.*?-----BEGIN PGP SIGNATURE-----.*?-----END PGP SIGNATURE-----).*",
                             Pattern.DOTALL);
 
-    public static Apg createInstance()
+    private static Apg _apgInstance;
+    
+    public synchronized static Apg getInstance()
     {
-        return new Apg();
+    	if (_apgInstance == null)
+    		_apgInstance = new Apg();
+    	
+        return _apgInstance;
     }
 
     /**

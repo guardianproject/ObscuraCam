@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 
 public class BlurObscure extends Activity implements ObscureMethod {
@@ -16,14 +17,28 @@ public class BlurObscure extends Activity implements ObscureMethod {
 	
 	public void obscureRect(Rect rect, Canvas canvas) {
 		
-		for (int x = 1; x < originalBmp.getWidth() - 1; x++) {
-			for (int y = 1; y < originalBmp.getHeight() - 1; y++) {
+        Bitmap facebmp = Bitmap.createBitmap(originalBmp,rect.left,rect.top,rect.width(),rect.height());
+
+        int blurFactor = 10;
+        
+        facebmp = Bitmap.createScaledBitmap(facebmp, facebmp.getWidth()/blurFactor, facebmp.getHeight()/blurFactor, true);
+        facebmp = Bitmap.createScaledBitmap(facebmp, facebmp.getWidth()*blurFactor, facebmp.getHeight()*blurFactor, true);
+
+    	Paint obscuredPaint = new Paint();     	
+
+        canvas.drawBitmap(facebmp, rect, rect, obscuredPaint);
+        
+		/*
+		for (int x = rect.left; x < rect.right - 1; x++) {
+			for (int y = rect.top; y < rect.bottom - 1; y++) {
+				
 				int r = getRed(x,y);
 				int g = getBlue(x,y);
 				int b = getBlue(x,y);
+				
 				originalBmp.setPixel(x, y, Color.rgb(Color.red(r), Color.green(g), Color.blue(b)));
 			}
-		}
+		}*/
 	}
 	
 	private int getRed(int x, int y) {
@@ -65,4 +80,6 @@ public class BlurObscure extends Activity implements ObscureMethod {
 			Color.blue(originalBmp.getPixel(x+1, y+1)))/9;		
 	}
 }
+
+
 

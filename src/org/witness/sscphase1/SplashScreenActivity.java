@@ -30,9 +30,9 @@ public class SplashScreenActivity extends Activity implements OnClickListener, O
 	View splashScreenView;
 	View walkThroughView;
 	
-	TextView splashScreenTextView;
-	ImageView splashScreenImageView;
-	TextView creditsTextView;
+	View splashScreenTextView;
+	//ImageView splashScreenImageView;
+	View creditsTextView;
 	
 	Button walkThroughSkipButton;
 	Button walkThroughContinueButton;
@@ -45,17 +45,15 @@ public class SplashScreenActivity extends Activity implements OnClickListener, O
 
         //setContentView(R.layout.splashscreen);
         // Use LayoutInflator for Views
-        LayoutInflater inflater = LayoutInflater.from(this);
-        
+        LayoutInflater inflater = LayoutInflater.from(this);        
         splashScreenView = inflater.inflate(R.layout.splashscreen, null);
-        
-        splashScreenTextView = (TextView) splashScreenView.findViewById(R.id.SplashTextView);
+        setContentView(splashScreenView);
+             
+        splashScreenTextView = findViewById(R.id.SplashTextView);
         splashScreenTextView.setOnClickListener(this);
+       
         
-        splashScreenImageView = (ImageView) splashScreenView.findViewById(R.id.SplashImageView);
-        splashScreenImageView.setOnClickListener(this);
-        
-        creditsTextView = (TextView) splashScreenView.findViewById(R.id.CreditsTextView);
+        creditsTextView = findViewById(R.id.CreditsTextView);
         creditsTextView.setOnClickListener(this);
         
     	walkThroughView = inflater.inflate(R.layout.walkthrough, null);
@@ -73,7 +71,7 @@ public class SplashScreenActivity extends Activity implements OnClickListener, O
 		
 		walkThroughPrefSliderOutput = (TextView) walkThroughView.findViewById(R.id.WalkThroughPrefSliderOutput);
 		
-    	setContentView(splashScreenView);
+    	
     }
     
     @Override
@@ -86,7 +84,7 @@ public class SplashScreenActivity extends Activity implements OnClickListener, O
     }    
 
 	public void onClick(View view) {
-		if (view == splashScreenTextView || view == splashScreenImageView) {
+		if (view == splashScreenTextView) {
 			// Display Walk Through
 			if (prefs.getWalkThroughPref()) {
 				setContentView(walkThroughView);

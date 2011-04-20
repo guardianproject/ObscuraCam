@@ -1,9 +1,12 @@
-package org.witness.sscphase1;
+package org.witness.sscphase1.secure;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.witness.sscphase1.secure.Apg;
+import org.witness.sscphase1.R;
+import org.witness.sscphase1.SSCMetadataHandler;
+import org.witness.sscphase1.R.id;
+import org.witness.sscphase1.R.layout;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -43,7 +46,7 @@ public class EncryptTagger extends Activity implements OnClickListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.encrypttagger);
 	
-		_apg = Apg.createInstance();
+		_apg = Apg.getInstance();
 		
 		
 		if (!_apg.isAvailable(this))
@@ -105,12 +108,14 @@ public class EncryptTagger extends Activity implements OnClickListener {
 					Log.d(SSC,"key: " + key);
 					String userId = _apg.getPublicUserId(this, key);
 					sb.append(userId);
+					sb.append(" (" + key + ")");					
 					sb.append(',');
 					
 				}
 			
 				String keySet = sb.toString();
 				namespace.setText(keySet.substring(0,keySet.length()-1));
+				
 			}
 			else
 			{
@@ -143,8 +148,14 @@ public class EncryptTagger extends Activity implements OnClickListener {
 	
 		super.onActivityResult(requestCode, resultCode, data);
 		
-		_apg.onActivityResult(this, requestCode, resultCode, data);
 		
+		if (requestCode ==  Apg.ENCRYPT_MESSAGE
+				|| requestCode == Apg.SELECT_PUBLIC_KEYS
+					|| requestCode == Apg.SELECT_SECRET_KEY)
+		{
+		
+			_apg.onActivityResult(this, requestCode, resultCode, data);
+		}
 	}
 	
 	private void doEncryptionTest (String asecretmessage)

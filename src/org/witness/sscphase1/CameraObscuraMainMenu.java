@@ -26,8 +26,9 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 		public final static int PREFERENCES_MENU_ITEM = 0;
 		public final static int PANIC_MENU_ITEM = 1;
 
-		Button choosePictureButton, takePictureButton;
-		Button datastoreButton, preferencesButton, panicButton;
+		Button choosePictureButton, takePictureButton, datastoreButton;
+		//Button , preferencesButton, panicButton;
+		
 		
 		File tmpImageFile;
 		int imageSource;
@@ -53,11 +54,14 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    	datastoreButton = (Button) this.findViewById(R.id.DatastoreButton);
 	    	datastoreButton.setOnClickListener(this);
 	    	
+	    	//we don't need this as they are menu options
+	    	/*
 	    	preferencesButton = (Button) this.findViewById(R.id.PreferencesButton);
 	    	preferencesButton.setOnClickListener(this);
 	    	
 	    	panicButton = (Button) this.findViewById(R.id.PanicButton);
 	    	panicButton.setOnClickListener(this);
+	    	*/
 	    	
 	    	/*
 	    	 * TODO: parse preference file for user's stance on sensor logging
@@ -100,14 +104,15 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 				Toast dataStoreToast = Toast.makeText(this, "Coming Soon", Toast.LENGTH_SHORT);
 				dataStoreToast.show();
 				
-			} else if (v == preferencesButton) {
+			} 
+			/*else if (v == preferencesButton) {
 
 				showPreferences();
 				
 			} else if (v == panicButton) {
 
 				panic();				
-			}
+			}*/
 		}
 
 		protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
