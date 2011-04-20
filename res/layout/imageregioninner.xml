@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent">
+    <View android:id="@+id/TopLeftCorner" android:layout_width="26px" android:layout_height="26px" android:background="@drawable/edit_region_corner_ul"></View>
+    <View android:id="@+id/TopRightCorner" android:layout_width="26px" android:layout_height="26px" android:background="@drawable/edit_region_corner_ur" android:layout_gravity="top|right"></View>
+    <View android:id="@+id/BottomLeftCorner" android:layout_width="26px" android:layout_height="26px" android:background="@drawable/edit_region_corner_ll" android:layout_gravity="bottom|left"></View>
+    <View android:id="@+id/BottomRightCorner" android:layout_width="26px" android:layout_height="26px" android:background="@drawable/edit_region_corner_lr" android:layout_gravity="bottom|right"></View>
+</FrameLayout>
