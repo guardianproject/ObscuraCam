@@ -17,19 +17,31 @@ public class BlurObscure extends Activity implements ObscureMethod {
 	
 	public void obscureRect(Rect rect, Canvas canvas) {
 	
-		makeItBlue (rect);
+		// Why does this shift the color to blue??
+		makeItBlur(rect);
 		
 		//doScaleBlur (rect, canvas);
 	}
 	
-	private void makeItBlue (Rect rect)
+	private void makeItBlur(Rect rect)
 	{
+		if (rect.left <= 0) {
+			rect.left = 1;
+		} else if (rect.right >= originalBmp.getWidth()-1) {
+			rect.right = originalBmp.getWidth() - 1;
+		}
 		
+		if (rect.top <= 0) {
+			rect.top = 1;
+		} else if (rect.bottom >= originalBmp.getHeight()) {
+			rect.bottom = originalBmp.getHeight();
+		}
+			
 		for (int x = rect.left; x < rect.right - 1; x++) {
 			for (int y = rect.top; y < rect.bottom - 1; y++) {
 				
 				int r = getRed(x,y);
-				int g = getBlue(x,y);
+				int g = getGreen(x,y);
 				int b = getBlue(x,y);
 				
 				originalBmp.setPixel(x, y, Color.rgb(Color.red(r), Color.green(g), Color.blue(b)));
@@ -44,7 +56,7 @@ public class BlurObscure extends Activity implements ObscureMethod {
 	        int blurFactor = 10;
 	        
 	        facebmp = Bitmap.createScaledBitmap(facebmp, facebmp.getWidth()/blurFactor, facebmp.getHeight()/blurFactor, true);
-	        facebmp = Bitmap.createScaledBitmap(facebmp, facebmp.getWidth()*blurFactor, facebmp.getHeight()*blurFactor, true);
+	        //facebmp = Bitmap.createScaledBitmap(facebmp, facebmp.getWidth()*blurFactor, facebmp.getHeight()*blurFactor, true);
 
 	    	Paint obscuredPaint = new Paint();     	
 
