@@ -41,8 +41,9 @@ public class GoogleFaceDetection implements FaceDetection {
 	            	float eyeDistance = faces[i].eyesDistance();
 	            	faces[i].getMidPoint(midPoint);
 	            	
+	            	
 	            	// Create Rectangle
-	            	faceRects[i] = new Rect((int)(midPoint.x-eyeDistance*2), (int)(midPoint.x-eyeDistance*2), (int)(midPoint.x+eyeDistance*2), (int)(midPoint.x+eyeDistance*2));
+	            	faceRects[i] = new Rect((int)(midPoint.x-eyeDistance*2), (int)(midPoint.y-eyeDistance*2), (int)(midPoint.x+eyeDistance*2), (int)(midPoint.y+eyeDistance*2));
 	        	}
 	        }
 	    }	
