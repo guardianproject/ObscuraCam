@@ -776,8 +776,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				_scaledImageHeight, 
 				_imageWidth, 
 				_imageHeight, 
-				_backgroundColor,
-				this.getApplicationContext());
+				_backgroundColor);
 		imageRegions.add(imageRegion);
 		addImageRegionToLayout(imageRegion);
 		clearOverlay();
