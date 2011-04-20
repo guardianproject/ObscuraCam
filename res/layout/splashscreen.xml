@@ -3,21 +3,17 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="fill_parent"
   android:layout_height="fill_parent"
-  android:id="@+id/SplashFrameLayout">
-	<ImageView 
-		android:layout_height="wrap_content" 
-		android:layout_width="wrap_content" 
-		android:id="@+id/SplashImageView" 
-		android:src="@drawable/mainimage"
-		android:layout_gravity="center_vertical|center_horizontal" 
-		android:gravity="center_vertical|center_horizontal">
-	</ImageView>	
+  android:id="@+id/SplashFrameLayout"
+  android:background="@drawable/mainimage"
+  >
 	<TextView android:text="@string/SplashTextViewString" 
 		android:id="@+id/SplashTextView" 
 		android:layout_width="fill_parent" 
 		android:layout_height="fill_parent" 
 		android:layout_gravity="center_vertical|center_horizontal" 
-		android:gravity="center_vertical|center_horizontal">
+		android:gravity="center_vertical|center_horizontal"
+		android:textColor="#FFFF33"
+		android:textSize="24pt">
 	</TextView>
 	<TextView android:text="@string/CreditsTextViewString" 
 		android:id="@+id/CreditsTextView" 
