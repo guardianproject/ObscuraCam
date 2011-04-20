@@ -82,9 +82,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	static final int NONE = 0;
 	static final int DRAG = 1;
 	static final int ZOOM = 2;
-	static final int DRAW = 3; 
+	static final int DRAW = 3;
+	static final int TAP = 4;
 	int mode = NONE;
 
+	static final int DEFAULT_REGION_WIDTH = 160;
+	static final int DEFAULT_REGION_HEIGHT = 160;
+	
 	static final float MAX_SCALE = 10f;
 
 	static final int DIALOG_DO_AUTODETECTION = 0;
@@ -98,7 +102,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	PointF startPoint = new PointF();
 	
 	//float minMoveDistance = 10f; // 10 pixels??  Perhaps should be density independent
-	float minMoveDistanceDP = 10f;
+	float minMoveDistanceDP = 5f;
 	float minMoveDistance; // = ViewConfiguration.get(this).getScaledTouchSlop();
 	float scale; // Current display scale
 	
@@ -413,6 +417,136 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		return possibleFaceRects;				
 	}
 	
+	
+	public boolean onTouch(View v, MotionEvent event) {
+		switch (event.getAction() & MotionEvent.ACTION_MASK) {
+			case MotionEvent.ACTION_DOWN:
+				// Single Finger
+				mode = TAP;
+				
+				// Save the Start point. 
+				startPoint.set(event.getX(), event.getY());
+												
+				break;
+				
+			case MotionEvent.ACTION_POINTER_DOWN:
+				// Two Fingers
+				
+				// Get the spacing of the fingers, 2 fingers
+				float sx = event.getX(0) - event.getX(1);
+				float sy = event.getY(0) - event.getY(1);
+				startFingerSpacing = (float) Math.sqrt(sx * sx + sy * sy);
+
+				Log.d(LOGTAG, "Start Finger Spacing=" + startFingerSpacing);
+				
+				if (startFingerSpacing > 10f) {
+
+					float xsum = event.getX(0) + event.getX(1);
+					float ysum = event.getY(0) + event.getY(1);
+					startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
+				
+					mode = ZOOM;
+					Log.d(LOGTAG, "mode=ZOOM");
+				}
+				
+				break;
+				
+			case MotionEvent.ACTION_UP:
+				// Single Finger Up
+				
+				if (mode == TAP) {
+					vibe.vibrate(50);
+					createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, (int)startPoint.y-DEFAULT_REGION_HEIGHT/2, (int)startPoint.x+DEFAULT_REGION_WIDTH/2, (int)startPoint.y+DEFAULT_REGION_HEIGHT/2, overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
+				}
+				
+				mode = NONE;
+				Log.v(LOGTAG,"mode=NONE");
+				break;
+				
+			case MotionEvent.ACTION_POINTER_UP:
+				// Multiple Finger Up
+				
+				mode = NONE;
+				Log.d(LOGTAG, "mode=NONE");
+				break;
+				
+			case MotionEvent.ACTION_MOVE:
+				
+				float distance = (float) (Math.sqrt(Math.abs(startPoint.x - event.getX()) + Math.abs(startPoint.y - event.getY())));
+				Log.v(LOGTAG,"Move Distance: " + distance);
+				Log.v(LOGTAG,"Min Distance: " + minMoveDistance);
+				
+				if (distance > minMoveDistance) {
+				
+					if (mode == TAP) {
+						mode = DRAG;
+						
+						matrix.postTranslate(event.getX() - startPoint.x, event.getY() - startPoint.y);
+						imageView.setImageMatrix(matrix);
+						overlayImageView.setImageMatrix(matrix);
+						// Reset the start point
+						startPoint.set(event.getX(), event.getY());
+	
+						putOnScreen();
+						redrawRegions();
+	
+					} else if (mode == ZOOM) {
+						
+						// Save the current matrix so that if zoom goes to big, we can revert
+						savedMatrix.set(matrix);
+						
+						// Get the spacing of the fingers, 2 fingers
+						float ex = event.getX(0) - event.getX(1);
+						float ey = event.getY(0) - event.getY(1);
+						endFingerSpacing = (float) Math.sqrt(ex * ex + ey * ey);
+	
+						Log.d(LOGTAG, "End Finger Spacing=" + endFingerSpacing);
+		
+						if (endFingerSpacing > minMoveDistance) {
+							
+							// Ratio of spacing..  If it was 5 and goes to 10 the image is 2x as big
+							float scale = endFingerSpacing / startFingerSpacing;
+							// Scale from the midpoint
+							matrix.postScale(scale, scale, startFingerSpacingMidPoint.x, startFingerSpacingMidPoint.y);
+		
+							float[] matrixValues = new float[9];
+							matrix.getValues(matrixValues);
+							Log.v(LOGTAG, "Total Scale: " + matrixValues[0]);
+							Log.v(LOGTAG, "" + matrixValues[0] + " " + matrixValues[1]
+									+ " " + matrixValues[2] + " " + matrixValues[3]
+									+ " " + matrixValues[4] + " " + matrixValues[5]
+									+ " " + matrixValues[6] + " " + matrixValues[7]
+									+ " " + matrixValues[8]);
+							if (matrixValues[0] > MAX_SCALE) {
+								matrix.set(savedMatrix);
+							}
+							imageView.setImageMatrix(matrix);
+							overlayImageView.setImageMatrix(matrix);
+							
+							putOnScreen();
+							redrawRegions();
+	
+							// Reset Start Finger Spacing
+							float esx = event.getX(0) - event.getX(1);
+							float esy = event.getY(0) - event.getY(1);
+							startFingerSpacing = (float) Math.sqrt(esx * esx + esy * esy);
+							Log.d(LOGTAG, "New Start Finger Spacing=" + startFingerSpacing);
+							
+							float xsum = event.getX(0) + event.getX(1);
+							float ysum = event.getY(0) + event.getY(1);
+							startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
+						}
+					}
+				}
+				break;
+		}
+
+		return true; // indicate event was handled
+	}
+	
+	
+	
+	/*
 	public boolean onTouch(View v, MotionEvent event) {
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
@@ -582,8 +716,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 
 		return true; // indicate event was handled
-	}
+	}*/
 
+	
 	public void putOnScreen() {
 
 		// Get Rectangle of Tranformed Image
@@ -641,7 +776,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				_scaledImageHeight, 
 				_imageWidth, 
 				_imageHeight, 
-				_backgroundColor);
+				_backgroundColor,
+				this.getApplicationContext());
 		imageRegions.add(imageRegion);
 		addImageRegionToLayout(imageRegion);
 		clearOverlay();
@@ -705,7 +841,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	}
 
 	public void onClick(View v) {
-		if (v == zoomIn) {
+		if (v == zoomIn) 
+		{
 			float scale = 1.5f;
 			
 			PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
