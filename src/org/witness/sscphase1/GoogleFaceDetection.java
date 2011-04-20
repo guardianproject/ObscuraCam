@@ -22,6 +22,7 @@ public class GoogleFaceDetection implements FaceDetection {
 	public GoogleFaceDetection(Bitmap _bmp) {
 		setBitmap(_bmp);
 		faceDetector = new FaceDetector(bmp.getWidth(), bmp.getHeight(), MAX_FACES);
+		
 	}
 
 	public int findFaces() {
