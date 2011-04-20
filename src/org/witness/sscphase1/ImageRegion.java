@@ -10,6 +10,7 @@ import net.londatiga.android.QuickAction;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -19,6 +20,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 
 public class ImageRegion extends FrameLayout implements OnTouchListener, OnClickListener, Serializable {
 
@@ -29,23 +31,28 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	float endX;
 	float endY;
 	
+	PointF startPoint = new PointF();
+
 	int imageWidth;
 	int imageHeight;
 		
-	public static final int EDIT_MODE = 0;
-	public static final int NORMAL_MODE = 1;
-	int mode = EDIT_MODE;
+	public static final int NORMAL_MODE = 0;
+	public static final int EDIT_MODE = 1;
+	public static final int ID_MODE = 2;
+	int mode = NORMAL_MODE;
 	
-	public static final int OBSCURE = 0;
-	public static final int ENCRYPT = 1;
-	int whattodo = OBSCURE;
+	public static final int NOTHING = 0;
+	public static final int OBSCURE = 1;
+	public static final int ENCRYPT = 2;
+	int whattodo = NOTHING;
 	
 	private ImageEditor imageEditor;
 	
 	// QuickAction items
+	/*
 	String[] UIMenuItemNames;
 	ArrayList<ActionItem> aiList;
-
+	*/
 	QuickAction qa;
 	
 	public static final String SSC = "[Camera Obscura : ImageRegion] **************************** ";
@@ -59,20 +66,21 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	View topRightCorner;
 	View bottomLeftCorner;
 	View bottomRightCorner;
-	
-	Context context;
-		
+
+	ActionItem editAction;
+	ActionItem idAction;
+	ActionItem encryptAction;
+	ActionItem destroyAction;
+			
 	public ImageRegion(
 			ImageEditor imageEditor, 
 			int _scaledStartX, int _scaledStartY, 
 			int _scaledEndX, int _scaledEndY, 
 			int _scaledImageWidth, int _scaledImageHeight, 
 			int _imageWidth, int _imageHeight, 
-			int _backgroundColor,
-			Context _context) 
+			int _backgroundColor) 
 	{
 		super(imageEditor);
-		context = _context;
 		
 		this.imageEditor = imageEditor;
 		
@@ -99,9 +107,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		inflatePopup();
 
 		this.setOnClickListener(this);
+		this.setOnTouchListener(this);
 		
 		// Inflate Layout
-		LayoutInflater inflater = LayoutInflater.from(context);        
+		LayoutInflater inflater = LayoutInflater.from(imageEditor);        
         View innerView = inflater.inflate(R.layout.imageregioninner, null);
         
         topLeftCorner = innerView.findViewById(R.id.TopLeftCorner);
@@ -114,13 +123,18 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		bottomLeftCorner.setVisibility(View.GONE);
 		bottomRightCorner.setVisibility(View.GONE);
 
+		topLeftCorner.setOnTouchListener(this);
+		topRightCorner.setOnTouchListener(this);
+		bottomLeftCorner.setOnTouchListener(this);
+		bottomRightCorner.setOnTouchListener(this);		
+		
         this.addView(innerView);
     		
 	}
 	
 	public void inflatePopup() {
 		// Not sure this works since we need to identify these later, in the onclick's
-		
+		/*
 		aiList = new ArrayList<ActionItem>();
 		UIMenuItemNames = this.getResources().getStringArray(R.array.UIMenuItemNames);
 		int[] UIMenuItemIcons = {
@@ -140,15 +154,58 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 					v.getId();
 					
 					ImageRegion.this.changeMode(EDIT_MODE);
-					/*
-					public static final int EDIT_MODE = 0;
-					public static final int NORMAL_MODE = 1;
-					*/
 				}
 			});
 			
 			aiList.add(ai);
 		}		
+		*/
+				
+		qa = new QuickAction(this);
+		
+		editAction = new ActionItem();
+		editAction.setTitle("Edit");
+		editAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_edit));
+		editAction.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				qa.dismiss();
+				ImageRegion.this.changeMode(EDIT_MODE);
+			}
+		});
+		qa.addActionItem(editAction);
+
+		idAction = new ActionItem();
+		idAction.setTitle("ID");
+		idAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_id));
+		idAction.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				qa.dismiss();
+				ImageRegion.this.changeMode(ID_MODE);
+			}
+		});
+		qa.addActionItem(idAction);
+		
+		encryptAction = new ActionItem();
+		encryptAction.setTitle("Encrypt");
+		encryptAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_encrypt));
+		encryptAction.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				qa.dismiss();
+				whattodo = ENCRYPT;
+			}
+		});
+		qa.addActionItem(encryptAction);
+		
+		destroyAction = new ActionItem();
+		destroyAction.setTitle("Redact");
+		destroyAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
+		destroyAction.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				qa.dismiss();
+				whattodo = OBSCURE;
+			}
+		});
+		qa.addActionItem(destroyAction);
 	}
 	
 	
@@ -160,7 +217,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 			topRightCorner.setVisibility(View.VISIBLE);
 			bottomLeftCorner.setVisibility(View.VISIBLE);
 			bottomRightCorner.setVisibility(View.VISIBLE);
-		} else {
+		} else if (mode == NORMAL_MODE) {
 			topLeftCorner.setVisibility(View.GONE);
 			topRightCorner.setVisibility(View.GONE);
 			bottomLeftCorner.setVisibility(View.GONE);
@@ -179,21 +236,72 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	}
 
 	public boolean onTouch(View v, MotionEvent event) {
-		// TODO Auto-generated method stub
+		
+		if (mode == EDIT_MODE) {
+			
+			if (v == topLeftCorner) {
+				// Here we expand
+				
+			} else if (v == topRightCorner) {
+				// Here we expand
+				
+			} else if (v == bottomLeftCorner) {
+				// Here we expand
+				
+			} else if (v == bottomRightCorner) {
+				// Here we expand
+				
+			} else {
+				// Here we move
+				Log.v(LOGTAG,"Moving Moving");
+				
+				//RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) this.getLayoutParams();
+
+				switch (event.getAction() & MotionEvent.ACTION_MASK) {
+					
+					case MotionEvent.ACTION_DOWN:
+						startPoint.set(event.getX(), event.getY());
+						break;
+					
+					case MotionEvent.ACTION_UP:
+						break;
+					
+					case MotionEvent.ACTION_MOVE:
+						Log.v(LOGTAG,""+(int)(event.getX(0) - event.getX(1)));
+						/*
+						lp.leftMargin = lp.leftMargin + (int)(event.getX(0) - event.getX(1));
+						lp.rightMargin = lp.rightMargin + (int)(event.getX(0) - event.getX(1));
+						lp.topMargin = lp.topMargin + (int)(event.getY(0) - event.getY(1));
+						lp.bottomMargin = lp.bottomMargin + (int)(event.getY(0) - event.getY(1));
+						this.invalidate();
+						*/
+						startX +=  (int)(startPoint.x + event.getX());
+						endX += (int)(startPoint.x + event.getX());
+						startY += (int)(startPoint.y + event.getY());
+						endY += (int)(startPoint.y + event.getY());
+						imageEditor.redrawRegions();
+						break;
+				}
+				
+			}
+			
+			return true;
+		}
+		
 		return false;
 	}
-
 	
 	public void onClick(View v) {
 		Log.d(SSC,"CLICKED View " + v.toString());
 		if (v == this) {
+			/*
 			qa = new QuickAction(v);
 			for(int x=0;x<aiList.size();x++) {
 				qa.addActionItem(aiList.get(x));
 			}
-			
+			*/
 			qa.setAnimStyle(QuickAction.ANIM_REFLECT);
 			qa.show();
-		} 
+		}
 	}
 }
