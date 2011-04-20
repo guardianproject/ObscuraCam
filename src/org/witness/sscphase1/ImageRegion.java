@@ -1,6 +1,10 @@
 package org.witness.sscphase1;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+
+import net.londatiga.android.ActionItem;
+import net.londatiga.android.QuickAction;
 
 import android.content.Context;
 import android.graphics.Rect;
@@ -23,12 +27,18 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	
 	int imageWidth;
 	int imageHeight;
-	
-	int index;
-	
+		
 	public static final int EDIT_MODE = 0;
 	public static final int NORMAL_MODE = 1;
 	int mode = EDIT_MODE;
+	
+	public static final int OBSCURE = 0;
+	public static final int ENCRYPT = 1;
+	int whattodo = OBSCURE;
+	
+	// QuickAction items
+	String[] UIMenuItemNames;
+	ArrayList<ActionItem> aiList;
 	
 	public static final String SSC = "[Camera Obscura : ImageRegion] **************************** ";
 			
@@ -46,8 +56,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 			int _scaledEndX, int _scaledEndY, 
 			int _scaledImageWidth, int _scaledImageHeight, 
 			int _imageWidth, int _imageHeight, 
-			int _backgroundColor,
-			int _index) 
+			int _backgroundColor) 
 	{
 		super(context);
 		
@@ -68,9 +77,13 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 				
 		imageWidth = _imageWidth;
 		imageHeight = _imageHeight;
-		index = _index;
 		
 		setBackgroundColor(_backgroundColor);
+		
+		inflatePopup();
+
+		this.setOnClickListener(this);
+		
 	
 		// FIgure out how to do layout
 		///this.setLayout(R.layout.imageregion);
@@ -78,6 +91,28 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		//rightCorner = (Button) 
 		
 	}
+	
+	public void inflatePopup() {
+		aiList = new ArrayList<ActionItem>();
+		UIMenuItemNames = this.getResources().getStringArray(R.array.UIMenuItemNames);
+		int[] UIMenuItemIcons = {
+				R.drawable.ic_context_edit,
+				R.drawable.ic_context_id,
+				R.drawable.ic_context_encrypt,
+				R.drawable.ic_context_destroy};
+		for(int x=0;x<UIMenuItemNames.length;x++) {
+			ActionItem ai = new ActionItem();
+			ai.setTitle(UIMenuItemNames[x]);
+			ai.setIcon(this.getResources().getDrawable(UIMenuItemIcons[x]));
+			ai.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					Log.v(SSC,"YOU CLICKED OPTION " + v.toString());
+				}
+			});
+			aiList.add(ai);
+		}		
+	}
+	
 	
 	public void changeMode(int newMode) {
 		mode = newMode;
@@ -99,27 +134,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 
 		return new Rect((int)scaledStartX, (int)scaledStartY, (int)scaledEndX, (int)scaledEndY);
 	}
-	
-	/* Is this being used??  If not, we don't need index */
-	/* it is being used! (HNH 3/19/11) */
-	/* Need to make a unique id that isn't passed in, hash the data */
-	//http://download.oracle.com/javase/1.5.0/docs/api/java/util/UUID.html
-	//http://code.google.com/p/google-gson/
-	//http://javaexchange.com/aboutRandomGUID.html
-	//http://benjii.me/2010/04/deserializing-json-in-android-using-gson/
-	public String attachTags() {
-	   	/*
-    	 * this method adds the returned coordinates to our array of ROIs
-    	 * and creates a JSON String for identifying it permanently
-    	 */
-		float[] tagCoords = {startX,startY,endX,endY};
-    	String newTagCoordsDescription = "{\"id\":" + index + ",\"coords\":[";
-    	for(int x=0;x<4;x++) {
-    		newTagCoordsDescription += Float.toString(tagCoords[x]) + ",";
-    	}
-    	newTagCoordsDescription = newTagCoordsDescription.substring(0,newTagCoordsDescription.length() - 1) + "]}";
-    	return newTagCoordsDescription;
-	}
 
 	public boolean onTouch(View v, MotionEvent event) {
 		// TODO Auto-generated method stub
@@ -127,7 +141,13 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	}
 
 	public void onClick(View v) {
-		// TODO Auto-generated method stub
+		Log.d(SSC,"CLICKED View " + v.toString());
+		QuickAction qa = new QuickAction(v);
+		for(int x=0;x<aiList.size();x++) {
+			qa.addActionItem(aiList.get(x));
+		}
+		qa.setAnimStyle(QuickAction.ANIM_REFLECT);
+		qa.show();
 		
 	}
 }

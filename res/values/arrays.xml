@@ -21,6 +21,14 @@
 		<item>0</item>
 		<item>1</item>
 	</string-array>
+	
+	<!--  Strings for the Popup menu -->
+	<string-array name="UIMenuItemNames">
+		<item>Edit</item>
+		<item>ID</item>
+		<item>Encrypt</item>
+		<item>Erase</item>
+	</string-array>
 
 	<!--  All EXIF Tags to be Queried, but this doesn't work.  keeping it here in case i need it -->
 	<string-array name="ExifTags">

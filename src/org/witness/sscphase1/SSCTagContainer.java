@@ -1,6 +1,5 @@
 package org.witness.sscphase1;
 
-import android.util.Log;
 import android.widget.ImageButton;
 
 public class SSCTagContainer {
