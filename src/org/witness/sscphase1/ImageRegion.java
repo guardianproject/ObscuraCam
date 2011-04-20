@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -48,14 +49,18 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	QuickAction qa;
 	
 	public static final String SSC = "[Camera Obscura : ImageRegion] **************************** ";
-			
+	public static final String LOGTAG = SSC;
 	//public ImageRegion(Context context, String jsonVersion) {
 		// Implement this from JSON
 		//this(context, _scaledStartX, _scaledStartY, _scaledEndX, _scaledEndY, _scaledImageWidth, _scaledImageHeight, _imageWidth, _imageHeight, _backgroundColor);	
 	//}
 	
-	Button leftCorner;
-	Button rightCorner;
+	View topLeftCorner;
+	View topRightCorner;
+	View bottomLeftCorner;
+	View bottomRightCorner;
+	
+	Context context;
 		
 	public ImageRegion(
 			ImageEditor imageEditor, 
@@ -63,9 +68,11 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 			int _scaledEndX, int _scaledEndY, 
 			int _scaledImageWidth, int _scaledImageHeight, 
 			int _imageWidth, int _imageHeight, 
-			int _backgroundColor) 
+			int _backgroundColor,
+			Context _context) 
 	{
 		super(imageEditor);
+		context = _context;
 		
 		this.imageEditor = imageEditor;
 		
@@ -93,15 +100,27 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 
 		this.setOnClickListener(this);
 		
-	
-		// FIgure out how to do layout
-		///this.setLayout(R.layout.imageregion);
-		// Implement buttons/whatever
-		//rightCorner = (Button) 
-		
+		// Inflate Layout
+		LayoutInflater inflater = LayoutInflater.from(context);        
+        View innerView = inflater.inflate(R.layout.imageregioninner, null);
+        
+        topLeftCorner = innerView.findViewById(R.id.TopLeftCorner);
+        topRightCorner = innerView.findViewById(R.id.TopRightCorner);
+        bottomLeftCorner = innerView.findViewById(R.id.BottomLeftCorner);
+        bottomRightCorner = innerView.findViewById(R.id.BottomRightCorner);
+
+		topLeftCorner.setVisibility(View.GONE);
+		topRightCorner.setVisibility(View.GONE);
+		bottomLeftCorner.setVisibility(View.GONE);
+		bottomRightCorner.setVisibility(View.GONE);
+
+        this.addView(innerView);
+    		
 	}
 	
 	public void inflatePopup() {
+		// Not sure this works since we need to identify these later, in the onclick's
+		
 		aiList = new ArrayList<ActionItem>();
 		UIMenuItemNames = this.getResources().getStringArray(R.array.UIMenuItemNames);
 		int[] UIMenuItemIcons = {
@@ -119,6 +138,12 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 					
 					Log.v(SSC,"YOU CLICKED OPTION " + v.toString());
 					v.getId();
+					
+					ImageRegion.this.changeMode(EDIT_MODE);
+					/*
+					public static final int EDIT_MODE = 0;
+					public static final int NORMAL_MODE = 1;
+					*/
 				}
 			});
 			
@@ -131,11 +156,15 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	public void changeMode(int newMode) {
 		mode = newMode;
 		if (mode == EDIT_MODE) {
-			leftCorner.setVisibility(View.VISIBLE);
-			rightCorner.setVisibility(View.VISIBLE);
+			topLeftCorner.setVisibility(View.VISIBLE);
+			topRightCorner.setVisibility(View.VISIBLE);
+			bottomLeftCorner.setVisibility(View.VISIBLE);
+			bottomRightCorner.setVisibility(View.VISIBLE);
 		} else {
-			leftCorner.setVisibility(View.GONE);
-			rightCorner.setVisibility(View.GONE);
+			topLeftCorner.setVisibility(View.GONE);
+			topRightCorner.setVisibility(View.GONE);
+			bottomLeftCorner.setVisibility(View.GONE);
+			bottomRightCorner.setVisibility(View.GONE);
 		}
 	}
 	
@@ -157,13 +186,14 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	
 	public void onClick(View v) {
 		Log.d(SSC,"CLICKED View " + v.toString());
-		qa = new QuickAction(v);
-		for(int x=0;x<aiList.size();x++) {
-			qa.addActionItem(aiList.get(x));
-		}
-		
-		qa.setAnimStyle(QuickAction.ANIM_REFLECT);
-		qa.show();
-		
+		if (v == this) {
+			qa = new QuickAction(v);
+			for(int x=0;x<aiList.size();x++) {
+				qa.addActionItem(aiList.get(x));
+			}
+			
+			qa.setAnimStyle(QuickAction.ANIM_REFLECT);
+			qa.show();
+		} 
 	}
 }
