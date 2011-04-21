@@ -326,11 +326,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				}
 				mdh.registerSubject(data.getStringExtra("addedSubject"),
 						Integer.parseInt(data.getStringExtra("subjectConsent")),
-						null, mdh.getImageRegionResource(), data.getStringExtra("imageRegion"));
+						null, mdh.getImageRegionResource(),ir);
 			}
 		} else if(requestCode == RESULT_ENCRYPT_TAGGER) {
 			if(resultCode == Activity.RESULT_OK) {
-				// TODO: the same thing as above.
+				String ir = data.getStringExtra("imageRegion");
+				for(ImageRegion m : imageRegions) {
+					if(ir.compareTo(m.toString()) == 0) {
+						m.addEncryptedKey(data.getStringArrayListExtra("addedKeys"));
+					}
+				}
+				mdh.registerKeys(data.getStringArrayListExtra("addedKeys"),mdh.getImageRegionResource(),ir);
 			}
 		}
 	}

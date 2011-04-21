@@ -238,23 +238,14 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		
 	}
 	
-	public void registerKeys() {
-		
+	public void registerKeys(ArrayList<String> selectedKeys, String targetTable, String lookupValue) {
+		String keyColumn = "associatedKeys";
+		String keyValue = gsonPack(selectedKeys);
+		modifyRecord(targetTable,keyColumn,keyValue,"serial",makeHash(lookupValue));
 	}
-	
+
 	public void registerSubject(String subjectName, int subjectConsent, 
 			String consentTimecode, String targetTable, String lookupValue) {
-		/*
-		 * this method will write data regarding a subject to a join table that can be associated with the image
-		 * 
-		 * this method populates the subject join table with the following:
-		 * 
-		 * Subject Name
-		 * Consent
-		 * Consent timecode (null if image)
-		 * 
-		 */
-		
 		// 1. take name, and hash it (append "_SUBJECT").
 		// Find out if there's already a table out there with that hash (and if not, create it)
 		// and add subject name to "known subjects" table (if not already there)
@@ -432,6 +423,11 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
 	
 	private String gsonPack(float[] values) {
+		Gson gson = new Gson();
+		return gson.toJson(values);
+	}
+	
+	private String gsonPack(ArrayList<String> values) {
 		Gson gson = new Gson();
 		return gson.toJson(values);
 	}

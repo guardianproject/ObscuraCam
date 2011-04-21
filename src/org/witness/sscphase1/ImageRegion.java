@@ -122,7 +122,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
         this.addView(innerView);
         
         this.knownSubjects = new ArrayList<SSCSubject>();
-        this.knownKeys = new ArrayList<String>();
 	}
 	
 	public void addSubjectId(String subjectName, int subjectConsent) {
@@ -130,8 +129,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		knownSubjects.add(subject);
 	}
 	
-	public void addEncryptedKey(String eKey) {
-		knownKeys.add(eKey);
+	public void addEncryptedKey(ArrayList<String> eKeys) {
+		this.knownKeys = eKeys;
 	}
 	
 	private void inflatePopup() {
