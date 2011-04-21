@@ -784,6 +784,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 
 	}
+	
+	public RectF getScaleOfImage() {
+		RectF theRect = new RectF(0,0,imageBitmap.getWidth(), imageBitmap.getHeight());
+		matrix.mapRect(theRect);
+		return theRect;
+	}
 
 	public void addImageRegionToLayout(ImageRegion imageRegion) {
 
