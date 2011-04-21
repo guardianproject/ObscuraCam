@@ -154,10 +154,12 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    
 	    public boolean onOptionsItemSelected(MenuItem item) {
 	    	switch (item.getItemId()) {
-	        	case PREFERENCES_MENU_ITEM:
+	        	case R.id.menu_prefs:
+	        		// Load Preferences Activity
 	        		showPreferences();
 	        		return true;
-	        	case PANIC_MENU_ITEM:
+	        	case R.id.menu_panic:
+	        		// Look up preferences and do what is required
 	        		panic();
 	        		return true;
 	        	default:
