@@ -37,7 +37,6 @@ public class EncryptObscureMethod implements ObscureMethod
 		
 	}
 	
-	@Override
 	public void obscureRect(Rect rect, Canvas canvas) {
 		
 		//will encrypted using selected keys		

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import org.witness.sscphase1.R;
-import org.witness.sscphase1.SSCMetadataHandler;
 import org.witness.sscphase1.R.id;
 import org.witness.sscphase1.R.layout;
 
@@ -22,6 +21,7 @@ import android.widget.Toast;
 
 public class EncryptTagger extends Activity implements OnClickListener {
 	Bundle b;
+	String imageRegion;
 	
 	EditText namespace;
 	//ImageButton confirmTag;
@@ -29,12 +29,10 @@ public class EncryptTagger extends Activity implements OnClickListener {
 	
 	String queryBuffer;
 	ListView tagSuggestionsHolder;
-	ArrayList<String> al;
+	ArrayList<String> selectedKeys;
 	
-	SSCMetadataHandler mdh;
 	boolean shouldLookupKeys;
 	
-
 	private Apg _apg;
 	private long[] _selectedPublicKeys;
 	private long _selectedPrivateKey;
@@ -61,19 +59,12 @@ public class EncryptTagger extends Activity implements OnClickListener {
 		_btnSelectKey.setOnClickListener(this);
 		
 		b = getIntent().getExtras();
+		imageRegion = b.getString("imageRegion");
 		
 		tagSuggestionsHolder = (ListView) findViewById(R.id.tagSuggestionsHolder);
-		al = new ArrayList<String>();
+		selectedKeys = new ArrayList<String>();
 		
 		shouldLookupKeys = false;
-		mdh = new SSCMetadataHandler(this);
-		try {
-			mdh.createDatabase();
-		} catch(IOException e) {}
-		try {
-			mdh.openDataBase();
-		} catch(SQLException e) {}
-		
 	}
 	
 	private void selectPublicKeys ()
@@ -106,11 +97,10 @@ public class EncryptTagger extends Activity implements OnClickListener {
 				for (long key : _selectedPublicKeys)
 				{
 					Log.d(SSC,"key: " + key);
+					selectedKeys.add(Long.toString(key));
 					String userId = _apg.getPublicUserId(this, key);
-					sb.append(userId);
-					sb.append(" (" + key + ")");					
+					sb.append(userId);				
 					sb.append(',');
-					
 				}
 			
 				String keySet = sb.toString();
@@ -171,13 +161,14 @@ public class EncryptTagger extends Activity implements OnClickListener {
 
 	public void onClick(View v) {
 		if(v == _btnSelectKey) {
-			Log.d(SSC,"i want to add this key: " + Apg.EXTRA_SELECTION);
+			Intent i = new Intent(this,org.witness.sscphase1.ImageEditor.class);
+			i.putExtra("addedKeys", selectedKeys);
+			i.putExtra("imageRegion", imageRegion);
+			setResult(Activity.RESULT_OK,i);
+			finish();
 		} else if(v == namespace) {
 			selectPublicKeys();
 		}
-		
-		
-		
 	}
 	
 

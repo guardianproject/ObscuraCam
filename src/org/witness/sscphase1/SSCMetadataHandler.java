@@ -30,7 +30,8 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	public Uri uriString;
 	public String uriPath;
 	public int index;
-	private String sscImageSerial;
+	private String sscImageDataSerial;
+	private String sscImageRegionSerial;
 	
 	public ExifInterface ei;
 	
@@ -79,7 +80,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			"tagImageLength TEXT","tagImageWidth TEXT","tagMake TEXT","tagModel TEXT",
 			"tagOrientation TEXT","tagWhiteBalance TEXT","bluetoothNeighbors TEXT","accelerometerAxisAmount INTEGER",
 			"accelerometerAxisInitialX TEXT","accelerometerAxisInitialY TEXT","accelerometerAxisInitialZ TEXT",
-			"videoDuration INTEGER","numVideoPaths INTEGER","associatedImageRegions TEXT"};
+			"videoDuration INTEGER","numVideoPaths INTEGER","associatedImageRegions TEXT","mediaHash BLOB"};
 	private String[] associatedImageRegionTable = {"associatedImageRegion TEXT"};
 	private String[] imageRegionTable = {"coordinates TEXT","subjectName TEXT","informedConsentGiven INTEGER","consentTimeCode TEXT",
 			"obfuscationType INTEGER","obfuscationTimeblock TEXT","associatedKeys TEXT","serial TEXT"};
@@ -140,7 +141,8 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			break;
 		}
 		
-		this.sscImageSerial = makeHash(ownerName + System.currentTimeMillis());
+		this.sscImageDataSerial = makeHash(ownerName + System.currentTimeMillis());
+		this.sscImageRegionSerial = makeHash(sscImageDataSerial + "_IR");
 
 		// insert initial info into database, creating a new record, then return its index.
 		// TODO: Link this data up with the preferences stuff...
@@ -157,17 +159,16 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 				Integer.toString(securityLevel),
 				publicKey,
 				Integer.toString(sociallySharable),
-				sscImageSerial};
+				sscImageDataSerial};
 		this.index = insertIntoDatabase(CAMERAOBSCURA,tableNames,tableValues);
 		
 		// spawns a new table containing corresponding available data (EXIF, BT, ACC, Geo, and reference to image regions);
-		createTable(sscImageSerial,dataTable);
-		insertIntoDatabase(sscImageSerial, exifTableValues, writeExif(defaultExifPreference));
-		modifyRecord(sscImageSerial,"associatedImageRegions",makeHash(sscImageSerial + "_IR"),"_id",Integer.toString(0));
+		createTable(sscImageDataSerial,dataTable);
+		insertIntoDatabase(sscImageDataSerial, exifTableValues, writeExif(defaultExifPreference));
+		modifyRecord(sscImageDataSerial,"associatedImageRegions",sscImageRegionSerial,"_id",Integer.toString(0));
 		
 		// spawns a new table for the associated image regions, and updates the entry in the database pointing to it
-		String ir = makeHash(sscImageSerial + "_IR");
-		createTable(ir,imageRegionTable);
+		createTable(sscImageRegionSerial,imageRegionTable);
 	}
 
 	public int getImageResourceCursor() {
@@ -175,7 +176,11 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	}
 	
 	public String getImageResource() {
-		return sscImageSerial;
+		return sscImageDataSerial;
+	}
+	
+	public String getImageRegionResource() {
+		return sscImageRegionSerial;
 	}
 	
 	public String[] writeExif(int intent) {
@@ -222,6 +227,10 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		return exifData;
 	}
 	
+	public void mediaHash(String hash) {
+		modifyRecord(sscImageDataSerial, "mediaHash", hash, "_id", Integer.toString(0));
+	}
+	
 	public void registerSensorData() {
 		/*
 		 * this method will write the associated sensory data to the same table containing the exif data
@@ -229,46 +238,37 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		
 	}
 	
-	public void registerKeys() {
-		
+	public void registerKeys(ArrayList<String> selectedKeys, String targetTable, String lookupValue) {
+		String keyColumn = "associatedKeys";
+		String keyValue = gsonPack(selectedKeys);
+		modifyRecord(targetTable,keyColumn,keyValue,"serial",makeHash(lookupValue));
 	}
-	
+
 	public void registerSubject(String subjectName, int subjectConsent, 
 			String consentTimecode, String targetTable, String lookupValue) {
-		/*
-		 * this method will write data regarding a subject to a join table that can be associated with the image
-		 * 
-		 * this method populates the subject join table with the following:
-		 * 
-		 * Subject Name
-		 * Consent
-		 * Consent timecode (null if image)
-		 * 
-		 */
-		
 		// 1. take name, and hash it (append "_SUBJECT").
 		// Find out if there's already a table out there with that hash (and if not, create it)
+		// and add subject name to "known subjects" table (if not already there)
+		
 		String subjectHash = makeHash(subjectName + "_SUBJECT");
 		ArrayList<String> tables = returnTableNames();
 		if(!tables.contains(subjectHash)) {
 			createTable(subjectHash,subjectTable);
+			String[] knownSubjectCols = {"subjectName","subjectSerial"};
+			String[] knowSubjectVals = {subjectName,subjectHash};
+			insertIntoDatabase(KNOWNSUBJECTS,knownSubjectCols,knowSubjectVals);
 		}
 				
-		// 2. add this stuff to the _IR table for the image region (update targetTable set vals to whatever where imageRegion = lookupValue)
+		// 2. add this stuff to the _IR table for the image region
+		// (update targetTable set vals to whatever where serial = hash of lookupValue)
 		String[] subjectColumns = {"subjectName","informedConsentGiven","consentTimeCode"};
 		String[] subjectValues = {subjectName,Integer.toString(subjectConsent),consentTimecode};
-		modifyRecord(targetTable, subjectColumns, subjectValues, targetTable, lookupValue);
+		modifyRecord(targetTable, subjectColumns, subjectValues, "serial", makeHash(lookupValue));
 		
 		// 3. add the name of this image to the subject's table
 		String[] associatedImages = {"associatedImages"};
 		String[] targetValues = {targetTable};
 		insertIntoDatabase(subjectHash,associatedImages,targetValues);
-		
-		// 4. add subject name to "known subjects" table (if not already there)
-		String[] knownSubjectCols = {"subjectName","subjectSerial"};
-		String[] knowSubjectVals = {subjectName,subjectHash};
-		insertIntoDatabase(KNOWNSUBJECTS,knownSubjectCols,knowSubjectVals);
-		
 	}
 	
 	public void registerImageRegion(ImageRegion imageRegion) {
@@ -280,8 +280,8 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 				imageRegion.startY,
 				imageRegion.endX,
 				imageRegion.endY};
-		String[] tableValues = {gsonPack(coordinates),imageRegion.toString()};
-		insertIntoDatabase(makeHash(sscImageSerial + "_IR"),tableNames,tableValues);
+		String[] tableValues = {gsonPack(coordinates),makeHash(imageRegion.toString())};
+		insertIntoDatabase(sscImageRegionSerial,tableNames,tableValues);
 	}
 	
 	private int insertIntoDatabase(String tableName, String[] targetColumns, String[] values) throws SQLException {
@@ -320,7 +320,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		String theQuery = "UPDATE " + tableName + 
 							" SET " + targetColumn + 
 							" = \'" + value + "\' WHERE " +
-							matchColumn + " = " + matchValue; 
+							matchColumn + " = \'" + matchValue + "\'"; 
 		Log.d(SSC,theQuery);
 		db.execSQL(theQuery);
 	}
@@ -333,7 +333,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			sb.append(",");
 			sb.append(targetColumns[x] + " = \'" + values[x] + "\'");
 		}
-		theQuery += sb.toString().substring(1) + " WHERE " + matchColumn + " = " + matchValue; 
+		theQuery += sb.toString().substring(1) + " WHERE " + matchColumn + " = \'" + matchValue + "\'"; 
 		Log.d(SSC,theQuery);
 		db.execSQL(theQuery);
 	}
@@ -423,6 +423,11 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
 	
 	private String gsonPack(float[] values) {
+		Gson gson = new Gson();
+		return gson.toJson(values);
+	}
+	
+	private String gsonPack(ArrayList<String> values) {
 		Gson gson = new Gson();
 		return gson.toJson(values);
 	}
