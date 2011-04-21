@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.database.SQLException;
 import android.os.Bundle;
 import android.text.Editable;
@@ -19,7 +20,6 @@ import android.widget.ListView;
 public class IdTagger extends Activity {
 	Bundle b;
 	String imageRegion;
-	String imageSerial;
 	
 	EditText namespace;
 	CheckBox consentCheckbox;
@@ -51,8 +51,6 @@ public class IdTagger extends Activity {
 		
 		b = getIntent().getExtras();
 		imageRegion = b.getString("imageRegion");
-		imageSerial = b.getString("imageSerial");
-		
 		
 		tagSuggestionsHolder = (ListView) findViewById(R.id.tagSuggestionsHolder);
 		al = new ArrayList<String>();
@@ -95,19 +93,14 @@ public class IdTagger extends Activity {
 			if(consentCheckbox.isChecked()) {
 				finalConsent = 1;
 			}
-			mdh.registerSubject(subjectName,finalConsent,null,imageSerial,imageRegion);
-			
-			// add subject to tag's table ("associatedSubjects_[imageId]_[tagId]")
-			/*
-			mdh.insertIntoDatabase(
-					"associatedSubjects_" + b.getInt("imageResourceCursor") + "_" + tagIndex,
-					"(d_associatedTag,s_entityName,s_informedConsentGiven)",
-					tagIndex + ",\"" + subjectName + "\"," + finalConsent
-					);
-			*/
-			// and return to previous activity
+			Intent i = new Intent(this,ImageEditor.class);
+			i.putExtra("addedSubject", subjectName);
+			i.putExtra("subjectConsent", Integer.toString(finalConsent));
+			i.putExtra("imageRegion", imageRegion);
+			setResult(Activity.RESULT_OK,i);
+			finish();
 		} else {
-			// toast to the user that they didn't input anything
+			// TODO: toast to the user that they didn't input anything
 		}
 		
 	}

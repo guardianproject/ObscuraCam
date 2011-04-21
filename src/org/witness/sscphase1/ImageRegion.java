@@ -1,6 +1,7 @@
 package org.witness.sscphase1;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
@@ -39,6 +40,9 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	int whattodo = NOTHING;
 	
 	private ImageEditor imageEditor;
+	
+	private ArrayList<SSCSubject> knownSubjects;
+	private ArrayList<String> knownKeys;
 	
 	QuickAction qa;
 	
@@ -115,7 +119,19 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		bottomLeftCorner.setOnTouchListener(this);
 		bottomRightCorner.setOnTouchListener(this);		
 		
-        this.addView(innerView);		
+        this.addView(innerView);
+        
+        this.knownSubjects = new ArrayList<SSCSubject>();
+        this.knownKeys = new ArrayList<String>();
+	}
+	
+	public void addSubjectId(String subjectName, int subjectConsent) {
+		SSCSubject subject = new SSCSubject(subjectName,subjectConsent);
+		knownSubjects.add(subject);
+	}
+	
+	public void addEncryptedKey(String eKey) {
+		knownKeys.add(eKey);
 	}
 	
 	private void inflatePopup() {
@@ -168,8 +184,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		qa.addActionItem(destroyAction);
 	}
 	
-	
-	    
 	public void changeMode(int newMode) {
 		mode = newMode;
 		if (mode == EDIT_MODE) {
@@ -262,6 +276,16 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 			*/
 			qa.setAnimStyle(QuickAction.ANIM_REFLECT);
 			qa.show();
+		}
+	}
+	
+	public class SSCSubject {
+		String subjectName;
+		int subjectConsent;
+		
+		SSCSubject(String sn, int sc) {
+			this.subjectName = sn;
+			this.subjectConsent = sc;
 		}
 	}
 }

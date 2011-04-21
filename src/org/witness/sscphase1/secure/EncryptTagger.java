@@ -31,10 +31,8 @@ public class EncryptTagger extends Activity implements OnClickListener {
 	ListView tagSuggestionsHolder;
 	ArrayList<String> al;
 	
-	SSCMetadataHandler mdh;
 	boolean shouldLookupKeys;
 	
-
 	private Apg _apg;
 	private long[] _selectedPublicKeys;
 	private long _selectedPrivateKey;
@@ -66,14 +64,6 @@ public class EncryptTagger extends Activity implements OnClickListener {
 		al = new ArrayList<String>();
 		
 		shouldLookupKeys = false;
-		mdh = new SSCMetadataHandler(this);
-		try {
-			mdh.createDatabase();
-		} catch(IOException e) {}
-		try {
-			mdh.openDataBase();
-		} catch(SQLException e) {}
-		
 	}
 	
 	private void selectPublicKeys ()

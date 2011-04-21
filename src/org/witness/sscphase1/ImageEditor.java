@@ -58,6 +58,7 @@ import android.widget.Toast;
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener {
 
 	final static String LOGTAG = "[Camera Obscura : ImageEditor] **************************** ";
+	final static String SSC = LOGTAG;
 
 	// Colors for region squares
 	public final static int DRAW_COLOR = Color.argb(128, 0, 255, 0);// Green
@@ -126,10 +127,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	Vector<ImageRegion> imageRegions = new Vector();  // Being lazy 
 	//ImageRegion[] imageRegions;
-	
-	int imageRegionIndex = 0;
-	int[] buttonIDs;
-	
+		
 	int originalImageWidth;
 	int originalImageHeight;
 	
@@ -299,6 +297,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	/*
 	 * This handles the callbacks from the EncryptObscure hand off to APG, or any other
 	 * Result-based Intent launch
+	 * 
+	 * Also now included: callbacks from IdTagger and EncryptTagger classes.
 	 */	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -314,6 +314,24 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			
 			String encryptedData = apg.getEncryptedData();
 			
+		} else if(requestCode == RESULT_ID_TAGGER) {
+			if(resultCode == Activity.RESULT_OK) {
+				String ir = data.getStringExtra("imageRegion");
+				// loop through image regions to find the matching image region, and set its subject
+				// is this sloppy?  i don't know!!!  other suggestions welcome :)
+				for(ImageRegion m : imageRegions) {
+					if(ir.compareTo(m.toString()) == 0) {
+						m.addSubjectId(data.getStringExtra("addedSubject"), Integer.parseInt(data.getStringExtra("subjectConsent")));
+					}
+				}
+				mdh.registerSubject(data.getStringExtra("addedSubject"),
+						Integer.parseInt(data.getStringExtra("subjectConsent")),
+						null, mdh.getImageRegionResource(), data.getStringExtra("imageRegion"));
+			}
+		} else if(requestCode == RESULT_ENCRYPT_TAGGER) {
+			if(resultCode == Activity.RESULT_OK) {
+				// TODO: the same thing as above.
+			}
 		}
 	}
 	
@@ -394,7 +412,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		{
 			InputStream is = getContentResolver().openInputStream(imageUri);		
 			result = MediaHasher.hash(is, "SHA-1");
-		
+			mdh.mediaHash(result);
 		}
 		catch (Exception e)
 		{
@@ -1063,14 +1081,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     public void launchEncryptTagger(String ir) {
     	Intent intent = new Intent(this, EncryptTagger.class);
     	intent.putExtra("imageRegion", ir);
-    	intent.putExtra("imageSerial", mdh.getImageResource());
     	startActivityForResult(intent,RESULT_ENCRYPT_TAGGER);
     }
     
     public void launchIdTagger(String ir) {
     	Intent intent = new Intent(this, IdTagger.class);
     	intent.putExtra("imageRegion", ir);
-    	intent.putExtra("imageSerial", mdh.getImageResource());
     	startActivityForResult(intent,RESULT_ID_TAGGER);
     }
     
