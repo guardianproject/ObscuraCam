@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/menu_panic"
+        android:title="@string/menu_panic"
+        android:icon="@drawable/ic_menu_panic" />
+
+    <item android:id="@+id/menu_prefs"
+        android:title="@string/menu_prefs"
+        android:icon="@drawable/ic_menu_prefs" />
+        
+</menu>
