@@ -6,6 +6,7 @@ import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -27,6 +28,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 
 	int imageWidth;
 	int imageHeight;
+	
+	public static final int CORNER_TOUCH_TOLERANCE = 35;
 		
 	public static final int NORMAL_MODE = 0;
 	public static final int EDIT_MODE = 1;
@@ -196,94 +199,98 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		float scaledStartY = (float)startY * (float)_scaledImageHeight/(float)imageHeight;
 		float scaledEndX = (float)endX * (float)_scaledImageWidth/(float)imageWidth;
 		float scaledEndY = (float)endY * (float)_scaledImageHeight/(float)imageHeight;
-
-		Log.v(LOGTAG,"getScaledRect");
-		Log.v(LOGTAG,""+scaledStartX);
-		Log.v(LOGTAG,""+scaledStartY);
-		Log.v(LOGTAG,""+scaledEndX);
-		Log.v(LOGTAG,""+scaledEndY);
 		
 		return new Rect((int)scaledStartX, (int)scaledStartY, (int)scaledEndX, (int)scaledEndY);
 	}
 	
-	public void setScaledRect(Rect scaledRect) {
-		
-		startX = (float)scaledRect.left * (float)imageWidth/(float)scaledRect.width();
-		startY = (float)scaledRect.top * (float)imageHeight/(float)scaledRect.height();
-		endX = (float)scaledRect.right * (float)imageWidth/(float)scaledRect.width();
-		endY = (float)scaledRect.bottom * (float)imageHeight/(float)scaledRect.height();
-	}
+	RectF scaledImage;
+	Rect scaledRect;
+	
 	
 	public boolean onTouch(View v, MotionEvent event) {
-		
+		boolean handled = false;
 		if (mode == EDIT_MODE) {
+			//////////
+			// Here we move
+			Log.v(LOGTAG,"Moving Moving");
 			
-			if (v == topLeftCorner) {
-				// Here we expand
+			
+			switch (event.getAction() & MotionEvent.ACTION_MASK) {
 				
-			} else if (v == topRightCorner) {
-				// Here we expand
-				
-			} else if (v == bottomLeftCorner) {
-				// Here we expand
-				
-			} else if (v == bottomRightCorner) {
-				// Here we expand
-				
-			} else {
-				// Here we move
-				Log.v(LOGTAG,"Moving Moving");
-				
-				switch (event.getAction() & MotionEvent.ACTION_MASK) {
-					
-					case MotionEvent.ACTION_DOWN:
-						break;
-					
-					case MotionEvent.ACTION_UP:
-						break;
-					
-					case MotionEvent.ACTION_MOVE:
-						
-						/*						
-						int imageScaledWidth = imageEditor.imageView.getWidth();
-						int imageScaledHeight = imageEditor.imageView.getHeight();
+				case MotionEvent.ACTION_DOWN:
+					startPoint = new PointF(event.getX(),event.getY());
 
-						Log.v(LOGTAG,"imageScaledWidth: "+imageScaledWidth);
-						Log.v(LOGTAG,"imageScaledHeight: "+imageScaledHeight);
-						
-						Rect scaledRect = getScaledRect(imageScaledWidth, imageScaledHeight);
-						
-						Log.v(LOGTAG,"scaledRect.width: "+scaledRect.width());
-						Log.v(LOGTAG,"scaledRect.height: "+scaledRect.height());
-						
-						scaledRect.left = (int)event.getX() - scaledRect.width()/2;
-						scaledRect.top = (int)event.getY() - scaledRect.height()/2;
-						
-						setScaledRect(scaledRect);
-						*/
-						
-						/*
-						 * NOT WORKING IN SCALED STATE
-						 */
-						int width = (int) (endX - startX);
-						int height = (int) (endY - startY);
-						startX = event.getX() + width/2;
-						endX = width + event.getX() + width/2;
-						
-						startY = event.getY() + height/2;
-						endY = width + event.getY() + height/2;
-						
-						imageEditor.redrawRegions();
+					scaledImage = imageEditor.getScaleOfImage();
+					scaledRect = getScaledRect((int)scaledImage.width(), (int)scaledImage.height());
+
+					Log.v(LOGTAG,"startPoint.x: " + startPoint.x + " scaledRect.left: " + scaledRect.left);
 					
-						break;
-				}
+					handled = true;
+					break;
 				
+				case MotionEvent.ACTION_UP:
+					break;
+				
+				case MotionEvent.ACTION_MOVE:
+					
+					float xdist = startPoint.x - event.getX();
+					float ydist = startPoint.y - event.getY();
+
+					if (v == topLeftCorner || 
+							(startPoint.x < CORNER_TOUCH_TOLERANCE && 
+									startPoint.y < CORNER_TOUCH_TOLERANCE)) {
+						// Here we expand
+						Log.v(LOGTAG,"TOP LEFT CORNER");
+						scaledRect.left = scaledRect.left - (int)xdist;
+						scaledRect.top = scaledRect.top - (int)ydist;
+					} else if (v == topRightCorner ||
+							(startPoint.x < this.getWidth() + CORNER_TOUCH_TOLERANCE && 
+							startPoint.x > this.getWidth() - CORNER_TOUCH_TOLERANCE &&
+									startPoint.y < CORNER_TOUCH_TOLERANCE)) {
+						// Here we expand
+						Log.v(LOGTAG,"TOP RIGHT CORNER");
+						scaledRect.top = scaledRect.top - (int)ydist;
+						scaledRect.right = scaledRect.right - (int)xdist;
+					} else if (v == bottomLeftCorner || (
+							startPoint.x < CORNER_TOUCH_TOLERANCE &&
+							startPoint.y < this.getHeight() + CORNER_TOUCH_TOLERANCE &&
+							startPoint.y > this.getHeight() - CORNER_TOUCH_TOLERANCE
+					)) {
+						// Here we expand
+						Log.v(LOGTAG,"BOTTOM LEFT CORNER");
+						scaledRect.left = scaledRect.left - (int)xdist;
+						scaledRect.bottom = scaledRect.bottom - (int)ydist;			
+					} else if (v == bottomRightCorner || 
+							(
+									startPoint.x < this.getWidth() + CORNER_TOUCH_TOLERANCE &&
+									startPoint.x > this.getWidth() - CORNER_TOUCH_TOLERANCE &&
+									startPoint.y < this.getHeight() + CORNER_TOUCH_TOLERANCE &&
+									startPoint.y > this.getHeight() - CORNER_TOUCH_TOLERANCE
+							)
+					) {
+						// Here we expand
+						Log.v(LOGTAG,"BOTTOM RIGHT CORNER");
+						scaledRect.right = scaledRect.right - (int)xdist;
+						scaledRect.bottom = scaledRect.bottom - (int)ydist;
+					} else {
+						Log.v(LOGTAG,"FULL");
+						scaledRect.left = scaledRect.left - (int)xdist;
+						scaledRect.top = scaledRect.top - (int)ydist;
+						scaledRect.right = scaledRect.right - (int)xdist;
+						scaledRect.bottom = scaledRect.bottom - (int)ydist;
+					}
+					 
+					startX = (float)scaledRect.left * (float)imageWidth/(float)scaledImage.width();
+					startY = (float)scaledRect.top * (float)imageHeight/(float)scaledImage.height();
+					endX = (float)scaledRect.right * (float)imageWidth/(float)scaledImage.width();
+					endY = (float)scaledRect.bottom * (float)imageHeight/(float)scaledImage.height();
+
+					imageEditor.redrawRegions();
+					handled = true;
+					break;				
 			}
-			
-			return true;
 		}
-		
-		return false;
+		return handled;
 	}
 	
 	public void onClick(View v) {
