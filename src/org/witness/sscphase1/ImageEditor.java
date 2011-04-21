@@ -910,26 +910,35 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch (item.getItemId()) {
-        	case PREFERENCES_MENU_ITEM:
-        	 	// Load Preferences Activity
+ 
+    		case R.id.menu_new_region:
+    			// Set the Start point. 
+				startPoint.set(overlayCanvas.getWidth()/2, overlayCanvas.getHeight()/2);
+    			// Add new region at default location (center)
+    			createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, (int)startPoint.y-DEFAULT_REGION_HEIGHT/2, (int)startPoint.x+DEFAULT_REGION_WIDTH/2, (int)startPoint.y+DEFAULT_REGION_HEIGHT/2, overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
+
+    			return true;
+    		case R.id.menu_panic:
+    		// Look up preferences and do what is required
+    		
+    			return true;
+    		case R.id.menu_image_prefs:
+        	 	// Load Image Preferences Activity
         		launchImagePrefs();
         		return true;
-        	case PANIC_MENU_ITEM:
-        		// Look up preferences and do what is required
-        		
-        		return true;
-        	case SAVE_MENU_ITEM:
+
+        	case R.id.menu_save:
         		// Save Image
         		saveImage();
         		
         		return true;
-        	case SHARE_MENU_ITEM:
+        	case R.id.menu_share:
         		// Share Image
         		shareImage();
         		
         		return true;
-        	case HASH_MENU_ITEM:
-        		
+        	case R.id.menu_send_hash:
+        		// Send hash of image via SMS
         		sendSecureHashSMS();
         		
         		return true;
