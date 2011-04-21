@@ -21,6 +21,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.SQLException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -65,14 +66,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public final static int OBSCURED_COLOR = Color.argb(128, 255, 0, 0); // Red
 	public final static int TAGGED_COLOR = Color.argb(128, 128, 128, 0); // Something else
 	
-	
 	public final static int PREFERENCES_MENU_ITEM = 0;
 	public final static int PANIC_MENU_ITEM = 1;
 	public final static int SAVE_MENU_ITEM = 2;
 	public final static int SHARE_MENU_ITEM = 3;
 	public final static int NEW_TAG_MENU_ITEM = 4;
 	public final static int HASH_MENU_ITEM = 5;
-	
 	
 	// Image Matrix
 	Matrix matrix = new Matrix();
@@ -132,7 +131,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	int originalImageWidth;
 	int originalImageHeight;
-	
+		
 	/* For database handling of metadata
 	 * imageUriSource added because if user takes a photo
 	 * with the camera, a file URI is returned
@@ -384,7 +383,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		 
 	}
 	
-	private String generateSecureHash ()
+	private String generateSecureHash()
 	{
 		String result = "";
 	//	ProgressDialog progressDialog =ProgressDialog.show(this, "", "generating hash...");
@@ -794,11 +793,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		Log.v(LOGTAG,"New Width:" + theRect.width());
 
 		Rect regionScaledRect = imageRegion.getScaledRect((int)theRect.width(), (int)theRect.height());
+		
     	RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(regionScaledRect.width(),regionScaledRect.height());
     	lp.leftMargin = (int)theRect.left + regionScaledRect.left;
     	lp.topMargin = (int)theRect.top + regionScaledRect.top;
     	imageRegion.setLayoutParams(lp);
-
     	
     	// TODO: this is throwing an error when tags are re-drawn - update database
     	// mdh.registerTag((String) imageRegion.getContentDescription());
@@ -1072,6 +1071,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	intent.putExtra("imageRegion", ir);
     	intent.putExtra("imageSerial", mdh.getImageResource());
     	startActivityForResult(intent,RESULT_ID_TAGGER);
+    }
+    
+    @Override
+    public void onConfigurationChanged(Configuration conf) {
+        super.onConfigurationChanged(conf);
     }
     
     /*
