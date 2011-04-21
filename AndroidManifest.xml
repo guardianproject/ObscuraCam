@@ -15,7 +15,7 @@
         <activity android:name=".CameraObscuraMainMenu"></activity>
         <activity android:name=".IdTagger" android:theme="@style/Theme.CustomDialog"></activity>
         <activity android:name=".secure.EncryptTagger" android:theme="@style/Theme.CustomDialog"></activity>
-        <activity android:name=".ImageEditor">
+        <activity android:name=".ImageEditor" android:configChanges="orientation|keyboardHidden">
 			<intent-filter>
                  <action android:name="android.intent.action.VIEW" />
                  <action android:name="android.intent.action.EDIT" />
