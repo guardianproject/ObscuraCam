@@ -42,6 +42,7 @@ import android.os.Vibrator;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -896,14 +897,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
-		
+
+    	MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.image_editor_menu, menu);
+		/*
     	MenuItem newTagMenuItem = menu.add(Menu.NONE, NEW_TAG_MENU_ITEM, Menu.NONE, "New Tag");
 		MenuItem panicMenuItem = menu.add(Menu.NONE, PANIC_MENU_ITEM, Menu.NONE, "Panic");
         MenuItem preferencesMenuItem = menu.add(Menu.NONE, PREFERENCES_MENU_ITEM, Menu.NONE, "Preferences");
         MenuItem saveMenuItem = menu.add(Menu.NONE, SAVE_MENU_ITEM, Menu.NONE, "Save");
         MenuItem shareMenuItem = menu.add(Menu.NONE, SHARE_MENU_ITEM, Menu.NONE, "Share");
         MenuItem hashMenuItem = menu.add(Menu.NONE, HASH_MENU_ITEM, Menu.NONE, "Send Hash");
-        
+        */
         return true;
     }
     

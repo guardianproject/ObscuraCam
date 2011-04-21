@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -141,8 +142,13 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 
 	    @Override
 	    public boolean onCreateOptionsMenu(Menu menu) {
+	    	
+	       	MenuInflater inflater = getMenuInflater();
+	        inflater.inflate(R.menu.main_menu, menu);
+	        /*
 	    	MenuItem panicMenuItem = menu.add(Menu.NONE, PANIC_MENU_ITEM, Menu.NONE, "Panic");
 	        MenuItem preferencesMenuItem = menu.add(Menu.NONE, PREFERENCES_MENU_ITEM, Menu.NONE, "Preferences");
+	        */
 	        return true;
 	    }
 	    
