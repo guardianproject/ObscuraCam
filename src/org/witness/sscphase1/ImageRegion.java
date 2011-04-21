@@ -58,7 +58,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	ActionItem idAction;
 	ActionItem encryptAction;
 	ActionItem destroyAction;
-			
+				
 	public ImageRegion(
 			ImageEditor imageEditor, 
 			int _scaledStartX, int _scaledStartY, 
@@ -85,6 +85,11 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		startY = (float)_imageHeight/(float)_scaledImageHeight * (float)_scaledStartY;
 		endX = (float)_imageWidth/(float)_scaledImageWidth * (float)_scaledEndX;
 		endY = (float)_imageHeight/(float)_scaledImageHeight * (float)_scaledEndY;
+		
+		Log.v(LOGTAG,"startX: " + startX);
+		Log.v(LOGTAG,"startY: " + startY);
+		Log.v(LOGTAG,"endX: " + endX);
+		Log.v(LOGTAG,"endY: " + endY);
 				
 		imageWidth = _imageWidth;
 		imageHeight = _imageHeight;
@@ -192,9 +197,23 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		float scaledEndX = (float)endX * (float)_scaledImageWidth/(float)imageWidth;
 		float scaledEndY = (float)endY * (float)_scaledImageHeight/(float)imageHeight;
 
+		Log.v(LOGTAG,"getScaledRect");
+		Log.v(LOGTAG,""+scaledStartX);
+		Log.v(LOGTAG,""+scaledStartY);
+		Log.v(LOGTAG,""+scaledEndX);
+		Log.v(LOGTAG,""+scaledEndY);
+		
 		return new Rect((int)scaledStartX, (int)scaledStartY, (int)scaledEndX, (int)scaledEndY);
 	}
-
+	
+	public void setScaledRect(Rect scaledRect) {
+		
+		startX = (float)scaledRect.left * (float)imageWidth/(float)scaledRect.width();
+		startY = (float)scaledRect.top * (float)imageHeight/(float)scaledRect.height();
+		endX = (float)scaledRect.right * (float)imageWidth/(float)scaledRect.width();
+		endY = (float)scaledRect.bottom * (float)imageHeight/(float)scaledRect.height();
+	}
+	
 	public boolean onTouch(View v, MotionEvent event) {
 		
 		if (mode == EDIT_MODE) {
@@ -215,31 +234,47 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 				// Here we move
 				Log.v(LOGTAG,"Moving Moving");
 				
-				//RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) this.getLayoutParams();
-
 				switch (event.getAction() & MotionEvent.ACTION_MASK) {
 					
 					case MotionEvent.ACTION_DOWN:
-						startPoint.set(event.getX(), event.getY());
 						break;
 					
 					case MotionEvent.ACTION_UP:
 						break;
 					
 					case MotionEvent.ACTION_MOVE:
-						Log.v(LOGTAG,""+(int)(event.getX(0) - event.getX(1)));
-						/*
-						lp.leftMargin = lp.leftMargin + (int)(event.getX(0) - event.getX(1));
-						lp.rightMargin = lp.rightMargin + (int)(event.getX(0) - event.getX(1));
-						lp.topMargin = lp.topMargin + (int)(event.getY(0) - event.getY(1));
-						lp.bottomMargin = lp.bottomMargin + (int)(event.getY(0) - event.getY(1));
-						this.invalidate();
+						
+						/*						
+						int imageScaledWidth = imageEditor.imageView.getWidth();
+						int imageScaledHeight = imageEditor.imageView.getHeight();
+
+						Log.v(LOGTAG,"imageScaledWidth: "+imageScaledWidth);
+						Log.v(LOGTAG,"imageScaledHeight: "+imageScaledHeight);
+						
+						Rect scaledRect = getScaledRect(imageScaledWidth, imageScaledHeight);
+						
+						Log.v(LOGTAG,"scaledRect.width: "+scaledRect.width());
+						Log.v(LOGTAG,"scaledRect.height: "+scaledRect.height());
+						
+						scaledRect.left = (int)event.getX() - scaledRect.width()/2;
+						scaledRect.top = (int)event.getY() - scaledRect.height()/2;
+						
+						setScaledRect(scaledRect);
 						*/
-						startX +=  (int)(startPoint.x + event.getX());
-						endX += (int)(startPoint.x + event.getX());
-						startY += (int)(startPoint.y + event.getY());
-						endY += (int)(startPoint.y + event.getY());
+						
+						/*
+						 * NOT WORKING IN SCALED STATE
+						 */
+						int width = (int) (endX - startX);
+						int height = (int) (endY - startY);
+						startX = event.getX() + width/2;
+						endX = width + event.getX() + width/2;
+						
+						startY = event.getY() + height/2;
+						endY = width + event.getY() + height/2;
+						
 						imageEditor.redrawRegions();
+					
 						break;
 				}
 				
