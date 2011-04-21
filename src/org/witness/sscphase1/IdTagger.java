@@ -18,8 +18,8 @@ import android.widget.ListView;
 
 public class IdTagger extends Activity {
 	Bundle b;
-	int tagIndex;
-	SSCCalculator calc;
+	String imageRegion;
+	String imageSerial;
 	
 	EditText namespace;
 	CheckBox consentCheckbox;
@@ -49,11 +49,10 @@ public class IdTagger extends Activity {
 			}
 		});
 		
-		calc = new SSCCalculator();
 		b = getIntent().getExtras();
-		try {
-			tagIndex = calc.jsonGetTagId(b.getString("tagIndex"));
-		} catch (Exception e) {}
+		imageRegion = b.getString("imageRegion");
+		imageSerial = b.getString("imageSerial");
+		
 		
 		tagSuggestionsHolder = (ListView) findViewById(R.id.tagSuggestionsHolder);
 		al = new ArrayList<String>();
@@ -68,15 +67,6 @@ public class IdTagger extends Activity {
 		try {
 			mdh.openDataBase();
 		} catch(SQLException e) {}
-		/*
-		try {
-			al = mdh.readBatchFromDatabase("ssc_subjects", "s_entityName", "ASC");
-			Log.v(SSC,"found " + al.size() + " tags in db");
-			if(al.size() > 0) {
-				shouldLookupNames = true;
-			}
-		} catch(SQLException e) {}
-		*/
 		
 		if(shouldLookupNames) {
 			namespace.addTextChangedListener(new TextWatcher() {
@@ -101,17 +91,11 @@ public class IdTagger extends Activity {
 	
 	public void saveSubject(String subjectName) {
 		if(subjectName.compareTo("") != 0) {
-			// add subject into table of known subjects if this is a new subject.
-			/*
-			if(isNewSubject) {
-				int subjectIndex = mdh.insertIntoDatabase("ssc_subjects", "(s_entityName,associatedMedia)", "\"" + subjectName + "\"," + b.getInt("imageResourceCursor"));
-			}
-			*/
-			
 			int finalConsent = 0;
 			if(consentCheckbox.isChecked()) {
 				finalConsent = 1;
 			}
+			mdh.registerSubject(subjectName,finalConsent,null,imageSerial,imageRegion);
 			
 			// add subject to tag's table ("associatedSubjects_[imageId]_[tagId]")
 			/*

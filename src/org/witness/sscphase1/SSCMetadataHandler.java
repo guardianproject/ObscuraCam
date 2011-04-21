@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -80,7 +81,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			"accelerometerAxisInitialX TEXT","accelerometerAxisInitialY TEXT","accelerometerAxisInitialZ TEXT",
 			"videoDuration INTEGER","numVideoPaths INTEGER","associatedImageRegions TEXT"};
 	private String[] associatedImageRegionTable = {"associatedImageRegion TEXT"};
-	private String[] imageRegionTable = {"coordinates TEXT","subjectSerial TEXT","informedConsentGiven INTEGER","consentTimeCodeserial TEXT",
+	private String[] imageRegionTable = {"coordinates TEXT","subjectName TEXT","informedConsentGiven INTEGER","consentTimeCode TEXT",
 			"obfuscationType INTEGER","obfuscationTimeblock TEXT","associatedKeys TEXT","serial TEXT"};
 	private String[] subjectTable = {"associatedImages TEXT"};
 	
@@ -173,6 +174,10 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		return index;
 	}
 	
+	public String getImageResource() {
+		return sscImageSerial;
+	}
+	
 	public String[] writeExif(int intent) {
 		/*
 		 *  this method will make the specified modifications to the exif data
@@ -228,12 +233,10 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		
 	}
 	
-	public void registerSubject() {
+	public void registerSubject(String subjectName, int subjectConsent, 
+			String consentTimecode, String targetTable, String lookupValue) {
 		/*
 		 * this method will write data regarding a subject to a join table that can be associated with the image
-		 * 
-		 * if the corresponding subject join table does not exist, it will create it and name
-		 * it according to our taxonomy
 		 * 
 		 * this method populates the subject join table with the following:
 		 * 
@@ -241,11 +244,31 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		 * Consent
 		 * Consent timecode (null if image)
 		 * 
-		 * this method will also spawn a new join table named after this subject (a hash of the name, i would say)
-		 * or append to it, in the case that the table already exists with
-		 * the ID of corresponding image (imageRegion?)
-		 * 
 		 */
+		
+		// 1. take name, and hash it (append "_SUBJECT").
+		// Find out if there's already a table out there with that hash (and if not, create it)
+		String subjectHash = makeHash(subjectName + "_SUBJECT");
+		ArrayList<String> tables = returnTableNames();
+		if(!tables.contains(subjectHash)) {
+			createTable(subjectHash,subjectTable);
+		}
+				
+		// 2. add this stuff to the _IR table for the image region (update targetTable set vals to whatever where imageRegion = lookupValue)
+		String[] subjectColumns = {"subjectName","informedConsentGiven","consentTimeCode"};
+		String[] subjectValues = {subjectName,Integer.toString(subjectConsent),consentTimecode};
+		modifyRecord(targetTable, subjectColumns, subjectValues, targetTable, lookupValue);
+		
+		// 3. add the name of this image to the subject's table
+		String[] associatedImages = {"associatedImages"};
+		String[] targetValues = {targetTable};
+		insertIntoDatabase(subjectHash,associatedImages,targetValues);
+		
+		// 4. add subject name to "known subjects" table (if not already there)
+		String[] knownSubjectCols = {"subjectName","subjectSerial"};
+		String[] knowSubjectVals = {subjectName,subjectHash};
+		insertIntoDatabase(KNOWNSUBJECTS,knownSubjectCols,knowSubjectVals);
+		
 	}
 	
 	public void registerImageRegion(ImageRegion imageRegion) {
@@ -261,7 +284,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		insertIntoDatabase(makeHash(sscImageSerial + "_IR"),tableNames,tableValues);
 	}
 	
-	public int insertIntoDatabase(String tableName, String[] targetColumns, String[] values) throws SQLException {
+	private int insertIntoDatabase(String tableName, String[] targetColumns, String[] values) throws SQLException {
 		String theQuery = "INSERT INTO " + tableName + " (";
 		if(targetColumns != null) {
 			StringBuffer sb = new StringBuffer();
@@ -303,7 +326,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	}
 	
 	// PLURAL (overloaded)
-	public void modifyRecord(String tableName, String[] targetColumns, String[] values, String matchColumn, String matchValue) {
+	private void modifyRecord(String tableName, String[] targetColumns, String[] values, String matchColumn, String matchValue) {
 		String theQuery = "UPDATE " + tableName + " SET ";
 		StringBuffer sb = new StringBuffer();
 		for(int x=0; x<targetColumns.length; x++) {
@@ -315,7 +338,22 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		db.execSQL(theQuery);
 	}
 	
-	public void createTable(String tableName, String[] columns) {
+	private ArrayList<String> returnTableNames() {
+		ArrayList<String> tables = new ArrayList<String>();
+		String theQuery = "SELECT name FROM sqlite_master WHERE type = 'table'";
+		Cursor dbCount = db.rawQuery(theQuery,null);
+		if(dbCount != null) {
+			dbCount.moveToFirst();
+			for(int t=0;t<dbCount.getCount();t++) {
+				tables.add(dbCount.getString(0));
+				dbCount.moveToNext();
+			}
+			dbCount.close();
+		}
+		return tables;
+	}
+	
+	private void createTable(String tableName, String[] columns) {
 		String theQuery = "CREATE TABLE " + tableName + " (_id INTEGER PRIMARY KEY,";
 		StringBuffer sb = new StringBuffer();
 		for(String col : columns) {

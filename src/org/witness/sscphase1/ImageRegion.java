@@ -1,15 +1,9 @@
 package org.witness.sscphase1;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-
-import org.witness.sscphase1.secure.EncryptTagger;
 
 import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
-
-import android.content.Context;
-import android.content.Intent;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.util.Log;
@@ -18,9 +12,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
-import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
 
 public class ImageRegion extends FrameLayout implements OnTouchListener, OnClickListener, Serializable {
 
@@ -48,11 +40,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	
 	private ImageEditor imageEditor;
 	
-	// QuickAction items
-	/*
-	String[] UIMenuItemNames;
-	ArrayList<ActionItem> aiList;
-	*/
 	QuickAction qa;
 	
 	public static final String SSC = "[Camera Obscura : ImageRegion] **************************** ";
@@ -128,39 +115,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		bottomLeftCorner.setOnTouchListener(this);
 		bottomRightCorner.setOnTouchListener(this);		
 		
-        this.addView(innerView);
-    		
+        this.addView(innerView);		
 	}
 	
-	public void inflatePopup() {
-		// Not sure this works since we need to identify these later, in the onclick's
-		/*
-		aiList = new ArrayList<ActionItem>();
-		UIMenuItemNames = this.getResources().getStringArray(R.array.UIMenuItemNames);
-		int[] UIMenuItemIcons = {
-				R.drawable.ic_context_edit,
-				R.drawable.ic_context_id,
-				R.drawable.ic_context_encrypt,
-				R.drawable.ic_context_destroy};
-		for(int x=0;x<UIMenuItemNames.length;x++) {
-			ActionItem ai = new ActionItem();
-			ai.setTitle(UIMenuItemNames[x]);			
-			ai.setIcon(this.getResources().getDrawable(UIMenuItemIcons[x]));
-			ai.setOnClickListener(new OnClickListener() {
-				
-				public void onClick(View v) {
-					
-					Log.v(SSC,"YOU CLICKED OPTION " + v.toString());
-					v.getId();
-					
-					ImageRegion.this.changeMode(EDIT_MODE);
-				}
-			});
-			
-			aiList.add(ai);
-		}		
-		*/
-				
+	private void inflatePopup() {
 		qa = new QuickAction(this);
 		
 		editAction = new ActionItem();
@@ -181,6 +139,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 			public void onClick(View v) {
 				qa.dismiss();
 				ImageRegion.this.changeMode(ID_MODE);
+				imageEditor.launchIdTagger(ImageRegion.this.toString());
 			}
 		});
 		qa.addActionItem(idAction);
@@ -192,6 +151,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 			public void onClick(View v) {
 				qa.dismiss();
 				whattodo = ENCRYPT;
+				imageEditor.launchEncryptTagger(ImageRegion.this.toString());
 			}
 		});
 		qa.addActionItem(encryptAction);

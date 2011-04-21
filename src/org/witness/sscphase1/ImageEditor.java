@@ -779,10 +779,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				_backgroundColor);
 		imageRegions.add(imageRegion);
 		addImageRegionToLayout(imageRegion);
+		mdh.registerImageRegion(imageRegion);
 		clearOverlay();
 		
-    	// TODO: update database
-		mdh.registerImageRegion(imageRegion);
 
 	}
 
@@ -798,8 +797,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	lp.leftMargin = (int)theRect.left + regionScaledRect.left;
     	lp.topMargin = (int)theRect.top + regionScaledRect.top;
     	imageRegion.setLayoutParams(lp);
-    	//imageRegion.setOnClickListener(this);
-    	//imageRegion.setContentDescription(imageRegion.attachTags());
+
     	
     	// TODO: this is throwing an error when tags are re-drawn - update database
     	// mdh.registerTag((String) imageRegion.getContentDescription());
@@ -861,7 +859,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			redrawRegions();
 		} else if (v instanceof ImageRegion) {
 			// Menu goes here
-			Log.v(LOGTAG,"CLICKED ON: " + v.toString());
 	    	/*
 			SSCEditTag et = new SSCEditTag(v.getContentDescription(), regionButtonsLayout);
 	    	buttonIDs = et.getButtonIDs();
@@ -1056,21 +1053,20 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }
     
    
-    
     private int RESULT_ENCRYPT_TAGGER = 9999;
     private int RESULT_ID_TAGGER = 9998;
     
-    public void launchEncryptTagger(String id) {
+    public void launchEncryptTagger(String ir) {
     	Intent intent = new Intent(this, EncryptTagger.class);
-    	intent.putExtra("imageResourceCursor", mdh.getImageResourceCursor());
-    	intent.putExtra("tagIndex", id);
+    	intent.putExtra("imageRegion", ir);
+    	intent.putExtra("imageSerial", mdh.getImageResource());
     	startActivityForResult(intent,RESULT_ENCRYPT_TAGGER);
     }
     
-    public void launchIdTagger(String id) {
+    public void launchIdTagger(String ir) {
     	Intent intent = new Intent(this, IdTagger.class);
-    	intent.putExtra("imageResourceCursor", mdh.getImageResourceCursor());
-    	intent.putExtra("tagIndex", id);
+    	intent.putExtra("imageRegion", ir);
+    	intent.putExtra("imageSerial", mdh.getImageResource());
     	startActivityForResult(intent,RESULT_ID_TAGGER);
     }
     
