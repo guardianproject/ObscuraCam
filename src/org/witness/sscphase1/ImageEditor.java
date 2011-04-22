@@ -842,11 +842,24 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 	}
 	
+	private void clearImageRegionsEditMode ()
+	{
+		Iterator<ImageRegion> itRegions = imageRegions.iterator();
+		
+		while (itRegions.hasNext())
+		{
+			itRegions.next().changeMode(ImageRegion.NORMAL_MODE);
+		}
+	}
+	
 	public void createImageRegion(int _scaledStartX, int _scaledStartY, 
 			int _scaledEndX, int _scaledEndY, 
 			int _scaledImageWidth, int _scaledImageHeight, 
 			int _imageWidth, int _imageHeight, 
 			int _backgroundColor) {
+		
+		clearImageRegionsEditMode();
+		
 		ImageRegion imageRegion = new ImageRegion(
 				this, 
 				_scaledStartX, 
@@ -858,6 +871,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				_imageWidth, 
 				_imageHeight, 
 				_backgroundColor);
+		
 		imageRegions.add(imageRegion);
 		addImageRegionToLayout(imageRegion);
 		mdh.registerImageRegion(imageRegion);
