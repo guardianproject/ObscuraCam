@@ -177,8 +177,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		zoomOut.setOnClickListener(this);
 
 		// I made this URI global, as we should require it in other methods (HNH 2/22/11)
-		imageUri = getIntent().getData();
-		imageSource = getIntent().getExtras();
+		Intent intent = getIntent();
+		imageUri = intent.getData();
+		imageSource = intent.getExtras();
 		
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
@@ -272,10 +273,31 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			
 			//how take care of the original!
 			if (deleteOriginal)
-				getContentResolver().delete(imageUri, null, null);
-
+				handleDelete();
+			
 
 		}
+	}
+	
+	private void handleDelete () 
+	{
+		
+		final AlertDialog.Builder b = new AlertDialog.Builder(this);
+		b.setIcon(android.R.drawable.ic_dialog_alert);
+		b.setTitle(getString(R.string.app_name));
+		b.setMessage(getString(R.string.confirm_delete));
+		b.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+
+                /* User clicked OK so do some stuff */
+        		getContentResolver().delete(imageUri, null, null);
+        		imageUri = null;
+            }
+        });
+		b.setNegativeButton(android.R.string.no, null);
+		b.show();
+		
+
 	}
 	
 	private void initPreferences ()
@@ -976,6 +998,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }
     
     private void shareImage() {
+    	
+    	//how take care of the original!
+		if (deleteOriginal && imageUri != null)
+			handleDelete();
+    	
     	saveImage();
     	
     	Intent share = new Intent(Intent.ACTION_SEND);
@@ -1036,6 +1063,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
     private void saveImage() {
     	
+    	//how take care of the original!
+		if (deleteOriginal && imageUri != null)
+			handleDelete();
+		
     	Bitmap obscuredBmp = createObscuredBitmap();
     	
     	// Uri is savedImageUri which is global

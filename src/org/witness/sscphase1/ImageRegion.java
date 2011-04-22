@@ -150,54 +150,56 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		this.knownKeys = eKeys;
 	}
 	
-	private void inflatePopup() {
-		qa = new QuickAction(this);
+	void inflatePopup() {
 		
-		editAction = new ActionItem();
-		editAction.setTitle("Edit");
-		editAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_edit));
-		editAction.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				qa.dismiss();
-				ImageRegion.this.changeMode(EDIT_MODE);
-			}
-		});
-		qa.addActionItem(editAction);
-
-		idAction = new ActionItem();
-		idAction.setTitle("ID");
-		idAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_id));
-		idAction.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				qa.dismiss();
-				ImageRegion.this.changeMode(ID_MODE);
-				imageEditor.launchIdTagger(ImageRegion.this.toString());
-			}
-		});
-		qa.addActionItem(idAction);
+			qa = new QuickAction(this);
+			
+			editAction = new ActionItem();
+			editAction.setTitle("Edit");
+			editAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_edit));
+			editAction.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					qa.dismiss();
+					ImageRegion.this.changeMode(EDIT_MODE);
+				}
+			});
+			qa.addActionItem(editAction);
+	
+			idAction = new ActionItem();
+			idAction.setTitle("ID");
+			idAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_id));
+			idAction.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					qa.dismiss();
+					ImageRegion.this.changeMode(ID_MODE);
+					imageEditor.launchIdTagger(ImageRegion.this.toString());
+				}
+			});
+			qa.addActionItem(idAction);
+			
+			encryptAction = new ActionItem();
+			encryptAction.setTitle("Encrypt");
+			encryptAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_encrypt));
+			encryptAction.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					qa.dismiss();
+					whattodo = ENCRYPT;
+					imageEditor.launchEncryptTagger(ImageRegion.this.toString());
+				}
+			});
+			qa.addActionItem(encryptAction);
+			
+			destroyAction = new ActionItem();
+			destroyAction.setTitle("Redact");
+			destroyAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
+			destroyAction.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					qa.dismiss();
+					whattodo = OBSCURE;
+				}
+			});
+			qa.addActionItem(destroyAction);
 		
-		encryptAction = new ActionItem();
-		encryptAction.setTitle("Encrypt");
-		encryptAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_encrypt));
-		encryptAction.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				qa.dismiss();
-				whattodo = ENCRYPT;
-				imageEditor.launchEncryptTagger(ImageRegion.this.toString());
-			}
-		});
-		qa.addActionItem(encryptAction);
-		
-		destroyAction = new ActionItem();
-		destroyAction.setTitle("Redact");
-		destroyAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
-		destroyAction.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				qa.dismiss();
-				whattodo = OBSCURE;
-			}
-		});
-		qa.addActionItem(destroyAction);
 	}
 	
 	public void changeMode(int newMode) {
@@ -325,6 +327,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 				qa.addActionItem(aiList.get(x));
 			}
 			*/
+			
+			inflatePopup();
 			//qa.setAnimStyle(QuickAction.ANIM_REFLECT);
 			qa.show();
 		}
