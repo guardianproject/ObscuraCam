@@ -36,6 +36,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Bitmap.Config;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -1050,11 +1051,31 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     			return;
     		}
     	}	
+    	
 		OutputStream imageFileOS;
 		try {
-			int quality = 100; //lossless?
+			int quality = 100; //lossless?  good question - still a smaller version
 			imageFileOS = getContentResolver().openOutputStream(savedImageUri);
 			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
+			
+			// Trying out an EXIF write method
+			Date hashTime = new Date();
+			String hash = generateSecureHash();
+			
+			try {
+				ExifInterface ei = new ExifInterface(savedImageUri.getPath());
+				// Maybe we can put everything in the TAG_MODEL or TAG_MAKE??
+				ei.setAttribute(ExifInterface.TAG_MODEL,hash + "(" + hashTime.toGMTString() + ")");
+				// Add in other attributes
+				ei.saveAttributes();
+	    		Toast t = Toast.makeText(this,"EXIF Data Saved", Toast.LENGTH_SHORT); 
+	    		t.show();
+			} catch (IOException ioe) {
+				ioe.printStackTrace();
+	    		Toast t = Toast.makeText(this,"EXIF Data Failed", Toast.LENGTH_SHORT); 
+	    		t.show();
+
+			}
 			
     		Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
     		t.show();
@@ -1078,8 +1099,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     private File createSecureFile() {
     	
     	File newFile = null;
+    	// This could be a secure directory
+    	File directory = new File("/sdcard/");
     	try {
-			newFile = File.createTempFile("ssc", ".jpg");
+			newFile = File.createTempFile("ssc", ".jpg", directory);
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
