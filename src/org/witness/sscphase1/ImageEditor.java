@@ -169,6 +169,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// I made this URI global, as we should require it in other methods (HNH 2/22/11)
 		imageUri = getIntent().getData();
 		imageSource = getIntent().getExtras();
+		// TODO: what if there is no bundle?  (when user launches from gallery via share button?) handle this!
 		
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
@@ -1036,7 +1037,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			
 			// TODO: write stored exif data into the saved file via the mdh.
 			mdh.writeExif(savedImageUri.getPath());
-			mdh.zipUpData();
+			mdh.zipUpData(savedImageUri.getPath());
+			
 			
     		Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
     		t.show();
