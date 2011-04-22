@@ -21,6 +21,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.SQLException;
 import android.graphics.Bitmap;
@@ -41,6 +42,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -145,10 +147,18 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	// This will need to be updated when changes are made to the image
 	boolean imageSaved = false;
 	Uri savedImageUri = null;
+	
+	// pref booleans
+	private boolean deleteOriginal = false; //auto delete on import
+	private boolean autoSign = false; //auto sign all exports
+	private boolean autoEncryption = false; //auto encrypt
+	
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		initPreferences();
 		
         requestWindowFeature(Window.FEATURE_NO_TITLE);  
 		setContentView(R.layout.imageviewer);
@@ -183,7 +193,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				bmpFactoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
 				
 				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri), null, bmpFactoryOptions);
-				
+
 				originalImageWidth = bmpFactoryOptions.outWidth;
 				originalImageHeight = bmpFactoryOptions.outHeight;
 				
@@ -260,8 +270,24 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			// Do popup
 			showDialog(DIALOG_DO_AUTODETECTION);
 			
+			//how take care of the original!
+			if (deleteOriginal)
+				getContentResolver().delete(imageUri, null, null);
+
 
 		}
+	}
+	
+	private void initPreferences ()
+	{
+		
+		//OriginalImagePref
+    	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+    	int defState = Integer.parseInt(prefs.getString("OriginalImagePref", "0"));
+    	
+    	if (defState == 2)
+    		deleteOriginal = true;
 	}
 	
 	protected Dialog onCreateDialog(int id) {

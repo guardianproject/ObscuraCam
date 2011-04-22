@@ -52,11 +52,12 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    	takePictureButton = (Button) this.findViewById(R.id.TakePictureButton);
 	    	takePictureButton.setOnClickListener(this);
 	    	
+	    	/*
+	    	
 	    	datastoreButton = (Button) this.findViewById(R.id.DatastoreButton);
 	    	datastoreButton.setOnClickListener(this);
 	    	
 	    	//we don't need this as they are menu options
-	    	/*
 	    	preferencesButton = (Button) this.findViewById(R.id.PreferencesButton);
 	    	preferencesButton.setOnClickListener(this);
 	    	
