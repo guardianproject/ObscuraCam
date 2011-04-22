@@ -98,8 +98,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		inflatePopup();
 
 		
-	//	this.setOnClickListener(this);
-		this.setOnTouchListener(this);
 		
 		// Inflate Layout
 		LayoutInflater inflater = LayoutInflater.from(imageEditor);        
@@ -123,19 +121,36 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 
         this.knownSubjects = new ArrayList<SSCSubject>();
         
+        setOnTouchListener(this);
+        
+        moveRegion.setOnClickListener(new OnClickListener (){
+
+			@Override
+			public void onClick(View v)
+			{
+				inflatePopup();
+				qa.show();
+				
+				
+			}
+			
+		});
+        
+        
         moveRegion.setOnLongClickListener(new OnLongClickListener (){
 
 			@Override
 			public boolean onLongClick(View v)
 			{
-				
-				if (mode == NORMAL_MODE)
-				{
-					changeMode(EDIT_MODE);
-				}
-				else if (mode == EDIT_MODE)
+				if (mode == EDIT_MODE)
 				{
 					changeMode(NORMAL_MODE);
+					return true;
+				}
+				else if (mode == NORMAL_MODE)
+				{
+					changeMode(EDIT_MODE);
+					return true;
 				}
 				
 				
@@ -218,6 +233,12 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	}
 	
 	public void changeMode(int newMode) {
+		
+		if (newMode == EDIT_MODE && mode == EDIT_MODE)
+		{
+			changeMode(NORMAL_MODE);
+		}
+		
 		mode = newMode;
 		if (mode == EDIT_MODE) {
 			topLeftCorner.setVisibility(View.VISIBLE);
