@@ -11,6 +11,9 @@ public class BlurObscure extends Activity implements ObscureMethod {
 
 	Bitmap originalBmp;
 	
+
+	private final static int BLUR_OFFSET = 10;
+	
 	public BlurObscure(Bitmap _originalBmp) {
 		originalBmp = _originalBmp;
 	}
@@ -40,66 +43,57 @@ public class BlurObscure extends Activity implements ObscureMethod {
 		for (int x = rect.left; x < rect.right - 1; x++) {
 			for (int y = rect.top; y < rect.bottom - 1; y++) {
 				
-				int r = getRed(x,y);
-				int g = getGreen(x,y);
-				int b = getBlue(x,y);
+				int blurOffset = (int)((Math.random()*BLUR_OFFSET)+BLUR_OFFSET);
+				int r = getRed(x,y, blurOffset);
+				blurOffset = (int)((Math.random()*BLUR_OFFSET)+BLUR_OFFSET);
+				int g = getGreen(x,y, blurOffset);
+				blurOffset = (int)((Math.random()*BLUR_OFFSET)+BLUR_OFFSET);
+				int b = getBlue(x,y, blurOffset);
 				
-				originalBmp.setPixel(x, y, Color.rgb(Color.red(r), Color.green(g), Color.blue(b)));
+				originalBmp.setPixel(x, y, Color.rgb(r,g,b));
+
 			}
 		}
 	}
 	
-	private void doScaleBlur (Rect rect, Canvas canvas)
-	{
-		  Bitmap facebmp = Bitmap.createBitmap(originalBmp,rect.left,rect.top,rect.width(),rect.height());
-
-	        int blurFactor = 10;
-	        
-	        facebmp = Bitmap.createScaledBitmap(facebmp, facebmp.getWidth()/blurFactor, facebmp.getHeight()/blurFactor, true);
-	        //facebmp = Bitmap.createScaledBitmap(facebmp, facebmp.getWidth()*blurFactor, facebmp.getHeight()*blurFactor, true);
-
-	    	Paint obscuredPaint = new Paint();     	
-
-	        canvas.drawBitmap(facebmp, rect, rect, obscuredPaint);
-	}
 	
-	private int getRed(int x, int y) {
+	private int getRed(int x, int y, int blurOffset) {
 		return 
-			(Color.red(originalBmp.getPixel(x-1, y-1)) +
-			Color.red(originalBmp.getPixel(x, y-1)) +
-			Color.red(originalBmp.getPixel(x+1, y-1)) +
-			Color.red(originalBmp.getPixel(x-1, y)) +
+			(Color.red(originalBmp.getPixel(x-blurOffset, y-blurOffset)) +
+			Color.red(originalBmp.getPixel(x, y-blurOffset)) +
+			Color.red(originalBmp.getPixel(x+blurOffset, y-blurOffset)) +
+			Color.red(originalBmp.getPixel(x-blurOffset, y)) +
 			Color.red(originalBmp.getPixel(x, y)) +
-			Color.red(originalBmp.getPixel(x+1, y)) +
-			Color.red(originalBmp.getPixel(x-1, y+1)) +
-			Color.red(originalBmp.getPixel(x, y+1)) +
-			Color.red(originalBmp.getPixel(x+1, y+1)))/9;
+			Color.red(originalBmp.getPixel(x+blurOffset, y)) +
+			Color.red(originalBmp.getPixel(x-blurOffset, y+blurOffset)) +
+			Color.red(originalBmp.getPixel(x, y+blurOffset)) +
+			Color.red(originalBmp.getPixel(x+blurOffset, y+blurOffset)))/9;
 	}
 	
-	private int getGreen(int x, int y) {
+	private int getGreen(int x, int y, int blurOffset) {
 		return 
-			(Color.green(originalBmp.getPixel(x-1, y-1)) +
-			Color.green(originalBmp.getPixel(x, y-1)) +
-			Color.green(originalBmp.getPixel(x+1, y-1)) +
-			Color.green(originalBmp.getPixel(x-1, y)) +
+			(Color.green(originalBmp.getPixel(x-blurOffset, y-blurOffset)) +
+			Color.green(originalBmp.getPixel(x, y-blurOffset)) +
+			Color.green(originalBmp.getPixel(x+blurOffset, y-blurOffset)) +
+			Color.green(originalBmp.getPixel(x-blurOffset, y)) +
 			Color.green(originalBmp.getPixel(x, y)) +
-			Color.green(originalBmp.getPixel(x+1, y)) +
-			Color.green(originalBmp.getPixel(x-1, y+1)) +
-			Color.green(originalBmp.getPixel(x, y+1)) +
-			Color.green(originalBmp.getPixel(x+1, y+1)))/9;		
+			Color.green(originalBmp.getPixel(x+blurOffset, y)) +
+			Color.green(originalBmp.getPixel(x-blurOffset, y+blurOffset)) +
+			Color.green(originalBmp.getPixel(x, y+blurOffset)) +
+			Color.green(originalBmp.getPixel(x+blurOffset, y+blurOffset)))/9;		
 	}
 	
-	private int getBlue(int x, int y) {
+	private int getBlue(int x, int y, int blurOffset) {
 		return 
-			(Color.blue(originalBmp.getPixel(x-1, y-1)) +
-			Color.blue(originalBmp.getPixel(x, y-1)) +
-			Color.blue(originalBmp.getPixel(x+1, y-1)) +
-			Color.blue(originalBmp.getPixel(x-1, y)) +
+			(Color.blue(originalBmp.getPixel(x-blurOffset, y-blurOffset)) +
+			Color.blue(originalBmp.getPixel(x, y-blurOffset)) +
+			Color.blue(originalBmp.getPixel(x+blurOffset, y-blurOffset)) +
+			Color.blue(originalBmp.getPixel(x-blurOffset, y)) +
 			Color.blue(originalBmp.getPixel(x, y)) +
-			Color.blue(originalBmp.getPixel(x+1, y)) +
-			Color.blue(originalBmp.getPixel(x-1, y+1)) +
-			Color.blue(originalBmp.getPixel(x, y+1)) +
-			Color.blue(originalBmp.getPixel(x+1, y+1)))/9;		
+			Color.blue(originalBmp.getPixel(x+blurOffset, y)) +
+			Color.blue(originalBmp.getPixel(x-blurOffset, y+blurOffset)) +
+			Color.blue(originalBmp.getPixel(x, y+blurOffset)) +
+			Color.blue(originalBmp.getPixel(x+blurOffset, y+blurOffset)))/9;		
 	}
 }
 
