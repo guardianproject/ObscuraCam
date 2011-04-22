@@ -338,8 +338,8 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		if(dbCount != null) {
 			dbCount.moveToLast();
 			i = dbCount.getPosition();
-			dbCount.close();
 		}
+		dbCount.close();
 		return i;
 	}
 	
@@ -377,8 +377,8 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 				tables.add(dbCount.getString(0));
 				dbCount.moveToNext();
 			}
-			dbCount.close();
 		}
+		dbCount.close();
 		return tables;
 	}
 	
@@ -409,7 +409,6 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			}
 		}
 		dbCount.close();
-		//Log.v(SSC,"DUMPOUT: " + dumpout.toString().substring(3));
 		return record;
 	}
 	
@@ -425,10 +424,23 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		return numCols;
 	}
 	
-	public String zipUpData() {
-		String dZip = null;
+	public String zipUpData(String newFileUri) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("{\"SSCObject\":{");
 		SSCObject ssco = new SSCObject();
-		return dZip;
+		Gson g = new Gson();
+		sb.append("\"intent\":" + g.toJson(ssco.intent) + ",");
+		sb.append("\"consent\":" + g.toJson(ssco.consent) + ",");
+		sb.append("\"data\":" + g.toJson(ssco.data) + ",");
+		sb.append("\"geneaology\":" + g.toJson(ssco.geneaology) + "}}");
+		Log.d(SSC,"DUMP: " + sb.toString());
+		
+		try {
+			ei = new ExifInterface(newFileUri);
+			ei.setAttribute(ExifInterface.TAG_MAKE, sb.toString());
+		} catch (IOException e) {}
+		
+		return sb.toString();
 	}
 	
 	private void createTable(String tableName, String[] columns) {
@@ -529,43 +541,40 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	}
 	
 	private class SSCObject {
-		private final String ownerName;
-		
-		private final int ownershipType,mediaType,securityLevel,sociallySharable,numTags,accelerometerAxisAmount,numVideoPaths;
-
-		private final float accelerometerAxisInitialX,accelerometerAxisInitialY,accelerometerAxisInitialZ;
-		
-		private final long publicKey, videoDuration;
-		
+		private final int numTags,numVideoPaths;
+		private final long videoDuration;
 		private final ArrayList<SSCImageRegionDescription> subjects;
 		
 		private final SSCImageDataDescription data;
+		private final SSCImageIntentDescription intent;
+		private final SSCImageConsentDescription consent;
+		private final SSCImageGeneaologyDescription geneaology;
 		
 		SSCObject() {
-			this.ownerName = SSCMetadataHandler.this.ownerName;
-			this.ownershipType = SSCMetadataHandler.this.ownershipType;
-			this.mediaType = SSCMetadataHandler.this.mediaType;
-			this.securityLevel = SSCMetadataHandler.this.securityLevel;
-			this.sociallySharable = SSCMetadataHandler.this.sociallySharable;
 			this.numTags = SSCMetadataHandler.this.returnCols(SSCMetadataHandler.this.sscImageRegionSerial);
-			this.accelerometerAxisAmount = SSCMetadataHandler.this.accelerometerAxisAmount;
-			this.numVideoPaths = SSCMetadataHandler.this.numVideoPaths;
-			this.accelerometerAxisInitialX = SSCMetadataHandler.this.accelerometerAxisInitialX;
-			this.accelerometerAxisInitialY = SSCMetadataHandler.this.accelerometerAxisInitialY;
-			this.accelerometerAxisInitialZ = SSCMetadataHandler.this.accelerometerAxisInitialZ;
-			this.publicKey = SSCMetadataHandler.this.publicKey;
-			this.videoDuration = SSCMetadataHandler.this.videoDuration;
 			this.subjects = new ArrayList<SSCImageRegionDescription>();
+			this.intent = new SSCImageIntentDescription(
+					SSCMetadataHandler.this.ownerName,
+					SSCMetadataHandler.this.ownershipType,
+					SSCMetadataHandler.this.securityLevel,
+					SSCMetadataHandler.this.publicKey,
+					SSCMetadataHandler.this.sociallySharable
+			);
+			
+			this.numVideoPaths = SSCMetadataHandler.this.numVideoPaths;
+			this.videoDuration = SSCMetadataHandler.this.videoDuration;
 			
 			String[] dataTagFields = {"bluetoothNeighbors","tagDateTime","tagFlash","tagFocalLength","tagGPSDateStamp",
 			"tagGPSLatitude","tagGPSLatitudeRef","tagGPSLongitude","tagLongitudeRef","tagGPSProcessingMethod",
 			"tagGPSTimeStamp","tagImageLength","tagImageWidth","tagMake","tagModel",
-			"tagOrientation","tagWhiteBalance"};
+			"tagOrientation","tagWhiteBalance","accelerometerAxisAmount","accelerometerAxisInitialX","accelerometerAxisInitialY",
+			"accelerometerAxisInitialZ","mediaHash"};
 			String[] dataTagData = SSCMetadataHandler.this.returnRecord(
 					dataTagFields, 
 					SSCMetadataHandler.this.sscImageDataSerial,
 					"_id", Integer.toString(1));
 			this.data = new SSCImageDataDescription(
+					SSCMetadataHandler.this.mediaType,
 					dataTagData[0],
 					dataTagData[1],
 					dataTagData[2],
@@ -582,7 +591,12 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 					dataTagData[13],
 					dataTagData[14],
 					dataTagData[15],
-					dataTagData[16]
+					dataTagData[16],
+					Integer.parseInt(dataTagData[17]),
+					Float.parseFloat(dataTagData[18]),
+					Float.parseFloat(dataTagData[19]),
+					Float.parseFloat(dataTagData[20]),
+					dataTagData[21]
 			);
 			
 			for(int x=0;x<numTags;x++) {
@@ -600,6 +614,18 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 				);
 				subjects.add(ird);
 			}
+			
+			this.consent = new SSCImageConsentDescription(
+					numTags,
+					subjects);
+			
+			this.geneaology = new SSCImageGeneaologyDescription(
+					SSCMetadataHandler.this.uriPath,
+					SSCMetadataHandler.this.ownerName,
+					SSCMetadataHandler.this.ownerName,
+					data.exifGPSDatestamp,
+					data.exifModel
+			);
 		}
 		
 		private class SSCImageRegionDescription {
@@ -625,12 +651,62 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			}
 		}
 		
+		private class SSCImageIntentDescription {
+			private final String ownerName;
+			private int ownershipType,securityLevel,sociallySharable;
+			private float publicKey;
+			
+			SSCImageIntentDescription(String ownerName,
+					int ownershipType,
+					int securityLevel,
+					long publicKey,
+					int sociallySharable) {
+				this.ownerName = ownerName;
+				this.ownershipType = ownershipType; 
+				this.securityLevel = securityLevel;
+				this.publicKey = publicKey;
+				this.sociallySharable = sociallySharable; 
+			}
+		}
+		
+		private class SSCImageConsentDescription {
+			private int numTags;
+			private ArrayList<SSCImageRegionDescription> subjects;
+			
+			SSCImageConsentDescription(int numTags, ArrayList<SSCImageRegionDescription> subjects) {
+				this.numTags = numTags;
+				this.subjects = subjects;
+			}
+		}
+		
+		private class SSCImageGeneaologyDescription {
+			private String localMediaPath,origin,parentEntity,dateAcquired,sourceService;
+			SSCImageGeneaologyDescription(
+					String localMediaPath,
+					String origin,
+					String parentEntity,
+					String dateAcquired,
+					String sourceService) {
+				this.localMediaPath = localMediaPath;
+				this.origin = origin;
+				this.parentEntity = parentEntity;
+				this.dateAcquired = dateAcquired;
+				this.sourceService = sourceService;
+			}
+		}
+		
+		
 		private class SSCImageDataDescription {
+			private final int mediaType, accelerometerAxisAmount;
+			private final float accelerometerAxisInitialX,accelerometerAxisInitialY,accelerometerAxisInitialZ;
 			private final String bluetoothNeighbors,exifDateTime,exifFlash,exifFocalLength,
 			exifGPSDatestamp,exifGPSLatitude,exifGPSLatitudeRef,exifGPSLongitude,exifGPSLongitudeRef,exifGPSProcessing,
-			exifGPSTimestamp,exifImageLength,exifImageWidth,exifMake,exifModel,exifOrientation,exifWhiteBalance;
+			exifGPSTimestamp,exifImageLength,exifImageWidth,exifMake,exifModel,exifOrientation,exifWhiteBalance,
+			mediaHash;
 			
-			SSCImageDataDescription(String bluetoothNeighbors,
+			SSCImageDataDescription(
+					int mediaType,
+					String bluetoothNeighbors,
 					String exifDateTime,
 					String exifFlash,
 					String exifFocalLength,
@@ -646,7 +722,13 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 					String exifMake,
 					String exifModel,
 					String exifOrientation,
-					String exifWhiteBalance) {
+					String exifWhiteBalance,
+					int accelerometerAxisAmount,
+					float accelerometerAxisInitialX,
+					float accelerometerAxisInitialY,
+					float accelerometerAxisInitialZ,
+					String mediaHash) {
+				this.mediaType = mediaType;
 				this.bluetoothNeighbors = bluetoothNeighbors;
 				this.exifDateTime = exifDateTime;
 				this.exifFlash = exifFlash;
@@ -664,6 +746,11 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 				this.exifModel = exifModel;
 				this.exifOrientation = exifOrientation;
 				this.exifWhiteBalance = exifWhiteBalance;
+				this.accelerometerAxisAmount = accelerometerAxisAmount;
+				this.accelerometerAxisInitialX = accelerometerAxisInitialX;
+				this.accelerometerAxisInitialY = accelerometerAxisInitialX;
+				this.accelerometerAxisInitialZ = accelerometerAxisInitialX;
+				this.mediaHash = mediaHash;
 				
 			}
 		}

@@ -1115,7 +1115,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			
 			// TODO: write stored exif data into the saved file via the mdh.
 			mdh.writeExif(savedImageUri.getPath());
-			mdh.zipUpData();
+			mdh.zipUpData(savedImageUri.getPath());
+			
 			
     		Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
     		t.show();
