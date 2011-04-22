@@ -3,9 +3,9 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="match_parent"
   android:layout_height="match_parent">
-  	<Button android:id="@+id/MoveRegion" android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_margin="25dip" android:background="#55555555"></Button>
-  	<Button android:id="@+id/TopLeftCorner" android:background="@drawable/edit_region_corner_ul" android:layout_height="26px" android:layout_width="26px"></Button>
-  	<Button android:id="@+id/TopRightCorner" android:background="@drawable/edit_region_corner_ur" android:layout_height="26px" android:layout_width="26px" android:layout_gravity="top|right"></Button>
-  	<Button android:id="@+id/BottomLeftCorner" android:background="@drawable/edit_region_corner_ll" android:layout_height="26px" android:layout_width="26px" android:layout_gravity="bottom|left"></Button>
-  	<Button android:id="@+id/BottomRightCorner" android:background="@drawable/edit_region_corner_lr" android:layout_height="26px" android:layout_width="26px" android:layout_gravity="bottom|right"></Button>
+  	<View android:id="@+id/MoveRegion" android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_margin="25dip" android:background="#55555555" android:layout_gravity="center"></View>
+  	<View android:id="@+id/TopLeftCorner" android:background="@drawable/edit_region_corner_ul" android:layout_height="26px" android:layout_width="26px" android:layout_gravity="top|left"></View>
+  	<View android:id="@+id/TopRightCorner" android:background="@drawable/edit_region_corner_ur" android:layout_height="26px" android:layout_width="26px" android:layout_gravity="top|right"></View>
+  	<View android:id="@+id/BottomLeftCorner" android:background="@drawable/edit_region_corner_ll" android:layout_height="26px" android:layout_width="26px" android:layout_gravity="bottom|left"></View>
+  	<View android:id="@+id/BottomRightCorner" android:background="@drawable/edit_region_corner_lr" android:layout_height="26px" android:layout_width="26px" android:layout_gravity="bottom|right"></View>
 </FrameLayout>
