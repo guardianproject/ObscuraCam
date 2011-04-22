@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hello">Hello World</string>
-    <string name="app_name">CamObscura</string>
+    <string name="app_name">Obscura</string>
 	<string name="SplashTextViewString">Camera Obscura</string>
 	<string name="CreditsTextViewString">Powered by the Guardian Project</string>
 	<string name="WalkThroughSkipButton">Skip</string>
@@ -27,6 +27,7 @@
     <string name="encrypttaggerp">You can encrypt the selected region to a specific set of public keys, so that only the key holders will be able to view the original image region.</string>
     <string name="encrypttaggerhint">Tap To Choose</string>
     
+    <string name="confirm_delete">Are you sure you want to delete the original?</string>
     
      <!-- APG related -->
     <string name="apg_error_activity_not_found">No suitable application for this action found.</string>
