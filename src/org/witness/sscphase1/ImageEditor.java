@@ -890,34 +890,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			redrawRegions();
 		} else if (v instanceof ImageRegion) {
 			// Menu goes here
-	    	/*
-			SSCEditTag et = new SSCEditTag(v.getContentDescription(), regionButtonsLayout);
-	    	buttonIDs = et.getButtonIDs();
-	    	OnClickListener ocl = new OnClickListener() {
-	    		// each button (except the image prefs button, which is gloabl)
-	    		// is linked with the image tag --
-	    		// call v.getContentDescription
-				public void onClick(View v) {
-					if(v.getId() == buttonIDs[0]) {
-						// Edit Tag
-						Log.v(LOGTAG,"Edit Tag clicked for tag# " + v.getContentDescription());
-					} else if(v.getId() == buttonIDs[1]) {
-						// ID Tag
-						launchIdTagger((String) v.getContentDescription());
-						Log.v(LOGTAG,"ID Tag clicked for tag# " + v.getContentDescription());
-					} else if(v.getId() == buttonIDs[2]) {
-						// Blur Tag
-						Log.v(LOGTAG,"Blur Tag clicked for tag# " + v.getContentDescription());
-					} else if(v.getId() == buttonIDs[3]) {
-						// Encrypt/Decrypt image region
-						Log.v(LOGTAG,"Image Prefs clicked");
-						launchEncryptTagger((String) v.getContentDescription());
-					}
-				}
-	    	};
-	    	et.addActions(ocl);
-	    	et.show();
-	    	*/
 		}
 	}
 	
@@ -1062,20 +1034,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			Date hashTime = new Date();
 			String hash = generateSecureHash();
 			
-			try {
-				ExifInterface ei = new ExifInterface(savedImageUri.getPath());
-				// Maybe we can put everything in the TAG_MODEL or TAG_MAKE??
-				ei.setAttribute(ExifInterface.TAG_MODEL,hash + "(" + hashTime.toGMTString() + ")");
-				// Add in other attributes
-				ei.saveAttributes();
-	    		Toast t = Toast.makeText(this,"EXIF Data Saved", Toast.LENGTH_SHORT); 
-	    		t.show();
-			} catch (IOException ioe) {
-				ioe.printStackTrace();
-	    		Toast t = Toast.makeText(this,"EXIF Data Failed", Toast.LENGTH_SHORT); 
-	    		t.show();
-
-			}
+			// TODO: write stored exif data into the saved file via the mdh.
+			mdh.writeExif(savedImageUri);
 			
     		Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
     		t.show();
