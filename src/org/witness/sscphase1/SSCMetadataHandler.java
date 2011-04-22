@@ -237,12 +237,15 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		return exifData;
 	}
 	
-	public void writeExif(Uri file) {
+	public void writeExif(String file) {
 		/*
 		 * this method writes our new exif values to the saved file.
 		 */
 		String[] exifData = new String[exifAttributes.length];
 		int c = 0;
+		try {
+			ei = new ExifInterface(file);
+		} catch(IOException e) {}
 		// TODO: iterate through the values in the db.
 		for(String ea : exifAttributes) {
 			ei.setAttribute(ea, "value");
@@ -251,12 +254,12 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	}
 	
 	public void mediaHash(String hash) {
-		modifyRecord(sscImageDataSerial, "mediaHash", hash, "_id", Integer.toString(0));
+		modifyRecord(sscImageDataSerial, "mediaHash", hash, "_id", Integer.toString(1));
 	}
 	
 	public void registerSensorData() {
 		/*
-		 * this method will write the associated sensory data to the same table containing the exif data
+		 * TODO: this method will write the associated sensory data to the same table containing the exif data
 		 */
 		accelerometerAxisAmount = 3;
 		accelerometerAxisInitialX = 2;
@@ -299,7 +302,6 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	}
 	
 	public void registerImageRegion(ImageRegion imageRegion) {
-		// TODO: first, check to see if this image region exists.
 		// insert into _ir database with known values
 		String[] tableNames = {"coordinates","serial"};
 		float[] coordinates = {
@@ -380,19 +382,6 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		return tables;
 	}
 	
-	private int returnCols(String tableName) {
-		int numCols = 0;
-		String theQuery = "SELECT * FROM " + tableName;
-		Log.d(SSC,theQuery);
-		Cursor dbCount = db.rawQuery(theQuery,null);
-		if(dbCount != null) {
-			numCols = dbCount.getCount();
-			Log.d(SSC,"THERE ARE " + numCols + " Image Regions in the DB table currently");
-		}
-		dbCount.close();
-		return numCols;
-	}
-	
 	private String[] returnRecord(String[] fields, String tableName, String matchColumn, String matchValue) {
 		String[] record = new String[fields.length];
 		String theQuery = "SELECT ";
@@ -403,14 +392,42 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		}
 		theQuery += sb.toString().substring(1) + " FROM " + tableName + " WHERE " + matchColumn + " = \'" + matchValue + "\'";
 		Log.d(SSC,theQuery);
+		StringBuffer dumpout = new StringBuffer();
+		Cursor dbCount = db.rawQuery(theQuery,null);
+		if(dbCount != null) {
+			dbCount.moveToFirst();
+			for(int t=0;t<dbCount.getColumnCount();t++) {
+				if(dbCount.getString(t) == null) {
+					record[t] = "0";
+				} else if(dbCount.getString(t).compareTo("null") == 0) {
+					record[t] = "0";
+				} else {
+					record[t] = dbCount.getString(t);
+				}
+				dumpout.append(" , ");
+				dumpout.append(record[t]);
+			}
+		}
+		dbCount.close();
+		//Log.v(SSC,"DUMPOUT: " + dumpout.toString().substring(3));
 		return record;
 	}
 	
-	public String zipUpData(String imageResource) {
+	private int returnCols(String tableName) {
+		int numCols = 0;
+		String theQuery = "SELECT * FROM " + tableName;
+		Log.d(SSC,theQuery);
+		Cursor dbCount = db.rawQuery(theQuery,null);
+		if(dbCount != null) {
+			numCols = dbCount.getCount();
+		}
+		dbCount.close();
+		return numCols;
+	}
+	
+	public String zipUpData() {
 		String dZip = null;
 		SSCObject ssco = new SSCObject();
-		Log.v(SSC,"ZIPPED : " + ssco.ownerName);
-		
 		return dZip;
 	}
 	
@@ -508,7 +525,6 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			sb.append(Integer.toHexString(0xFF & b[x]));
 		}
 		theHash = "_" + sb.toString();
-		Log.d(SSC,s + " becomes " + theHash);
 		return theHash; 
 	}
 	
@@ -548,7 +564,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			String[] dataTagData = SSCMetadataHandler.this.returnRecord(
 					dataTagFields, 
 					SSCMetadataHandler.this.sscImageDataSerial,
-					"_id", Integer.toString(0));
+					"_id", Integer.toString(1));
 			this.data = new SSCImageDataDescription(
 					dataTagData[0],
 					dataTagData[1],
@@ -576,7 +592,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 						subjectTagFields,
 						SSCMetadataHandler.this.sscImageRegionSerial, 
 						"_id",
-						Integer.toString(x));
+						Integer.toString(x + 1));
 				SSCImageRegionDescription ird = new SSCImageRegionDescription(
 						subjectTagData[0],subjectTagData[1],subjectTagData[2],
 						Integer.parseInt(subjectTagData[3]),Integer.parseInt(subjectTagData[4]),
