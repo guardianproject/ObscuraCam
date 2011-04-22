@@ -6,8 +6,9 @@
 			
 			<Button android:layout_height="wrap_content" android:id="@+id/TakePictureButton" android:text="Take Picture" android:layout_width="fill_parent"></Button>
 			<Button android:layout_height="wrap_content" android:id="@+id/ChoosePictureButton" android:text="Choose Media" android:layout_width="fill_parent"></Button>
-			<Button android:layout_height="wrap_content" android:id="@+id/DatastoreButton" android:text="SSC Datastore" android:layout_width="fill_parent"></Button>
 		
+		<!-- 	<Button android:layout_height="wrap_content" android:id="@+id/DatastoreButton" android:text="SSC Datastore" android:layout_width="fill_parent"></Button>
+		 -->
 		
 	</LinearLayout>
 </FrameLayout>

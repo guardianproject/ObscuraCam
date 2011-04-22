@@ -21,6 +21,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.SQLException;
 import android.graphics.Bitmap;
@@ -41,6 +42,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -145,10 +147,18 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	// This will need to be updated when changes are made to the image
 	boolean imageSaved = false;
 	Uri savedImageUri = null;
+	
+	// pref booleans
+	private boolean deleteOriginal = false; //auto delete on import
+	private boolean autoSign = false; //auto sign all exports
+	private boolean autoEncryption = false; //auto encrypt
+	
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		initPreferences();
 		
         requestWindowFeature(Window.FEATURE_NO_TITLE);  
 		setContentView(R.layout.imageviewer);
@@ -169,8 +179,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// I made this URI global, as we should require it in other methods (HNH 2/22/11)
 		imageUri = getIntent().getData();
 		imageSource = getIntent().getExtras();
-		// TODO: what if there is no bundle?  (when user launches from gallery via share button?) handle this!
-		
+
+		if (imageUri == null) {
+			imageUri = (Uri) imageSource.get("android.intent.extra.STREAM");
+		}
+
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
 		if (imageUri != null) {
@@ -184,7 +197,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				bmpFactoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
 				
 				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri), null, bmpFactoryOptions);
-				
+
 				originalImageWidth = bmpFactoryOptions.outWidth;
 				originalImageHeight = bmpFactoryOptions.outHeight;
 				
@@ -240,7 +253,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			} catch(SQLException e) {}
 			
 			try {
-				mdh.initiateMedia(imageUri,1,imageSource.getInt("imageSource"));
+				// Need to make sure imageSource exists
+				if (imageSource.containsKey("imageSource")) {
+					mdh.initiateMedia(imageUri,1,imageSource.getInt("imageSource"));  // which is 1 vs. 2
+				} else {
+					mdh.initiateMedia(imageUri,1,2);  // which is 1 vs. 2
+				}
 			} catch (IOException e) {}
 			
 			// Canvas for drawing
@@ -261,8 +279,45 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			// Do popup
 			showDialog(DIALOG_DO_AUTODETECTION);
 			
+			//how take care of the original!
+			if (deleteOriginal)
+				handleDelete();
+			
 
 		}
+	}
+	
+	private void handleDelete () 
+	{
+		
+		final AlertDialog.Builder b = new AlertDialog.Builder(this);
+		b.setIcon(android.R.drawable.ic_dialog_alert);
+		b.setTitle(getString(R.string.app_name));
+		b.setMessage(getString(R.string.confirm_delete));
+		b.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+
+                /* User clicked OK so do some stuff */
+        		getContentResolver().delete(imageUri, null, null);
+        		imageUri = null;
+            }
+        });
+		b.setNegativeButton(android.R.string.no, null);
+		b.show();
+		
+
+	}
+	
+	private void initPreferences ()
+	{
+		
+		//OriginalImagePref
+    	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+    	int defState = Integer.parseInt(prefs.getString("OriginalImagePref", "0"));
+    	
+    	if (defState == 2)
+    		deleteOriginal = true;
 	}
 	
 	protected Dialog onCreateDialog(int id) {
@@ -951,6 +1006,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }
     
     private void shareImage() {
+    	
+    	//how take care of the original!
+		if (deleteOriginal && imageUri != null)
+			handleDelete();
+    	
     	saveImage();
     	
     	Intent share = new Intent(Intent.ACTION_SEND);
@@ -1011,6 +1071,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
     private void saveImage() {
     	
+    	//how take care of the original!
+		if (deleteOriginal && imageUri != null)
+			handleDelete();
+		
     	Bitmap obscuredBmp = createObscuredBitmap();
     	
     	// Uri is savedImageUri which is global
