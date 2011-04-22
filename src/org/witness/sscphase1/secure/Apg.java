@@ -4,6 +4,7 @@ package org.witness.sscphase1.secure;
  * http://code.google.com/p/k9mail/source/browse/k9mail/branches/apg-integration/src/com/fsck/k9/crypto/Apg.java
  */
 
+import java.io.File;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -449,6 +450,37 @@ public class Apg extends CryptoProvider
         
         
         intent.putExtra(Apg.EXTRA_TEXT, data);
+        intent.putExtra(Apg.EXTRA_ENCRYPTION_KEY_IDS, mEncryptionKeyIds);
+        intent.putExtra(Apg.EXTRA_SIGNATURE_KEY_ID, mSignatureKeyId);
+        try
+        {
+            activity.startActivityForResult(intent, Apg.ENCRYPT_MESSAGE);
+            return true;
+        }
+        catch (ActivityNotFoundException e)
+        {
+            Toast.makeText(activity,
+                           R.string.apg_error_activity_not_found,
+                           Toast.LENGTH_SHORT).show();
+            return false;
+        }
+    }
+    
+    /**
+     * Start the encrypt activity.
+     *
+     * @param activity
+     * @param data
+     * @return success or failure
+     */
+    public boolean encryptFile(Activity activity, File fileToEncrypt)
+    {
+        android.content.Intent intent = new android.content.Intent(Intent.ENCRYPT_FILE);
+        
+        intent.setData(Uri.fromFile(fileToEncrypt));
+        
+        //intent.putExtra(Apg.EXTRA_TEXT, data);
+        
         intent.putExtra(Apg.EXTRA_ENCRYPTION_KEY_IDS, mEncryptionKeyIds);
         intent.putExtra(Apg.EXTRA_SIGNATURE_KEY_ID, mSignatureKeyId);
         try

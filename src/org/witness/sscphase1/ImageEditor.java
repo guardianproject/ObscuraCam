@@ -21,6 +21,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.SQLException;
 import android.graphics.Bitmap;
@@ -41,6 +42,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -145,10 +147,18 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	// This will need to be updated when changes are made to the image
 	boolean imageSaved = false;
 	Uri savedImageUri = null;
+	
+	// pref booleans
+	private boolean deleteOriginal = false; //auto delete on import
+	private boolean autoSign = false; //auto sign all exports
+	private boolean autoEncryption = false; //auto encrypt
+	
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		initPreferences();
 		
         requestWindowFeature(Window.FEATURE_NO_TITLE);  
 		setContentView(R.layout.imageviewer);
@@ -187,7 +197,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				bmpFactoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
 				
 				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri), null, bmpFactoryOptions);
-				
+
 				originalImageWidth = bmpFactoryOptions.outWidth;
 				originalImageHeight = bmpFactoryOptions.outHeight;
 				
@@ -269,8 +279,24 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			// Do popup
 			showDialog(DIALOG_DO_AUTODETECTION);
 			
+			//how take care of the original!
+			if (deleteOriginal)
+				getContentResolver().delete(imageUri, null, null);
+
 
 		}
+	}
+	
+	private void initPreferences ()
+	{
+		
+		//OriginalImagePref
+    	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+    	int defState = Integer.parseInt(prefs.getString("OriginalImagePref", "0"));
+    	
+    	if (defState == 2)
+    		deleteOriginal = true;
 	}
 	
 	protected Dialog onCreateDialog(int id) {
@@ -899,34 +925,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			redrawRegions();
 		} else if (v instanceof ImageRegion) {
 			// Menu goes here
-	    	/*
-			SSCEditTag et = new SSCEditTag(v.getContentDescription(), regionButtonsLayout);
-	    	buttonIDs = et.getButtonIDs();
-	    	OnClickListener ocl = new OnClickListener() {
-	    		// each button (except the image prefs button, which is gloabl)
-	    		// is linked with the image tag --
-	    		// call v.getContentDescription
-				public void onClick(View v) {
-					if(v.getId() == buttonIDs[0]) {
-						// Edit Tag
-						Log.v(LOGTAG,"Edit Tag clicked for tag# " + v.getContentDescription());
-					} else if(v.getId() == buttonIDs[1]) {
-						// ID Tag
-						launchIdTagger((String) v.getContentDescription());
-						Log.v(LOGTAG,"ID Tag clicked for tag# " + v.getContentDescription());
-					} else if(v.getId() == buttonIDs[2]) {
-						// Blur Tag
-						Log.v(LOGTAG,"Blur Tag clicked for tag# " + v.getContentDescription());
-					} else if(v.getId() == buttonIDs[3]) {
-						// Encrypt/Decrypt image region
-						Log.v(LOGTAG,"Image Prefs clicked");
-						launchEncryptTagger((String) v.getContentDescription());
-					}
-				}
-	    	};
-	    	et.addActions(ocl);
-	    	et.show();
-	    	*/
 		}
 	}
 	
@@ -1071,20 +1069,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			Date hashTime = new Date();
 			String hash = generateSecureHash();
 			
-			try {
-				ExifInterface ei = new ExifInterface(savedImageUri.getPath());
-				// Maybe we can put everything in the TAG_MODEL or TAG_MAKE??
-				ei.setAttribute(ExifInterface.TAG_MODEL,hash + "(" + hashTime.toGMTString() + ")");
-				// Add in other attributes
-				ei.saveAttributes();
-	    		Toast t = Toast.makeText(this,"EXIF Data Saved", Toast.LENGTH_SHORT); 
-	    		t.show();
-			} catch (IOException ioe) {
-				ioe.printStackTrace();
-	    		Toast t = Toast.makeText(this,"EXIF Data Failed", Toast.LENGTH_SHORT); 
-	    		t.show();
-
-			}
+			// TODO: write stored exif data into the saved file via the mdh.
+			mdh.writeExif(savedImageUri.getPath());
+			mdh.zipUpData();
 			
     		Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
     		t.show();

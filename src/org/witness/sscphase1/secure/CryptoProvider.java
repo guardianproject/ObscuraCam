@@ -4,6 +4,7 @@ package org.witness.sscphase1.secure;
  * http://code.google.com/p/k9mail/source/browse/k9mail/branches/apg-integration/
  */
 
+import java.io.File;
 import java.io.Serializable;
 
 import android.app.Activity;
@@ -31,6 +32,8 @@ abstract public class CryptoProvider implements Serializable
     abstract public boolean selectSecretKey(Activity activity);
     abstract public boolean selectEncryptionKeys(Activity activity, String emails);
     abstract public boolean encrypt(Activity activity, String data);
+    abstract public boolean encryptFile(Activity activity, File file);
+
     abstract public boolean decrypt(Activity activity, String data);
     abstract public long[] getSecretKeyIdsFromEmail(Context context, String email);
     abstract public String getUserId(Context context, long keyId);
