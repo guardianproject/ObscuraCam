@@ -36,6 +36,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Bitmap.Config;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -889,34 +890,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			redrawRegions();
 		} else if (v instanceof ImageRegion) {
 			// Menu goes here
-	    	/*
-			SSCEditTag et = new SSCEditTag(v.getContentDescription(), regionButtonsLayout);
-	    	buttonIDs = et.getButtonIDs();
-	    	OnClickListener ocl = new OnClickListener() {
-	    		// each button (except the image prefs button, which is gloabl)
-	    		// is linked with the image tag --
-	    		// call v.getContentDescription
-				public void onClick(View v) {
-					if(v.getId() == buttonIDs[0]) {
-						// Edit Tag
-						Log.v(LOGTAG,"Edit Tag clicked for tag# " + v.getContentDescription());
-					} else if(v.getId() == buttonIDs[1]) {
-						// ID Tag
-						launchIdTagger((String) v.getContentDescription());
-						Log.v(LOGTAG,"ID Tag clicked for tag# " + v.getContentDescription());
-					} else if(v.getId() == buttonIDs[2]) {
-						// Blur Tag
-						Log.v(LOGTAG,"Blur Tag clicked for tag# " + v.getContentDescription());
-					} else if(v.getId() == buttonIDs[3]) {
-						// Encrypt/Decrypt image region
-						Log.v(LOGTAG,"Image Prefs clicked");
-						launchEncryptTagger((String) v.getContentDescription());
-					}
-				}
-	    	};
-	    	et.addActions(ocl);
-	    	et.show();
-	    	*/
 		}
 	}
 	
@@ -1050,11 +1023,19 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     			return;
     		}
     	}	
+    	
 		OutputStream imageFileOS;
 		try {
-			int quality = 100; //lossless?
+			int quality = 100; //lossless?  good question - still a smaller version
 			imageFileOS = getContentResolver().openOutputStream(savedImageUri);
 			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
+			
+			// Trying out an EXIF write method
+			Date hashTime = new Date();
+			String hash = generateSecureHash();
+			
+			// TODO: write stored exif data into the saved file via the mdh.
+			mdh.writeExif(savedImageUri);
 			
     		Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
     		t.show();
@@ -1078,8 +1059,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     private File createSecureFile() {
     	
     	File newFile = null;
+    	// This could be a secure directory
+    	File directory = new File("/sdcard/");
     	try {
-			newFile = File.createTempFile("ssc", ".jpg");
+			newFile = File.createTempFile("ssc", ".jpg", directory);
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
