@@ -66,6 +66,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	ActionItem idAction;
 	ActionItem encryptAction;
 	ActionItem destroyAction;
+	ActionItem removeRegionAction;
 				
 	public ImageRegion(
 			ImageEditor imageEditor, 
@@ -96,18 +97,21 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		
 		inflatePopup();
 
-		this.setOnClickListener(this);
+		
+	//	this.setOnClickListener(this);
 		this.setOnTouchListener(this);
 		
 		// Inflate Layout
 		LayoutInflater inflater = LayoutInflater.from(imageEditor);        
-        View innerView = inflater.inflate(R.layout.imageregioninner, null);
+		inflater.inflate(R.layout.imageregioninner, this, true);
+		
+        //View innerView = inflater.inflate(R.layout.imageregioninner, null);
         
-        topLeftCorner = innerView.findViewById(R.id.TopLeftCorner);
-        topRightCorner = innerView.findViewById(R.id.TopRightCorner);
-        bottomLeftCorner = innerView.findViewById(R.id.BottomLeftCorner);
-        bottomRightCorner = innerView.findViewById(R.id.BottomRightCorner);
-        moveRegion = innerView.findViewById(R.id.MoveRegion);
+        topLeftCorner = findViewById(R.id.TopLeftCorner);
+        topRightCorner = findViewById(R.id.TopRightCorner);
+        bottomLeftCorner = findViewById(R.id.BottomLeftCorner);
+        bottomRightCorner = findViewById(R.id.BottomRightCorner);
+        moveRegion = findViewById(R.id.MoveRegion);
 
         /*  Currently in EDIT mode
 		topLeftCorner.setVisibility(View.INVISIBLE);
@@ -116,9 +120,30 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		bottomRightCorner.setVisibility(View.INVISIBLE);
 		*/
         
-        this.addView(innerView);
 
         this.knownSubjects = new ArrayList<SSCSubject>();
+        
+        moveRegion.setOnLongClickListener(new OnLongClickListener (){
+
+			@Override
+			public boolean onLongClick(View v)
+			{
+				
+				if (mode == NORMAL_MODE)
+				{
+					changeMode(EDIT_MODE);
+				}
+				else if (mode == EDIT_MODE)
+				{
+					changeMode(NORMAL_MODE);
+				}
+				
+				
+				return false;
+			}
+			
+		});
+		
 	}
 	
 	public void addSubjectId(String subjectName, int subjectConsent) {
@@ -179,6 +204,16 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 				}
 			});
 			qa.addActionItem(destroyAction);
+			
+			removeRegionAction = new ActionItem();
+			removeRegionAction.setTitle("Remove Region");
+			removeRegionAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
+			removeRegionAction.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					
+				}
+			});
+			qa.addActionItem(removeRegionAction);
 		
 	}
 	
@@ -210,9 +245,24 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	public boolean onTouch(View v, MotionEvent event) {
 		boolean handled = false;
 
-		if (mode == EDIT_MODE) {
+		if (mode == NORMAL_MODE)
+		{
+			/*
+			switch (event.getAction() & MotionEvent.ACTION_MASK) 
+			{
+			
+				case MotionEvent.ACTION_DOWN:
+					
+					qa.show();
+					
+				break;
+			}*/
+			handled = false;
+		}
+		else if (mode == EDIT_MODE) {
 			Log.v(LOGTAG,"onTouch mode EDIT");
 			switch (event.getAction() & MotionEvent.ACTION_MASK) {
+				
 				
 				case MotionEvent.ACTION_DOWN:
 						startPoint = new PointF(event.getX(),event.getY());
@@ -231,6 +281,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 					break;
 				
 				case MotionEvent.ACTION_UP:
+						
 					break;
 				
 				case MotionEvent.ACTION_MOVE:
@@ -299,7 +350,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 					break;				
 			}
 		}
-		return true;
+		return handled;
 	}
 	
 	/*
@@ -316,13 +367,9 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	*/
 	public void onClick(View v) {
 		Log.d(SSC,"CLICKED View " + v.toString());
-		if (v == this || v == moveRegion) {
-			/*
-			qa = new QuickAction(v);
-			for(int x=0;x<aiList.size();x++) {
-				qa.addActionItem(aiList.get(x));
-			}
-			*/
+		
+		if (v == this || v == moveRegion) 
+		{
 			
 			inflatePopup();
 			//qa.setAnimStyle(QuickAction.ANIM_REFLECT);
@@ -339,4 +386,5 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 			this.subjectConsent = sc;
 		}
 	}
+
 }
