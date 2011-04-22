@@ -177,10 +177,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		zoomOut.setOnClickListener(this);
 
 		// I made this URI global, as we should require it in other methods (HNH 2/22/11)
-		Intent intent = getIntent();
-		imageUri = intent.getData();
-		imageSource = intent.getExtras();
-		
+		imageUri = getIntent().getData();
+		imageSource = getIntent().getExtras();
+
+		if (imageUri == null) {
+			imageUri = (Uri) imageSource.get("android.intent.extra.STREAM");
+		}
+
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
 		if (imageUri != null) {
@@ -250,7 +253,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			} catch(SQLException e) {}
 			
 			try {
-				mdh.initiateMedia(imageUri,1,imageSource.getInt("imageSource"));
+				// Need to make sure imageSource exists
+				if (imageSource.containsKey("imageSource")) {
+					mdh.initiateMedia(imageUri,1,imageSource.getInt("imageSource"));  // which is 1 vs. 2
+				} else {
+					mdh.initiateMedia(imageUri,1,2);  // which is 1 vs. 2
+				}
 			} catch (IOException e) {}
 			
 			// Canvas for drawing

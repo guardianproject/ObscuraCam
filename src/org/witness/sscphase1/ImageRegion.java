@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
@@ -35,14 +36,14 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	public static final int NORMAL_MODE = 0;
 	public static final int EDIT_MODE = 1;
 	public static final int ID_MODE = 2;
-	int mode = NORMAL_MODE;
+	int mode = EDIT_MODE;
 	
 	public static final int NOTHING = 0;
 	public static final int OBSCURE = 1;
 	public static final int ENCRYPT = 2;
 	int whattodo = NOTHING;
 	
-	private ImageEditor imageEditor;
+	ImageEditor imageEditor;
 	
 	private ArrayList<SSCSubject> knownSubjects;
 	private ArrayList<String> knownKeys;
@@ -51,10 +52,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	
 	public static final String SSC = "[Camera Obscura : ImageRegion] **************************** ";
 	public static final String LOGTAG = SSC;
-	//public ImageRegion(Context context, String jsonVersion) {
-		// Implement this from JSON
-		//this(context, _scaledStartX, _scaledStartY, _scaledEndX, _scaledEndY, _scaledImageWidth, _scaledImageHeight, _imageWidth, _imageHeight, _backgroundColor);	
-	//}
 
 	RectF scaledImage;
 	Rect scaledRect;
@@ -81,17 +78,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		super(imageEditor);
 		
 		this.imageEditor = imageEditor;
-		
-		/*
-		original 300
-		current 100
-		scaled x 20
-		real x 60
-		original/current * scaled = real
-		
-		scaled = real * current/original
-		*/
-		
+				
 		startX = (float)_imageWidth/(float)_scaledImageWidth * (float)_scaledStartX;
 		startY = (float)_imageHeight/(float)_scaledImageHeight * (float)_scaledStartY;
 		endX = (float)_imageWidth/(float)_scaledImageWidth * (float)_scaledEndX;
@@ -111,7 +98,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 
 		this.setOnClickListener(this);
 		this.setOnTouchListener(this);
-
+		
 		// Inflate Layout
 		LayoutInflater inflater = LayoutInflater.from(imageEditor);        
         View innerView = inflater.inflate(R.layout.imageregioninner, null);
@@ -122,22 +109,15 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
         bottomRightCorner = innerView.findViewById(R.id.BottomRightCorner);
         moveRegion = innerView.findViewById(R.id.MoveRegion);
 
+        /*  Currently in EDIT mode
 		topLeftCorner.setVisibility(View.INVISIBLE);
 		topRightCorner.setVisibility(View.INVISIBLE);
 		bottomLeftCorner.setVisibility(View.INVISIBLE);
 		bottomRightCorner.setVisibility(View.INVISIBLE);
-
-		topLeftCorner.setOnTouchListener(this);
-		topRightCorner.setOnTouchListener(this);
-		bottomLeftCorner.setOnTouchListener(this);
-		bottomRightCorner.setOnTouchListener(this);	
-		
-		/*
-		moveRegion.setOnClickListener(this);
-		moveRegion.setOnTouchListener(this);
 		*/
-        this.addView(innerView);
         
+        this.addView(innerView);
+
         this.knownSubjects = new ArrayList<SSCSubject>();
 	}
 	
@@ -231,71 +211,76 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		boolean handled = false;
 
 		if (mode == EDIT_MODE) {
-			
+			Log.v(LOGTAG,"onTouch mode EDIT");
 			switch (event.getAction() & MotionEvent.ACTION_MASK) {
 				
 				case MotionEvent.ACTION_DOWN:
-					/*
-					if (v == moveRegion || v == topLeftCorner || v == topRightCorner ||
-							v == bottomLeftCorner || v == bottomRightCorner || v == this) {
-					*/
 						startPoint = new PointF(event.getX(),event.getY());
 	
 						scaledImage = imageEditor.getScaleOfImage();
 						scaledRect = getScaledRect((int)scaledImage.width(), (int)scaledImage.height());
-	
-						Log.v(LOGTAG,"startPoint.x: " + startPoint.x + " scaledRect.left: " + scaledRect.left);
 						
+						// To do it with coordinates.. Things are just ever so slightly off
+						
+						Log.v(LOGTAG,"startPoint.x: " + startPoint.x + " startPoint.y: " + startPoint.y);
+						Log.v(LOGTAG,"scaledRect.left: " + scaledRect.left + " scaledRect.right: " + scaledRect.right);
+						Log.v(LOGTAG,"scaledRect.top: " + scaledRect.top + " scaledRect.bottom: " + scaledRect.bottom);
+						Log.v(LOGTAG,"moveRegion.left(): " + this.getLeft() + " moveRegion.right(): " + this.getRight());
+						Log.v(LOGTAG,"moveRegion.top()" + this.getTop() + " moveRegion.bottom()" + this.getBottom());
 						handled = true;
-					/*
-					}
-					*/
 					break;
 				
 				case MotionEvent.ACTION_UP:
 					break;
 				
 				case MotionEvent.ACTION_MOVE:
-					
-					if (v == moveRegion || v == topLeftCorner || v == topRightCorner ||
-							v == bottomLeftCorner || v == bottomRightCorner || v == this) {
-
+					Log.v(LOGTAG,"Action Move");
 						float xdist = startPoint.x - event.getX();
 						float ydist = startPoint.y - event.getY();
 
-						if (v == topLeftCorner) {
+						if (v == topLeftCorner || 
+								event.getX() < CORNER_TOUCH_TOLERANCE &&
+								event.getY() < CORNER_TOUCH_TOLERANCE
+								) {
 							// Here we expand
 							Log.v(LOGTAG,"TOP LEFT CORNER");
 							scaledRect.left = scaledRect.left - (int)xdist;
 							scaledRect.top = scaledRect.top - (int)ydist;
 							handled = true;
-						} else if (v == topRightCorner) {
+						} else if (v == topRightCorner ||
+								event.getX() > this.getWidth() - CORNER_TOUCH_TOLERANCE &&
+								event.getY() < CORNER_TOUCH_TOLERANCE
+						) {
 							// Here we expand
 							Log.v(LOGTAG,"TOP RIGHT CORNER");
 							scaledRect.top = scaledRect.top - (int)ydist;
 							scaledRect.right = scaledRect.right - (int)xdist;
 							handled = true;
-						} else if (v == bottomLeftCorner) {
+						} else if (v == bottomLeftCorner || (
+								event.getX() < CORNER_TOUCH_TOLERANCE &&
+								event.getY() > this.getHeight() - CORNER_TOUCH_TOLERANCE
+						)) {
 							// Here we expand
 							Log.v(LOGTAG,"BOTTOM LEFT CORNER");
 							scaledRect.left = scaledRect.left - (int)xdist;
 							scaledRect.bottom = scaledRect.bottom - (int)ydist;			
 							handled = true;
-						} else if (v == bottomRightCorner) {
+						} else if (v == bottomRightCorner || (
+								event.getX() > this.getWidth() - CORNER_TOUCH_TOLERANCE &&
+								event.getY() > this.getHeight() - CORNER_TOUCH_TOLERANCE
+						)) {
 							// Here we expand
 							Log.v(LOGTAG,"BOTTOM RIGHT CORNER");
 							scaledRect.right = scaledRect.right - (int)xdist;
 							scaledRect.bottom = scaledRect.bottom - (int)ydist;
 							handled = true;
-						} else if (v == moveRegion) {
+						} else if (v == moveRegion || (
+								event.getX() < this.getWidth() - CORNER_TOUCH_TOLERANCE &&
+								event.getX() > CORNER_TOUCH_TOLERANCE &&
+								event.getY() < this.getHeight() - CORNER_TOUCH_TOLERANCE &&
+								event.getY() > CORNER_TOUCH_TOLERANCE						
+						)) {
 							Log.v(LOGTAG,"MOVE REGION " + xdist + " " + ydist);
-							scaledRect.left = scaledRect.left - (int)xdist;
-							scaledRect.top = scaledRect.top - (int)ydist;
-							scaledRect.right = scaledRect.right - (int)xdist;
-							scaledRect.bottom = scaledRect.bottom - (int)ydist;
-							handled = true;
-						} else if (v == this) {
-							Log.v(LOGTAG,"FULL " + xdist + " " + ydist);
 							scaledRect.left = scaledRect.left - (int)xdist;
 							scaledRect.top = scaledRect.top - (int)ydist;
 							scaledRect.right = scaledRect.right - (int)xdist;
@@ -311,13 +296,24 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	
 							imageEditor.redrawRegions();
 						}
-					}
 					break;				
 			}
 		}
-		return handled;
+		return true;
 	}
 	
+	/*
+	public boolean onTouchEvent(MotionEvent ev) {
+		Log.v(LOGTAG,"onTouchEvent");
+		return false;
+	}
+	*/
+	/*
+	public boolean onInterceptTouchEvent(MotionEvent ev) {
+		Log.v(LOGTAG,"onIntercept");
+		return false;
+	}
+	*/
 	public void onClick(View v) {
 		Log.d(SSC,"CLICKED View " + v.toString());
 		if (v == this || v == moveRegion) {
