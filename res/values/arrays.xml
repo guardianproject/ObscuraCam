@@ -2,13 +2,13 @@
 <resources>
 	<!-- Used in Preferences/Values for Original Image Handling -->
 	<string-array name="OriginalImageHandlingPrefNames">
-		<item>Delete Original</item>
-		<item>Lock Original</item>
 		<item>Leave Original Alone</item>
+<!-- 		<item>Lock Original</item>  -->
+		<item>Delete Original</item>
 	</string-array>
 	<string-array name="OriginalImageHandlingPrefValues">
 		<item>0</item>
-		<item>1</item>
+	<!-- <item>1</item> -->	
 		<item>2</item>
 	</string-array>
 
