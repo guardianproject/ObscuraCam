@@ -230,7 +230,9 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 			removeRegionAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
 			removeRegionAction.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
-					
+					qa.dismiss();
+					imageEditor.imageRegions.remove(ImageRegion.this);
+					imageEditor.redrawRegions();
 				}
 			});
 			qa.addActionItem(removeRegionAction);
