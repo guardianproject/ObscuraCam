@@ -19,6 +19,10 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
 
+/**
+ * @author vanevery
+ *
+ */
 public class ImageRegion extends FrameLayout implements OnTouchListener, OnClickListener, Serializable {
 
 	private static final long serialVersionUID = -244965540057504061L;
@@ -39,6 +43,16 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	public static final int EDIT_MODE = 1;
 	public static final int ID_MODE = 2;
 	int mode = EDIT_MODE;
+	
+	public final static int NONE = 0;
+	public final static int MOVE = 1;
+	public final static int TOP_LEFT = 2;
+	public final static int BOTTOM_LEFT = 3;
+	public final static int TOP_RIGHT = 4;
+	public final static int BOTTOM_RIGHT = 5;
+	
+	int whichEditMode = NONE;
+	
 	
 	public static final int NOTHING = 0;
 	public static final int OBSCURE = 1;
@@ -69,6 +83,9 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	ActionItem encryptAction;
 	ActionItem destroyAction;
 	ActionItem removeRegionAction;
+	
+	float minMoveDistanceDP = 2f;
+	float minMoveDistance;	
 				
 	public ImageRegion(
 			ImageEditor _imageEditor, 
@@ -81,7 +98,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		super(_imageEditor);
 		
 		imageEditor = _imageEditor;
-				
+
+		float scale = this.getResources().getDisplayMetrics().density;
+		minMoveDistance = minMoveDistanceDP * scale + 0.5f;
+		
 		startX = (float)_imageWidth/(float)_scaledImageWidth * (float)_scaledStartX;
 		startY = (float)_imageHeight/(float)_scaledImageHeight * (float)_scaledStartY;
 		endX = (float)_imageWidth/(float)_scaledImageWidth * (float)_scaledEndX;
@@ -98,8 +118,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		setBackgroundColor(_backgroundColor);
 		
 		inflatePopup();
-
-		
 		
 		// Inflate Layout
 		LayoutInflater inflater = LayoutInflater.from(imageEditor);        
@@ -123,8 +141,13 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 
         this.knownSubjects = new ArrayList<SSCSubject>();
         
-        setOnTouchListener(this);
+        //setOnTouchListener(this);
+        moveRegion.setOnTouchListener(this);
         
+        /*FrameLayout imageRegionInner = (FrameLayout) this.findViewById(R.id.ImageRegionInner);
+        imageRegionInner.setOnTouchListener(this);*/
+        
+        // This doesn't work with the touch listener.  Being handled on action up instead
         moveRegion.setOnClickListener(new OnClickListener (){
 
 			// @Override
@@ -132,11 +155,16 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 			{
 				inflatePopup();
 				qa.show();
-				
-				
 			}
 			
 		});
+        
+        /*
+    	topLeftCorner.setOnTouchListener(this);
+    	topRightCorner.setOnTouchListener(this);
+    	bottomLeftCorner.setOnTouchListener(this);
+    	bottomRightCorner.setOnTouchListener(this);
+		*/
         
         // Are we sure we want this since it is a menu item???
         /*
@@ -232,7 +260,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 				}
 			});
 			qa.addActionItem(removeRegionAction);
-		
 	}
 	
 	public void changeMode(int newMode) {
@@ -267,28 +294,28 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		
 		return new Rect((int)scaledStartX, (int)scaledStartY, (int)scaledEndX, (int)scaledEndY);
 	}
-	
+		
+	boolean doMenu = false;
+
 	public boolean onTouch(View v, MotionEvent event) {
 		boolean handled = false;
 
+		Log.v(LOGTAG,"onTouch");
+		
 		if (mode == NORMAL_MODE)
 		{
-			/*
-			switch (event.getAction() & MotionEvent.ACTION_MASK) 
-			{
-			
-				case MotionEvent.ACTION_DOWN:
-					
-					qa.show();
-					
-				break;
-			}*/
+			//switch (event.getAction() & MotionEvent.ACTION_MASK) 
+			//{
+			//	case MotionEvent.ACTION_DOWN:
+			//		qa.show();
+			//	break;
+			//}
+			doMenu = true;
 			handled = false;
 		}
 		else if (mode == EDIT_MODE) {
 			Log.v(LOGTAG,"onTouch mode EDIT");
 			switch (event.getAction() & MotionEvent.ACTION_MASK) {
-				
 				
 				case MotionEvent.ACTION_DOWN:
 						startPoint = new PointF(event.getX(),event.getY());
@@ -296,71 +323,99 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 						scaledImage = imageEditor.getScaleOfImage();
 						scaledRect = getScaledRect((int)scaledImage.width(), (int)scaledImage.height());
 						
-						// To do it with coordinates.. Things are just ever so slightly off
+						//Log.v(LOGTAG,"startPoint.x: " + startPoint.x + " startPoint.y: " + startPoint.y);
+						//Log.v(LOGTAG,"scaledRect.left: " + scaledRect.left + " scaledRect.right: " + scaledRect.right);
+						//Log.v(LOGTAG,"scaledRect.top: " + scaledRect.top + " scaledRect.bottom: " + scaledRect.bottom);
+						//Log.v(LOGTAG,"moveRegion.left(): " + this.getLeft() + " moveRegion.right(): " + this.getRight());
+						//Log.v(LOGTAG,"moveRegion.top()" + this.getTop() + " moveRegion.bottom()" + this.getBottom());
 						
-						Log.v(LOGTAG,"startPoint.x: " + startPoint.x + " startPoint.y: " + startPoint.y);
-						Log.v(LOGTAG,"scaledRect.left: " + scaledRect.left + " scaledRect.right: " + scaledRect.right);
-						Log.v(LOGTAG,"scaledRect.top: " + scaledRect.top + " scaledRect.bottom: " + scaledRect.bottom);
-						Log.v(LOGTAG,"moveRegion.left(): " + this.getLeft() + " moveRegion.right(): " + this.getRight());
-						Log.v(LOGTAG,"moveRegion.top()" + this.getTop() + " moveRegion.bottom()" + this.getBottom());
-						handled = true;
-					break;
-				
-				case MotionEvent.ACTION_UP:
 						
-					break;
-				
-				case MotionEvent.ACTION_MOVE:
-					Log.v(LOGTAG,"Action Move");
-					
-					if (scaledRect == null)
-						break;
-					
-						float xdist = startPoint.x - event.getX();
-						float ydist = startPoint.y - event.getY();
-
-						if (v == topLeftCorner || 
+						if (v == topLeftCorner || (
 								event.getX() < CORNER_TOUCH_TOLERANCE &&
 								event.getY() < CORNER_TOUCH_TOLERANCE
-								) {
-							// Here we expand
-							Log.v(LOGTAG,"TOP LEFT CORNER");
-							scaledRect.left = scaledRect.left - (int)xdist;
-							scaledRect.top = scaledRect.top - (int)ydist;
-						
-						} else if (v == topRightCorner ||
+								)) {
+							whichEditMode = TOP_LEFT;
+						} else if (v == topRightCorner || (
 								event.getX() > this.getWidth() - CORNER_TOUCH_TOLERANCE &&
 								event.getY() < CORNER_TOUCH_TOLERANCE
-						) {
-							// Here we expand
-							Log.v(LOGTAG,"TOP RIGHT CORNER");
-							scaledRect.top = scaledRect.top - (int)ydist;
-							scaledRect.right = scaledRect.right - (int)xdist;
-							
+						)) {
+							whichEditMode = TOP_RIGHT;
 						} else if (v == bottomLeftCorner || (
 								event.getX() < CORNER_TOUCH_TOLERANCE &&
 								event.getY() > this.getHeight() - CORNER_TOUCH_TOLERANCE
 						)) {
-							// Here we expand
-							Log.v(LOGTAG,"BOTTOM LEFT CORNER");
-							scaledRect.left = scaledRect.left - (int)xdist;
-							scaledRect.bottom = scaledRect.bottom - (int)ydist;			
-							
+							whichEditMode = BOTTOM_LEFT;
 						} else if (v == bottomRightCorner || (
 								event.getX() > this.getWidth() - CORNER_TOUCH_TOLERANCE &&
 								event.getY() > this.getHeight() - CORNER_TOUCH_TOLERANCE
 						)) {
-							// Here we expand
-							Log.v(LOGTAG,"BOTTOM RIGHT CORNER");
-							scaledRect.right = scaledRect.right - (int)xdist;
-							scaledRect.bottom = scaledRect.bottom - (int)ydist;
-							
+							whichEditMode = BOTTOM_RIGHT;
 						} else if (v == moveRegion || (
 								event.getX() < this.getWidth() - CORNER_TOUCH_TOLERANCE &&
 								event.getX() > CORNER_TOUCH_TOLERANCE &&
 								event.getY() < this.getHeight() - CORNER_TOUCH_TOLERANCE &&
 								event.getY() > CORNER_TOUCH_TOLERANCE						
 						)) {
+							whichEditMode = MOVE;
+						} else {
+							whichEditMode = NONE;
+						}
+						
+						handled = true;
+						doMenu = true;
+					break;
+				
+				case MotionEvent.ACTION_UP:
+					whichEditMode = NONE;
+					if (doMenu) {
+						inflatePopup();
+						qa.show();
+						doMenu = false;
+					}
+					break;
+				
+				case MotionEvent.ACTION_MOVE:
+					Log.v(LOGTAG,"Action Move");
+					
+					float distance = (float) (Math.sqrt(Math.abs(startPoint.x - event.getX()) + Math.abs(startPoint.y - event.getY())));
+					Log.v(LOGTAG,"Move Distance: " + distance);
+					Log.v(LOGTAG,"Min Distance: " + minMoveDistance);
+					
+					if (distance > minMoveDistance) {
+						handled = true;
+						doMenu = false;
+					
+						if (scaledRect == null)
+							break;
+					
+						float xdist = startPoint.x - event.getX();
+						float ydist = startPoint.y - event.getY();
+
+						if (whichEditMode == TOP_LEFT) {
+							// Here we expand
+							Log.v(LOGTAG,"TOP LEFT CORNER");
+							scaledRect.left = scaledRect.left - (int)xdist;
+							scaledRect.top = scaledRect.top - (int)ydist;
+						
+						} else if (whichEditMode == TOP_RIGHT) {
+							// Here we expand
+							Log.v(LOGTAG,"TOP RIGHT CORNER");
+							scaledRect.top = scaledRect.top - (int)ydist;
+							scaledRect.right = scaledRect.right - (int)xdist;
+							
+						} else if (whichEditMode == BOTTOM_LEFT) {
+							// Here we expand
+							Log.v(LOGTAG,"BOTTOM LEFT CORNER");
+							scaledRect.left = scaledRect.left - (int)xdist;
+							scaledRect.bottom = scaledRect.bottom - (int)ydist;			
+							
+						} else if (whichEditMode == BOTTOM_RIGHT) {
+							// Here we expand
+							Log.v(LOGTAG,"BOTTOM RIGHT CORNER");
+							scaledRect.right = scaledRect.right - (int)xdist;
+							scaledRect.bottom = scaledRect.bottom - (int)ydist;
+							
+						} else if (whichEditMode == MOVE) {
 							Log.v(LOGTAG,"MOVE REGION " + xdist + " " + ydist);
 							scaledRect.left = scaledRect.left - (int)xdist;
 							scaledRect.top = scaledRect.top - (int)ydist;
@@ -376,25 +431,79 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 						
 						imageEditor.updateRegionCoordinates(this);
 						imageEditor.redrawRegions();
-						
-					break;				
+					}	
+					break;
+					
 			}
 		}
-		return false;
+		return handled;
 	}
 	
-	/*
+	
 	public boolean onTouchEvent(MotionEvent ev) {
 		Log.v(LOGTAG,"onTouchEvent");
-		return false;
+		Log.v(LOGTAG,ev.toString());
+
+		float distance = (float) (Math.sqrt(Math.abs(startPoint.x - ev.getX()) + Math.abs(startPoint.y - ev.getY())));
+		Log.v(LOGTAG,"Move Distance: " + distance);
+		Log.v(LOGTAG,"Min Distance: " + minMoveDistance);
+
+		if (distance > minMoveDistance) {
+				
+			float xdist = startPoint.x - ev.getX();
+			float ydist = startPoint.y - ev.getY();
+
+			if (whichEditMode == TOP_LEFT) {
+				// Here we expand
+				Log.v(LOGTAG,"TOP LEFT CORNER");
+				scaledRect.left = scaledRect.left - (int)xdist;
+				scaledRect.top = scaledRect.top - (int)ydist;
+			
+			} else if (whichEditMode == TOP_RIGHT) {
+				// Here we expand
+				Log.v(LOGTAG,"TOP RIGHT CORNER");
+				scaledRect.top = scaledRect.top - (int)ydist;
+				scaledRect.right = scaledRect.right - (int)xdist;
+				
+			} else if (whichEditMode == BOTTOM_LEFT) {
+				// Here we expand
+				Log.v(LOGTAG,"BOTTOM LEFT CORNER");
+				scaledRect.left = scaledRect.left - (int)xdist;
+				scaledRect.bottom = scaledRect.bottom - (int)ydist;			
+				
+			} else if (whichEditMode == BOTTOM_RIGHT) {
+				// Here we expand
+				Log.v(LOGTAG,"BOTTOM RIGHT CORNER");
+				scaledRect.right = scaledRect.right - (int)xdist;
+				scaledRect.bottom = scaledRect.bottom - (int)ydist;
+				
+			} else if (whichEditMode == MOVE) {
+				Log.v(LOGTAG,"MOVE REGION " + xdist + " " + ydist);
+				scaledRect.left = scaledRect.left - (int)xdist;
+				scaledRect.top = scaledRect.top - (int)ydist;
+				scaledRect.right = scaledRect.right - (int)xdist;
+				scaledRect.bottom = scaledRect.bottom - (int)ydist;
+			
+			}
+			 
+			startX = (float)scaledRect.left * (float)imageWidth/(float)scaledImage.width();
+			startY = (float)scaledRect.top * (float)imageHeight/(float)scaledImage.height();
+			endX = (float)scaledRect.right * (float)imageWidth/(float)scaledImage.width();
+			endY = (float)scaledRect.bottom * (float)imageHeight/(float)scaledImage.height();
+			
+			imageEditor.updateRegionCoordinates(this);
+			imageEditor.redrawRegions();
+		}		
+		
+		return true;
 	}
-	*/
 	/*
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
 		Log.v(LOGTAG,"onIntercept");
 		return false;
 	}
 	*/
+	
 	public void onClick(View v) {
 		Log.d(SSC,"CLICKED View " + v.toString());
 		
