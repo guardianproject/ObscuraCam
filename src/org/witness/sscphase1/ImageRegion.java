@@ -127,7 +127,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
         
         moveRegion.setOnClickListener(new OnClickListener (){
 
-			@Override
+			// @Override
 			public void onClick(View v)
 			{
 				inflatePopup();
@@ -141,7 +141,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
         
         moveRegion.setOnLongClickListener(new OnLongClickListener (){
 
-			@Override
+			// @Override
 			public boolean onLongClick(View v)
 			{
 				
@@ -373,7 +373,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 						startY = (float)scaledRect.top * (float)imageHeight/(float)scaledImage.height();
 						endX = (float)scaledRect.right * (float)imageWidth/(float)scaledImage.width();
 						endY = (float)scaledRect.bottom * (float)imageHeight/(float)scaledImage.height();
-
+						
+						imageEditor.updateRegionCoordinates(this);
 						imageEditor.redrawRegions();
 						
 					break;				

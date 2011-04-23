@@ -910,9 +910,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	lp.topMargin = (int)theRect.top + regionScaledRect.top;
     	imageRegion.setLayoutParams(lp);
     	
-    	// TODO: this is throwing an error when tags are re-drawn - update database
-    	// mdh.registerTag((String) imageRegion.getContentDescription());
-    	
     	// should always have been removed
     	//if (regionButtonsLayout.)
     	regionButtonsLayout.addView(imageRegion,lp);
@@ -930,6 +927,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// Easier ??
 		regionButtonsLayout.removeAllViews();
 		drawRegions();
+		// TODO: update db with new coords?
 		
 		// Put the buttons in the right place
 		/* Not working
@@ -946,6 +944,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	currentRegion.invalidate();
 	    }		
 	    */
+	}
+	
+	public void updateRegionCoordinates(ImageRegion ir) {
+		mdh.updateRegionCoordinates(ir);
 	}
 
 	public void onClick(View v) {

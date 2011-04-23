@@ -156,7 +156,6 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		this.sscImageRegionSerial = makeHash(sscImageDataSerial + "_IR");
 
 		// insert initial info into database, creating a new record, then return its index.
-		// TODO: Link this data up with the preferences stuff...
 		String[] tableNames = {"localMediaPath",
 				"ownerName",
 				"ownershipType",
@@ -214,6 +213,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			newExifValues = readExif(ei);
 			break;
 		case RANDOMIZE_EXIF:
+			// TODO: how are we going to randomize these?
 			break;
 		case WIPE_EXIF:
 			for(String nef : exifAttributes) {
@@ -241,16 +241,15 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		/*
 		 * this method writes our new exif values to the saved file.
 		 */
-		String[] exifData = new String[exifAttributes.length];
+		String[] currentExifValues = returnRecord(exifTableValues, this.sscImageDataSerial, "_id", Integer.toBinaryString(1));
 		int c = 0;
 		try {
 			ei = new ExifInterface(file);
-		} catch(IOException e) {}
-		// TODO: iterate through the values in the db.
-		for(String ea : exifAttributes) {
-			ei.setAttribute(ea, "value");
-			c++;
-		}
+			for(String ea : exifAttributes) {
+				ei.setAttribute(ea, currentExifValues[c]);
+				c++;
+			}
+		} catch(IOException e) {Log.d(SSC,"PROBLEM WRITING EXIF : " + e);}
 	}
 	
 	public void mediaHash(String hash) {
@@ -311,6 +310,17 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 				imageRegion.endY};
 		String[] tableValues = {gsonPack(coordinates),makeHash(imageRegion.toString())};
 		insertIntoDatabase(sscImageRegionSerial,tableNames,tableValues);
+	}
+	
+	public void updateRegionCoordinates(ImageRegion imageRegion) {
+		String[] tableNames = {"coordinates"};
+		float[] coordinates = {
+				imageRegion.startX,
+				imageRegion.startY,
+				imageRegion.endX,
+				imageRegion.endY};
+		String[] tableValues = {gsonPack(coordinates)};
+		modifyRecord(sscImageRegionSerial, tableNames, tableValues, "serial", makeHash(imageRegion.toString()));
 	}
 	
 	private int insertIntoDatabase(String tableName, String[] targetColumns, String[] values) throws SQLException {
