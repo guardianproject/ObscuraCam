@@ -886,10 +886,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	}
 	
-	public void deleteRegion (ImageRegion ir)
+	public void deleteRegion(ImageRegion ir)
 	{
 		imageRegions.remove(ir);
-		regionButtonsLayout.removeView(ir);
+		//regionButtonsLayout.removeView(ir);
+		redrawRegions();
 	}
 	
 	public RectF getScaleOfImage() {
