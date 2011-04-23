@@ -10,8 +10,18 @@
 			
 				<LinearLayout android:orientation="horizontal" android:gravity="center_horizontal" android:layout_width="fill_parent" android:layout_height="fill_parent">
 			
-			<Button  android:id="@+id/TakePictureButton" android:text="Take Picture" android:layout_width="150dp" android:layout_height="100dp"></Button>
-			<Button  android:id="@+id/ChoosePictureButton" android:text="Choose Media" android:layout_width="150dp"  android:layout_height="100dp"></Button>
+			<Button  android:id="@+id/TakePictureButton" 
+				android:text="Take Picture" 
+				android:layout_width="150dp" 
+				android:layout_height="90dp"
+				android:drawableTop="@drawable/ic_camera">
+			</Button>
+			<Button  android:id="@+id/ChoosePictureButton" 
+				android:text="Choose Media" 
+				android:layout_width="150dp"  
+				android:layout_height="90dp"
+				android:drawableTop="@drawable/ic_gallery">
+			</Button>
 		</LinearLayout>
 		<!-- 	<Button android:layout_height="wrap_content" android:id="@+id/DatastoreButton" android:text="SSC Datastore" android:layout_width="fill_parent"></Button>
 		 -->
