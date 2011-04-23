@@ -541,9 +541,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 			case MotionEvent.ACTION_UP:
 				// Single Finger Up
-				
-				
-				
+								
 				mode = NONE;
 				Log.v(LOGTAG,"mode=NONE");
 				break;
@@ -574,6 +572,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 						putOnScreen();
 						redrawRegions();
+						
+						handled = true;
 	
 					} else if (mode == ZOOM) {
 						
@@ -620,6 +620,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							float xsum = event.getX(0) + event.getX(1);
 							float ysum = event.getY(0) + event.getY(1);
 							startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
+							
+							handled = true;
 						}
 					}
 				}
@@ -977,11 +979,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	public boolean onLongClick (View v)
 	{
-		vibe.vibrate(50);
-		createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, (int)startPoint.y-DEFAULT_REGION_HEIGHT/2, (int)startPoint.x+DEFAULT_REGION_WIDTH/2, (int)startPoint.y+DEFAULT_REGION_HEIGHT/2, overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
-		return true;
 		
+		if (mode != DRAG && mode != ZOOM) {
+			vibe.vibrate(50);
+			createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, (int)startPoint.y-DEFAULT_REGION_HEIGHT/2, (int)startPoint.x+DEFAULT_REGION_WIDTH/2, (int)startPoint.y+DEFAULT_REGION_HEIGHT/2, overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
+		}
 		
+			return true;
 	}
 	
 	
