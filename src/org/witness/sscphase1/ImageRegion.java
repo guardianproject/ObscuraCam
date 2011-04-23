@@ -138,14 +138,13 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 			
 		});
         
-        
+        // Are we sure we want this since it is a menu item???
+        /*
         moveRegion.setOnLongClickListener(new OnLongClickListener (){
 
 			// @Override
 			public boolean onLongClick(View v)
 			{
-				
-
 				final AlertDialog.Builder b = new AlertDialog.Builder(imageEditor);
 				b.setIcon(android.R.drawable.ic_dialog_alert);
 				b.setTitle(imageEditor.getString(R.string.app_name));
@@ -157,12 +156,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		        });
 				b.setNegativeButton(android.R.string.no, null);
 				b.show();
-				
-				
 				return false;
 			}
-			
 		});
+		*/
 		
 	}
 	
@@ -231,8 +228,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 			removeRegionAction.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					qa.dismiss();
-					imageEditor.imageRegions.remove(ImageRegion.this);
-					imageEditor.redrawRegions();
+	            	imageEditor.deleteRegion(ImageRegion.this);
 				}
 			});
 			qa.addActionItem(removeRegionAction);
@@ -244,19 +240,21 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		if (newMode == EDIT_MODE && mode == EDIT_MODE)
 		{
 			changeMode(NORMAL_MODE);
-		}
-		
-		mode = newMode;
-		if (mode == EDIT_MODE) {
-			topLeftCorner.setVisibility(View.VISIBLE);
-			topRightCorner.setVisibility(View.VISIBLE);
-			bottomLeftCorner.setVisibility(View.VISIBLE);
-			bottomRightCorner.setVisibility(View.VISIBLE);
-		} else if (mode == NORMAL_MODE) {
-			topLeftCorner.setVisibility(View.GONE);
-			topRightCorner.setVisibility(View.GONE);
-			bottomLeftCorner.setVisibility(View.GONE);
-			bottomRightCorner.setVisibility(View.GONE);
+		} 
+		else 
+		{
+			mode = newMode;
+			if (mode == EDIT_MODE) {
+				topLeftCorner.setVisibility(View.VISIBLE);
+				topRightCorner.setVisibility(View.VISIBLE);
+				bottomLeftCorner.setVisibility(View.VISIBLE);
+				bottomRightCorner.setVisibility(View.VISIBLE);
+			} else if (mode == NORMAL_MODE) {
+				topLeftCorner.setVisibility(View.GONE);
+				topRightCorner.setVisibility(View.GONE);
+				bottomLeftCorner.setVisibility(View.GONE);
+				bottomRightCorner.setVisibility(View.GONE);
+			}
 		}
 	}
 	
