@@ -50,6 +50,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
@@ -59,7 +60,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-public class ImageEditor extends Activity implements OnTouchListener, OnClickListener {
+public class ImageEditor extends Activity implements OnTouchListener, OnClickListener, OnLongClickListener {
 
 	final static String LOGTAG = "[Camera Obscura : ImageEditor] **************************** ";
 	final static String SSC = LOGTAG;
@@ -170,11 +171,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		overlayImageView = (ImageView) findViewById(R.id.ImageEditorOverlayImageView);
 		frameRoot = (FrameLayout) findViewById(R.id.frameRoot);
 
+		/*
 		zoomIn = (Button) this.findViewById(R.id.ZoomIn);
 		zoomOut = (Button) this.findViewById(R.id.ZoomOut);
 
 		zoomIn.setOnClickListener(this);
 		zoomOut.setOnClickListener(this);
+		*/
+		
 
 		// I made this URI global, as we should require it in other methods (HNH 2/22/11)
 		imageUri = getIntent().getData();
@@ -269,7 +273,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			//redrawOverlay();
 				
 			overlayImageView.setOnTouchListener(this);
-			//overlayImageView.setOnLongClickListener(this); // What about normal onClick??\
+			overlayImageView.setOnLongClickListener(this); // What about normal onClick??\
 			// Long click doesn't give place.. :-(
 			
 			// Layout for Image Regions
@@ -500,6 +504,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	
 	public boolean onTouch(View v, MotionEvent event) {
+		
+		boolean handled = false;
+		
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
 				// Single Finger
@@ -535,10 +542,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			case MotionEvent.ACTION_UP:
 				// Single Finger Up
 				
-				if (mode == TAP) {
-					vibe.vibrate(50);
-					createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, (int)startPoint.y-DEFAULT_REGION_HEIGHT/2, (int)startPoint.x+DEFAULT_REGION_WIDTH/2, (int)startPoint.y+DEFAULT_REGION_HEIGHT/2, overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
-				}
+				
 				
 				mode = NONE;
 				Log.v(LOGTAG,"mode=NONE");
@@ -622,7 +626,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				break;
 		}
 
-		return true; // indicate event was handled
+		return handled; // indicate event was handled
 	}
 	
 	
@@ -880,6 +884,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	}
 	
+	public void deleteRegion (ImageRegion ir)
+	{
+		imageRegions.remove(ir);
+		regionButtonsLayout.removeView(ir);
+	}
+	
 	public RectF getScaleOfImage() {
 		RectF theRect = new RectF(0,0,imageBitmap.getWidth(), imageBitmap.getHeight());
 		matrix.mapRect(theRect);
@@ -961,6 +971,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		} else if (v instanceof ImageRegion) {
 			// Menu goes here
 		}
+	}
+	
+	public boolean onLongClick (View v)
+	{
+		vibe.vibrate(50);
+		createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, (int)startPoint.y-DEFAULT_REGION_HEIGHT/2, (int)startPoint.x+DEFAULT_REGION_WIDTH/2, (int)startPoint.y+DEFAULT_REGION_HEIGHT/2, overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
+		return true;
+		
+		
 	}
 	
 	

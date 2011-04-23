@@ -5,6 +5,8 @@ import java.util.ArrayList;
 
 import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -69,16 +71,16 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	ActionItem removeRegionAction;
 				
 	public ImageRegion(
-			ImageEditor imageEditor, 
+			ImageEditor _imageEditor, 
 			int _scaledStartX, int _scaledStartY, 
 			int _scaledEndX, int _scaledEndY, 
 			int _scaledImageWidth, int _scaledImageHeight, 
 			int _imageWidth, int _imageHeight, 
 			int _backgroundColor) 
 	{
-		super(imageEditor);
+		super(_imageEditor);
 		
-		this.imageEditor = imageEditor;
+		imageEditor = _imageEditor;
 				
 		startX = (float)_imageWidth/(float)_scaledImageWidth * (float)_scaledStartX;
 		startY = (float)_imageHeight/(float)_scaledImageHeight * (float)_scaledStartY;
@@ -142,16 +144,19 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 			@Override
 			public boolean onLongClick(View v)
 			{
-				if (mode == EDIT_MODE)
-				{
-					changeMode(NORMAL_MODE);
-					return true;
-				}
-				else if (mode == NORMAL_MODE)
-				{
-					changeMode(EDIT_MODE);
-					return true;
-				}
+				
+
+				final AlertDialog.Builder b = new AlertDialog.Builder(imageEditor);
+				b.setIcon(android.R.drawable.ic_dialog_alert);
+				b.setTitle(imageEditor.getString(R.string.app_name));
+				b.setMessage(imageEditor.getString(R.string.confirm_delete_region));
+				b.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+		            public void onClick(DialogInterface dialog, int whichButton) {
+		            	imageEditor.deleteRegion(ImageRegion.this);
+		            }
+		        });
+				b.setNegativeButton(android.R.string.no, null);
+				b.show();
 				
 				
 				return false;
@@ -307,6 +312,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 				
 				case MotionEvent.ACTION_MOVE:
 					Log.v(LOGTAG,"Action Move");
+					
+					if (scaledRect == null)
+						break;
+					
 						float xdist = startPoint.x - event.getX();
 						float ydist = startPoint.y - event.getY();
 
@@ -318,7 +327,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 							Log.v(LOGTAG,"TOP LEFT CORNER");
 							scaledRect.left = scaledRect.left - (int)xdist;
 							scaledRect.top = scaledRect.top - (int)ydist;
-							handled = true;
+						
 						} else if (v == topRightCorner ||
 								event.getX() > this.getWidth() - CORNER_TOUCH_TOLERANCE &&
 								event.getY() < CORNER_TOUCH_TOLERANCE
@@ -327,7 +336,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 							Log.v(LOGTAG,"TOP RIGHT CORNER");
 							scaledRect.top = scaledRect.top - (int)ydist;
 							scaledRect.right = scaledRect.right - (int)xdist;
-							handled = true;
+							
 						} else if (v == bottomLeftCorner || (
 								event.getX() < CORNER_TOUCH_TOLERANCE &&
 								event.getY() > this.getHeight() - CORNER_TOUCH_TOLERANCE
@@ -336,7 +345,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 							Log.v(LOGTAG,"BOTTOM LEFT CORNER");
 							scaledRect.left = scaledRect.left - (int)xdist;
 							scaledRect.bottom = scaledRect.bottom - (int)ydist;			
-							handled = true;
+							
 						} else if (v == bottomRightCorner || (
 								event.getX() > this.getWidth() - CORNER_TOUCH_TOLERANCE &&
 								event.getY() > this.getHeight() - CORNER_TOUCH_TOLERANCE
@@ -345,7 +354,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 							Log.v(LOGTAG,"BOTTOM RIGHT CORNER");
 							scaledRect.right = scaledRect.right - (int)xdist;
 							scaledRect.bottom = scaledRect.bottom - (int)ydist;
-							handled = true;
+							
 						} else if (v == moveRegion || (
 								event.getX() < this.getWidth() - CORNER_TOUCH_TOLERANCE &&
 								event.getX() > CORNER_TOUCH_TOLERANCE &&
@@ -357,21 +366,20 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 							scaledRect.top = scaledRect.top - (int)ydist;
 							scaledRect.right = scaledRect.right - (int)xdist;
 							scaledRect.bottom = scaledRect.bottom - (int)ydist;
-							handled = true;
+						
 						}
 						 
-						if (handled == true) {
-							startX = (float)scaledRect.left * (float)imageWidth/(float)scaledImage.width();
-							startY = (float)scaledRect.top * (float)imageHeight/(float)scaledImage.height();
-							endX = (float)scaledRect.right * (float)imageWidth/(float)scaledImage.width();
-							endY = (float)scaledRect.bottom * (float)imageHeight/(float)scaledImage.height();
-	
-							imageEditor.redrawRegions();
-						}
+						startX = (float)scaledRect.left * (float)imageWidth/(float)scaledImage.width();
+						startY = (float)scaledRect.top * (float)imageHeight/(float)scaledImage.height();
+						endX = (float)scaledRect.right * (float)imageWidth/(float)scaledImage.width();
+						endY = (float)scaledRect.bottom * (float)imageHeight/(float)scaledImage.height();
+
+						imageEditor.redrawRegions();
+						
 					break;				
 			}
 		}
-		return handled;
+		return false;
 	}
 	
 	/*
