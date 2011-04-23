@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"  android:background="@drawable/mainimage"  android:id="@+id/FrameLayout" android:layout_width="fill_parent" android:layout_height="fill_parent">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"  android:background="@drawable/sscbg"  android:id="@+id/FrameLayout" android:layout_width="fill_parent" android:layout_height="fill_parent">
 	<LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
-		<TextView android:layout_width="fill_parent" android:layout_height="wrap_content" 
-		android:text="Camera Obscura" android:textColor="#000000" android:textSize="18pt"/>
-			
-			<Button android:layout_height="wrap_content" android:id="@+id/TakePictureButton" android:text="Take Picture" android:layout_width="fill_parent"></Button>
-			<Button android:layout_height="wrap_content" android:id="@+id/ChoosePictureButton" android:text="Choose Media" android:layout_width="fill_parent"></Button>
 		
+		 <ImageView android:src="@drawable/ic_ssc" android:layout_width="fill_parent" 
+  android:layout_height="wrap_content"
+  android:gravity="center_horizontal"
+  
+  />
+			
+				<LinearLayout android:orientation="horizontal" android:gravity="center_horizontal" android:layout_width="fill_parent" android:layout_height="fill_parent">
+			
+			<Button  android:id="@+id/TakePictureButton" android:text="Take Picture" android:layout_width="150dp" android:layout_height="100dp"></Button>
+			<Button  android:id="@+id/ChoosePictureButton" android:text="Choose Media" android:layout_width="150dp"  android:layout_height="100dp"></Button>
+		</LinearLayout>
 		<!-- 	<Button android:layout_height="wrap_content" android:id="@+id/DatastoreButton" android:text="SSC Datastore" android:layout_width="fill_parent"></Button>
 		 -->
 		
