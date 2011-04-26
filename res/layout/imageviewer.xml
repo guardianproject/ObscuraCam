@@ -12,8 +12,8 @@
 		android:layout_height="fill_parent">
 		
 	</RelativeLayout>	
-	<LinearLayout android:id="@+id/LinearLayout01" android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent" android:gravity="bottom|right" android:layout_gravity="bottom|right">
-		<Button android:id="@+id/ZoomIn"  android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="+"></Button>
-		<Button android:id="@+id/ZoomOut" android:layout_height="wrap_content" android:layout_width="wrap_content" android:text="-"></Button>
+	<LinearLayout android:id="@+id/LinearLayout01" android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="fill_parent" android:gravity="bottom|right" android:layout_gravity="bottom|right">
+		<Button android:id="@+id/ZoomOut" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/zoom_out"></Button>
+		<Button android:id="@+id/ZoomIn" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/zoom_in"></Button>
 	</LinearLayout>
 </FrameLayout>
