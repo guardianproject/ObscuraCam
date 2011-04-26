@@ -171,14 +171,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		overlayImageView = (ImageView) findViewById(R.id.ImageEditorOverlayImageView);
 		frameRoot = (FrameLayout) findViewById(R.id.frameRoot);
 
-		/*
 		zoomIn = (Button) this.findViewById(R.id.ZoomIn);
 		zoomOut = (Button) this.findViewById(R.id.ZoomOut);
 
 		zoomIn.setOnClickListener(this);
 		zoomOut.setOnClickListener(this);
-		*/
-		
 
 		// I made this URI global, as we should require it in other methods (HNH 2/22/11)
 		imageUri = getIntent().getData();
@@ -561,7 +558,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 				if (distance > minMoveDistance) {
 				
-					if (mode == TAP) {
+					if (mode == TAP || mode == DRAG) {
 						mode = DRAG;
 						
 						matrix.postTranslate(event.getX() - startPoint.x, event.getY() - startPoint.y);
@@ -980,13 +977,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	public boolean onLongClick (View v)
 	{
-		
 		if (mode != DRAG && mode != ZOOM) {
 			vibe.vibrate(50);
 			createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, (int)startPoint.y-DEFAULT_REGION_HEIGHT/2, (int)startPoint.x+DEFAULT_REGION_WIDTH/2, (int)startPoint.y+DEFAULT_REGION_HEIGHT/2, overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
+			return true;
 		}
 		
-			return true;
+		return false;
 	}
 	
 	
