@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 
 /**
  * @author vanevery
@@ -41,7 +42,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		
 	public static final int NORMAL_MODE = 0;
 	public static final int EDIT_MODE = 1;
-	public static final int ID_MODE = 2;
+	//public static final int ID_MODE = 2;
 	int mode = EDIT_MODE;
 	
 	public final static int NONE = 0;
@@ -221,7 +222,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 			idAction.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					qa.dismiss();
-					ImageRegion.this.changeMode(ID_MODE);
+					//ImageRegion.this.changeMode(ID_MODE);
 					imageEditor.launchIdTagger(ImageRegion.this.toString());
 				}
 			});
@@ -295,7 +296,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		return new Rect((int)scaledStartX, (int)scaledStartY, (int)scaledEndX, (int)scaledEndY);
 	}
 		
-	boolean doMenu = false;
+	/*boolean doMenu = false;
 
 	public boolean onTouch(View v, MotionEvent event) {
 		boolean handled = false;
@@ -497,12 +498,224 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		
 		return true;
 	}
+	*/
 	/*
 	public boolean onInterceptTouchEvent(MotionEvent ev) {
 		Log.v(LOGTAG,"onIntercept");
 		return false;
 	}
 	*/
+	
+	boolean doMenu = false;
+	int scaledLeft = 0;
+	int scaledTop = 0;
+	int scaledRight = 0;
+	int scaledBottom = 0;
+	
+	public boolean onTouch(View v, MotionEvent event) {
+
+		Log.v(LOGTAG,"onTouch");
+		
+		if (mode == NORMAL_MODE)
+		{
+			switch (event.getAction() & MotionEvent.ACTION_MASK) 
+			{
+				case MotionEvent.ACTION_DOWN:
+					doMenu = true;
+				break;
+				
+				case MotionEvent.ACTION_UP:
+					// Show the menu
+					
+					inflatePopup();
+					qa.show();
+
+					doMenu = false;
+				break;
+				
+				default:
+					doMenu = false;
+				break;
+			}
+			return true;
+		}
+		else if (mode == EDIT_MODE) {
+			Log.v(LOGTAG,"onTouch mode EDIT");
+			switch (event.getAction() & MotionEvent.ACTION_MASK) {
+				
+				case MotionEvent.ACTION_DOWN:
+					
+					Log.v(LOGTAG,"ACTION_DOWN");
+					
+					startPoint = new PointF(event.getX(),event.getY());
+
+					scaledImage = imageEditor.getScaleOfImage();
+					scaledRect = getScaledRect((int)scaledImage.width(), (int)scaledImage.height());
+					
+					scaledLeft = scaledRect.left;
+					scaledRight = scaledRect.right;
+					scaledTop = scaledRect.top;
+					scaledBottom = scaledRect.bottom;						
+					
+					//Log.v(LOGTAG,"startPoint.x: " + startPoint.x + " startPoint.y: " + startPoint.y);
+					//Log.v(LOGTAG,"scaledRect.left: " + scaledRect.left + " scaledRect.right: " + scaledRect.right);
+					//Log.v(LOGTAG,"scaledRect.top: " + scaledRect.top + " scaledRect.bottom: " + scaledRect.bottom);
+					//Log.v(LOGTAG,"moveRegion.left(): " + this.getLeft() + " moveRegion.right(): " + this.getRight());
+					//Log.v(LOGTAG,"moveRegion.top()" + this.getTop() + " moveRegion.bottom()" + this.getBottom());
+					
+					if (v == topLeftCorner || (
+							event.getX() < CORNER_TOUCH_TOLERANCE &&
+							event.getY() < CORNER_TOUCH_TOLERANCE
+							)) {
+						whichEditMode = TOP_LEFT;
+					} else if (v == topRightCorner || (
+							event.getX() > this.getWidth() - CORNER_TOUCH_TOLERANCE &&
+							event.getY() < CORNER_TOUCH_TOLERANCE
+					)) {
+						whichEditMode = TOP_RIGHT;
+					} else if (v == bottomLeftCorner || (
+							event.getX() < CORNER_TOUCH_TOLERANCE &&
+							event.getY() > this.getHeight() - CORNER_TOUCH_TOLERANCE
+					)) {
+						whichEditMode = BOTTOM_LEFT;
+					} else if (v == bottomRightCorner || (
+							event.getX() > this.getWidth() - CORNER_TOUCH_TOLERANCE &&
+							event.getY() > this.getHeight() - CORNER_TOUCH_TOLERANCE
+					)) {
+						whichEditMode = BOTTOM_RIGHT;
+					} else if (v == moveRegion || (
+							event.getX() < this.getWidth() - CORNER_TOUCH_TOLERANCE &&
+							event.getX() > CORNER_TOUCH_TOLERANCE &&
+							event.getY() < this.getHeight() - CORNER_TOUCH_TOLERANCE &&
+							event.getY() > CORNER_TOUCH_TOLERANCE						
+					)) {
+						whichEditMode = MOVE;
+					} else {
+						whichEditMode = NONE;
+					}
+					
+					doMenu = true;
+					return true;
+				
+				case MotionEvent.ACTION_UP:
+					Log.v(LOGTAG,"ACTION_UP");
+					
+					whichEditMode = NONE;
+					if (doMenu) {
+						// Show the menu
+						
+						inflatePopup();
+						qa.show();
+
+						doMenu = false;
+					}
+					
+					return true;
+				
+				case MotionEvent.ACTION_MOVE:
+					Log.v(LOGTAG,"ACTION MOVE");
+				
+					float distance = (float) (Math.sqrt(Math.abs(startPoint.x - event.getX()) + Math.abs(startPoint.y - event.getY())));
+					Log.v(LOGTAG,"Move Distance: " + distance);
+					Log.v(LOGTAG,"Min Distance: " + minMoveDistance);
+					
+					if (distance > minMoveDistance) {
+						doMenu = false;
+					
+						if (scaledRect == null)
+							break;
+					
+						float xdist = startPoint.x - event.getX();
+						float ydist = startPoint.y - event.getY();
+						
+						/*
+						Log.v(LOGTAG,"startPoint.x:" + startPoint.x);
+						Log.v(LOGTAG,"startPoint.y:" + startPoint.y);
+						Log.v(LOGTAG,"event.getX():" + event.getX());
+						Log.v(LOGTAG,"event.getY():" + event.getY());
+						Log.v(LOGTAG,"xdist:" + xdist);
+						Log.v(LOGTAG,"ydist:" + ydist);
+						*/
+						
+						if (whichEditMode == TOP_LEFT) {
+							// Here we expand
+							Log.v(LOGTAG,"TOP LEFT CORNER");
+							scaledRect.left = scaledLeft - (int)xdist;
+							scaledRect.top = scaledTop - (int)ydist;
+						
+						} else if (whichEditMode == TOP_RIGHT) {
+							// Here we expand
+							Log.v(LOGTAG,"TOP RIGHT CORNER");
+							scaledRect.top = scaledTop - (int)ydist;
+							scaledRect.right = scaledRight - (int)xdist;
+							
+						} else if (whichEditMode == BOTTOM_LEFT) {
+							// Here we expand
+							Log.v(LOGTAG,"BOTTOM LEFT CORNER");
+							scaledRect.left = scaledLeft - (int)xdist;
+							scaledRect.bottom = scaledBottom - (int)ydist;			
+							
+						} else if (whichEditMode == BOTTOM_RIGHT) {
+							// Here we expand
+							/*
+							Log.v(LOGTAG,"BOTTOM RIGHT CORNER");
+							Log.v(LOGTAG, "scaledRect.right - xdist:" + scaledRect.right + " " + (int)xdist);
+							Log.v(LOGTAG, "scaledRect.bottom - ydist" + scaledRect.bottom + " " + (int)ydist);
+							*/
+							scaledRect.right = scaledRight - (int)xdist;
+							scaledRect.bottom = scaledBottom - (int)ydist;
+							
+						} else if (whichEditMode == MOVE) {
+							Log.v(LOGTAG,"MOVE REGION " + xdist + " " + ydist);
+							scaledRect.left = scaledRect.left - (int)xdist;
+							scaledRect.top = scaledRect.top - (int)ydist;
+							scaledRect.right = scaledRect.right - (int)xdist;
+							scaledRect.bottom = scaledRect.bottom - (int)ydist;
+						
+						}
+
+						Log.v(LOGTAG,"Left: " + scaledRect.left + " Right: " + scaledRect.right + 
+								" Top: " + scaledRect.top + " Bottom: " + scaledRect.bottom);
+						
+						startX = (float)scaledRect.left * (float)imageWidth/(float)scaledImage.width();
+						startY = (float)scaledRect.top * (float)imageHeight/(float)scaledImage.height();
+						endX = (float)scaledRect.right * (float)imageWidth/(float)scaledImage.width();
+						endY = (float)scaledRect.bottom * (float)imageHeight/(float)scaledImage.height();
+						
+						RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) this.getLayoutParams();
+				    	lp.leftMargin = (int)scaledRect.left;
+				    	lp.topMargin = (int)scaledRect.top;
+				    	lp.width = scaledRect.width();
+				    	lp.height = scaledRect.height();
+				    	//lp.rightMargin = (int)scaledRect.right;
+				    	//lp.bottomMargin = (int)scaledRect.bottom;
+				    	this.setLayoutParams(lp);
+						
+						//imageEditor.redrawRegions();
+					}	
+					return true;
+					
+				case MotionEvent.ACTION_OUTSIDE:
+					Log.v(LOGTAG,"ACTION_OUTSIDE");
+					whichEditMode = NONE;
+					doMenu = false;
+					return true;
+					
+				case MotionEvent.ACTION_CANCEL:
+					Log.v(LOGTAG,"ACTION_CANCEL");
+					whichEditMode = NONE;
+					doMenu = false;
+					return true;
+					
+				default:
+					Log.v(LOGTAG, "DEFAULT: " + (event.getAction() & MotionEvent.ACTION_MASK));
+					whichEditMode = NONE;
+					doMenu = false;
+					return true;
+			}
+		}
+		return true;
+	}	
 	
 	public void onClick(View v) {
 		Log.d(SSC,"CLICKED View " + v.toString());
