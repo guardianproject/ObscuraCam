@@ -1080,7 +1080,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
             
             // Load the appropriate class/method based on obscureMethod variable/constants
             if (obscureMethod == 1) {
-            	om = new BlurObscure(obscuredBmp);
+            	//om = new BlurObscure(obscuredBmp);
+            	om = new PixelizeObscure(obscuredBmp);
+            	//om = new AnonObscure(this, obscuredBmp, obscuredPaint);
             }
             else if (obscureMethod == 2)
             {
