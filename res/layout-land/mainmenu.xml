@@ -3,9 +3,9 @@
 	<LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
 		
 		 <ImageView android:src="@drawable/ic_ssc" android:layout_width="fill_parent" 
-  android:layout_height="wrap_content"
+  android:layout_height="150dp"
   android:gravity="center_horizontal"
- 
+  
   />
 			
 				<LinearLayout android:orientation="horizontal" android:gravity="center_horizontal" android:layout_width="fill_parent" android:layout_height="fill_parent">
