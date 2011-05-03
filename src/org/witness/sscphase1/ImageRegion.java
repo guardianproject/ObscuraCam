@@ -288,12 +288,14 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	
 	public Rect getScaledRect(int _scaledImageWidth, int _scaledImageHeight) {
 		
+		
 		float scaledStartX = (float)startX * (float)_scaledImageWidth/(float)imageWidth;
 		float scaledStartY = (float)startY * (float)_scaledImageHeight/(float)imageHeight;
 		float scaledEndX = (float)endX * (float)_scaledImageWidth/(float)imageWidth;
 		float scaledEndY = (float)endY * (float)_scaledImageHeight/(float)imageHeight;
 		
 		return new Rect((int)scaledStartX, (int)scaledStartY, (int)scaledEndX, (int)scaledEndY);
+		
 	}
 		
 	/*boolean doMenu = false;
@@ -599,6 +601,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 				
 				case MotionEvent.ACTION_UP:
 					Log.v(LOGTAG,"ACTION_UP");
+					
+					imageEditor.updateDisplayImage();
 					
 					whichEditMode = NONE;
 					if (doMenu) {

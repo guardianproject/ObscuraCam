@@ -128,7 +128,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	Canvas overlayCanvas;
 	Paint overlayPaint;
 	
-	Vector<ImageRegion> imageRegions = new Vector();  // Being lazy 
+	Vector<ImageRegion> imageRegions = new Vector<ImageRegion>();  // Being lazy 
 	//ImageRegion[] imageRegions;
 		
 	int originalImageWidth;
@@ -235,7 +235,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 				float matrixScale = 1;
 				matrix.setScale(matrixScale, matrixScale);
-				imageView.setImageBitmap(imageBitmap);
+				imageView.setImageBitmap(createObscuredBitmap());
 				imageView.setImageMatrix(matrix);
 				overlayImageView.setImageMatrix(matrix);
 								
@@ -541,6 +541,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 								
 				mode = NONE;
 				Log.v(LOGTAG,"mode=NONE");
+
 				break;
 				
 			case MotionEvent.ACTION_POINTER_UP:
@@ -625,9 +626,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				break;
 		}
 
+
 		return handled; // indicate event was handled
 	}
 	
+	public void updateDisplayImage ()
+	{
+
+		imageView.setImageBitmap(createObscuredBitmap());
+
+	}
 	
 	
 	/*
@@ -1101,7 +1109,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	// This should be determined by the currentRegion.whatever  
 	     		
 	    		//new PaintSquareObscure();
-	    	om.obscureRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredCanvas);
+             Rect rect = currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight());
+	    	om.obscureRect(rect, obscuredCanvas);
 
 	    }
 	    
