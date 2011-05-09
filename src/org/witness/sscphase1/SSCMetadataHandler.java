@@ -12,9 +12,7 @@ import java.util.Vector;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
+import info.guardianproject.database.sqlcipher.*;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -24,8 +22,11 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.Since;
 
 public class SSCMetadataHandler extends SQLiteOpenHelper {
-	private static final String DB_PATH = "/data/data/org.witness.sscphase1/databases/";
+	//private static final String DB_PATH = "/data/data/org.witness.sscphase1/databases/";
 	private static final String DB_NAME = "camera_obscura.db";
+	private static final int DB_VERSION = 2;
+	private final static String SQLCIPHER_TEMP_PASSWORD = "OBSCURA2011";
+	
 	private SQLiteDatabase db;
 	private final Context c;
 	
@@ -99,7 +100,7 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 	private static final String SSC = "[Camera Obscura : SSCMetadataHandler] ****************************";
 
 	public SSCMetadataHandler(Context context) {
-		super(context, DB_NAME, null, 1);
+		super(context, DB_NAME, null, DB_VERSION);
 		this.c = context;
 	}
 	
@@ -156,13 +157,14 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		this.sscImageRegionSerial = makeHash(sscImageDataSerial + "_IR");
 
 		// insert initial info into database, creating a new record, then return its index.
-		String[] tableNames = {"localMediaPath",
+		String[] columnNames = {"localMediaPath",
 				"ownerName",
 				"ownershipType",
 				"securityLevel",
 				"publicKey",
 				"sociallySharable",
 				"serial"};
+		
 		String[] tableValues = {uriString.toString(),
 				ownerName,
 				Integer.toString(ownershipType),
@@ -170,7 +172,9 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 				Long.toString(publicKey),
 				Integer.toString(sociallySharable),
 				sscImageDataSerial};
-		this.index = insertIntoDatabase(CAMERAOBSCURA,tableNames,tableValues);
+		
+		createTable(CAMERAOBSCURA, columnNames);
+		this.index = insertIntoDatabase(CAMERAOBSCURA,columnNames,tableValues);
 		
 		// spawns a new table containing corresponding available data (EXIF, BT, ACC, Geo, and reference to image regions);
 		createTable(sscImageDataSerial,dataTable);
@@ -465,10 +469,11 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		db.execSQL(theQuery);
 	}
 	
+	/*
 	public void createDatabase() throws IOException {
 		boolean dbExists = checkForDatabase();
 		if(dbExists) {} else {
-			this.getReadableDatabase();
+			this.getReadableDatabase(SQLCIPHER_TEMP_PASSWORD);
 			try {
 				copyDataBase();
 			} catch(IOException e) {
@@ -476,12 +481,14 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 			}
 		}
 	}
-	
+	*/
+	/*
 	private boolean checkForDatabase() {
 		SQLiteDatabase checkDB = null;
 		try {
 			String dbPath = DB_PATH + DB_NAME;
-			checkDB = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READONLY);
+			
+			checkDB = SQLiteDatabase.openDatabase(dbPath, SQLCIPHER_TEMP_PASSWORD, null, SQLiteDatabase.OPEN_READONLY);
 		} catch(SQLiteException e) {
 			Log.d(SSC,"DB CHECK Error: " + e);
 		}
@@ -503,9 +510,12 @@ public class SSCMetadataHandler extends SQLiteOpenHelper {
 		os.close();
 		is.close();
 	}
+	*/
 	
 	public boolean openDataBase() throws SQLException {
-		db = SQLiteDatabase.openDatabase(DB_PATH + DB_NAME, null, SQLiteDatabase.OPEN_READWRITE);
+		//db = SQLiteDatabase.openDatabase(DB_PATH + DB_NAME, SQLCIPHER_TEMP_PASSWORD, null, SQLiteDatabase.OPEN_READWRITE);
+		
+		db = getWritableDatabase(SQLCIPHER_TEMP_PASSWORD);
 		return db != null ? true : false;
 	}
 	@Override

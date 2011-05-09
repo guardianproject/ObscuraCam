@@ -1,5 +1,7 @@
 package org.witness.sscphase1;
 
+import info.guardianproject.database.sqlcipher.SQLiteDatabase;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -244,11 +246,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			}
 			
 			
+
+			SQLiteDatabase.loadLibs(this);
 			// Call SSCMetadataHandler to make a new entry into the database
 			mdh = new SSCMetadataHandler(this);
+			/*
 			try {
 				mdh.createDatabase();
 			} catch(IOException e) {}
+			*/
 			try {
 				mdh.openDataBase();
 			} catch(SQLException e) {}

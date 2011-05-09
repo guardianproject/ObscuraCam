@@ -1,5 +1,7 @@
 package org.witness.sscphase1;
 
+import info.guardianproject.database.sqlcipher.SQLiteDatabase;
+
 import java.io.File;
 
 import android.app.Activity;
@@ -43,6 +45,7 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    @Override
 	    public void onCreate(Bundle savedInstanceState) {
 	        super.onCreate(savedInstanceState);
+	        
 	        	        
 	        setContentView(R.layout.mainmenu);
 	        

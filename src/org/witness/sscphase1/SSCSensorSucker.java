@@ -157,9 +157,11 @@ public class SSCSensorSucker extends Service {
 	
 	public void linkData(int index) {
 		mdh = new SSCMetadataHandler(this);
+		/*
 		try {
 			mdh.createDatabase();
 		} catch(IOException e) {}
+		*/
 		try {
 			mdh.openDataBase();
 		} catch(SQLException e) {}

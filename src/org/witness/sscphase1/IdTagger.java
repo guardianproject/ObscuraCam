@@ -59,9 +59,11 @@ public class IdTagger extends Activity {
 		isNewSubject = true;
 		
 		mdh = new SSCMetadataHandler(this);
+		/*
 		try {
 			mdh.createDatabase();
 		} catch(IOException e) {}
+		*/
 		try {
 			mdh.openDataBase();
 		} catch(SQLException e) {}
