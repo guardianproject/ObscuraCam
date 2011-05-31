@@ -21,8 +21,11 @@
     <string name="imgprefs_panic">P A N I C !</string>
     <string name="imgprefs_eraseexif">Erase All Exif Data</string>
     
-    <string name="idtaggerh1">ID Someone</string>
+    <string name="idtaggerh1">Identify</string>
+    <string name="idtaggerh12">Consentify</string>
     <string name="idtaggerp">Type a name (or any identifier), or choose from people you\'ve already tagged.</string>
+    <string name="idtaggerp2">Check this box if you have your subject\s verbal consent to record his/her image.</string>
+    <string name="idtaggersubmit">Submit</string>
     <string name="encrypttaggerh1">Encrypt This Tag</string>
     <string name="encrypttaggerp">You can encrypt the selected region to a specific set of public keys, so that only the key holders will be able to view the original image region.</string>
     <string name="encrypttaggerhint">Tap To Choose</string>

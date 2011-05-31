@@ -12,6 +12,7 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -23,7 +24,7 @@ public class IdTagger extends Activity {
 	
 	EditText namespace;
 	CheckBox consentCheckbox;
-	ImageButton confirmTag;
+	Button confirmTag;
 	String queryBuffer;
 	ListView tagSuggestionsHolder;
 	ArrayList<String> al;
@@ -40,7 +41,7 @@ public class IdTagger extends Activity {
 		
 		namespace = (EditText) findViewById(R.id.namespace);
 		consentCheckbox = (CheckBox) findViewById(R.id.consentCheckbox);
-		confirmTag = (ImageButton) findViewById(R.id.confirmTag);
+		confirmTag = (Button) findViewById(R.id.confirmTag);
 		confirmTag.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				if(v == confirmTag) {
