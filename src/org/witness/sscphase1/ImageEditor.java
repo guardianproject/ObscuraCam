@@ -9,7 +9,6 @@ import java.util.Vector;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -22,15 +21,11 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Bitmap.CompressFormat;
-import android.graphics.Bitmap.Config;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Vibrator;
 import android.provider.MediaStore.Images.Media;
 import android.util.Log;
@@ -45,7 +40,6 @@ import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -109,24 +103,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	// ImageView for the original (scaled) image
 	ImageView imageView;
 	
-	// ImageView for the overlay, where things are drawn
-	ImageView overlayImageView;
-	
-	// ?
+	// Layout that all of the ImageRegions will be in
 	RelativeLayout regionButtonsLayout;
-	// ?
-	FrameLayout frameRoot;
-	
-	// Touch Timer Related (Long Clicks)
-	Handler touchTimerHandler;
-	Runnable touchTimerRunnable;
-	
+		
+	// Bitmap for the original image (scaled)
 	Bitmap imageBitmap;
-	Bitmap overlayBitmap;
-	
-	Canvas overlayCanvas;
-	Paint overlayPaint;
-	
+		
+	// Vector to hold ImageRegions 
 	Vector<ImageRegion> imageRegions = new Vector<ImageRegion>(); 
 		
 	// The original image dimensions (not scaled)
@@ -142,6 +125,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	// Saved Image Uri
 	Uri savedImageUri;
 	
+	// Constant for temp filename
 	private final static String TMP_FILE_NAME = "temporary.jpg";
 	
 	// Temporary Image Uri
@@ -151,31 +135,35 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 				
-        requestWindowFeature(Window.FEATURE_NO_TITLE);  
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.imageviewer);
-		
+
+		// Calculate the minimum distance
 		minMoveDistance = minMoveDistanceDP * this.getResources().getDisplayMetrics().density + 0.5f;
 		
+		// The ImageView that contains the image we are working with
 		imageView = (ImageView) findViewById(R.id.ImageEditorImageView);
-		overlayImageView = (ImageView) findViewById(R.id.ImageEditorOverlayImageView);
-		frameRoot = (FrameLayout) findViewById(R.id.frameRoot);
 
+		// Buttons for zooming
 		zoomIn = (Button) this.findViewById(R.id.ZoomIn);
 		zoomOut = (Button) this.findViewById(R.id.ZoomOut);
 
+		// this, ImageEditor will be the onClickListener for the buttons
 		zoomIn.setOnClickListener(this);
 		zoomOut.setOnClickListener(this);
 
 		// Passed in from CameraObscuraMainMenu
 		originalImageUri = getIntent().getData();
 		
-		// Coming from another app via "share"
+		// If originalImageUri is null, we are likely coming from another app via "share"
 		if (originalImageUri == null && getIntent().hasExtra(Intent.EXTRA_STREAM)) {
 			originalImageUri = (Uri) getIntent().getExtras().get(Intent.EXTRA_STREAM);
 		}
 
+		// Instantiate the vibrator
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
+		// Load the image if it isn't null
 		if (originalImageUri != null) {
 			// Load up smaller image
 			try {
@@ -186,16 +174,20 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Needs to be this config for Google Face Detection 
 				bmpFactoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
 				
+				// Parse the image
 				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(originalImageUri), null, bmpFactoryOptions);
 
+				// Hold onto the unscaled dimensions
 				originalImageWidth = bmpFactoryOptions.outWidth;
 				originalImageHeight = bmpFactoryOptions.outHeight;
 				
+				// Get the current display to calculate ratios
 				Display currentDisplay = getWindowManager().getDefaultDisplay();
 				
+				// Ratios between the display and the image
 				int widthRatio = (int) Math.ceil(bmpFactoryOptions.outWidth / (float) currentDisplay.getWidth());
 				int heightRatio = (int) Math.ceil(bmpFactoryOptions.outHeight / (float) currentDisplay.getHeight());
-	
+
 				Log.v(LOGTAG, "HEIGHTRATIO:" + heightRatio);
 				Log.v(LOGTAG, "WIDTHRATIO:" + widthRatio);
 	
@@ -220,35 +212,31 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					Log.v(LOGTAG,"bmp is null");
 				}
 				
+				// Setup the imageView and matrix for scaling
 				float matrixScale = 1;
 				matrix.setScale(matrixScale, matrixScale);
 				imageView.setImageBitmap(createObscuredBitmap());
 				imageView.setImageMatrix(matrix);
-				overlayImageView.setImageMatrix(matrix);
 								
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			
-			// Canvas for drawing
-			overlayBitmap = Bitmap.createBitmap(imageBitmap.getWidth(), imageBitmap.getHeight(), Config.ARGB_8888);
-			overlayCanvas = new Canvas(overlayBitmap);
-			overlayPaint = new Paint();
-			overlayImageView.setImageBitmap(overlayBitmap); 
-			//redrawOverlay();
-				
-			overlayImageView.setOnTouchListener(this);
-			overlayImageView.setOnLongClickListener(this); // What about normal onClick??\
-			// Long click doesn't give place.. :-(
+			// Set the OnTouch and OnLongClick listeners to this (ImageEditor)
+			imageView.setOnTouchListener(this);
+			imageView.setOnLongClickListener(this);
 			
 			// Layout for Image Regions
 			regionButtonsLayout = (RelativeLayout) this.findViewById(R.id.RegionButtonsLayout);
 			
 			// Do auto detect popup
-			showDialog(DIALOG_DO_AUTODETECTION);
+			askToDoAutoDetect();
 		}
 	}
 	
+	/*
+	 * Call this to delete the original image, will ask the user
+	 */
 	private void handleDelete() 
 	{
 		final AlertDialog.Builder b = new AlertDialog.Builder(this);
@@ -258,44 +246,46 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		b.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
 
-                /* User clicked OK so do some stuff */
-        		getContentResolver().delete(originalImageUri, null, null);
-        		originalImageUri = null;
+                // User clicked OK so go ahead and delete
+        		deleteOriginal();
             }
         });
 		b.setNegativeButton(android.R.string.no, null);
 		b.show();
 	}
-		
-	protected Dialog onCreateDialog(int id) {
-		Log.v(LOGTAG,"Within onCreateDialog" + id);
-	    Dialog dialog = null;
-	    switch(id) {
-	    	case DIALOG_DO_AUTODETECTION:
-	    		Log.v(LOGTAG,"Within onCreateDialog right case");
-	    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-	    		builder.setTitle("Scan Image?");
-	    		builder.setMessage("Would you like to scan this image for faces?");
-	    		builder.setCancelable(false);
-	    		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-	    		           public void onClick(DialogInterface dialog, int id) {
-	    		                ImageEditor.this.doAutoDetection();
-	    		           }
-	    		       });
-	    		builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-	    		           public void onClick(DialogInterface dialog, int id) {
-	    		                dialog.cancel();
-	    		           }
-	    		       });
-	    		dialog = builder.create();	    		
-	    		break;
-	        
-	    	default:
-	    		dialog = null;
-	    }
-	    return dialog;
-	}	
 	
+	/*
+	 * Actual deletion of original
+	 */
+	private void deleteOriginal() {
+		getContentResolver().delete(originalImageUri, null, null);
+		originalImageUri = null;
+	}
+	
+	/*
+	 * Ask user to approve auto detection
+	 */
+	private void askToDoAutoDetect() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Scan Image?");
+		builder.setMessage("Would you like to scan this image for faces?");
+		builder.setCancelable(false);
+		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		                ImageEditor.this.doAutoDetection();
+		           }
+		       });
+		builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		                dialog.cancel();
+		           }
+		       });
+		builder.show();
+	}
+	
+	/*
+	 * Do actual auto detection and create regions
+	 */
 	private void doAutoDetection() {
 		// This should be called via a pop-up/alert mechanism
 		
@@ -307,8 +297,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					autodetectedRects[adr].top,
 					autodetectedRects[adr].right,
 					autodetectedRects[adr].bottom,
-					overlayCanvas.getWidth(), 
-					overlayCanvas.getHeight(), 
+					imageView.getWidth(),
+					imageView.getHeight(),
 					originalImageWidth, 
 					originalImageHeight, 
 					DETECTED_COLOR);
@@ -316,10 +306,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		Toast autodetectedToast = Toast.makeText(this, "" + autodetectedRects.length + " faces deteceted", Toast.LENGTH_SHORT);
 		autodetectedToast.show();
-		
-		clearOverlay();			
 	}
 	
+	/*
+	 * The actual face detection calling method
+	 */
 	private Rect[] runFaceDetection() {
 		GoogleFaceDetection gfd = new GoogleFaceDetection(imageBitmap);
 		int numFaces = gfd.findFaces();
@@ -328,13 +319,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		return possibleFaceRects;				
 	}
 	
-	public boolean onTouch(View v, MotionEvent event) {
-		
+	/*
+	 * Handles touches on ImageView
+	 */
+	@Override
+	public boolean onTouch(View v, MotionEvent event) 
+	{
 		boolean handled = false;
 		
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
-				// Single Finger
+				// Single Finger down
 				mode = TAP;
 				
 				// Save the Start point. 
@@ -343,7 +338,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				break;
 				
 			case MotionEvent.ACTION_POINTER_DOWN:
-				// Two Fingers
+				// Two Fingers down
 				
 				// Get the spacing of the fingers, 2 fingers
 				float sx = event.getX(0) - event.getX(1);
@@ -352,15 +347,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 				Log.d(LOGTAG, "Start Finger Spacing=" + startFingerSpacing);
 				
-				if (startFingerSpacing > 10f) {
-
-					float xsum = event.getX(0) + event.getX(1);
-					float ysum = event.getY(0) + event.getY(1);
-					startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
+				// Get the midpoint
+				float xsum = event.getX(0) + event.getX(1);
+				float ysum = event.getY(0) + event.getY(1);
+				startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
 				
-					mode = ZOOM;
-					Log.d(LOGTAG, "mode=ZOOM");
-				}
+				mode = ZOOM;
+				Log.d(LOGTAG, "mode=ZOOM");
 				
 				break;
 				
@@ -381,10 +374,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 			case MotionEvent.ACTION_MOVE:
 				
+				// Calculate distance moved
 				float distance = (float) (Math.sqrt(Math.abs(startPoint.x - event.getX()) + Math.abs(startPoint.y - event.getY())));
 				Log.v(LOGTAG,"Move Distance: " + distance);
 				Log.v(LOGTAG,"Min Distance: " + minMoveDistance);
 				
+				// If greater than minMoveDistance, it is likely a drag or zoom
 				if (distance > minMoveDistance) {
 				
 					if (mode == TAP || mode == DRAG) {
@@ -392,7 +387,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						
 						matrix.postTranslate(event.getX() - startPoint.x, event.getY() - startPoint.y);
 						imageView.setImageMatrix(matrix);
-						overlayImageView.setImageMatrix(matrix);
 						// Reset the start point
 						startPoint.set(event.getX(), event.getY());
 	
@@ -413,6 +407,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 						Log.d(LOGTAG, "End Finger Spacing=" + endFingerSpacing);
 		
+						// If we moved far enough
 						if (endFingerSpacing > minMoveDistance) {
 							
 							// Ratio of spacing..  If it was 5 and goes to 10 the image is 2x as big
@@ -420,6 +415,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							// Scale from the midpoint
 							matrix.postScale(scale, scale, startFingerSpacingMidPoint.x, startFingerSpacingMidPoint.y);
 		
+							// Make sure that the matrix isn't bigger than max scale/zoom
 							float[] matrixValues = new float[9];
 							matrix.getValues(matrixValues);
 							Log.v(LOGTAG, "Total Scale: " + matrixValues[0]);
@@ -432,7 +428,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 								matrix.set(savedMatrix);
 							}
 							imageView.setImageMatrix(matrix);
-							overlayImageView.setImageMatrix(matrix);
 							
 							putOnScreen();
 							redrawRegions();
@@ -443,9 +438,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							startFingerSpacing = (float) Math.sqrt(esx * esx + esy * esy);
 							Log.d(LOGTAG, "New Start Finger Spacing=" + startFingerSpacing);
 							
-							float xsum = event.getX(0) + event.getX(1);
-							float ysum = event.getY(0) + event.getY(1);
-							startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
+							// Reset the midpoint
+							float x_sum = event.getX(0) + event.getX(1);
+							float y_sum = event.getY(0) + event.getY(1);
+							startFingerSpacingMidPoint.set(x_sum / 2, y_sum / 2);
 							
 							handled = true;
 						}
@@ -458,16 +454,24 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		return handled; // indicate event was handled
 	}
 	
-	public void updateDisplayImage ()
+	/*
+	 * For live previews, not being used right now
+	 * I think the ImageRegion itself should do this for performance reasons
+	 */
+	/*
+	public void updateDisplayImage()
 	{
 		imageView.setImageBitmap(createObscuredBitmap());
 	}
+	*/
 	
-	public void putOnScreen() {
-
+	/*
+	 * Move the image onto the screen if it has been moved off
+	 */
+	public void putOnScreen() 
+	{
 		// Get Rectangle of Tranformed Image
-		RectF theRect = new RectF(0,0,imageBitmap.getWidth(), imageBitmap.getHeight());
-		matrix.mapRect(theRect);
+		RectF theRect = getScaleOfImage();
 		
 		Log.v(LOGTAG,theRect.width() + " " + theRect.height());
 		
@@ -492,19 +496,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		matrix.postTranslate(deltaX,deltaY);
 		imageView.setImageMatrix(matrix);
-		overlayImageView.setImageMatrix(matrix);
 	}
 	
-	public void clearOverlay() {
-				
-		Paint clearPaint = new Paint();
-		clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-		overlayCanvas.drawRect(0, 0, overlayCanvas.getWidth(), overlayCanvas.getHeight(), clearPaint);
-		
-		overlayImageView.invalidate();
-		
-	}
-	
+	/* 
+	 * Put all regions into normal mode, out of edit mode
+	 */
 	private void clearImageRegionsEditMode ()
 	{
 		Iterator<ImageRegion> itRegions = imageRegions.iterator();
@@ -515,6 +511,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 	}
 	
+	/*
+	 * Create new ImageRegion
+	 */
 	public void createImageRegion(int _scaledStartX, int _scaledStartY, 
 			int _scaledEndX, int _scaledEndY, 
 			int _scaledImageWidth, int _scaledImageHeight, 
@@ -537,26 +536,34 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		imageRegions.add(imageRegion);
 		addImageRegionToLayout(imageRegion);
-		clearOverlay();
 	}
 	
+	/*
+	 * Delete/Remove specific ImageRegion
+	 */
 	public void deleteRegion(ImageRegion ir)
 	{
 		imageRegions.remove(ir);
 		redrawRegions();
 	}
 	
-	public RectF getScaleOfImage() {
+	/*
+	 * Returns the Rectangle of Tranformed Image
+	 */
+	public RectF getScaleOfImage() 
+	{
 		RectF theRect = new RectF(0,0,imageBitmap.getWidth(), imageBitmap.getHeight());
 		matrix.mapRect(theRect);
 		return theRect;
 	}
 
-	public void addImageRegionToLayout(ImageRegion imageRegion) {
-
+	/*
+	 * Add an ImageRegion to the layout
+	 */
+	public void addImageRegionToLayout(ImageRegion imageRegion) 
+	{
 		// Get Rectangle of Current Transformed Image
-		RectF theRect = new RectF(0,0,imageBitmap.getWidth(), imageBitmap.getHeight());
-		matrix.mapRect(theRect);
+		RectF theRect = getScaleOfImage();
 		Log.v(LOGTAG,"New Width:" + theRect.width());
 
 		Rect regionScaledRect = imageRegion.getScaledRect((int)theRect.width(), (int)theRect.height());
@@ -566,22 +573,20 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	lp.topMargin = (int)theRect.top + regionScaledRect.top;
     	imageRegion.setLayoutParams(lp);
     	
-    	// should always have been removed
-    	//if (regionButtonsLayout.)
     	regionButtonsLayout.addView(imageRegion,lp);
     }
 	
-	public void drawRegions() {
+	/*
+	 * Removes and adds all of the regions to the layout again 
+	 */
+	public void redrawRegions() {
+		regionButtonsLayout.removeAllViews();
+		
 		Iterator<ImageRegion> i = imageRegions.iterator();
 	    while (i.hasNext()) {
 	    	ImageRegion currentRegion = i.next();
 	    	addImageRegionToLayout(currentRegion);
 	    }
-	}
-	
-	public void redrawRegions() {
-		regionButtonsLayout.removeAllViews();
-		drawRegions();
 	}
 	
 	/*
@@ -597,7 +602,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
 			matrix.postScale(scale, scale, midpoint.x, midpoint.y);
 			imageView.setImageMatrix(matrix);
-			overlayImageView.setImageMatrix(matrix);
 			putOnScreen();
 			redrawRegions();
 		} else if (v == zoomOut) {
@@ -606,7 +610,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
 			matrix.postScale(scale, scale, midpoint.x, midpoint.y);
 			imageView.setImageMatrix(matrix);
-			overlayImageView.setImageMatrix(matrix);
 			putOnScreen();
 			redrawRegions();
 		} 
@@ -618,7 +621,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	{
 		if (mode != DRAG && mode != ZOOM) {
 			vibe.vibrate(50);
-			createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, (int)startPoint.y-DEFAULT_REGION_HEIGHT/2, (int)startPoint.x+DEFAULT_REGION_WIDTH/2, (int)startPoint.y+DEFAULT_REGION_HEIGHT/2, overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
+			createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, 
+					(int)startPoint.y-DEFAULT_REGION_HEIGHT/2, 
+					(int)startPoint.x+DEFAULT_REGION_WIDTH/2, 
+					(int)startPoint.y+DEFAULT_REGION_HEIGHT/2, 
+					imageView.getWidth(), imageView.getHeight(), 
+					originalImageWidth, originalImageHeight, DRAW_COLOR);
 			return true;
 		}
 		
@@ -647,15 +655,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	
     		case R.id.menu_new_region:
     			// Set the Start point. 
-				startPoint.set(overlayCanvas.getWidth()/2, overlayCanvas.getHeight()/2);
+				startPoint.set(imageView.getWidth()/2, imageView.getHeight()/2);
 				
     			// Add new region at default location (center)
     			createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, 
     					(int)startPoint.y-DEFAULT_REGION_HEIGHT/2, 
     					(int)startPoint.x+DEFAULT_REGION_WIDTH/2, 
     					(int)startPoint.y+DEFAULT_REGION_HEIGHT/2, 
-    					overlayCanvas.getWidth(), 
-    					overlayCanvas.getHeight(), 
+    					imageView.getWidth(), 
+    					imageView.getHeight(), 
     					originalImageWidth, 
     					originalImageHeight, 
     					DRAW_COLOR);
