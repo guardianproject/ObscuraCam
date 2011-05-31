@@ -1,3 +1,7 @@
+/*
+ * This ObscureMethod pixelizes the region
+ */
+
 package org.witness.sscphase1;
 
 import android.app.Activity;
@@ -21,10 +25,7 @@ public class PixelizeObscure extends Activity implements ObscureMethod {
 	
 		int pixelSize = (rect.right-rect.left)/PIXEL_BLOCK;
 		
-		// Why does this shift the color to blue??
 		pixelate(rect, pixelSize);
-		
-		
 	}
 	
 	private void pixelate(Rect rect, int pixelSize)
@@ -50,11 +51,9 @@ public class PixelizeObscure extends Activity implements ObscureMethod {
 				py = (y/pixelSize)*pixelSize;
 				
 				originalBmp.setPixel(x, y, originalBmp.getPixel(px,py));
-
 			}
 		}
 	}
-	
 }
 
 
