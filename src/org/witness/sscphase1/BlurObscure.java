@@ -1,3 +1,7 @@
+/*
+ * This ObscureMethod blurs the contents of the region
+ */
+
 package org.witness.sscphase1;
 
 import android.app.Activity;
@@ -10,7 +14,6 @@ import android.graphics.Rect;
 public class BlurObscure extends Activity implements ObscureMethod {
 
 	Bitmap originalBmp;
-	
 
 	private final static int BLUR_OFFSET = 10;
 	
@@ -19,11 +22,7 @@ public class BlurObscure extends Activity implements ObscureMethod {
 	}
 	
 	public void obscureRect(Rect rect, Canvas canvas) {
-	
-		// Why does this shift the color to blue??
 		makeItBlur(rect);
-		
-		//doScaleBlur (rect, canvas);
 	}
 	
 	private void makeItBlur(Rect rect)
@@ -51,7 +50,6 @@ public class BlurObscure extends Activity implements ObscureMethod {
 				int b = getBlue(x,y, blurOffset);
 				
 				originalBmp.setPixel(x, y, Color.rgb(r,g,b));
-
 			}
 		}
 	}
