@@ -1,3 +1,7 @@
+/*
+ * This ObscureMethod paints the "anon.jpg" over the region
+ */
+
 package org.witness.sscphase1;
 
 import java.io.BufferedInputStream;
