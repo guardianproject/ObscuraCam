@@ -4,14 +4,6 @@
     <item android:id="@+id/menu_new_region"
         android:title="@string/menu_new_region"
         android:icon="@drawable/ic_menu_new_region" />
-        
-    <item android:id="@+id/menu_panic"
-        android:title="@string/menu_panic"
-        android:icon="@drawable/ic_menu_panic" />
-
-    <item android:id="@+id/menu_image_prefs"
-        android:title="@string/menu_image_prefs"
-        android:icon="@drawable/ic_menu_image_prefs" />
 
     <item android:id="@+id/menu_save"
         android:title="@string/menu_save"
@@ -20,9 +12,11 @@
     <item android:id="@+id/menu_share"
         android:title="@string/menu_share"
         android:icon="@drawable/ic_menu_share" />
-
-    <item android:id="@+id/menu_send_hash"
-        android:title="@string/menu_send_hash"
-        android:icon="@drawable/ic_menu_send_hash" />
+        
+    <item android:id="@+id/menu_delete_original" 
+    	android:title="@string/menu_delete_original" />
+    	
+    <item android:id="@+id/menu_about" 
+    	android:title="@string/menu_about" />
         
 </menu>
