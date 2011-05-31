@@ -16,35 +16,51 @@ import android.widget.RelativeLayout;
 
 public class ImageRegion extends FrameLayout implements OnTouchListener, OnClickListener {
 
+	// The unscaled coordinates
 	float startX;
 	float startY;
 	float endX;
 	float endY;
 	
+	// Start point for touch events
 	PointF startPoint = new PointF();
 
+	// The unscaled image dimensions that this ImageRegion is on
 	int imageWidth;
 	int imageHeight;
 	
+	// The distance around a corner which will still represent a corner touch event
 	public static final int CORNER_TOUCH_TOLERANCE = 35;
 		
+	// Our current mode
 	public static final int NORMAL_MODE = 0;
 	public static final int EDIT_MODE = 1;
 	int mode = EDIT_MODE;
 	
+	// The current touch event mode
 	public final static int NONE = 0;
 	public final static int MOVE = 1;
 	public final static int TOP_LEFT = 2;
 	public final static int BOTTOM_LEFT = 3;
 	public final static int TOP_RIGHT = 4;
 	public final static int BOTTOM_RIGHT = 5;
-	
 	int whichEditMode = NONE;
 	
+	// What should be done to this region
 	public static final int NOTHING = 0;
 	public static final int OBSCURE = 1;
-	int whattodo = NOTHING;
-	
+	int whatToDo = NOTHING;
+
+	/*
+	 * Add each ObscureMethod to this list and update the createObscuredBitmap method in ImageEditor
+	 */
+	public static final int BLUR = 0; // BlurObscure
+	public static final int ANON = 1; // AnonObscure
+	public static final int SOLID = 2; // PaintSquareObscure
+	public static final int PIXELIZE = 3; // PixelizeObscure
+	int obscureType = BLUR;
+
+	// The ImageEditor object that contains us
 	ImageEditor imageEditor;
 	
 	QuickAction qa;
@@ -169,7 +185,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		*/
 		
 	}
-		
+			
 	void inflatePopup() {
 		
 			qa = new QuickAction(this);
@@ -191,7 +207,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 			destroyAction.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					qa.dismiss();
-					whattodo = OBSCURE;
+					whatToDo = OBSCURE;
 				}
 			});
 			qa.addActionItem(destroyAction);
