@@ -1,12 +1,11 @@
 package org.witness.sscphase1;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.Vector;
-
-import org.witness.sscphase1.secure.EncryptObscureMethod;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -60,10 +59,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public final static int DETECTED_COLOR = Color.argb(128, 0, 0, 255); // Blue
 	public final static int OBSCURED_COLOR = Color.argb(128, 255, 0, 0); // Red
 
+	// Constants for the menu items, currently these are in an XML file (menu/image_editor_menu.xml, strings.xml)
 	public final static int ABOUT_MENU_ITEM = 0;
 	public final static int DELETE_ORIGINAL_MENU_ITEM = 1;
 	public final static int SAVE_MENU_ITEM = 2;
 	public final static int SHARE_MENU_ITEM = 3;
+	public final static int NEW_REGION_MENU_ITEM = 4;
 	
 	// Image Matrix
 	Matrix matrix = new Matrix();
@@ -78,11 +79,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	static final int TAP = 3;
 	int mode = NONE;
 
+	// Default ImageRegion width and height
 	static final int DEFAULT_REGION_WIDTH = 160;
 	static final int DEFAULT_REGION_HEIGHT = 160;
 	
+	// Maximum zoom scale
 	static final float MAX_SCALE = 10f;
 	
+	// Constant for autodetection dialog
 	static final int DIALOG_DO_AUTODETECTION = 0;
 	
 	// For Zooming
@@ -93,15 +97,24 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	// For Dragging
 	PointF startPoint = new PointF();
 	
+	// Don't allow it to move until the finger moves more than this amount
+	// Later in the code, the minMoveDistance in real pixels is calculated
+	// to account for different touch screen resolutions
 	float minMoveDistanceDP = 5f;
 	float minMoveDistance; // = ViewConfiguration.get(this).getScaledTouchSlop();
-	float scale; // Current display scale
 	
+	// zoom in and zoom out buttons
 	Button zoomIn, zoomOut;
+	
+	// ImageView for the original (scaled) image
 	ImageView imageView;
+	
+	// ImageView for the overlay, where things are drawn
 	ImageView overlayImageView;
 	
+	// ?
 	RelativeLayout regionButtonsLayout;
+	// ?
 	FrameLayout frameRoot;
 	
 	// Touch Timer Related (Long Clicks)
@@ -116,16 +129,23 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	Vector<ImageRegion> imageRegions = new Vector<ImageRegion>(); 
 		
+	// The original image dimensions (not scaled)
 	int originalImageWidth;
 	int originalImageHeight;
-		
-	Uri imageUri;
-	
+
+	// So we can give some haptic feedback to the user
 	Vibrator vibe;
+
+	// Original Image Uri
+	Uri originalImageUri;
 	
-	// This will need to be updated when changes are made to the image
-	boolean imageSaved = false;
-	Uri savedImageUri = null;
+	// Saved Image Uri
+	Uri savedImageUri;
+	
+	private final static String TMP_FILE_NAME = "temporary.jpg";
+	
+	// Temporary Image Uri
+	Uri tmpImageUri;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -134,8 +154,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         requestWindowFeature(Window.FEATURE_NO_TITLE);  
 		setContentView(R.layout.imageviewer);
 		
-		scale = this.getResources().getDisplayMetrics().density;
-		minMoveDistance = minMoveDistanceDP * scale + 0.5f;
+		minMoveDistance = minMoveDistanceDP * this.getResources().getDisplayMetrics().density + 0.5f;
 		
 		imageView = (ImageView) findViewById(R.id.ImageEditorImageView);
 		overlayImageView = (ImageView) findViewById(R.id.ImageEditorOverlayImageView);
@@ -148,16 +167,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		zoomOut.setOnClickListener(this);
 
 		// Passed in from CameraObscuraMainMenu
-		imageUri = getIntent().getData();
+		originalImageUri = getIntent().getData();
 		
 		// Coming from another app via "share"
-		if (imageUri == null && getIntent().hasExtra(Intent.EXTRA_STREAM)) {
-			imageUri = (Uri) getIntent().getExtras().get(Intent.EXTRA_STREAM);
+		if (originalImageUri == null && getIntent().hasExtra(Intent.EXTRA_STREAM)) {
+			originalImageUri = (Uri) getIntent().getExtras().get(Intent.EXTRA_STREAM);
 		}
 
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-		if (imageUri != null) {
+		if (originalImageUri != null) {
 			// Load up smaller image
 			try {
 				// Load up the image's dimensions not the image itself
@@ -167,7 +186,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Needs to be this config for Google Face Detection 
 				bmpFactoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
 				
-				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri), null, bmpFactoryOptions);
+				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(originalImageUri), null, bmpFactoryOptions);
 
 				originalImageWidth = bmpFactoryOptions.outWidth;
 				originalImageHeight = bmpFactoryOptions.outHeight;
@@ -194,7 +213,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 				// Decode it for real
 				bmpFactoryOptions.inJustDecodeBounds = false;
-				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri), null, bmpFactoryOptions);
+				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(originalImageUri), null, bmpFactoryOptions);
 				Log.v(LOGTAG,"Was: " + imageBitmap.getConfig());
 
 				if (imageBitmap == null) {
@@ -227,11 +246,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			
 			// Do auto detect popup
 			showDialog(DIALOG_DO_AUTODETECTION);
-			
 		}
 	}
 	
-	private void handleDelete () 
+	private void handleDelete() 
 	{
 		final AlertDialog.Builder b = new AlertDialog.Builder(this);
 		b.setIcon(android.R.drawable.ic_dialog_alert);
@@ -241,8 +259,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
             public void onClick(DialogInterface dialog, int whichButton) {
 
                 /* User clicked OK so do some stuff */
-        		getContentResolver().delete(imageUri, null, null);
-        		imageUri = null;
+        		getContentResolver().delete(originalImageUri, null, null);
+        		originalImageUri = null;
             }
         });
 		b.setNegativeButton(android.R.string.no, null);
@@ -442,9 +460,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	public void updateDisplayImage ()
 	{
-
 		imageView.setImageBitmap(createObscuredBitmap());
-
 	}
 	
 	public void putOnScreen() {
@@ -568,6 +584,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		drawRegions();
 	}
 	
+	/*
+	 * Handles normal onClicks for buttons registered to this.
+	 * Currently only the zoomIn and zoomOut buttons
+	 */
+	@Override
 	public void onClick(View v) {
 		if (v == zoomIn) 
 		{
@@ -588,11 +609,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			overlayImageView.setImageMatrix(matrix);
 			putOnScreen();
 			redrawRegions();
-		} else if (v instanceof ImageRegion) {
-			// Menu goes here
-		}
+		} 
 	}
 	
+	// Long Clicks create new image regions
+	@Override
 	public boolean onLongClick (View v)
 	{
 		if (mode != DRAG && mode != ZOOM) {
@@ -604,113 +625,190 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		return false;
 	}
 	
-	
+	/*
+	 * Standard method for menu items.  Uses res/menu/image_editor_menu.xml
+	 */
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
     	MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.image_editor_menu, menu);
-		/*
-    	MenuItem newTagMenuItem = menu.add(Menu.NONE, NEW_TAG_MENU_ITEM, Menu.NONE, "New Tag");
-		MenuItem panicMenuItem = menu.add(Menu.NONE, PANIC_MENU_ITEM, Menu.NONE, "Panic");
-        MenuItem preferencesMenuItem = menu.add(Menu.NONE, PREFERENCES_MENU_ITEM, Menu.NONE, "Preferences");
-        MenuItem saveMenuItem = menu.add(Menu.NONE, SAVE_MENU_ITEM, Menu.NONE, "Save");
-        MenuItem shareMenuItem = menu.add(Menu.NONE, SHARE_MENU_ITEM, Menu.NONE, "Share");
-        MenuItem hashMenuItem = menu.add(Menu.NONE, HASH_MENU_ITEM, Menu.NONE, "Send Hash");
-        */
+
         return true;
     }
-    
+	
+    /*
+     * Normal menu item selected method.  Uses menu items defined in XML: res/menu/image_editor_menu.xml
+     */
+	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
     	switch (item.getItemId()) {
- 
+    	
     		case R.id.menu_new_region:
     			// Set the Start point. 
 				startPoint.set(overlayCanvas.getWidth()/2, overlayCanvas.getHeight()/2);
+				
     			// Add new region at default location (center)
-    			createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, (int)startPoint.y-DEFAULT_REGION_HEIGHT/2, (int)startPoint.x+DEFAULT_REGION_WIDTH/2, (int)startPoint.y+DEFAULT_REGION_HEIGHT/2, overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
+    			createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, 
+    					(int)startPoint.y-DEFAULT_REGION_HEIGHT/2, 
+    					(int)startPoint.x+DEFAULT_REGION_WIDTH/2, 
+    					(int)startPoint.y+DEFAULT_REGION_HEIGHT/2, 
+    					overlayCanvas.getWidth(), 
+    					overlayCanvas.getHeight(), 
+    					originalImageWidth, 
+    					originalImageHeight, 
+    					DRAW_COLOR);
 
     			return true;
+    			
         	case R.id.menu_save:
         		// Save Image
         		saveImage();
         		
         		return true;
+        		
         	case R.id.menu_share:
         		// Share Image
         		shareImage();
         		
         		return true;
+        	
+        	case R.id.menu_delete_original:
+        		// Delete Original Image
+        		handleDelete();
+        		
+        		return true;
+        		
+        	case R.id.menu_about:
+        		// Pull up about screen
+        		displayAbout();
+        		
+        		return true;
+        		
     		default:
     			return false;
     	}
     }
-    
-    private void shareImage() {
-    	    	
-    	saveImage();
     	
-    	Intent share = new Intent(Intent.ACTION_SEND);
-    	share.setType("image/jpeg");
-    	share.putExtra(Intent.EXTRA_STREAM, savedImageUri);
-    	startActivity(Intent.createChooser(share, "Share Image"));    	
+	/*
+	 * Display the about screen
+	 */
+	private void displayAbout() {
+		
+	}
+	
+	/*
+	 * When the user selects the Share menu item
+	 * Uses saveTmpImage (overwriting what is already there) and uses the standard Android Share Intent
+	 */
+    private void shareImage() {
+    	if (saveTmpImage()) {
+        	Intent share = new Intent(Intent.ACTION_SEND);
+        	share.setType("image/jpeg");
+        	share.putExtra(Intent.EXTRA_STREAM, savedImageUri);
+        	startActivity(Intent.createChooser(share, "Share Image"));    	
+    	} else {
+    		Toast t = Toast.makeText(this,"Saving Temporary File Failed!", Toast.LENGTH_SHORT); 
+    		t.show();
+    	}
     }
     
     /*
-     * This may introduce memory issues and therefore have to be done in a 
-     * different activity
+     * Goes through the regions that have been defined and creates a bitmap with them obscured.
+     * This may introduce memory issues and therefore have to be done in a different manner.
      */
-    private Bitmap createObscuredBitmap() {
-    	Bitmap obscuredBmp = Bitmap.createBitmap( imageBitmap.getWidth(),imageBitmap.getHeight(),imageBitmap.getConfig());
-    	Canvas obscuredCanvas = new Canvas(obscuredBmp); 
+    private Bitmap createObscuredBitmap() 
+    {
+    	// Create the bitmap that we'll output from this method
+    	Bitmap obscuredBmp = Bitmap.createBitmap(imageBitmap.getWidth(),imageBitmap.getHeight(),imageBitmap.getConfig());
     	
-    	Paint obscuredPaint = new Paint();     	
+    	// Create the canvas to draw on
+    	Canvas obscuredCanvas = new Canvas(obscuredBmp); 
+    	// Create the paint used to draw with
+    	Paint obscuredPaint = new Paint();   
+    	// Create a default matrix
     	Matrix obscuredMatrix = new Matrix();
+    	
+    	// Draw the scaled image on the new bitmap
     	obscuredCanvas.drawBitmap(imageBitmap, obscuredMatrix, obscuredPaint);
 
+    	// Iterate through the regions that have been created
     	Iterator<ImageRegion> i = imageRegions.iterator();
-	    while (i.hasNext()) {
+	    while (i.hasNext()) 
+	    {
 	    	ImageRegion currentRegion = i.next();
 	    	
-	    	//REWORK THIS CODE
-	    	// If the currentRegion is to be obscured:
-            // Using the interface
-            ObscureMethod om;
-            int obscureMethod = 1;
-            
-            // Load the appropriate class/method based on obscureMethod variable/constants
-            if (obscureMethod == 1) {
-            	//om = new BlurObscure(obscuredBmp);
-            	om = new PixelizeObscure(obscuredBmp);
-            	//om = new AnonObscure(this, obscuredBmp, obscuredPaint);
-            }
-            else if (obscureMethod == 2)
-            {
-            	long signKey = 1;
-    	    	long encryptKeys[] = {1};
-    	    	om = new EncryptObscureMethod(this, obscuredBmp, signKey, encryptKeys);    	    		
-            }
-            else {
-            	om = new PaintSquareObscure();		            	
-            }
-            
-	    	
-	    	// WORKS
-	    	//obscuredCanvas.drawRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredPaint);
-	    	
-	    	// This should be determined by the currentRegion.whatever  
-	     		
-	    		//new PaintSquareObscure();
-             Rect rect = currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight());
+	    	// Would like this to not be dependent on knowing the relationship between 
+	    	// the classes and the constants in ImageRegion.  Would like there to be a 
+	    	// method within ImageRegion that creates the ObscureMethod object and passes
+	    	// it back.  Right now though, all of the ObscureMethods take in different
+	    	// arguments which makes it painful.
+	    	// Select the ObscureMethod as contained in the ImageRegion
+	    	ObscureMethod om;
+			switch (currentRegion.obscureType) {
+				case ImageRegion.BLUR:
+					om = new BlurObscure(obscuredBmp);
+				break;
+				
+				case ImageRegion.ANON:
+					om = new AnonObscure(this.getApplicationContext(), obscuredBmp, obscuredPaint);
+					break;
+					
+				case ImageRegion.SOLID:
+					om = new PaintSquareObscure();
+					break;
+					
+				case ImageRegion.PIXELIZE:
+					om = new PixelizeObscure(obscuredBmp);
+					break;
+					
+				default:
+					om = new BlurObscure(obscuredBmp);
+					break;
+			}
+			
+			// Get the Rect for the region and do the obscure
+            Rect rect = currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight());
 	    	om.obscureRect(rect, obscuredCanvas);
-
-	    }
-	    
+		}
     	return obscuredBmp;
     }
     
-    private void saveImage() {
+    /*
+     * Save a temporary image for sharing only
+     */
+    private boolean saveTmpImage() {
+    	// Create the bitmap that will be saved
+    	Bitmap obscuredBmp = createObscuredBitmap();
     	
+    	// Uri is savedImageUri which is global
+    	if (tmpImageUri == null) {
+    		// Create the Uri
+    		File tmpFile = new File(getFilesDir(), TMP_FILE_NAME); 
+    		tmpImageUri = Uri.fromFile(tmpFile);
+    	}	
+    	
+		OutputStream imageFileOS;
+		try {
+			int quality = 75;
+			imageFileOS = getContentResolver().openOutputStream(tmpImageUri);
+			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
+
+			return true;
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return false;
+		}
+    }
+    
+    /*
+     * The method that actually saves the altered image.  
+     * This in combination with createObscuredBitmap could/should be done in another, more memory efficient manner. 
+     */
+    private void saveImage() 
+    {
+    	// Create the bitmap that will be saved
     	Bitmap obscuredBmp = createObscuredBitmap();
     	
     	// Uri is savedImageUri which is global
@@ -726,18 +824,19 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			imageFileOS = getContentResolver().openOutputStream(savedImageUri);
 			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
 
-			imageSaved = true;
-
     		Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
     		t.show();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-
     }
-    
+
+    /*
+     * Handling screen configuration changes ourselves, we don't want the activity to restart on rotation
+     */
     @Override
-    public void onConfigurationChanged(Configuration conf) {
+    public void onConfigurationChanged(Configuration conf) 
+    {
         super.onConfigurationChanged(conf);
     }
 }
