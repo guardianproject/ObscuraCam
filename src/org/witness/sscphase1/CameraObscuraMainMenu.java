@@ -3,10 +3,12 @@ package org.witness.sscphase1;
 import java.io.File;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -45,9 +47,9 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 				
 			} else if (v == takePictureButton) {
 				
-				// This should be obscured/hidden/encrypted etc.
-		    	File tmpImageFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/myfavoritepicture.jpg");
-		    	imageFileUri = Uri.fromFile(tmpImageFile);
+				// Create the Uri, this should put it in the gallery, is this desired?
+				imageFileUri = getContentResolver().insert(
+						Media.EXTERNAL_CONTENT_URI, new ContentValues());
 		    	
 				Intent i = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
 				i.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, imageFileUri);
