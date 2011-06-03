@@ -13,7 +13,7 @@ import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
-public class ImageRegion extends FrameLayout implements OnTouchListener, OnClickListener {
+public class ImageRegion extends FrameLayout implements OnTouchListener {
 
 	public static final String LOGTAG = "[Camera Obscura : ImageRegion]";
 
@@ -96,6 +96,12 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	 */
 	float minMoveDistanceDP = 2f;
 	float minMoveDistance;	
+
+	/*
+	 * For touch events, whether or not to show the menu
+	 */
+	boolean doMenu = false;
+
 				
 	public ImageRegion(
 			ImageEditor _imageEditor, 
@@ -107,11 +113,14 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 	{
 		super(_imageEditor);
 		
+		// Set the imageEditor that this region belongs to to the one passed in
 		imageEditor = _imageEditor;
 
+		// Calculate the minMoveDistance using the screen density
 		float scale = this.getResources().getDisplayMetrics().density;
 		minMoveDistance = minMoveDistanceDP * scale + 0.5f;
 		
+		// Set the unscaled image coordinates
 		startX = (float)_imageWidth/(float)_scaledImageWidth * (float)_scaledStartX;
 		startY = (float)_imageHeight/(float)_scaledImageHeight * (float)_scaledStartY;
 		endX = (float)_imageWidth/(float)_scaledImageWidth * (float)_scaledEndX;
@@ -122,31 +131,42 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		Log.v(LOGTAG,"endX: " + endX);
 		Log.v(LOGTAG,"endY: " + endY);
 				
+		// Set the image width and height (these are unscaled)
 		imageWidth = _imageWidth;
 		imageHeight = _imageHeight;
 		
+		// Set the background color, this is based on the type of region it is,
+		// probably should be self determined rather than passed in
 		setBackgroundColor(_backgroundColor);
 		
+		// This preps the QuickAction menu 
 		inflatePopup();
 		
 		// Inflate Layout
+		// imageregioninner is a FrameLayout
 		LayoutInflater inflater = LayoutInflater.from(imageEditor);        
 		inflater.inflate(R.layout.imageregioninner, this, true);
-		        
+		
+		// Views for elements within the imageregion
         topLeftCorner = findViewById(R.id.TopLeftCorner);
         topRightCorner = findViewById(R.id.TopRightCorner);
         bottomLeftCorner = findViewById(R.id.BottomLeftCorner);
         bottomRightCorner = findViewById(R.id.BottomRightCorner);
         moveRegion = findViewById(R.id.MoveRegion);
                 
+        // Setting the onTouchListener for the moveRegion
+        // Might also want to do this for the other views (corners)
         moveRegion.setOnTouchListener(this);
                 
-        // This doesn't work with the touch listener.  Being handled on action up instead
+        // This doesn't work with the touch listener always returning true.  
+        // In some cases touch listener returns false and this gets triggered
         moveRegion.setOnClickListener(new OnClickListener (){
 
 			// @Override
 			public void onClick(View v)
 			{
+				Log.v(LOGTAG,"onClick");
+				
 				inflatePopup();
 				qa.show();
 			}
@@ -225,11 +245,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		return new Rect((int)scaledStartX, (int)scaledStartY, (int)scaledEndX, (int)scaledEndY);
 	}
 	
-	boolean doMenu = false;
-	int scaledLeft = 0;
-	int scaledTop = 0;
-	int scaledRight = 0;
-	int scaledBottom = 0;
 	
 	public boolean onTouch(View v, MotionEvent event) {
 
@@ -237,26 +252,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		
 		if (mode == NORMAL_MODE)
 		{
-			switch (event.getAction() & MotionEvent.ACTION_MASK) 
-			{
-				case MotionEvent.ACTION_DOWN:
-					doMenu = true;
-				break;
-				
-				case MotionEvent.ACTION_UP:
-					// Show the menu
-					
-					inflatePopup();
-					qa.show();
-
-					doMenu = false;
-				break;
-				
-				default:
-					doMenu = false;
-				break;
-			}
-			return true;
+			// Just a click, return false
+			return false;
 		}
 		else if (mode == EDIT_MODE) {
 			Log.v(LOGTAG,"onTouch mode EDIT");
@@ -270,27 +267,36 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 					scaledRect = getScaledRect((int)imageEditor.getScaleOfImage().width(), (int)imageEditor.getScaleOfImage().height());					
 					
 					startPoint = new PointF(event.getX(),event.getY());
+					Log.v(LOGTAG,"startPoint: " + startPoint.x + " " + startPoint.y);
 										
 					if (v == topLeftCorner || (
 							event.getX() < CORNER_TOUCH_TOLERANCE &&
 							event.getY() < CORNER_TOUCH_TOLERANCE
 							)) {
 						whichEditMode = TOP_LEFT;
+						Log.v(LOGTAG,"TOP_LEFT");
+						
 					} else if (v == topRightCorner || (
 							event.getX() > this.getWidth() - CORNER_TOUCH_TOLERANCE &&
 							event.getY() < CORNER_TOUCH_TOLERANCE
 					)) {
 						whichEditMode = TOP_RIGHT;
+						Log.v(LOGTAG,"TOP_RIGHT");
+						
 					} else if (v == bottomLeftCorner || (
 							event.getX() < CORNER_TOUCH_TOLERANCE &&
 							event.getY() > this.getHeight() - CORNER_TOUCH_TOLERANCE
 					)) {
 						whichEditMode = BOTTOM_LEFT;
+						Log.v(LOGTAG,"BOTTOM_LEFT");
+						
 					} else if (v == bottomRightCorner || (
 							event.getX() > this.getWidth() - CORNER_TOUCH_TOLERANCE &&
 							event.getY() > this.getHeight() - CORNER_TOUCH_TOLERANCE
 					)) {
 						whichEditMode = BOTTOM_RIGHT;
+						Log.v(LOGTAG,"BOTTOM_RIGHT");
+						
 					} else if (v == moveRegion || (
 							event.getX() < this.getWidth() - CORNER_TOUCH_TOLERANCE &&
 							event.getX() > CORNER_TOUCH_TOLERANCE &&
@@ -298,26 +304,29 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 							event.getY() > CORNER_TOUCH_TOLERANCE						
 					)) {
 						whichEditMode = MOVE;
+						Log.v(LOGTAG,"MOVE");
+						
 					} else {
 						whichEditMode = NONE;
+						Log.v(LOGTAG,"NONE");
+						
 					}
 					
 					doMenu = true;
-					return true;
+					return false;
 				
 				case MotionEvent.ACTION_UP:
 					Log.v(LOGTAG,"ACTION_UP");
-										
+
 					whichEditMode = NONE;
 					if (doMenu) {
-						// Show the menu
-						
-						inflatePopup();
-						qa.show();
-
+						Log.v(LOGTAG,"doMenu");
 						doMenu = false;
+
+						// Treat like a click
+						return false;
 					}
-					
+					Log.v(LOGTAG,"don't doMenu");
 					return true;
 				
 				case MotionEvent.ACTION_MOVE:
@@ -333,27 +342,44 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 						if (scaledRect == null)
 							break;
 					
+						Log.v(LOGTAG,"BEFORE MOVE: Left: " + scaledRect.left + " Right: " + scaledRect.right + 
+								" Top: " + scaledRect.top + " Bottom: " + scaledRect.bottom);
+						
 						float xdist = startPoint.x - event.getX();
 						float ydist = startPoint.y - event.getY();
+						
+						Log.v(LOGTAG,"event.getX(): " + event.getX());
+						Log.v(LOGTAG,"event.getY(): " + event.getY());
+						Log.v(LOGTAG,"xdist: " + xdist);
+						Log.v(LOGTAG,"ydist: " + ydist);
 												
 						if (whichEditMode == TOP_LEFT) {
 							// Here we expand
 							Log.v(LOGTAG,"TOP LEFT CORNER");
-							scaledRect.left = scaledLeft - (int)xdist;
-							scaledRect.top = scaledTop - (int)ydist;
+							scaledRect.left = scaledRect.left - (int)xdist;
+							scaledRect.top = scaledRect.top - (int)ydist;
+							
+					    	// Reset start point
+							startPoint = new PointF(event.getX(),event.getY());
 						
 						} else if (whichEditMode == TOP_RIGHT) {
 							// Here we expand
 							Log.v(LOGTAG,"TOP RIGHT CORNER");
-							scaledRect.top = scaledTop - (int)ydist;
-							scaledRect.right = scaledRight - (int)xdist;
+							scaledRect.top = scaledRect.top - (int)ydist;
+							scaledRect.right = scaledRect.right - (int)xdist;
 							
+					    	// Reset start point
+							startPoint = new PointF(event.getX(),event.getY());
+
 						} else if (whichEditMode == BOTTOM_LEFT) {
 							// Here we expand
 							Log.v(LOGTAG,"BOTTOM LEFT CORNER");
-							scaledRect.left = scaledLeft - (int)xdist;
-							scaledRect.bottom = scaledBottom - (int)ydist;			
+							scaledRect.left = scaledRect.left - (int)xdist;
+							scaledRect.bottom = scaledRect.bottom - (int)ydist;			
 							
+					    	// Reset start point
+							startPoint = new PointF(event.getX(),event.getY());
+
 						} else if (whichEditMode == BOTTOM_RIGHT) {
 							// Here we expand
 							/*
@@ -361,8 +387,11 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 							Log.v(LOGTAG, "scaledRect.right - xdist:" + scaledRect.right + " " + (int)xdist);
 							Log.v(LOGTAG, "scaledRect.bottom - ydist" + scaledRect.bottom + " " + (int)ydist);
 							*/
-							scaledRect.right = scaledRight - (int)xdist;
-							scaledRect.bottom = scaledBottom - (int)ydist;
+							scaledRect.right = scaledRect.right - (int)xdist;
+							scaledRect.bottom = scaledRect.bottom - (int)ydist;
+							
+					    	// Reset start point
+							startPoint = new PointF(event.getX(),event.getY());
 							
 						} else if (whichEditMode == MOVE) {
 							Log.v(LOGTAG,"MOVE REGION " + xdist + " " + ydist);
@@ -373,7 +402,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 						
 						}
 
-						Log.v(LOGTAG,"Left: " + scaledRect.left + " Right: " + scaledRect.right + 
+						Log.v(LOGTAG,"AFTER MOVE: Left: " + scaledRect.left + " Right: " + scaledRect.right + 
 								" Top: " + scaledRect.top + " Bottom: " + scaledRect.bottom);
 						
 						// Update unscaled variables
@@ -389,8 +418,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 				    	lp.width = scaledRect.width();
 				    	lp.height = scaledRect.height();
 				    	this.setLayoutParams(lp);
+				    	
+				    	return true;
 					}	
-					return true;
+					return false;
 					
 				case MotionEvent.ACTION_OUTSIDE:
 					Log.v(LOGTAG,"ACTION_OUTSIDE");
@@ -413,14 +444,4 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnClick
 		}
 		return true;
 	}	
-	
-	public void onClick(View v) {
-		Log.d(LOGTAG,"CLICKED View " + v.toString());
-		
-		if (v == this || v == moveRegion) 
-		{
-			inflatePopup();
-			qa.show();
-		}
-	}
 }
