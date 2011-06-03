@@ -49,7 +49,6 @@ public class AnonObscure extends Activity implements ObscureMethod {
 	    AssetManager assets = context.getResources().getAssets();
 	    InputStream buf = new BufferedInputStream((assets.open(filename)));
 	    Bitmap bitmap = BitmapFactory.decodeStream(buf);
-	    // Drawable d = new BitmapDrawable(bitmap);
 	    return bitmap;
 	}
 }
