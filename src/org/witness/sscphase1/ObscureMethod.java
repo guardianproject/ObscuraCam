@@ -1,6 +1,5 @@
 package org.witness.sscphase1;
 
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 
