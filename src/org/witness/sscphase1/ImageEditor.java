@@ -424,6 +424,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 									+ " " + matrixValues[4] + " " + matrixValues[5]
 									+ " " + matrixValues[6] + " " + matrixValues[7]
 									+ " " + matrixValues[8]);
+							// x = 1.5 * 1 + 0 * y + -120 * 1
+							
 							if (matrixValues[0] > MAX_SCALE) {
 								matrix.set(savedMatrix);
 							}
@@ -565,15 +567,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// Get Rectangle of Current Transformed Image
 		RectF theRect = getScaleOfImage();
 		Log.v(LOGTAG,"New Width:" + theRect.width());
-
-		Rect regionScaledRect = imageRegion.getScaledRect((int)theRect.width(), (int)theRect.height());
-		
-    	RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(regionScaledRect.width(),regionScaledRect.height());
-    	lp.leftMargin = (int)theRect.left + regionScaledRect.left;
-    	lp.topMargin = (int)theRect.top + regionScaledRect.top;
-    	imageRegion.setLayoutParams(lp);
-    	
-    	regionButtonsLayout.addView(imageRegion,lp);
+		imageRegion.updateScaledRect((int)theRect.width(), (int)theRect.height());
+				
+    	regionButtonsLayout.addView(imageRegion);
     }
 	
 	/*
@@ -604,7 +600,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			imageView.setImageMatrix(matrix);
 			putOnScreen();
 			redrawRegions();
-		} else if (v == zoomOut) {
+		} 
+		else if (v == zoomOut) 
+		{
 			float scale = 0.75f;
 
 			PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
@@ -714,7 +712,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	if (saveTmpImage()) {
         	Intent share = new Intent(Intent.ACTION_SEND);
         	share.setType("image/jpeg");
-        	share.putExtra(Intent.EXTRA_STREAM, savedImageUri);
+        	share.putExtra(Intent.EXTRA_STREAM, tmpImageUri);
         	startActivity(Intent.createChooser(share, "Share Image"));    	
     	} else {
     		Toast t = Toast.makeText(this,"Saving Temporary File Failed!", Toast.LENGTH_SHORT); 
@@ -756,31 +754,40 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	ObscureMethod om;
 			switch (currentRegion.obscureType) {
 				case ImageRegion.BLUR:
+					Log.v(LOGTAG,"obscureType: BLUR");
 					om = new BlurObscure(obscuredBmp);
 				break;
 				
 				case ImageRegion.ANON:
+					Log.v(LOGTAG,"obscureType: ANON");
 					om = new AnonObscure(this.getApplicationContext(), obscuredBmp, obscuredPaint);
 					break;
 					
 				case ImageRegion.SOLID:
+					Log.v(LOGTAG,"obscureType: SOLID");
 					om = new PaintSquareObscure();
 					break;
 					
 				case ImageRegion.PIXELIZE:
+					Log.v(LOGTAG,"obscureType: PIXELIZE");
 					om = new PixelizeObscure(obscuredBmp);
 					break;
 					
 				default:
+					Log.v(LOGTAG,"obscureType: NONE/BLUR");
 					om = new BlurObscure(obscuredBmp);
 					break;
 			}
 			
 			// Get the Rect for the region and do the obscure
-            Rect rect = currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight());
+            Rect rect = currentRegion.getAScaledRect(obscuredBmp.getWidth(),obscuredBmp.getHeight());
+            Log.v(LOGTAG,"unscaled rect: left:" + rect.left + " right:" + rect.right 
+            		+ " top:" + rect.top + " bottom:" + rect.bottom);
+            			
 	    	om.obscureRect(rect, obscuredCanvas);
 		}
-    	return obscuredBmp;
+
+	    return obscuredBmp;
     }
     
     /*
