@@ -174,7 +174,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			
 		});
 	}
-			
+	
 	void inflatePopup() {
 		
 			qa = new QuickAction(this);
@@ -185,7 +185,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			editAction.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					qa.dismiss();
-					ImageRegion.this.changeMode(EDIT_MODE);
+					toggleMode();
 				}
 			});
 			qa.addActionItem(editAction);
@@ -213,26 +213,32 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			qa.addActionItem(removeRegionAction);
 	}
 	
+	void toggleMode() {
+		// Put this here as we don't want the massive recursion that would happen in changeMode
+		imageEditor.clearImageRegionsEditMode();
+
+		if (this.mode == EDIT_MODE) {
+			changeMode(NORMAL_MODE);
+		} else if (this.mode == NORMAL_MODE) {
+			changeMode(EDIT_MODE);
+		}
+	}
+			
 	public void changeMode(int newMode) 
 	{
-		if (newMode == EDIT_MODE && mode == EDIT_MODE)
-		{
-			changeMode(NORMAL_MODE);
-		} 
-		else 
-		{
-			mode = newMode;
-			if (mode == EDIT_MODE) {
-				topLeftCorner.setVisibility(View.VISIBLE);
-				topRightCorner.setVisibility(View.VISIBLE);
-				bottomLeftCorner.setVisibility(View.VISIBLE);
-				bottomRightCorner.setVisibility(View.VISIBLE);
-			} else if (mode == NORMAL_MODE) {
-				topLeftCorner.setVisibility(View.GONE);
-				topRightCorner.setVisibility(View.GONE);
-				bottomLeftCorner.setVisibility(View.GONE);
-				bottomRightCorner.setVisibility(View.GONE);
-			}
+		mode = newMode;
+		if (mode == EDIT_MODE) {
+			editAction.setTitle("Edit Complete");
+			topLeftCorner.setVisibility(View.VISIBLE);
+			topRightCorner.setVisibility(View.VISIBLE);
+			bottomLeftCorner.setVisibility(View.VISIBLE);
+			bottomRightCorner.setVisibility(View.VISIBLE);
+		} else if (mode == NORMAL_MODE) {
+			editAction.setTitle("Edit");
+			topLeftCorner.setVisibility(View.GONE);
+			topRightCorner.setVisibility(View.GONE);
+			bottomLeftCorner.setVisibility(View.GONE);
+			bottomRightCorner.setVisibility(View.GONE);
 		}
 	}
 	
