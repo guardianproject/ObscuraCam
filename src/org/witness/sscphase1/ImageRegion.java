@@ -84,7 +84,12 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	ActionItem editAction;
 	ActionItem idAction;
 	ActionItem encryptAction;
-	ActionItem destroyAction;
+	
+	ActionItem blurObscureAction;
+	ActionItem anonObscureAction;
+	ActionItem solidObscureAction;
+	ActionItem pixelizeObscureAction;
+	
 	ActionItem removeRegionAction;
 	
 	/*
@@ -189,18 +194,67 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 				}
 			});
 			qa.addActionItem(editAction);
-				
-			destroyAction = new ActionItem();
-			destroyAction.setTitle("Obscure");
-			destroyAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
-			destroyAction.setOnClickListener(new OnClickListener() {
+
+			/*
+			ActionItem blurObscureAction;
+			ActionItem anonObscureAction;
+			ActionItem solidObscureAction;
+			ActionItem pixelizeObscureAction;
+			
+			public static final int BLUR = 0; // BlurObscure
+			public static final int ANON = 1; // AnonObscure
+			public static final int SOLID = 2; // PaintSquareObscure
+			public static final int PIXELIZE = 3; // PixelizeObscure
+			*/
+			
+			blurObscureAction = new ActionItem();
+			blurObscureAction.setTitle("Blur Obscure");
+			blurObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
+			blurObscureAction.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					qa.dismiss();
 					whatToDo = OBSCURE;
+					obscureType = BLUR;
 				}
 			});
-			qa.addActionItem(destroyAction);
+			qa.addActionItem(blurObscureAction);
 			
+			anonObscureAction = new ActionItem();
+			anonObscureAction.setTitle("Anonomize Obscure");
+			anonObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
+			anonObscureAction.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					qa.dismiss();
+					whatToDo = OBSCURE;
+					obscureType = ANON;
+				}
+			});
+			qa.addActionItem(anonObscureAction);
+			
+			solidObscureAction = new ActionItem();
+			solidObscureAction.setTitle("Solid Obscure");
+			solidObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
+			solidObscureAction.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					qa.dismiss();
+					whatToDo = OBSCURE;
+					obscureType = SOLID;
+				}
+			});
+			qa.addActionItem(solidObscureAction);
+			
+			pixelizeObscureAction = new ActionItem();
+			pixelizeObscureAction.setTitle("Pixelize Obscure");
+			pixelizeObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
+			pixelizeObscureAction.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					qa.dismiss();
+					whatToDo = OBSCURE;
+					obscureType = PIXELIZE;
+				}
+			});
+			qa.addActionItem(pixelizeObscureAction);
+						
 			removeRegionAction = new ActionItem();
 			removeRegionAction.setTitle("Remove Region");
 			removeRegionAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
