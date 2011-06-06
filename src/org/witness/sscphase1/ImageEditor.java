@@ -503,7 +503,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	/* 
 	 * Put all regions into normal mode, out of edit mode
 	 */
-	private void clearImageRegionsEditMode ()
+	public void clearImageRegionsEditMode ()
 	{
 		Iterator<ImageRegion> itRegions = imageRegions.iterator();
 		
