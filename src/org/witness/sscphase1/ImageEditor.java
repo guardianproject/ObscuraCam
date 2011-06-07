@@ -4,11 +4,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -26,6 +29,7 @@ import android.graphics.RectF;
 import android.graphics.Bitmap.CompressFormat;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Vibrator;
 import android.provider.MediaStore.Images.Media;
 import android.util.Log;
@@ -48,6 +52,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	final static String LOGTAG = "[Camera Obscura : ImageEditor]";
 
+	/* This isn't necessary 
+	// Maximum dimension for sharing
+	//public final static int SHARE_SIZE_MAX_WIDTH_HEIGHT = 320;
+	*/
+	
 	// Colors for region squares
 	public final static int DRAW_COLOR = Color.argb(128, 0, 255, 0);// Green
 	public final static int DETECTED_COLOR = Color.argb(128, 0, 0, 255); // Blue
@@ -127,6 +136,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	// Constant for temp filename
 	private final static String TMP_FILE_NAME = "temporary.jpg";
+	private final static String TMP_FILE_DIRECTORY = "/Android/data/org.witness.sscphase1/files/";
 	
 	// Temporary Image Uri
 	Uri tmpImageUri;
@@ -215,7 +225,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Setup the imageView and matrix for scaling
 				float matrixScale = 1;
 				matrix.setScale(matrixScale, matrixScale);
-				imageView.setImageBitmap(createObscuredBitmap());
+				// Uncomment to re-implement realtime preview
+				//imageView.setImageBitmap(createObscuredBitmap());
+				imageView.setImageBitmap(imageBitmap);
 				imageView.setImageMatrix(matrix);
 								
 			} catch (IOException e) {
@@ -724,10 +736,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * Goes through the regions that have been defined and creates a bitmap with them obscured.
      * This may introduce memory issues and therefore have to be done in a different manner.
      */
-    private Bitmap createObscuredBitmap() 
+    private Bitmap createObscuredBitmap(int width, int height) 
     {
     	// Create the bitmap that we'll output from this method
-    	Bitmap obscuredBmp = Bitmap.createBitmap(imageBitmap.getWidth(),imageBitmap.getHeight(),imageBitmap.getConfig());
+    	Bitmap obscuredBmp = Bitmap.createBitmap(width, height,imageBitmap.getConfig());
     	
     	// Create the canvas to draw on
     	Canvas obscuredCanvas = new Canvas(obscuredBmp); 
@@ -794,24 +806,58 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * Save a temporary image for sharing only
      */
     private boolean saveTmpImage() {
+    	
+    	String storageState = Environment.getExternalStorageState();
+        if (!Environment.MEDIA_MOUNTED.equals(storageState)) {
+        	Toast t = Toast.makeText(this,"External storage not available", Toast.LENGTH_SHORT); 
+    		t.show();
+    		return false;
+    	}
+    	
+    	//Why does this not show?
+    	ProgressDialog progressDialog = ProgressDialog.show(this, "", "Exporting for share...", true, true);    	
+    	
     	// Create the bitmap that will be saved
-    	Bitmap obscuredBmp = createObscuredBitmap();
+    	// Perhaps this should be smaller than screen size??
+    	int w = imageBitmap.getWidth();
+    	int h = imageBitmap.getHeight();
+    	/* This isn't necessary
+    	if (imageBitmap.getWidth() > SHARE_SIZE_MAX_WIDTH_HEIGHT || imageBitmap.getHeight() > SHARE_SIZE_MAX_WIDTH_HEIGHT) {
+    		// Size it down proportionally
+    		float ratio = 1;
+    		if (imageBitmap.getWidth() > imageBitmap.getHeight()) {
+    			ratio = (float)SHARE_SIZE_MAX_WIDTH_HEIGHT/(float)imageBitmap.getWidth();
+    		} else {
+    			ratio = (float)SHARE_SIZE_MAX_WIDTH_HEIGHT/(float)imageBitmap.getHeight();
+    		}
+
+			w = (int) (ratio * imageBitmap.getWidth());
+			h = (int) (ratio * imageBitmap.getHeight());
+    	}
+    	*/
+    	Bitmap obscuredBmp = createObscuredBitmap(w,h);
     	
-    	// Uri is savedImageUri which is global
-    	if (tmpImageUri == null) {
-    		// Create the Uri
-    		File tmpFile = new File(getFilesDir(), TMP_FILE_NAME); 
-    		tmpImageUri = Uri.fromFile(tmpFile);
-    	}	
+    	// Create the Uri - This can't be "private"
+    	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory().getPath() + TMP_FILE_DIRECTORY);
+    	File tmpFile = new File(tmpFileDirectory,TMP_FILE_NAME);
+    	Log.v(LOGTAG, tmpFile.getPath());
     	
-		OutputStream imageFileOS;
 		try {
+	    	if (!tmpFileDirectory.exists()) {
+	    		tmpFileDirectory.mkdirs();
+	    	}
+	    	tmpImageUri = Uri.fromFile(tmpFile);
+	    	
+			OutputStream imageFileOS;
+
 			int quality = 75;
 			imageFileOS = getContentResolver().openOutputStream(tmpImageUri);
 			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
 
+			progressDialog.cancel();
 			return true;
 		} catch (FileNotFoundException e) {
+			progressDialog.cancel();
 			e.printStackTrace();
 			return false;
 		}
@@ -823,16 +869,31 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      */
     private void saveImage() 
     {
+    	//Why does this not show?
+    	ProgressDialog progressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
+
     	// Create the bitmap that will be saved
-    	Bitmap obscuredBmp = createObscuredBitmap();
+    	// Screen size
+    	Bitmap obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight());
+    	
+    	ContentValues cv = new ContentValues();
+    	/* 
+    	// Add a date so it shows up in a reasonable place in the gallery - Should we do this??
+    	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
+    	Date date = new Date();
+
+		// Which one?
+    	cv.put(Media.DATE_ADDED, dateFormat.format(date));
+    	cv.put(Media.DATE_TAKEN, dateFormat.format(date));
+    	cv.put(Media.DATE_MODIFIED, dateFormat.format(date));
+    	*/
     	
     	// Uri is savedImageUri which is global
-    	if (savedImageUri == null) {
-    		// Create the Uri, this should put it in the gallery
-    		savedImageUri = getContentResolver().insert(
-					Media.EXTERNAL_CONTENT_URI, new ContentValues());
-    	}	
-    	
+    	// Create the Uri, this should put it in the gallery
+    	// New Each time
+    	savedImageUri = getContentResolver().insert(
+				Media.EXTERNAL_CONTENT_URI, cv);
+    	    	
 		OutputStream imageFileOS;
 		try {
 			int quality = 100; //lossless?  good question - still a smaller version
@@ -844,6 +905,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+		
+		progressDialog.cancel();
     }
 
     /*
