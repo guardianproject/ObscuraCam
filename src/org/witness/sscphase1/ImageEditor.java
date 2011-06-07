@@ -50,7 +50,7 @@ import android.widget.Toast;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener, OnLongClickListener {
 
-	final static String LOGTAG = "[Camera Obscura : ImageEditor]";
+	final static String LOGTAG = "[Camera Obscura ImageEditor]";
 
 	/* This isn't necessary 
 	// Maximum dimension for sharing
@@ -244,6 +244,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			// Do auto detect popup
 			askToDoAutoDetect();
 		}
+		
+		putOnScreen();
+		redrawRegions();
 	}
 	
 	/*
@@ -346,7 +349,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 				// Save the Start point. 
 				startPoint.set(event.getX(), event.getY());
-												
+						
+				clearImageRegionsEditMode();
+				
 				break;
 				
 			case MotionEvent.ACTION_POINTER_DOWN:
@@ -367,11 +372,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				mode = ZOOM;
 				Log.d(LOGTAG, "mode=ZOOM");
 				
+				clearImageRegionsEditMode();
+				
 				break;
 				
 			case MotionEvent.ACTION_UP:
 				// Single Finger Up
-								
+				
 				mode = NONE;
 				Log.v(LOGTAG,"mode=NONE");
 
@@ -379,7 +386,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 			case MotionEvent.ACTION_POINTER_UP:
 				// Multiple Finger Up
-				
+								
 				mode = NONE;
 				Log.d(LOGTAG, "mode=NONE");
 				break;
@@ -472,12 +479,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 * For live previews, not being used right now
 	 * I think the ImageRegion itself should do this for performance reasons
 	 */
-	/*
+	
 	public void updateDisplayImage()
 	{
-		imageView.setImageBitmap(createObscuredBitmap());
+		//imageView.setImageBitmap(createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight()));
 	}
-	*/
+	
 	
 	/*
 	 * Move the image onto the screen if it has been moved off
@@ -509,13 +516,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		Log.v(LOGTAG,"Deltas:" + deltaX + " " + deltaY);
 		
 		matrix.postTranslate(deltaX,deltaY);
+		updateDisplayImage();
 		imageView.setImageMatrix(matrix);
 	}
 	
 	/* 
 	 * Put all regions into normal mode, out of edit mode
 	 */
-	public void clearImageRegionsEditMode ()
+	public void clearImageRegionsEditMode()
 	{
 		Iterator<ImageRegion> itRegions = imageRegions.iterator();
 		
