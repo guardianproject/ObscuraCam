@@ -15,7 +15,7 @@ import android.widget.RelativeLayout;
 
 public class ImageRegion extends FrameLayout implements OnTouchListener {
 
-	public static final String LOGTAG = "[Camera Obscura : ImageRegion]";
+	public static final String LOGTAG = "[Camera Obscura ImageRegion]";
 	
 	// Rect for this when unscaled
 	RectF unscaledRect;
