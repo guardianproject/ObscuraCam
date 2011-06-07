@@ -10,11 +10,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
     	</activity>
-        <activity android:name=".CameraObscura"></activity>
-        <activity android:name=".PreferencesActivity"></activity>
         <activity android:name=".CameraObscuraMainMenu"></activity>
-        <activity android:name=".IdTagger" android:theme="@style/Theme.CustomDialog"></activity>
-        <activity android:name=".secure.EncryptTagger" android:theme="@style/Theme.CustomDialog"></activity>
         <activity android:name=".ImageEditor" android:configChanges="orientation|keyboardHidden">
 			<intent-filter>
                  <action android:name="android.intent.action.VIEW" />
@@ -28,20 +24,9 @@
                  <data android:mimeType="image/*" />
              </intent-filter>        
         </activity>
-        <service android:enabled="true" android:name=".SSCSensorSucker" />
     </application>
     <uses-sdk android:minSdkVersion="7" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.ACCESS_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> 
-    <uses-permission android:name="android.permission.ACCESS_GPS" />
-    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />  
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE"/>
-    
-    <uses-permission android:name="org.thialfihar.android.apg.permission.READ_KEY_DETAILS" />
 </manifest> 
