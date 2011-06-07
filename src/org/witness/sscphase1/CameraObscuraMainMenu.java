@@ -3,6 +3,7 @@ package org.witness.sscphase1;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore.Images.Media;
@@ -67,6 +68,8 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 					imageFileUri = intent.getData();
 				}
 				
+				// This comes back null if we are rotated as the activity is restarted
+				// Let's lock in portrait for now
 				Log.v(LOGTAG,"Sending: " + imageFileUri.toString());					
 				
 				Intent passingIntent = new Intent(this,ImageEditor.class);
@@ -75,4 +78,13 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 			}
 		}
 	}	
+
+    /*
+     * Handling screen configuration changes ourselves, we don't want the activity to restart on rotation
+     */
+    @Override
+    public void onConfigurationChanged(Configuration conf) 
+    {
+        super.onConfigurationChanged(conf);
+    }
 }
