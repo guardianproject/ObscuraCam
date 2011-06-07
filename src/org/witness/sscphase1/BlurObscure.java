@@ -26,16 +26,16 @@ public class BlurObscure extends Activity implements ObscureMethod {
 	
 	private void makeItBlur(Rect rect)
 	{
-		if (rect.left <= 0) {
-			rect.left = 1;
-		} else if (rect.right >= originalBmp.getWidth()-1) {
-			rect.right = originalBmp.getWidth() - 1;
+		if (rect.left <= (0 + BLUR_OFFSET*2)) {
+			rect.left = (1 + BLUR_OFFSET*2);
+		} else if (rect.right >= (originalBmp.getWidth()-1-BLUR_OFFSET*2)) {
+			rect.right = (originalBmp.getWidth() - 2 - BLUR_OFFSET*2);
 		}
 		
-		if (rect.top <= 0) {
-			rect.top = 1;
-		} else if (rect.bottom >= originalBmp.getHeight()) {
-			rect.bottom = originalBmp.getHeight();
+		if (rect.top <= (0 + BLUR_OFFSET*2)) {
+			rect.top = (1 + BLUR_OFFSET*2);
+		} else if (rect.bottom >= (originalBmp.getHeight() - BLUR_OFFSET*2)) {
+			rect.bottom = (originalBmp.getHeight() - 2 - BLUR_OFFSET*2);
 		}
 			
 		for (int x = rect.left; x < rect.right - 1; x++) {
@@ -43,8 +43,10 @@ public class BlurObscure extends Activity implements ObscureMethod {
 				
 				int blurOffset = (int)((Math.random()*BLUR_OFFSET)+BLUR_OFFSET);
 				int r = getRed(x,y, blurOffset);
+				
 				blurOffset = (int)((Math.random()*BLUR_OFFSET)+BLUR_OFFSET);
 				int g = getGreen(x,y, blurOffset);
+				
 				blurOffset = (int)((Math.random()*BLUR_OFFSET)+BLUR_OFFSET);
 				int b = getBlue(x,y, blurOffset);
 				
