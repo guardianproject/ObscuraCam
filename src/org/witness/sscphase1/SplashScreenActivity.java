@@ -6,6 +6,7 @@ package org.witness.sscphase1;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -54,4 +55,13 @@ public class SplashScreenActivity extends Activity implements OnClickListener {
 		}
 	}
 
+
+    /*
+     * Handling screen configuration changes ourselves, we don't want the activity to restart on rotation
+     */
+    @Override
+    public void onConfigurationChanged(Configuration conf) 
+    {
+        super.onConfigurationChanged(conf);
+    }
 }
