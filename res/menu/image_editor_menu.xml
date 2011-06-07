@@ -14,9 +14,11 @@
         android:icon="@drawable/ic_menu_share" />
         
     <item android:id="@+id/menu_delete_original" 
-    	android:title="@string/menu_delete_original" />
+    	android:title="@string/menu_delete_original"
+    	android:icon="@drawable/ic_menu_trash" />
     	
     <item android:id="@+id/menu_about" 
-    	android:title="@string/menu_about" />
+    	android:title="@string/menu_about"
+    	android:icon="@drawable/ic_menu_about" />
         
 </menu>
