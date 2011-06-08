@@ -8,6 +8,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore.Images.Media;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -19,6 +21,8 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	final static int CAMERA_RESULT = 0;
 	final static int GALLERY_RESULT = 1;
 	final static int IMAGE_EDITOR = 2;
+	
+	final static int ABOUT = 0;
 	
 	Button choosePictureButton, takePictureButton;		
 	
@@ -79,6 +83,36 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 		}
 	}	
 
+	/*
+	 * Display the about screen
+	 */
+	private void displayAbout() {
+		Intent i = new Intent(Intent.ACTION_VIEW);
+		i.setData(Uri.parse("https://guardianproject.info/apps/securecam/about-v1/"));
+		startActivity(i);
+	}
+
+	@Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+    	MenuItem aboutMenuItem = menu.add(Menu.NONE, ABOUT, Menu.NONE, "About");
+    	aboutMenuItem.setIcon(R.drawable.ic_menu_about);
+    	
+    	return true;
+	}
+	
+    public boolean onOptionsItemSelected(MenuItem item) {	
+        switch (item.getItemId()) {
+        	case ABOUT:
+        		displayAbout();
+        		return true;
+        		
+        	default:
+        		
+        		return false;
+        }
+    }
+    
+	
     /*
      * Handling screen configuration changes ourselves, we don't want the activity to restart on rotation
      */
