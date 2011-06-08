@@ -153,7 +153,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		// The ImageView that contains the image we are working with
 		imageView = (ImageView) findViewById(R.id.ImageEditorImageView);
-
+		
 		// Buttons for zooming
 		zoomIn = (Button) this.findViewById(R.id.ZoomIn);
 		zoomOut = (Button) this.findViewById(R.id.ZoomOut);
@@ -711,6 +711,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         		displayAbout();
         		
         		return true;
+        	
+        	case R.id.menu_preview:
+        		showPreview();
+        		
+        		return true;
         		
     		default:
     			return false;
@@ -722,6 +727,18 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 */
 	private void displayAbout() {
 		
+	}
+	
+	/*
+	 * Display preview image
+	 */
+	private void showPreview() {
+		// Open Preview Activity
+		saveTmpImage();
+		
+		Intent intent = new Intent(this, ImagePreview.class);
+    	intent.putExtra(ImagePreview.IMAGEURI, tmpImageUri.toString());
+		startActivity(intent);				
 	}
 	
 	/*
