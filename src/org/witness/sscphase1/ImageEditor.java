@@ -726,7 +726,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 * Display the about screen
 	 */
 	private void displayAbout() {
-		
+		Intent i = new Intent(Intent.ACTION_VIEW);
+		i.setData(Uri.parse("https://guardianproject.info/apps/securecam/about-v1/"));
+		startActivity(i);
 	}
 	
 	/*
