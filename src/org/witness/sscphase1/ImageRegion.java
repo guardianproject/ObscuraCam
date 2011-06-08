@@ -185,7 +185,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			qa = new QuickAction(this);
 			
 			editAction = new ActionItem();
-			editAction.setTitle("Edit");
+			editAction.setTitle("Edit Tag");
 			editAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_edit));
 			editAction.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
@@ -208,8 +208,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			*/
 			
 			blurObscureAction = new ActionItem();
-			blurObscureAction.setTitle("Blur Obscure");
-			blurObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
+			blurObscureAction.setTitle("Blur");
+			blurObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_blur));
 			blurObscureAction.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					qa.dismiss();
@@ -220,8 +220,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			qa.addActionItem(blurObscureAction);
 			
 			anonObscureAction = new ActionItem();
-			anonObscureAction.setTitle("Anonomize Obscure");
-			anonObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
+			anonObscureAction.setTitle("Mask");
+			anonObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_mask));
 			anonObscureAction.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					qa.dismiss();
@@ -232,8 +232,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			qa.addActionItem(anonObscureAction);
 			
 			solidObscureAction = new ActionItem();
-			solidObscureAction.setTitle("Solid Obscure");
-			solidObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
+			solidObscureAction.setTitle("Fill");
+			solidObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_fill));
 			solidObscureAction.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					qa.dismiss();
@@ -244,8 +244,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			qa.addActionItem(solidObscureAction);
 			
 			pixelizeObscureAction = new ActionItem();
-			pixelizeObscureAction.setTitle("Pixelize Obscure");
-			pixelizeObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
+			pixelizeObscureAction.setTitle("Pixelate");
+			pixelizeObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_pixelate));
 			pixelizeObscureAction.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					qa.dismiss();
@@ -256,8 +256,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			qa.addActionItem(pixelizeObscureAction);
 						
 			removeRegionAction = new ActionItem();
-			removeRegionAction.setTitle("Remove Region");
-			removeRegionAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_destroy));
+			removeRegionAction.setTitle("Delete Tag");
+			removeRegionAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_delete));
 			removeRegionAction.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					qa.dismiss();

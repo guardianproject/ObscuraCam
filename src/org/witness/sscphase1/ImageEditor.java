@@ -700,12 +700,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         		
         		return true;
         	
-        	case R.id.menu_delete_original:
+/*
+ 			case R.id.menu_delete_original:
         		// Delete Original Image
         		handleDelete();
         		
         		return true;
-        		
+*/        		
         	case R.id.menu_about:
         		// Pull up about screen
         		displayAbout();
