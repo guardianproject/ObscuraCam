@@ -58,9 +58,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	*/
 	
 	// Colors for region squares
-	public final static int DRAW_COLOR = Color.argb(128, 0, 255, 0);// Green
-	public final static int DETECTED_COLOR = Color.argb(128, 0, 0, 255); // Blue
-	public final static int OBSCURED_COLOR = Color.argb(128, 255, 0, 0); // Red
+	public final static int DRAW_COLOR = Color.argb(200, 0, 255, 0);// Green
+	public final static int DETECTED_COLOR = Color.argb(200, 0, 0, 255); // Blue
+	public final static int OBSCURED_COLOR = Color.argb(200, 255, 0, 0); // Red
 
 	// Constants for the menu items, currently these are in an XML file (menu/image_editor_menu.xml, strings.xml)
 	public final static int ABOUT_MENU_ITEM = 0;
@@ -341,6 +341,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public boolean onTouch(View v, MotionEvent event) 
 	{
 		boolean handled = false;
+		updateDisplayImage();
 		
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
@@ -482,7 +483,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	public void updateDisplayImage()
 	{
-		//imageView.setImageBitmap(createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight()));
+		imageView.setImageBitmap(createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight()));
 	}
 	
 	
@@ -567,6 +568,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	{
 		imageRegions.remove(ir);
 		redrawRegions();
+		updateDisplayImage();
 	}
 	
 	/*
@@ -712,12 +714,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         		displayAbout();
         		
         		return true;
-        	
+        	/*
         	case R.id.menu_preview:
         		showPreview();
         		
         		return true;
-        		
+        		*/
     		default:
     			return false;
     	}

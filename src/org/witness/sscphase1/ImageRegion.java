@@ -2,6 +2,7 @@ package org.witness.sscphase1;
 
 import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -38,6 +39,9 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	public static final int EDIT_MODE = 1;
 	int mode = EDIT_MODE;
 	
+	//other values
+	public int backgroundColor;
+	
 	// The current touch event mode
 	public final static int NONE = 0;
 	public final static int MOVE = 1;
@@ -60,7 +64,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	public static final int ANON = 1; // AnonObscure
 	public static final int SOLID = 2; // PaintSquareObscure
 	public static final int PIXELIZE = 3; // PixelizeObscure
-	int obscureType = SOLID;
+	int obscureType = PIXELIZE;
 
 	// The ImageEditor object that contains us
 	ImageEditor imageEditor;
@@ -85,7 +89,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	ActionItem idAction;
 	ActionItem encryptAction;
 	
-	ActionItem blurObscureAction;
+	//ActionItem blurObscureAction;
 	ActionItem anonObscureAction;
 	ActionItem solidObscureAction;
 	ActionItem pixelizeObscureAction;
@@ -144,6 +148,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 		// Set the background color, this is based on the type of region it is,
 		// probably should be self determined rather than passed in
 		setBackgroundColor(_backgroundColor);
+		backgroundColor = _backgroundColor;
 		
 		// This preps the QuickAction menu 
 		inflatePopup();
@@ -207,6 +212,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			public static final int PIXELIZE = 3; // PixelizeObscure
 			*/
 			
+			/*
 			blurObscureAction = new ActionItem();
 			blurObscureAction.setTitle("Blur");
 			blurObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_blur));
@@ -218,27 +224,19 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 				}
 			});
 			qa.addActionItem(blurObscureAction);
+			*/
 			
-			anonObscureAction = new ActionItem();
-			anonObscureAction.setTitle("Mask");
-			anonObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_mask));
-			anonObscureAction.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					qa.dismiss();
-					whatToDo = OBSCURE;
-					obscureType = ANON;
-				}
-			});
-			qa.addActionItem(anonObscureAction);
+			
 			
 			solidObscureAction = new ActionItem();
-			solidObscureAction.setTitle("Fill");
+			solidObscureAction.setTitle("Redact");
 			solidObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_fill));
 			solidObscureAction.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					qa.dismiss();
 					whatToDo = OBSCURE;
 					obscureType = SOLID;
+					imageEditor.updateDisplayImage();
 				}
 			});
 			qa.addActionItem(solidObscureAction);
@@ -251,9 +249,24 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 					qa.dismiss();
 					whatToDo = OBSCURE;
 					obscureType = PIXELIZE;
+					imageEditor.updateDisplayImage();
 				}
 			});
 			qa.addActionItem(pixelizeObscureAction);
+
+			anonObscureAction = new ActionItem();
+			anonObscureAction.setTitle("Mask");
+			anonObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_mask));
+			anonObscureAction.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					qa.dismiss();
+					whatToDo = OBSCURE;
+					obscureType = ANON;
+					imageEditor.updateDisplayImage();
+				}
+			});
+			
+			qa.addActionItem(anonObscureAction);
 						
 			removeRegionAction = new ActionItem();
 			removeRegionAction.setTitle("Delete Tag");
@@ -283,12 +296,19 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 		mode = newMode;
 		if (mode == EDIT_MODE) {
 			editAction.setTitle("Edit Complete");
+
+			setBackgroundColor(backgroundColor);
+			
+
 			topLeftCorner.setVisibility(View.VISIBLE);
 			topRightCorner.setVisibility(View.VISIBLE);
 			bottomLeftCorner.setVisibility(View.VISIBLE);
 			bottomRightCorner.setVisibility(View.VISIBLE);
 		} else if (mode == NORMAL_MODE) {
 			editAction.setTitle("Edit");
+
+
+			setBackgroundColor(0x000000ff);
 			topLeftCorner.setVisibility(View.GONE);
 			topRightCorner.setVisibility(View.GONE);
 			bottomLeftCorner.setVisibility(View.GONE);
@@ -366,6 +386,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	public boolean onTouch(View v, MotionEvent event) 
 	{
 		Log.v(LOGTAG,"onTouch");
+		
+		imageEditor.updateDisplayImage();
 		
 		if (mode == NORMAL_MODE)
 		{
