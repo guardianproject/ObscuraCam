@@ -15,7 +15,7 @@ public class PaintSquareObscure implements ObscureMethod {
 	
 	public PaintSquareObscure() {
 		paint = new Paint();
-        paint.setColor(Color.BLUE);
+        paint.setColor(Color.BLACK);
 	}
  	
 	public void obscureRect(Rect rect, Canvas canvas) {
