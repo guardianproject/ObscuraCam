@@ -300,7 +300,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	/*
 	 * Do actual auto detection and create regions
+	 * 
+	 * public void createImageRegion(int _scaledStartX, int _scaledStartY, 
+			int _scaledEndX, int _scaledEndY, 
+			int _scaledImageWidth, int _scaledImageHeight, 
+			int _imageWidth, int _imageHeight, 
+			int _backgroundColor) {
 	 */
+	
 	private void doAutoDetection() {
 		// This should be called via a pop-up/alert mechanism
 		
@@ -341,8 +348,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public boolean onTouch(View v, MotionEvent event) 
 	{
 		boolean handled = false;
-		updateDisplayImage();
-		
+	
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
 				// Single Finger down

@@ -387,7 +387,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	{
 		Log.v(LOGTAG,"onTouch");
 		
-		imageEditor.updateDisplayImage();
 		
 		if (mode == NORMAL_MODE)
 		{
@@ -546,6 +545,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 							);
 						}
 
+						imageEditor.updateDisplayImage();
+						
 						Log.v(LOGTAG,"AFTER MOVE: Left: " + scaledRect.left + " Right: " + scaledRect.right + 
 								" Top: " + scaledRect.top + " Bottom: " + scaledRect.bottom);
 				    	
