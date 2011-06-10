@@ -327,20 +327,49 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	private void doAutoDetection() {
 		// This should be called via a pop-up/alert mechanism
 		
-		Rect[] autodetectedRects = runFaceDetection();
+		RectF[] autodetectedRects = runFaceDetection();
 		for (int adr = 0; adr < autodetectedRects.length; adr++) {
-			Log.v(LOGTAG,autodetectedRects[adr].toString());
+
+			Log.v(LOGTAG,"AUTODETECTED imageView Width, Height: " + imageView.getWidth() + " " + imageView.getHeight());
+			Log.v(LOGTAG,"UNSCALED RECT:" + autodetectedRects[adr].left + " " + autodetectedRects[adr].top + " " + autodetectedRects[adr].right + " " + autodetectedRects[adr].bottom);
+			
+			float scaledStartX = (float)autodetectedRects[adr].left * (float)imageView.getWidth()/(float)imageBitmap.getWidth();
+			float scaledStartY = (float)autodetectedRects[adr].top * (float)imageView.getHeight()/(float)imageBitmap.getHeight();
+			float scaledEndX = (float)autodetectedRects[adr].right * (float)imageView.getWidth()/(float)imageBitmap.getWidth();
+			float scaledEndY = (float)autodetectedRects[adr].bottom * (float)imageView.getHeight()/(float)imageBitmap.getHeight();
+			
+			RectF autodetectedRectScaled = new RectF(scaledStartX, scaledStartY, scaledEndX, scaledEndY);
+			Log.v(LOGTAG,"SCALED RECT:" + autodetectedRectScaled.left + " " + autodetectedRectScaled.top + " " + autodetectedRectScaled.right + " " + autodetectedRectScaled.bottom);
+
+			
+			// Probably need to map autodetectedRects to scaled rects
+			//matrix.mapRect(autodetectedRects[adr]);		
+			//Log.v(LOGTAG,"MAPPED RECT:" + autodetectedRects[adr].left + " " + autodetectedRects[adr].top + " " + autodetectedRects[adr].right + " " + autodetectedRects[adr].bottom);
+			
 			createImageRegion(
-					autodetectedRects[adr].left,
-					autodetectedRects[adr].top,
-					autodetectedRects[adr].right,
-					autodetectedRects[adr].bottom,
+					(int)autodetectedRectScaled.left,
+					(int)autodetectedRectScaled.top,
+					(int)autodetectedRectScaled.right,
+					(int)autodetectedRectScaled.bottom,
+					imageView.getWidth(),
+					imageView.getHeight(),
+					originalImageWidth, 
+					originalImageHeight, 
+					DETECTED_COLOR);
+		}	
+			/*
+			createImageRegion(
+					(int)autodetectedRects[adr].left,
+					(int)autodetectedRects[adr].top,
+					(int)autodetectedRects[adr].right,
+					(int)autodetectedRects[adr].bottom,
 					imageView.getWidth(),
 					imageView.getHeight(),
 					originalImageWidth, 
 					originalImageHeight, 
 					DETECTED_COLOR);
 		}
+		*/
 		
 		Toast autodetectedToast = Toast.makeText(this, "" + autodetectedRects.length + " faces deteceted", Toast.LENGTH_SHORT);
 		autodetectedToast.show();
@@ -349,11 +378,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	/*
 	 * The actual face detection calling method
 	 */
-	private Rect[] runFaceDetection() {
+	private RectF[] runFaceDetection() {
 		GoogleFaceDetection gfd = new GoogleFaceDetection(imageBitmap);
 		int numFaces = gfd.findFaces();
         Log.v(LOGTAG,"Num Faces Found: " + numFaces); 
-        Rect[] possibleFaceRects = gfd.getFaces();
+        RectF[] possibleFaceRects = gfd.getFaces();
 		return possibleFaceRects;				
 	}
 	
