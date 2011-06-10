@@ -74,11 +74,16 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 				
 				// This comes back null if we are rotated as the activity is restarted
 				// Let's lock in portrait for now
-				Log.v(LOGTAG,"Sending: " + imageFileUri.toString());					
 				
-				Intent passingIntent = new Intent(this,ImageEditor.class);
-				passingIntent.setData(imageFileUri);
-				startActivityForResult(passingIntent, IMAGE_EDITOR);					
+				
+				if (imageFileUri != null)
+				{
+					Log.v(LOGTAG,"Sending: " + imageFileUri.toString());					
+					
+					Intent passingIntent = new Intent(this,ImageEditor.class);
+					passingIntent.setData(imageFileUri);
+					startActivityForResult(passingIntent, IMAGE_EDITOR);
+				}
 			}
 		}
 	}	
