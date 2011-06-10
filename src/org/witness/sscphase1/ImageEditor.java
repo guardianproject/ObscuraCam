@@ -193,10 +193,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 				// Get the current display to calculate ratios
 				Display currentDisplay = getWindowManager().getDefaultDisplay();
+
+				Log.v(LOGTAG,"Display Width: " + currentDisplay.getWidth());
+				Log.v(LOGTAG,"Display Height: " + currentDisplay.getHeight());
+				
+				Log.v(LOGTAG,"Image Width: " + originalImageWidth);
+				Log.v(LOGTAG,"Image Height: " + originalImageHeight);
 				
 				// Ratios between the display and the image
-				int widthRatio = (int) Math.ceil(bmpFactoryOptions.outWidth / (float) currentDisplay.getWidth());
-				int heightRatio = (int) Math.ceil(bmpFactoryOptions.outHeight / (float) currentDisplay.getHeight());
+				int widthRatio = (int) Math.floor(bmpFactoryOptions.outWidth / (float) currentDisplay.getWidth());
+				int heightRatio = (int) Math.floor(bmpFactoryOptions.outHeight / (float) currentDisplay.getHeight());
 
 				Log.v(LOGTAG, "HEIGHTRATIO:" + heightRatio);
 				Log.v(LOGTAG, "WIDTHRATIO:" + widthRatio);
@@ -222,14 +228,27 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					Log.v(LOGTAG,"bmp is null");
 				}
 				
+				float matrixWidthRatio = (float) currentDisplay.getWidth() / (float) imageBitmap.getWidth();
+				float matrixHeightRatio = (float) currentDisplay.getHeight() / (float) imageBitmap.getHeight();
+
 				// Setup the imageView and matrix for scaling
-				float matrixScale = 1;
-				matrix.setScale(matrixScale, matrixScale);
-				// Uncomment to re-implement realtime preview
-				//imageView.setImageBitmap(createObscuredBitmap());
+				float matrixScale = matrixHeightRatio;
+				
+				if (matrixWidthRatio < matrixHeightRatio) {
+					matrixScale = matrixWidthRatio;
+				} 
+				
 				imageView.setImageBitmap(imageBitmap);
+				
+				PointF midpoint = new PointF((float)imageBitmap.getWidth()/2f, (float)imageBitmap.getHeight()/2f);
+				matrix.postScale(matrixScale, matrixScale);
+
+				// This doesn't completely center the image but it get's closer
+				int fudge = 42;
+				matrix.postTranslate((float)((float)currentDisplay.getWidth()-(float)imageBitmap.getWidth()*(float)matrixScale)/2f,(float)((float)currentDisplay.getHeight()-(float)imageBitmap.getHeight()*matrixScale)/2f-fudge);
+				
 				imageView.setImageMatrix(matrix);
-								
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -244,9 +263,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			// Do auto detect popup
 			askToDoAutoDetect();
 		}
-		
-		putOnScreen();
-		redrawRegions();
 	}
 	
 	/*
@@ -369,7 +385,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				float sy = event.getY(0) - event.getY(1);
 				startFingerSpacing = (float) Math.sqrt(sx * sx + sy * sy);
 
-				Log.d(LOGTAG, "Start Finger Spacing=" + startFingerSpacing);
+				//Log.d(LOGTAG, "Start Finger Spacing=" + startFingerSpacing);
 				
 				// Get the midpoint
 				float xsum = event.getX(0) + event.getX(1);
@@ -377,7 +393,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
 				
 				mode = ZOOM;
-				Log.d(LOGTAG, "mode=ZOOM");
+				//Log.d(LOGTAG, "mode=ZOOM");
 				
 				clearImageRegionsEditMode();
 				
@@ -387,7 +403,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Single Finger Up
 				
 				mode = NONE;
-				Log.v(LOGTAG,"mode=NONE");
+				//Log.v(LOGTAG,"mode=NONE");
 
 				break;
 				
@@ -395,15 +411,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Multiple Finger Up
 								
 				mode = NONE;
-				Log.d(LOGTAG, "mode=NONE");
+				//Log.d(LOGTAG, "mode=NONE");
 				break;
 				
 			case MotionEvent.ACTION_MOVE:
 				
 				// Calculate distance moved
 				float distance = (float) (Math.sqrt(Math.abs(startPoint.x - event.getX()) + Math.abs(startPoint.y - event.getY())));
-				Log.v(LOGTAG,"Move Distance: " + distance);
-				Log.v(LOGTAG,"Min Distance: " + minMoveDistance);
+				//Log.v(LOGTAG,"Move Distance: " + distance);
+				//Log.v(LOGTAG,"Min Distance: " + minMoveDistance);
 				
 				// If greater than minMoveDistance, it is likely a drag or zoom
 				if (distance > minMoveDistance) {
@@ -431,7 +447,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						float ey = event.getY(0) - event.getY(1);
 						endFingerSpacing = (float) Math.sqrt(ex * ex + ey * ey);
 	
-						Log.d(LOGTAG, "End Finger Spacing=" + endFingerSpacing);
+						//Log.d(LOGTAG, "End Finger Spacing=" + endFingerSpacing);
 		
 						// If we moved far enough
 						if (endFingerSpacing > minMoveDistance) {
@@ -444,12 +460,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							// Make sure that the matrix isn't bigger than max scale/zoom
 							float[] matrixValues = new float[9];
 							matrix.getValues(matrixValues);
+							/*
 							Log.v(LOGTAG, "Total Scale: " + matrixValues[0]);
 							Log.v(LOGTAG, "" + matrixValues[0] + " " + matrixValues[1]
 									+ " " + matrixValues[2] + " " + matrixValues[3]
 									+ " " + matrixValues[4] + " " + matrixValues[5]
 									+ " " + matrixValues[6] + " " + matrixValues[7]
 									+ " " + matrixValues[8]);
+							*/
 							// x = 1.5 * 1 + 0 * y + -120 * 1
 							
 							if (matrixValues[0] > MAX_SCALE) {
@@ -464,7 +482,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							float esx = event.getX(0) - event.getX(1);
 							float esy = event.getY(0) - event.getY(1);
 							startFingerSpacing = (float) Math.sqrt(esx * esx + esy * esy);
-							Log.d(LOGTAG, "New Start Finger Spacing=" + startFingerSpacing);
+							//Log.d(LOGTAG, "New Start Finger Spacing=" + startFingerSpacing);
 							
 							// Reset the midpoint
 							float x_sum = event.getX(0) + event.getX(1);
