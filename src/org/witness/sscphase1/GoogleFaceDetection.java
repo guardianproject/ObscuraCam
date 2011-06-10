@@ -3,6 +3,7 @@ package org.witness.sscphase1;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.media.FaceDetector;
 import android.media.FaceDetector.Face;
 import android.util.Log;
@@ -31,8 +32,8 @@ public class GoogleFaceDetection implements FaceDetection {
 		return numFaces;
 	}
 
-	public Rect[] getFaces() {
-		Rect[] faceRects = new Rect[numFaces];
+	public RectF[] getFaces() {
+		RectF[] faceRects = new RectF[numFaces];
 		
 	    if (numFaces > 0) {
 	        for (int i = 0; i < faces.length; i++) {
@@ -41,10 +42,20 @@ public class GoogleFaceDetection implements FaceDetection {
 	            	
 	            	float eyeDistance = faces[i].eyesDistance();
 	            	faces[i].getMidPoint(midPoint);
-	            	
+
+	            	Log.v(LOGTAG,"eyeDistance: " + eyeDistance);
+	            	Log.v(LOGTAG,"midPoint: " + midPoint.x + " " + midPoint.y);
 	            	
 	            	// Create Rectangle
-	            	faceRects[i] = new Rect((int)(midPoint.x-eyeDistance*2), (int)(midPoint.y-eyeDistance*2), (int)(midPoint.x+eyeDistance*2), (int)(midPoint.y+eyeDistance*2));
+	            	faceRects[i] = new RectF((midPoint.x-eyeDistance), 
+	            			(midPoint.y-eyeDistance), 
+	            			(midPoint.x+eyeDistance), 
+	            			(midPoint.y+eyeDistance+eyeDistance));
+	            	
+	            	Log.v(LOGTAG,"faceRect: left: " + faceRects[i].left 
+	            			+ " top: " + faceRects[i].top 
+	            			+ " right: " + faceRects[i].right
+	            			+ " bottom: " + faceRects[i].bottom);
 	        	}
 	        }
 	    }	
