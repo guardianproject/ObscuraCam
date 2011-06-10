@@ -694,12 +694,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	{
 		if (mode != DRAG && mode != ZOOM) {
 			vibe.vibrate(50);
-			createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, 
-					(int)startPoint.y-DEFAULT_REGION_HEIGHT/2, 
-					(int)startPoint.x+DEFAULT_REGION_WIDTH/2, 
-					(int)startPoint.y+DEFAULT_REGION_HEIGHT/2, 
-					imageView.getWidth(), imageView.getHeight(), 
-					originalImageWidth, originalImageHeight, DRAW_COLOR);
+			
+			float scaledStartX = (float)startPoint.x-DEFAULT_REGION_WIDTH/2 * (float)imageView.getWidth()/(float)imageBitmap.getWidth();
+			float scaledStartY = (float)startPoint.y-DEFAULT_REGION_HEIGHT/2 * (float)imageView.getHeight()/(float)imageBitmap.getHeight();
+			float scaledEndX = (float)startPoint.x+DEFAULT_REGION_WIDTH/2 * (float)imageView.getWidth()/(float)imageBitmap.getWidth();
+			float scaledEndY = (float)startPoint.y+DEFAULT_REGION_HEIGHT/2 * (float)imageView.getHeight()/(float)imageBitmap.getHeight();
+
+			createImageRegion((int)scaledStartX, (int)scaledStartY, 
+							(int)scaledEndX, (int)scaledEndY, 
+							imageView.getWidth(), imageView.getHeight(), 
+							originalImageWidth, originalImageHeight, DRAW_COLOR);
 			return true;
 		}
 		
