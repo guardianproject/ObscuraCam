@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hello">Hello World</string>
-    <string name="app_name">Obscura</string>
-    <string name="image_preview">Obscura Image Preview</string>
-	<string name="SplashTextViewString">Camera Obscura</string>
-	<string name="CreditsTextViewString">Powered by the Guardian Project</string>
+    <string name="app_name">ObscuraCam</string>
+    <string name="image_preview">ObscuraCam Image Preview</string>
+	<string name="SplashTextViewString">ObscuraCam</string>
+	<string name="CreditsTextViewString">Powered by the Guardian Project and Witness</string>
 	<string name="WalkThroughSkipButton">Skip</string>
 	<string name="WalkThroughContinueButton">Continue</string>
 	<string name="WalkThroughTextView">This is an application which helps protect the privacy of individuals that may appear in pictures.</string>
