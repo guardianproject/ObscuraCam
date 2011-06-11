@@ -30,6 +30,7 @@ import android.graphics.Bitmap.CompressFormat;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.Vibrator;
 import android.provider.MediaStore.Images.Media;
 import android.util.Log;
@@ -140,6 +141,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	// Temporary Image Uri
 	Uri tmpImageUri;
+	
+	//handles threaded events for the UI thread
+    private Handler mHandler = new Handler();
+
+    private Runnable mUpdateTimeTask = new Runnable() {
+    	   public void run() {
+    		   doAutoDetection();
+    	   }
+    	};
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -261,8 +271,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			regionButtonsLayout = (RelativeLayout) this.findViewById(R.id.RegionButtonsLayout);
 			
 			// Do auto detect popup
-			//askToDoAutoDetect();
-			doAutoDetection();
+
+			Toast autodetectedToast = Toast.makeText(this, "Detecting faces...", Toast.LENGTH_SHORT);
+			autodetectedToast.show();
+			mHandler.postDelayed(mUpdateTimeTask, 1000);
+			
 		}
 	}
 	
@@ -327,8 +340,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	private void doAutoDetection() {
 		// This should be called via a pop-up/alert mechanism
-		Toast autodetectedToast = Toast.makeText(this, "Detecting faces...", Toast.LENGTH_SHORT);
-		autodetectedToast.show();
 		
 		RectF[] autodetectedRects = runFaceDetection();
 		for (int adr = 0; adr < autodetectedRects.length; adr++) {
@@ -349,11 +360,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			//matrix.mapRect(autodetectedRects[adr]);		
 			//Log.v(LOGTAG,"MAPPED RECT:" + autodetectedRects[adr].left + " " + autodetectedRects[adr].top + " " + autodetectedRects[adr].right + " " + autodetectedRects[adr].bottom);
 			
+			float faceBuffer = (autodetectedRectScaled.right-autodetectedRectScaled.left)/5;
+			
 			createImageRegion(
-					(int)autodetectedRectScaled.left,
-					(int)autodetectedRectScaled.top,
-					(int)autodetectedRectScaled.right,
-					(int)autodetectedRectScaled.bottom,
+					(int)(autodetectedRectScaled.left-faceBuffer),
+					(int)(autodetectedRectScaled.top-faceBuffer),
+					(int)(autodetectedRectScaled.right+faceBuffer),
+					(int)(autodetectedRectScaled.bottom+faceBuffer),
 					imageView.getWidth(),
 					imageView.getHeight(),
 					originalImageWidth, 
@@ -374,7 +387,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 		*/
 		
-		autodetectedToast = Toast.makeText(this, "" + autodetectedRects.length + " faces detected", Toast.LENGTH_SHORT);
+		Toast autodetectedToast = Toast.makeText(this, "" + autodetectedRects.length + " faces detected", Toast.LENGTH_SHORT);
 		autodetectedToast.show();
 	}
 	
@@ -1007,4 +1020,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     {
         super.onConfigurationChanged(conf);
     }
+
+	@Override
+	protected void onPostResume() {
+		// TODO Auto-generated method stub
+		super.onPostResume();
+		
+		
+	}
 }
