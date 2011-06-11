@@ -32,7 +32,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	int imageHeight;
 	
 	// The distance around a corner which will still represent a corner touch event
-	public static final int CORNER_TOUCH_TOLERANCE = 35;
+	public static final int CORNER_TOUCH_TOLERANCE = 70;
 		
 	// Our current mode
 	public static final int NORMAL_MODE = 0;
