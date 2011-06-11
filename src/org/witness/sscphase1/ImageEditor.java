@@ -261,7 +261,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			regionButtonsLayout = (RelativeLayout) this.findViewById(R.id.RegionButtonsLayout);
 			
 			// Do auto detect popup
-			askToDoAutoDetect();
+			//askToDoAutoDetect();
+			doAutoDetection();
 		}
 	}
 	
@@ -326,6 +327,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	private void doAutoDetection() {
 		// This should be called via a pop-up/alert mechanism
+		Toast autodetectedToast = Toast.makeText(this, "Detecting faces...", Toast.LENGTH_SHORT);
+		autodetectedToast.show();
 		
 		RectF[] autodetectedRects = runFaceDetection();
 		for (int adr = 0; adr < autodetectedRects.length; adr++) {
@@ -371,7 +374,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 		*/
 		
-		Toast autodetectedToast = Toast.makeText(this, "" + autodetectedRects.length + " faces deteceted", Toast.LENGTH_SHORT);
+		autodetectedToast = Toast.makeText(this, "" + autodetectedRects.length + " faces detected", Toast.LENGTH_SHORT);
 		autodetectedToast.show();
 	}
 	
@@ -771,12 +774,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         		displayAbout();
         		
         		return true;
-        	/*
+        	
         	case R.id.menu_preview:
         		showPreview();
         		
         		return true;
-        		*/
+        		
     		default:
     			return false;
     	}

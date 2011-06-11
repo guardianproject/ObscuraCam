@@ -9,11 +9,10 @@
         android:title="@string/menu_share"
         android:icon="@drawable/ic_menu_share" />
 
-<!-- 
     <item android:id="@+id/menu_preview"
         android:title="@string/menu_preview" 
         android:icon="@drawable/ic_menu_preview"/>
- -->
+
     <item android:id="@+id/menu_save"
         android:title="@string/menu_save"
         android:icon="@drawable/ic_menu_save" />
