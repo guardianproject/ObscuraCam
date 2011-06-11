@@ -1,0 +1,13 @@
+
+1.0.2
+- new mask graphic
+- fixed corner selection size
+- added white border around deselected region
+- added back in preview
+
+1.0.1
+- fixed region corners
+- fixed facial detection region size
+
+1.0.0
+- in the market!
