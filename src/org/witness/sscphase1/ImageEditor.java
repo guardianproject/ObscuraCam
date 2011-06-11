@@ -144,6 +144,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	//handles threaded events for the UI thread
     private Handler mHandler = new Handler();
+    
+    // Handles when we should do realtime preview and when we shouldn't
+    boolean doRealtimePreview = true;
 
     private Runnable mUpdateTimeTask = new Runnable() {
     	   public void run() {
@@ -415,6 +418,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Single Finger down
 				mode = TAP;
 				
+				// Don't do realtime preview while touching screen
+				//doRealtimePreview = false;
+				//updateDisplayImage();
+
 				// Save the Start point. 
 				startPoint.set(event.getX(), event.getY());
 						
@@ -424,7 +431,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 			case MotionEvent.ACTION_POINTER_DOWN:
 				// Two Fingers down
-				
+
+				// Don't do realtime preview while touching screen
+				//doRealtimePreview = false;
+				//updateDisplayImage();
+
 				// Get the spacing of the fingers, 2 fingers
 				float sx = event.getX(0) - event.getX(1);
 				float sy = event.getY(0) - event.getY(1);
@@ -447,6 +458,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			case MotionEvent.ACTION_UP:
 				// Single Finger Up
 				
+			    // Re-enable realtime preview
+				doRealtimePreview = true;
+				updateDisplayImage();
+				
 				mode = NONE;
 				//Log.v(LOGTAG,"mode=NONE");
 
@@ -454,7 +469,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 			case MotionEvent.ACTION_POINTER_UP:
 				// Multiple Finger Up
-								
+				
+			    // Re-enable realtime preview
+				doRealtimePreview = true;
+				updateDisplayImage();
+				
 				mode = NONE;
 				//Log.d(LOGTAG, "mode=NONE");
 				break;
@@ -546,15 +565,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	}
 	
 	/*
-	 * For live previews, not being used right now
-	 * I think the ImageRegion itself should do this for performance reasons
-	 */
-	
+	 * For live previews
+	 */	
 	public void updateDisplayImage()
 	{
-		imageView.setImageBitmap(createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight()));
+		if (doRealtimePreview) {
+			imageView.setImageBitmap(createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight()));
+		} else {
+			imageView.setImageBitmap(imageBitmap);
+		}
 	}
-	
 	
 	/*
 	 * Move the image onto the screen if it has been moved off
