@@ -403,7 +403,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 				case MotionEvent.ACTION_DOWN:
 					
 					Log.v(LOGTAG,"ACTION_DOWN");
-										
+					
+					imageEditor.doRealtimePreview = false;
+					imageEditor.updateDisplayImage();
+					
 					startPoint = new PointF(event.getX(),event.getY());
 					Log.v(LOGTAG,"startPoint: " + startPoint.x + " " + startPoint.y);
 										
@@ -456,6 +459,9 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 				case MotionEvent.ACTION_UP:
 					Log.v(LOGTAG,"ACTION_UP");
 
+					imageEditor.doRealtimePreview = true;
+					imageEditor.updateDisplayImage();
+					
 					whichEditMode = NONE;
 					if (doMenu) {
 						Log.v(LOGTAG,"doMenu");
@@ -557,12 +563,20 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 					
 				case MotionEvent.ACTION_OUTSIDE:
 					Log.v(LOGTAG,"ACTION_OUTSIDE");
+					
+					imageEditor.doRealtimePreview = true;
+					imageEditor.updateDisplayImage();
+					
 					whichEditMode = NONE;
 					doMenu = false;
 					return true;
 					
 				case MotionEvent.ACTION_CANCEL:
 					Log.v(LOGTAG,"ACTION_CANCEL");
+					
+					imageEditor.doRealtimePreview = true;
+					imageEditor.updateDisplayImage();
+					
 					whichEditMode = NONE;
 					doMenu = false;
 					return true;
@@ -570,6 +584,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 				default:
 					Log.v(LOGTAG, "DEFAULT: " + (event.getAction() & MotionEvent.ACTION_MASK));
 					whichEditMode = NONE;
+					
+					imageEditor.doRealtimePreview = true;
+					imageEditor.updateDisplayImage();
+					
 					doMenu = false;
 					return true;
 			}
