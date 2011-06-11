@@ -307,7 +307,9 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 		} else if (mode == NORMAL_MODE) {
 			editAction.setTitle("Edit");
 
-			setBackgroundColor(0x66ffffff);
+			//setBackgroundColor(0xffffffff);
+			setBackgroundDrawable(imageEditor.getResources().getDrawable(R.drawable.border));
+			
 			topLeftCorner.setVisibility(View.GONE);
 			topRightCorner.setVisibility(View.GONE);
 			bottomLeftCorner.setVisibility(View.GONE);
