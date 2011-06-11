@@ -68,9 +68,11 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 		if (resultCode == RESULT_OK) {
 			if (requestCode == GALLERY_RESULT || requestCode == CAMERA_RESULT) {
 									
-				if (requestCode == GALLERY_RESULT) {
+				if (requestCode == GALLERY_RESULT || imageFileUri == null) {
 					imageFileUri = intent.getData();
+					
 				}
+		
 				
 				// This comes back null if we are rotated as the activity is restarted
 				// Let's lock in portrait for now
