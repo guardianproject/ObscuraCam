@@ -4,6 +4,8 @@
 - fixed corner selection size
 - added white border around deselected region
 - added back in preview
+- added padding around face detection area to expand it a bit
+- made detection automatic
 
 1.0.1
 - fixed region corners
