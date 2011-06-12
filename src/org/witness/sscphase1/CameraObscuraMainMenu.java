@@ -69,6 +69,11 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 			if (requestCode == GALLERY_RESULT || requestCode == CAMERA_RESULT) {
 									
 				if (requestCode == GALLERY_RESULT || imageFileUri == null) {
+					
+					// If imageFileUri is null and we are coming from the camera app,
+					// the below code will may give us a small version of the image
+					// I am not sure we want that...
+					// http://code.google.com/p/android/issues/detail?id=1480
 					imageFileUri = intent.getData();
 					
 				}
