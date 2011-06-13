@@ -59,6 +59,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+import org.witness.securesmartcam.jpegredaction.JpegRedaction;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener, OnLongClickListener {
 
@@ -1118,7 +1119,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }
     
     private void saveImage() {
-    	
+    		if (imageUri != null) {
+		JpegRedaction redactor = new JpegRedaction();
+		String s = mdh.getFileNameFromUri(imageUri);
+    	Log.v(LOGTAG,"saveImage" + s );
+
+		redactor.redactit(s);
+    		}
     	//how take care of the original!
 		if (deleteOriginal && imageUri != null)
 			handleDelete();

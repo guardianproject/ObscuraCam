@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 
 public class JpegRedaction extends Activity {
-    private native void redactit();
+    public native void redactit(String path);
 
     static {
         System.loadLibrary("JpegRedaction");
@@ -15,6 +15,6 @@ public class JpegRedaction extends Activity {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.main);
 
-        redactit();
+ //       redactit(path);
     }
 }

@@ -12,8 +12,10 @@ extern "C" {
  * Method:    redactit
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactit
-  (JNIEnv *, jobject);
+JNIEXPORT void JNICALL
+Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactit(JNIEnv *,
+								     jobject,
+								     jstring);
 
 #ifdef __cplusplus
 }
