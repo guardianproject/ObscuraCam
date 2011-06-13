@@ -1,3 +1,22 @@
+// Copyright (C) 2011 Andrew W. Senior andrew.senior[AT]gmail.com
+// Part of the Jpeg-Redaction-Library to read, parse, edit redact and
+// write JPEG/EXIF/JFIF images.
+// See https://github.com/asenior/Jpeg-Redaction-Library
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 #ifndef INCLUDE_JPEGDECODER
 #define INCLUDE_JPEGDECODER
 // JpegDecoder parse the JPEG encoded data.
@@ -17,7 +36,7 @@ class JpegDecoder {
  public:
   JpegDecoder(int w, int h,
 	      unsigned char *data,
-	      int length,
+	      int length,  // in bits of the data.
 	      const std::vector<JpegDHT *> &dhts,
 	      const std::vector<Jpeg::JpegComponent*> *components);
 
@@ -25,7 +44,15 @@ class JpegDecoder {
   // Decode the whole image.
   void Decode(Redaction *redaction);
 
-  const std::vector<unsigned char> &GetRedactedData() const {
+  const std::vector<unsigned char> &GetRedactedData() {
+    if (redaction_bit_pointer_ > (redacted_data_.size() * 8) || 
+	redaction_bit_pointer_ < (redacted_data_.size() * 8) - 8) {
+      throw("RedactedData length mismatch");
+    }
+    // Pad the last byte with ones.
+    int used_bits_last_byte = (redaction_bit_pointer_ % 8);
+    unsigned char unused_bits_mask = (1 << (8 - used_bits_last_byte)) - 1;
+    redacted_data_.back() |= unused_bits_mask;
     return redacted_data_;
   }
   // Write the grey scale decoded image to a file.
@@ -82,9 +109,9 @@ protected:
     // The remaining bits in this byte.
     int new_bits = 8 - (data_pointer_ & 0x7);
     data_pointer_ += word_size_ - num_bits_;
-    if (data_pointer_ > (length_ << 3))
-      data_pointer_ = length_ << 3;
-    while (num_bits_ < word_size_ && byte < length_) {
+    if (data_pointer_ > length_)
+      data_pointer_ = length_;
+    while (num_bits_ < word_size_ && byte < ((length_ + 7) >> 3)) {
       unsigned int val = (data_[byte] & ((1<<new_bits)-1));
       const int shift = word_size_ - new_bits - num_bits_;
       if (shift < 0) {
@@ -222,7 +249,7 @@ protected:
 
   // Decoding information:
   unsigned char *data_;
-  int length_; // How many bytes in data
+  int length_; // How many bits in data
 
   unsigned int current_bits_;  // Buffer of up to 32 bits.
   int num_bits_; // How many bits valid in current_bits_

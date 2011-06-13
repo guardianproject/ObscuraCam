@@ -1,3 +1,22 @@
+// Copyright (C) 2011 Andrew W. Senior andrew.senior[AT]gmail.com
+// Part of the Jpeg-Redaction-Library to read, parse, edit redact and
+// write JPEG/EXIF/JFIF images.
+// See https://github.com/asenior/Jpeg-Redaction-Library
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 // jpeg.cpp: implementation of the Jpeg class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -103,7 +122,7 @@ namespace jpeg_redaction {
 	}
 	fseek(pFile, blockloc + blocksize + sizeof(marker), SEEK_SET);
 	continue;
-      }
+      } else 
       if (marker >= jpeg_app && marker < jpeg_app + 16) {
 	unsigned short blocksize;
 	iRV = fread(&blocksize, sizeof(unsigned short), 1, pFile);
@@ -412,7 +431,7 @@ namespace jpeg_redaction {
     // const int check_len = 64;
     data += 10;
 
-    JpegDecoder decoder(width_, height_, data, data_length - 10,
+    JpegDecoder decoder(width_, height_, data, 8 * (data_length - 10),
 			dhts_, &components_);
     printf("\n\nDecoding %lu\n", sos_block->data_.size());
     //  DumpHex((unsigned char*)&sos_block->data_[check_offset], check_len);
@@ -519,13 +538,18 @@ namespace jpeg_redaction {
       throw("Data length mismatch in RemoveStuffBytes");
     }
     const int start_of_huffman = 10;
-    unsigned char *dest = &data_[start_of_huffman];
-    unsigned char *src = &data_[start_of_huffman];
+    if (data_.size() < start_of_huffman) {
+      printf("Data %d len %d\n", data_.size(), length_);
+      throw("Data too short in RemoveStuffBytes");
+    }
+
+    int dest = start_of_huffman;
+    int src  = start_of_huffman;
     int stuff_bytes = 0;
-    for (int i = start_of_huffman; i < length_; ++i, ++dest, ++src) {
-      *dest = *src;
-      if (*src == 0xff && *(src+1) == 0x00) {
-	src++;
+    for (int src = start_of_huffman; src < length_ - 2; ++dest, ++src) {
+      data_[dest] = data_[src];
+      if (data_[src] == 0xff && data_[src+1] == 0x00) {
+	++src;
 	++stuff_bytes;
       }
     }

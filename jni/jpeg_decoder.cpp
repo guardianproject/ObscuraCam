@@ -1,3 +1,22 @@
+// Copyright (C) 2011 Andrew W. Senior andrew.senior[AT]gmail.com
+// Part of the Jpeg-Redaction-Library to read, parse, edit redact and
+// write JPEG/EXIF/JFIF images.
+// See https://github.com/asenior/Jpeg-Redaction-Library
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
 // JpegDecoder class: parse the JPEG encoded data.
 #include <stdio.h>
 #include "jpeg_decoder.h"
@@ -14,7 +33,7 @@ const int JpegDecoder::kRedactingOff = 0;
 const int JpegDecoder::kBlockSize = 8;
 JpegDecoder::JpegDecoder(int w, int h,
 			 unsigned char *data,
-			 int length,  // in bytes
+			 int length,  // in bits
 			 const std::vector<JpegDHT *> &dhts,
 			 const std::vector<Jpeg::JpegComponent*> *components) :
   height_(h), width_(w), components_(components), current_strip_(NULL) {
@@ -119,7 +138,7 @@ void JpegDecoder::Decode(Redaction *redaction) {
   if (redaction != NULL && redaction->NumRegions() > 0) {
     redacting_ = kRedactingInactive;
     // Reserve space for the redacted data- should be smaller than the original.
-    redacted_data_.reserve(length_ + 2); // For end marker later.
+    redacted_data_.reserve(((length_ + 7) >> 3) + 2); // For end marker later.
   }
 
   while (mcus_ < num_mcus_) {
@@ -142,7 +161,7 @@ void JpegDecoder::Decode(Redaction *redaction) {
       StoreEndOfStrip(redaction);
 
   printf("Got to %d mcus. %d bits left.\n", num_mcus_,
-	 length_ * 8 - data_pointer_);
+	 length_ - data_pointer_);
 }
 
 void JpegDecoder::StoreEndOfStrip(Redaction *redaction) {
