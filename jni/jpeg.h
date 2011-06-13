@@ -38,18 +38,30 @@ class JpegMarker {
       throw("Failed to read marker");
     }
   }
+  void WriteWithStuffBytes(FILE *pFile);
+  void RemoveStuffBytes();
   int Save(FILE *pFile);
   unsigned short slice_;
   // Length is payload size- includes storage for length itself.
   int length_;
   unsigned int location_;
   unsigned short marker_;
-  std::vector<char> data_;
-};
+  std::vector<unsigned char> data_;
+};  // JpegMarker
 
 class Photoshop3Block;
 class Jpeg {
 public:
+  enum markers { jpeg_soi = 0xFFD8,
+		 jpeg_sof0 = 0xFFC0,
+		 jpeg_sof2 = 0xFFC2,
+		 jpeg_dht = 0xFFC4,
+		 jpeg_eoi = 0xFFD9,
+		 jpeg_sos = 0xFFDA,
+		 jpeg_dqt = 0xFFDB,
+		 jpeg_dri = 0xFFDD,
+		 jpeg_com = 0xFFDE,
+		 jpeg_app = 0xFFE0};
   class JpegComponent {
   public:
     JpegComponent(unsigned char *d) {
@@ -67,25 +79,28 @@ public:
     int v_factor_;
     int table_;
   };
- Jpeg() : filename_(""), width_(0), height_(0), photoshop3_(NULL) {};
-  enum markers { jpeg_soi = 0xFFD8,
-		 jpeg_sof0 = 0xFFC0,
-		 jpeg_sof2 = 0xFFC2,
-		 jpeg_dht = 0xFFC4,
-		 jpeg_eoi = 0xFFD9,
-		 jpeg_sos = 0xFFDA,
-		 jpeg_dqt = 0xFFDB,
-		 jpeg_dri = 0xFFDD,
-		 jpeg_com = 0xFFDE,
-		 jpeg_app = 0xFFE0};
-  Jpeg(char const * const pczFilename, bool loadall);
-  int LoadFromFile(FILE *pFile, bool loadall, int offset);
-  void ParseImage(const Redaction &redact, const char *pgmout);
-
-  int Save(const char * const filename);
+  // Trivial constructor.
+  Jpeg() : filename_(""), width_(0), height_(0), photoshop3_(NULL) {};
   virtual ~Jpeg();
+  // Construct from a file. loadall indicates whether to load all
+  // data blocks, or just parse the file and extract metadata.
+  bool LoadFromFile(char const * const pczFilename, bool loadall);
+  int LoadFromFile(FILE *pFile, bool loadall, int offset);
+
+  // Parse the JPEG data and redact if Redaction regions are supplied.
+  // If pgm_save_filename is provided, write the decoded image to that file.
+
+  void DecodeImage(Redaction *redaction, const char *pgm_save_filename);
+  // Invert the redaction by pasting in the strips from redaction.
+  int ReverseRedaction(const Redaction &redaction);
+
+  // Save the current (possibly redacted) version of the JPEG out.
+  // Return 0 on success.
+  int Save(const char * const filename);
+
   const char *MarkerName(int marker) const;
   Iptc *GetIptc();
+  // Return a pointer to the Exif IFD if present. 
   ExifIfd *GetExif() {
     for (int i=0; i < ifds_.size(); ++i)
       if (ifds_[i]->GetExif())
@@ -109,11 +124,7 @@ public:
     RemoveTag(TiffTag::tag_model);
     // e.g. times, owner, IPTC etc.
   }
-  // Invert the redaction by pasting in the strips from redaction.
-  int ReverseRedaction(const Redaction &redaction) {
-    throw("Not yet implemented");
-  }
-  std::vector<JpegMarker*> markers_;
+
   JpegMarker *GetMarker(int marker) {
     for (int i = 0 ; i < markers_.size(); ++i) {
       /* printf("Marker %d is %04x seeking %04x\n", */
@@ -123,13 +134,16 @@ public:
     }
     return NULL;
   }
-  // If its a SOF or SOS we pass a slice.
+  // If it's a SOF or SOS we pass a slice.
   JpegMarker *AddSOMarker(int location, int length,
 			  FILE *pFile, bool loadall, int slice) {
-    // We have true byte length here, but AddMarker needs
+    // We have true byte length here, + 2 bytes of EOI. AddMarker needs
     // payload length which assumes there were 2 bytes of length.
-    JpegMarker *markerptr = AddMarker(jpeg_sos, location, length+2,
+    JpegMarker *markerptr = AddMarker(jpeg_sos, location, length + 2 - 2,
 				      pFile, loadall);
+    if (loadall)
+      markerptr->RemoveStuffBytes();
+    fseek(pFile, 2, SEEK_CUR);
     markerptr->slice_ = slice;
     return markerptr;
   }
@@ -145,10 +159,14 @@ public:
     return markerptr;
   }
 protected:
+  // After loading an SO Marker, remove the stuff bytes so the bitstream
+  // can be read more easily.
+  void RemoveStuffBytes();
   void BuildDHTs(const JpegMarker *dht_block);
   int ReadSOSMarker(FILE *pFile, unsigned int blockloc, bool loadall);
   int LoadExif(FILE *pFile, unsigned int blockloc, bool loadall);
 
+  std::vector<JpegMarker*> markers_;
   int width_;
   int height_;
   int softype_;
@@ -161,7 +179,7 @@ protected:
   Photoshop3Block *photoshop3_;
   std::vector<JpegDHT*> dhts_;
   std::vector<JpegComponent*> components_;
-};
-} // namespace redaction
+};  // Jpeg
+}  // namespace redaction
 
 #endif // INCLUDE_JPEG

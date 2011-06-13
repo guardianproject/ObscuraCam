@@ -14,17 +14,15 @@
 #include <string.h>
 #include <vector>
 
-
-using std::string;
-
 #include "iptc.h"
 #include "byte_swapping.h"
 
+using std::string;
 using std::vector;
 
 // const unsigned short Iptc::tag_bim_iptc_ = 0x0404; // The bim type for IPTC data
 //
-#define tag_8bim 0x4d494238 // "8BIM"
+#define tag_8bim 0x3842494d // 0x4d494238 // "8BIM"
 #define tag_bim_iptc_ 0x0404 // The bim type for IPTC data
 
 namespace jpeg_redaction {
@@ -34,33 +32,43 @@ class Photoshop3Block
   class BIM
   {
   public:
-//    static const unsigned int tag_bim_ = 0x4d494238; // "8BIM"
     BIM(FILE *pFile) : iptc_(NULL) {
-      int iRV = fread(&magic_, sizeof(magic_), 1, pFile);
+      const bool arch_big_endian = ArchBigEndian();
+      int iRV = fread(&magic_, sizeof(magic_), 1, pFile); // short
 
+      if (!arch_big_endian)
+	ByteSwapInPlace(&magic_, 1);
+	
       if (magic_ != tag_8bim)
-        printf("BIM was 0x%x not 0x %x\n", magic_, tag_8bim);
+        printf("BIM was 0x%x not 0x%x\n", magic_, tag_8bim);
+
+      // short
       iRV = fread(&bim_type_, sizeof(bim_type_), 1, pFile);
 
       iRV = fread(&pascalstringlength_, sizeof(pascalstringlength_), 1, pFile);
 
       // The pascal string storage (including the length byte) must be even.
       // How many more bytes do we have to read?
-      unsigned char pascalstringlengthrounded = pascalstringlength_ + (1-(pascalstringlength_%2));
+      unsigned char pascalstringlengthrounded =
+	pascalstringlength_ + (1-(pascalstringlength_%2));
       pascalstring_.resize(pascalstringlengthrounded);
-      iRV = fread(&pascalstring_[0], sizeof(unsigned char), pascalstringlengthrounded, pFile);
+      iRV = fread(&pascalstring_[0], sizeof(unsigned char),
+		  pascalstringlengthrounded, pFile);
 
       iRV = fread(&bim_length_, sizeof(bim_length_), 1, pFile);
 
-      bim_length_ = byteswap4(bim_length_);
+      if (!arch_big_endian)
+	ByteSwapInPlace(&bim_length_, 1);
 
-      unsigned int bim_length_rounded = bim_length_ + (bim_length_%2);  // Rounded to be even.
+      unsigned int bim_length_rounded =
+	bim_length_ + (bim_length_%2);  // Rounded to be even.
       if (bim_type_ == tag_bim_iptc_) {
         iptc_ = new Iptc(pFile, bim_length_);
       } else {
-        printf("Got a BIM of type %x", bim_type_);
+        printf("Got a BIM of type %x size %d\n", bim_type_, bim_length_rounded);
         data_.resize(bim_length_rounded);
-        iRV = fread(&data_[0], sizeof(unsigned char), bim_length_rounded, pFile);
+        iRV = fread(&data_[0], sizeof(unsigned char),
+		    bim_length_rounded, pFile);
       }
 //      throw("Got an unsupported BIM");
     }
@@ -68,31 +76,51 @@ class Photoshop3Block
     virtual ~BIM() { }
 
     int Length() const { return bim_length_; }
-    // BIM data (rounded) , Bimlength (4) , Bim type (2) , pascal string (length + rounded)
-    int TotalLength() const { return sizeof(bim_type_) + sizeof(magic_) + bim_length_  + (bim_length_%2) + sizeof(bim_length_) +
-        pascalstringlength_ +  sizeof(pascalstringlength_) + 1  - (pascalstringlength_%2);}
+    // BIM data (rounded) , Bimlength (4) , Bim type (2) ,
+    // pascal string (length + rounded)
+    int TotalLength() const {
+      return sizeof(bim_type_) + sizeof(magic_) + bim_length_  +
+	(bim_length_%2) + sizeof(bim_length_) +
+        pascalstringlength_ +  sizeof(pascalstringlength_) +
+	1  - (pascalstringlength_%2);}
 
     int Write(FILE *pFile) {
+      printf("Writing BIM3 at %d\n", ftell(pFile));
+      const bool arch_big_endian = ArchBigEndian();
       int length = 0;
       int iRV;
-      iRV = fwrite(&magic_, sizeof(magic_), 1, pFile);
-      unsigned int bim_tag = tag_8bim;
-      iRV = fwrite(&bim_tag, sizeof(unsigned int), 1, pFile);
+      unsigned int magic = tag_8bim;
+      if (!arch_big_endian)
+	ByteSwapInPlace(&magic, 1);
+      iRV = fwrite(&magic, sizeof(magic), 1, pFile);
 
-      iRV = fwrite(&bim_type_, sizeof(unsigned short), 1, pFile);
+      unsigned short bim_type = bim_type_;
+      if (!arch_big_endian)
+	ByteSwapInPlace(&bim_type, 1);
+      iRV = fwrite(&bim_type, sizeof(bim_type), 1, pFile);
+      
+      // Number of bytes to write out - to make the (length + string)
+      // structure even length.
+      
+      iRV = fwrite(&pascalstringlength_, sizeof(pascalstringlength_), 1, pFile);
+      unsigned char pascalstringlengthrounded =
+	pascalstringlength_ + (1-(pascalstringlength_%2));
+      iRV = fwrite(&pascalstring_[0], sizeof(unsigned char),
+		   pascalstringlengthrounded, pFile);
+      // Rounded to be even.
+      const unsigned int bim_length_rounded = bim_length_ + (bim_length_%2);
+      unsigned int bim_length_rounded_swap = bim_length_rounded;
+      if (!arch_big_endian)
+	ByteSwapInPlace(&bim_length_rounded_swap, 1);
 
-      iRV = fwrite(&pascalstringlength_, sizeof(unsigned char), 1, pFile);
-
-      // Number of bytes to write out - to make the (length + string) structure even length.
-      unsigned char pascalstringlengthrounded = pascalstringlength_ + (1-(pascalstringlength_%2));
-      iRV = fwrite(&pascalstring_[0], sizeof(unsigned char), pascalstringlengthrounded, pFile);
-
-      unsigned int bim_length_rounded = bim_length_ + (bim_length_%2); // Rounded to be even.
-      bim_length_rounded = byteswap4(bim_length_rounded);
-
-      iRV = fwrite(&bim_length_rounded, sizeof(unsigned int), 1, pFile);
+      iRV = fwrite(&bim_length_rounded_swap, sizeof(unsigned int), 1, pFile);
+      printf("Writing BIM length %d, %x %d\n", bim_length_rounded, &data_[0], data_.size());
+      if (bim_type_ == tag_bim_iptc_) {
+	if (iptc_ == NULL) throw("IPTC is null in write");
+	iptc_->Write(pFile);
+      } else {
       iRV = fwrite(&data_[0], sizeof(unsigned char), bim_length_rounded, pFile);
-
+      }
       return length;
     }
 
@@ -103,7 +131,7 @@ class Photoshop3Block
     unsigned int bim_length_;
     vector<unsigned char> data_;
     Iptc *iptc_;
-    unsigned short magic_;
+    unsigned int magic_;
   };
 
 
@@ -138,7 +166,8 @@ class Photoshop3Block
     int Write(FILE *pFile) {
       int length = 0;
       int headerlen = headerstring_.length();
-      int iRV = fwrite(headerstring_.c_str(), sizeof(unsigned char), headerlen + 1, pFile);
+      int iRV = fwrite(headerstring_.c_str(), sizeof(unsigned char),
+		       headerlen + 1, pFile);
       if (iRV != headerlen + 1)
         throw("Can't write");
       length += iRV;

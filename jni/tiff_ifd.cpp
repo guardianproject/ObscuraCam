@@ -71,8 +71,9 @@ void TiffIfd::ListTags() const {
 
 
 // Save the ifd out to an open file. Return this ifdlocation
-unsigned int TiffIfd::Write(FILE *pFile, unsigned int nextifdoffset,
-			      int subfileoffset) const
+unsigned int TiffIfd::Write(FILE *pFile,
+			    unsigned int nextifdoffset,
+			    int subfileoffset) const
 {
   // Values that need to be filled in later.
   // Record where in the file and then what value will be put there.

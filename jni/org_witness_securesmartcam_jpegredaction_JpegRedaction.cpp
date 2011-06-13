@@ -11,23 +11,25 @@
 
 JNIEXPORT void JNICALL
 Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactit(JNIEnv *env, jobject obj) {
+  __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","Running");
+  try {
+    const char *source_filename = "/sdcard/windows.jpg";
+    const char *dest_filename = "/sdcard/jrl_test_output.jpg";
 
-	__android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","Running");
+    printf("hello world");
+    jpeg_redaction::Jpeg jpeg_decoder;
+    jpeg_decoder.LoadFromFile(source_filename, true);
+    __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","Loaded");
+    jpeg_redaction::Redaction::Rect rect(50, 600, 50, 600);
+    jpeg_redaction::Redaction redaction;
+    redaction.AddRegion(rect);
+    jpeg_decoder.DecodeImage(&redaction, NULL);
+    jpeg_decoder.Save(dest_filename);
 
-	try {
-		printf("hello world");
+  } catch (const char *error) {
+    __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","ERROR");
+  }
 
-		jpeg_redaction::Jpeg j2("/sdcard/windows.jpg", true);
-		jpeg_redaction::Redaction::Rect rect(50, 600, 50, 600);
-		jpeg_redaction::Redaction redaction;
-		redaction.AddRegion(rect);
-		j2.ParseImage(redaction, "/sdcard/rawgrey.pgm");
-		j2.Save("/sdcard/testoutput.jpg");
-
-	} catch (const char *error) {
-		__android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","ERROR");
-	}
-
-	__android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","Finished");
+  __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","Finished");
 }
 

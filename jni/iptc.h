@@ -136,7 +136,8 @@ public:
       unsigned short shortlength;
       iRV = fread(&shortlength, sizeof(unsigned short), 1, pFile);
       if (iRV != 1) throw("IPTC read fail");
-      shortlength = byteswap2(shortlength);
+      const bool arch_big_endian = ArchBigEndian();
+      if (!arch_big_endian) ByteSwapInPlace(&shortlength, 1);
 
       if (shortlength & 0x8000) { // Top bit is set: p14 of IPTC IIMV
         shortlength &= 0x7ffff;  // Number of bytes in which the actual length is stored.
@@ -155,7 +156,10 @@ public:
       iRV = fread(&data_[0], sizeof(unsigned char), length, pFile);
 
       if (iRV != length) throw("IPTC read fail length");
-      printf("IPTC dataset %d,%d\n", record_, tag_);
+      printf("IPTC dataset %d,%d len %d", record_, tag_, length);
+      for (int i =0; i < length; ++i)
+	printf("%c", data_[i]);
+      printf("\n");
     }
 
 
@@ -169,21 +173,23 @@ public:
 
     int Write(FILE *pFile)
     {
+      const unsigned short length = data_.size();
+      printf("Writing IPTC tag %d\n", tag_, length);
       int iRV = fwrite(&Iptc::tag_marker_, sizeof(unsigned char), 1, pFile);
       if (iRV != 1) throw("IPTC write fail");
       iRV = fwrite(&record_, sizeof(unsigned char), 1, pFile);
-      if (iRV != 1) throw("IPTC write fail");
+      if (iRV != 1) throw("IPTC write fail record");
 
       iRV = fwrite(&tag_, sizeof(unsigned char), 1, pFile);
-      if (iRV != 1) throw("IPTC write fail");
-
-      unsigned short length = data_.size();
-      iRV = fwrite(&length, sizeof(unsigned short), 1, pFile);
-      if (iRV != 1) throw("IPTC write fail");
+      if (iRV != 1) throw("IPTC write fail tag");
+      unsigned short length_swap = length;
+      const bool arch_big_endian = ArchBigEndian();
+      if (!arch_big_endian) ByteSwapInPlace(&length_swap, 1);
+      iRV = fwrite(&length_swap, sizeof(unsigned short), 1, pFile);
+      if (iRV != 1) throw("IPTC write fail length");
 
       iRV = fwrite(&data_[0], sizeof(unsigned char), length, pFile);
-
-      if (iRV != length) throw("IPTC write fail length");
+      if (iRV != length) throw("IPTC write fail data");
 
       return 5 + length;
     }
@@ -213,6 +219,7 @@ Iptc(FILE *pFile, unsigned int totallength)
   if (remaininglength != 0)
     throw("IPTC block length error");
 
+  printf("iptc totallength is %d\n", totallength);
   if (totallength %2 == 1) // Length is rounded to be even.
     iRV = fread(&bindummy, sizeof(unsigned char), 1, pFile);
 }
@@ -227,11 +234,17 @@ virtual ~Iptc()
 
 int Write(FILE *pFile)
 {
+  int iRV;
   int length = 0;
   for (int i = 0; i < tags_.size(); ++i) {
-    int iRV = tags_[i]->Write(pFile);
+    iRV = tags_[i]->Write(pFile);
     length += iRV;
   }
+
+  unsigned char bindummy;
+  if (length %2 == 1) // Length is rounded to be even.
+    iRV = fwrite(&bindummy, sizeof(unsigned char), 1, pFile);
+  printf("iptc lenght is %d\n", length);
   return length;
 }
 static const unsigned char tag_marker_;
