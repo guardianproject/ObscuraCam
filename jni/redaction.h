@@ -129,13 +129,36 @@ public:
       throw("region badly formed l>=r or t>=b");
     regions_.push_back(rect);
   }
+  // Make a region from a string of comma coordinates: l,r,t,b
   void AddRegion(const std::string &rect_string) {
     int l, r, t, b;
-    int rv = sscanf("%d,%d,%d,%d", rect_string.c_str());
-    if (rv != 4)
-      throw("Region string badly formed, should be l,r,t,b");
+    if (rect_string.empty())
+      return;
+    int rv = sscanf(rect_string.c_str(), "%d,%d,%d,%d", &l, &r, &t, &b);
+    //    printf("Rect: %s rv %d\n", rect_string.c_str(), rv);
+    if (rv != 4) {
+      std::string message("Region string badly formed, should be l,r,t,b");
+      message += rect_string;
+      throw(message.c_str());
+    }
     Rect rect(l, r, t, b);
     regions_.push_back(rect);
+  }
+  // Make regions from semi-colon-separated regions l,r,t,b;l,r,t,b...
+  void AddRegions(const std::string &rect_strings) {
+    int start = 0;
+    do { 
+      int end = rect_strings.find(';', start);
+      if (end == rect_strings.npos)
+	end = rect_strings.length();
+      std::string sub = rect_strings.substr(start, end - start);
+      if (!sub.empty()) {
+	if (sub.length() < 7)
+	  throw("Can't parse rect_strings properly");
+	AddRegion(sub);
+      }
+      start = end + 1;
+    } while (start < rect_strings.length());
   }
   // Check that all the strips are consistent.
   bool ValidateStrips() {

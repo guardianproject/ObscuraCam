@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 
 public class JpegRedaction extends Activity {
-    public native void redactit(String path);
+    public native void redactit(String src_path, String dest_path, String regions);
 
     static {
         System.loadLibrary("JpegRedaction");

@@ -1119,18 +1119,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }
     
     private void saveImage() {
-    		if (imageUri != null) {
-		JpegRedaction redactor = new JpegRedaction();
-		String s = mdh.getFileNameFromUri(imageUri);
-    	Log.v(LOGTAG,"saveImage" + s );
-
-		redactor.redactit(s);
-    		}
+       	String src_filename;
+       	String dest_filename = "/sdcard/myssctest.jpg";
+       	
+    	if (imageUri != null) {
+     		src_filename = mdh.getFileNameFromUri(imageUri);
+    	} else {
+           	// Where does the newly-captured image come from?
+   		src_filename = "nofilename";
+    	}
     	//how take care of the original!
-		if (deleteOriginal && imageUri != null)
-			handleDelete();
-		
-    	Bitmap obscuredBmp = createObscuredBitmap();
+ //   	Bitmap obscuredBmp = createObscuredBitmap();
     	
     	// Uri is savedImageUri which is global
     	if (savedImageUri == null) {
@@ -1138,36 +1137,39 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     		File newFile = createSecureFile();
     		if (newFile != null) {
     			savedImageUri = Uri.fromFile(newFile);
+    			if (savedImageUri == null)
+    			  return;
     		} else {
     			imageSaved = false;    			
     			return;
     		}
     	}	
+		// dest_filename = mdh.getFileNameFromUri(savedImageUri);
+		Log.v(LOGTAG,"dest_filename" + dest_filename );
     	
-		OutputStream imageFileOS;
 		try {
-			int quality = 100; //lossless?  good question - still a smaller version
-			imageFileOS = getContentResolver().openOutputStream(savedImageUri);
-			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
+		    // Build up a string of semi-colon separated regions l,r,t,b in image coords.
+    		String regions = "";//"10,400,500,1000;400,800,300,700";
+    	   	Iterator<ImageRegion> i = imageRegions.iterator();
+    	    while (i.hasNext()) {
+    	    	ImageRegion currentRegion = i.next();
+    	    	regions = regions + String.format("%.0f,%.0f,%.0f,%.0f;",
+    	    				currentRegion.startX, currentRegion.endX,
+    	    				currentRegion.startY, currentRegion.endY);
+    	    }
+   		Log.v(LOGTAG,"saveImage" + src_filename );
+       		JpegRedaction redactor = new JpegRedaction();
+    		redactor.redactit(src_filename, dest_filename, regions);
 			
-			// Trying out an EXIF write method
-			Date hashTime = new Date();
-			String hash = generateSecureHash();
-			
-			// TODO: write stored exif data into the saved file via the mdh.
-			mdh.writeExif(savedImageUri.getPath());
-			mdh.zipUpData(savedImageUri.getPath());
-			
-			
-    		Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
+        	imageSaved = true;
+        	Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
     		t.show();
-		} catch (FileNotFoundException e) {
+		} catch (Exception e) { //FileNotFoundException e) {
 			e.printStackTrace();
 		}
-
-		// Do the saving
-    	imageSaved = true;
-    	
+		if (deleteOriginal && imageUri != null)
+			handleDelete();
+		  	
     	// Encrypt Regions
     	Iterator<ImageRegion> i = imageRegions.iterator();
 	    while (i.hasNext()) {
