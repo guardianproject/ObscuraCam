@@ -369,6 +369,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			
 			float faceBuffer = (autodetectedRectScaled.right-autodetectedRectScaled.left)/5;
 			
+			boolean showPopup = false;
+			if (adr == autodetectedRects.length - 1) {
+				showPopup = true;
+			}
 			createImageRegion(
 					(int)(autodetectedRectScaled.left-faceBuffer),
 					(int)(autodetectedRectScaled.top-faceBuffer),
@@ -378,7 +382,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					imageView.getHeight(),
 					originalImageWidth, 
 					originalImageHeight, 
-					DETECTED_COLOR);
+					DETECTED_COLOR,
+					showPopup);
 		}	
 			/*
 			createImageRegion(
@@ -634,7 +639,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			int _scaledEndX, int _scaledEndY, 
 			int _scaledImageWidth, int _scaledImageHeight, 
 			int _imageWidth, int _imageHeight, 
-			int _backgroundColor) {
+			int _backgroundColor, boolean showPopup) {
 		
 		clearImageRegionsEditMode();
 		
@@ -651,7 +656,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				_backgroundColor);
 		
 		imageRegions.add(imageRegion);
-		addImageRegionToLayout(imageRegion);
+		addImageRegionToLayout(imageRegion,showPopup);
 	}
 	
 	/*
@@ -677,7 +682,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	/*
 	 * Add an ImageRegion to the layout
 	 */
-	public void addImageRegionToLayout(ImageRegion imageRegion) 
+	public void addImageRegionToLayout(ImageRegion imageRegion, boolean showPopup) 
 	{
 		// Get Rectangle of Current Transformed Image
 		RectF theRect = getScaleOfImage();
@@ -685,6 +690,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		imageRegion.updateScaledRect((int)theRect.width(), (int)theRect.height());
 				
     	regionButtonsLayout.addView(imageRegion);
+    	if (showPopup) {
+    		imageRegion.inflatePopup(true);
+    	}
     }
 	
 	/*
@@ -696,7 +704,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		Iterator<ImageRegion> i = imageRegions.iterator();
 	    while (i.hasNext()) {
 	    	ImageRegion currentRegion = i.next();
-	    	addImageRegionToLayout(currentRegion);
+	    	addImageRegionToLayout(currentRegion, false);
 	    }
 	}
 	
@@ -743,7 +751,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			createImageRegion((int)scaledStartX, (int)scaledStartY, 
 							(int)scaledEndX, (int)scaledEndY, 
 							imageView.getWidth(), imageView.getHeight(), 
-							originalImageWidth, originalImageHeight, DRAW_COLOR);
+							originalImageWidth, originalImageHeight, DRAW_COLOR, false);
 			return true;
 		}
 		
@@ -783,7 +791,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     					imageView.getHeight(), 
     					originalImageWidth, 
     					originalImageHeight, 
-    					DRAW_COLOR);
+    					DRAW_COLOR, false);
 
     			return true;
     			
