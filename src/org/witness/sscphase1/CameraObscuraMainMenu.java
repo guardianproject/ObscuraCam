@@ -31,7 +31,11 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        	        
+
+        setLayout();
+    }
+    
+    private void setLayout() {
         setContentView(R.layout.mainmenu);
         
     	choosePictureButton = (Button) this.findViewById(R.id.ChoosePictureButton);
@@ -126,11 +130,14 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
     
 	
     /*
-     * Handling screen configuration changes ourselves, we don't want the activity to restart on rotation
+     * Handling screen configuration changes ourselves, 
+     * we don't want the activity to restart on rotation
      */
     @Override
     public void onConfigurationChanged(Configuration conf) 
     {
         super.onConfigurationChanged(conf);
+        // Reset the layout to use the landscape config
+        setLayout();
     }
 }
