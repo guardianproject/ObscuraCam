@@ -49,6 +49,7 @@ public class PixelizeObscure extends Activity implements ObscureMethod {
 		for (int x = rect.left; x < rect.right - 1; x++) {
 			for (int y = rect.top; y < rect.bottom - 1; y++) {
 				
+				// I don't understand.. doesn't this make px, py always == to x, y?
 				px = (x/pixelSize)*pixelSize;
 				py = (y/pixelSize)*pixelSize;
 
@@ -60,6 +61,7 @@ public class PixelizeObscure extends Activity implements ObscureMethod {
 				{
 					//something is wrong with our pixel math
 					break; //stop the filter
+					// Single break, does it get out of both loops?
 				}
 			}
 		}
