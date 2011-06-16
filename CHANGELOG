@@ -1,4 +1,8 @@
 
+1.0.3
+- Trying out a change to the realtime preview to disable it while actually editing a region.  When region is manipulated it is off, when done, it is back on.  Much more respon
+- Fixed a divide by zero bug if the region is too small
+
 1.0.2
 - new mask graphic
 - fixed corner selection size
