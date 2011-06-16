@@ -34,7 +34,7 @@ public class AnonObscure extends Activity implements ObscureMethod {
 	
 		try
 		{
-		  Bitmap mask = loadBitmap(_context,"party.png");
+		  Bitmap mask = loadBitmap(_context,"anon.png");
 		  canvas.drawBitmap(mask, null, rect, _painter);
 		}
 		catch (IOException e)
