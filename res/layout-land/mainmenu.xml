@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"  android:background="@drawable/sscbg"  android:id="@+id/FrameLayout" android:layout_width="fill_parent" android:layout_height="fill_parent">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"  
+	android:background="@drawable/sscbg"  
+	android:id="@+id/FrameLayout" 
+	android:layout_width="fill_parent" 
+	android:layout_height="fill_parent">
+	
 	<LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
-		
-		 <ImageView android:src="@drawable/ic_ssc" android:layout_width="fill_parent" 
-  android:layout_height="150dp"
-  android:gravity="center_horizontal"
-  
-  />
+		<ImageView android:layout_height="125dp" android:id="@+id/imageView1" android:src="@drawable/ic_ssc" android:layout_width="fill_parent"></ImageView>
+		<TextView android:layout_height="50dp" android:layout_gravity="center_vertical|center_horizontal" android:textSize="20dp" android:layout_width="fill_parent" android:id="@+id/SplashTextView" android:text="@string/SplashTextViewString" android:textColor="#FFFFff" android:gravity="center_vertical|center_horizontal"></TextView>
 			
-				<LinearLayout android:orientation="horizontal" android:gravity="center_horizontal" android:layout_width="fill_parent" android:layout_height="fill_parent">
+		<LinearLayout 
+			android:orientation="horizontal" 
+			android:gravity="center_horizontal" 
+			android:layout_width="fill_parent" 
+			android:layout_height="fill_parent"
+			android:layout_gravity="bottom">
 			
 			<Button  android:id="@+id/TakePictureButton" 
 				android:text="Take Picture" 
@@ -23,8 +29,5 @@
 				android:drawableTop="@drawable/ic_gallery">
 			</Button>
 		</LinearLayout>
-		<!-- 	<Button android:layout_height="wrap_content" android:id="@+id/DatastoreButton" android:text="SSC Datastore" android:layout_width="fill_parent"></Button>
-		 -->
-		
 	</LinearLayout>
 </FrameLayout>
