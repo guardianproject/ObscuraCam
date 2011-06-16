@@ -1,6 +1,8 @@
 /**
  * This Activity will be the initial Activity for the application.
  * It will load the main Activity (CameraObscuraMainMenu) on click
+ * 
+ * NOT BEING USED
  */
 package org.witness.sscphase1;
 
