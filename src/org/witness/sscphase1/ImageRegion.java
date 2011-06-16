@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -19,10 +21,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	public static final String LOGTAG = "[Camera Obscura ImageRegion]";
 	
 	// Rect for this when unscaled
-	RectF unscaledRect;
+	public RectF unscaledRect;
 	
 	// Rect for this when scaled
-	RectF scaledRect;
+	public RectF scaledRect;
 		
 	// Start point for touch events
 	PointF startPoint = new PointF();
@@ -32,7 +34,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	int imageHeight;
 	
 	// The distance around a corner which will still represent a corner touch event
-	public static final int CORNER_TOUCH_TOLERANCE = 70;
+	public static final int CORNER_TOUCH_TOLERANCE = 50;
 		
 	// Our current mode
 	public static final int NORMAL_MODE = 0;
@@ -149,10 +151,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 		// probably should be self determined rather than passed in
 		setBackgroundColor(_backgroundColor);
 		backgroundColor = _backgroundColor;
-		
-		// This preps the QuickAction menu 
-		inflatePopup();
-		
+				
 		// Inflate Layout
 		// imageregioninner is a FrameLayout
 		LayoutInflater inflater = LayoutInflater.from(imageEditor);        
@@ -178,14 +177,13 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			{
 				Log.v(LOGTAG,"onClick");
 				
-				inflatePopup();
-				qa.show();
+				inflatePopup(false);
 			}
 			
 		});
-	}
+    }
 	
-	void inflatePopup() {
+	public void inflatePopup(boolean showDelayed) {
 		
 			qa = new QuickAction(this);
 			
@@ -278,6 +276,19 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 				}
 			});
 			qa.addActionItem(removeRegionAction);
+
+			if (showDelayed) {
+				// We need layout to pass again, let's wait a second or two
+				new Handler() {
+					@Override
+					 public void handleMessage(Message msg) {
+						 qa.show();
+				        }
+				}.sendMessageDelayed(new Message(), 500);
+			} else {
+				qa.show();
+			}
+
 	}
 	
 	void toggleMode() {
