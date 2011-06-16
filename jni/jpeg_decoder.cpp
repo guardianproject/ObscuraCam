@@ -1,20 +1,48 @@
+// Copyright (C) 2011 Andrew W. Senior andrew.senior[AT]gmail.com
+// Part of the Jpeg-Redaction-Library to read, parse, edit redact and
+// write JPEG/EXIF/JFIF images.
+// See https://github.com/asenior/Jpeg-Redaction-Library
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+// JpegDecoder class: parse the JPEG encoded data.
 #include <stdio.h>
 #include "jpeg_decoder.h"
 #include "jpeg.h"
 #include "jpeg_dht.h"
 
 namespace jpeg_redaction {
+const int JpegDecoder::kRedactingStarting = 3;
+const int JpegDecoder::kRedactingEnding = 5;
+const int JpegDecoder::kRedactingActive = 2;
+const int JpegDecoder::kRedactingInactive = 1;
+const int JpegDecoder::kRedactingOff = 0;
+
+const int JpegDecoder::kBlockSize = 8;
 JpegDecoder::JpegDecoder(int w, int h,
 			 unsigned char *data,
-			 int length,
+			 int length,  // in bits
 			 const std::vector<JpegDHT *> &dhts,
 			 const std::vector<Jpeg::JpegComponent*> *components) :
-  height_(h), width_(w), components_(components) {
+  height_(h), width_(w), components_(components), current_strip_(NULL) {
   data_ = data;
   length_ = length;
-  redacting_ = 0;
+  mcu_h_ = 1;
+  mcu_v_ = 1;
   ResetDecoding();
-  image_data_.reserve((height_/8) * (width_/8));
+  image_data_.reserve((height_/kBlockSize) * (width_/kBlockSize));
   // Build a temp table of the DHTs to use for each component
   // and find the size of the MCU.
   for (int comp = 0; comp < components->size(); ++comp) {
@@ -43,8 +71,8 @@ JpegDecoder::JpegDecoder(int w, int h,
   }
   if (dhts_.size() != components->size() * 2)
     throw("dhts_ table size is wrong");
-  const int hq = 8 * mcu_h_;
-  const int vq = 8 * mcu_v_;
+  const int hq = kBlockSize * mcu_h_;
+  const int vq = kBlockSize * mcu_v_;
   w_blocks_ = mcu_h_ * ((width_ + hq -1)/hq);
   h_blocks_ = mcu_v_ * ((height_ + vq -1)/vq);
   num_mcus_ = (w_blocks_/mcu_h_) * (h_blocks_/ mcu_v_);
@@ -81,8 +109,120 @@ void JpegDecoder::WriteValue(int which_dht, int value) {
   InsertBits(coded_val << (32 - coded_len), coded_len);
 }
 
+void JpegDecoder::SetRedactingState(Redaction *redaction) {
+  // Determine if we're in or on the edge of.
+  const bool in_rr = InRedactionRegion(redaction);
+  if (in_rr) {
+    if (redacting_ == kRedactingInactive) {
+      redacting_ = kRedactingStarting;  // Start.
+      if (current_strip_ != NULL) throw("Strip already exists");
+      current_strip_ = new JpegStrip(GetX(mcus_), GetY(mcus_),
+				     data_pointer_ - num_bits_, 
+				     redaction_bit_pointer_);
+    } else {
+      redacting_ = kRedactingActive;  // Steady state redacting.
+    }
+  } else { // Not in redaction region (any more?)
+    if (redacting_ == kRedactingStarting ||
+	redacting_ == kRedactingActive) {
+      redacting_ = kRedactingEnding;  // Transition out.
+      //      printf("Transition out at %d\n", mcus_);
+    } else {
+      redacting_ = kRedactingInactive;  // (Now) in steady state.
+    }
+  }
+}
+
+void JpegDecoder::Decode(Redaction *redaction) {
+  ResetDecoding();
+  if (redaction != NULL && redaction->NumRegions() > 0) {
+    redacting_ = kRedactingInactive;
+    // Reserve space for the redacted data- should be smaller than the original.
+    redacted_data_.reserve(((length_ + 7) >> 3) + 2); // For end marker later.
+  }
+
+  while (mcus_ < num_mcus_) {
+    if (redacting_ != kRedactingOff) {
+      SetRedactingState(redaction);
+    }
+    // Find the matching symbol.
+    DecodeOneMCU();
+    ++mcus_;
+    // When stopping redacting, 
+    // for simplicity we actually store the whole MCU,
+    // even though most of it is unchanged. (Interleaved components
+    // mean the changed bits are spread among the unchanged portions).
+    if (redacting_ == kRedactingEnding)
+      StoreEndOfStrip(redaction);
+  }
+
+  // Terminating when still active.
+  if (redacting_ == kRedactingActive)
+      StoreEndOfStrip(redaction);
+
+  printf("Got to %d mcus. %d bits left.\n", num_mcus_,
+	 length_ - data_pointer_);
+}
+
+void JpegDecoder::StoreEndOfStrip(Redaction *redaction) {
+  //      printf("Endstrip %d %d\n", subblock, mcus_);
+  if (current_strip_ == NULL)
+    throw("Ending redaction but no strip");
+  current_strip_->SetSrcEnd(data_pointer_ - num_bits_, mcus_);
+  current_strip_->SetDestEnd(data_, redaction_bit_pointer_);
+  //  printf("Adding a strip\n");
+  redaction->AddStrip(current_strip_);
+  current_strip_ = NULL;
+}
+
+void JpegDecoder::DecodeOneMCU() {
+  const int num_components = (*components_).size();
+  for (int comp = 0; comp < num_components; ++comp) {
+    int vf = (*components_)[comp]->v_factor_;
+    int hf = (*components_)[comp]->h_factor_;
+    int dht = (*components_)[comp]->table_;
+    if (debug >= 1)
+      printf("Decoding MCU %d,%d DHT: %d %dx%d\n", mcus_, dht, comp, hf, vf);
+    for (int v = 0; v < vf; ++v) {
+      for (int h = 0; h < hf; ++h) {
+	const int subblock = v + h * vf;
+	// redaction & subblock_redaction encode the state transitions,
+	// but these need to be different on the block level from the MCU.
+	int subblock_redaction = redacting_;
+	if (redacting_ == kRedactingStarting && subblock != 0)
+	  subblock_redaction = kRedactingActive;
+	if (redacting_ == kRedactingEnding && subblock != 0)
+	  subblock_redaction = kRedactingInactive;
+
+	int dc_value = 0;
+	try {
+	  dc_value = DecodeOneBlock(dht, comp, subblock_redaction);
+	} catch (const char *error) {
+	  printf("DecodeOneMCU Caught %s at MCU %d of %d\n",
+		 error, mcus_, num_mcus_);
+	  throw(error);
+	}
+	if ((*components_)[comp]->table_ == 0) { // Y component
+	  if (debug > 0)
+	    printf("DCY: %d\n", dc_value);
+	  y_value_ += dc_value;
+	  while (y_value_ < (-128 << dct_gain_) ||
+		 y_value_ >= (128 << dct_gain_)) {
+	    ++dct_gain_;
+	    printf("MCU %d dc_value %d y_value_ %d. Doubling gain to %d\n",
+		   mcus_, dc_value, y_value_, dct_gain_);
+	    for (int op = 0; op < image_data_.size(); ++op)
+	      image_data_[op]= image_data_[op]/2 + 64;
+	  }
+	  image_data_.push_back((y_value_ + (128 << dct_gain_)) >> dct_gain_);
+	}
+      }
+    }
+  }
+}
+
 // Decode one 8x8 block using the specified Huffman Table.
-int JpegDecoder::DecodeOneBlock(int dht, int comp, int redaction) {
+int JpegDecoder::DecodeOneBlock(int dht, int comp, int redacting) {
   if (num_bits_ <= 16)
     FillBits();
   unsigned int dc_symbol;
@@ -93,9 +233,9 @@ int JpegDecoder::DecodeOneBlock(int dht, int comp, int redaction) {
     printf("Caught %s at MCU %d of %d\n", error, mcus_, num_mcus_);
     throw(error);
   }
-  if (redaction == 1 || redaction == 3)
+  if (redacting == kRedactingInactive || redacting == kRedactingStarting)
     CopyBits(dc_length);
-  if (redaction == 2) { // Write out zero.
+  if (redacting == kRedactingActive) { // Write out zero.
     // printf("Writing zero %d\n", comp);
     WriteZeroLength(2 * dht);
   }
@@ -103,17 +243,17 @@ int JpegDecoder::DecodeOneBlock(int dht, int comp, int redaction) {
   if (num_bits_ < dc_symbol)
     FillBits();
   //  printf("Sym\n");
-  if (redaction == 1 || redaction == 3)
+  if (redacting == kRedactingInactive || redacting == kRedactingStarting)
     CopyBits(dc_symbol);
   const int dc_value = NextValue(dc_symbol);
-  // if (redaction == 2 || redaction == 3)
+  // if (redacting == kRedactingActive || redacting == kRedactingStarting)
   //   WriteValue(2*dht, dc_value);
   // Maintain the dc delta through the redaction.
-  if (redaction == 3)
+  if (redacting == kRedactingStarting)
     redaction_dc_[comp] = 0;
-  if (redaction == 2)
+  if (redacting == kRedactingActive)
     redaction_dc_[comp] += dc_value;
-  if (redaction == 5) {  // Write out new delta.
+  if (redacting == kRedactingEnding) {  // Write out new delta.
     redaction_dc_[comp] += dc_value;
     WriteValue(2 * dht, redaction_dc_[comp]);
   }
@@ -121,11 +261,11 @@ int JpegDecoder::DecodeOneBlock(int dht, int comp, int redaction) {
     printf("DCValue is %d\n", dc_value);
   int coeffs = 1; // DC is the first
   // If we're redacting, have no AC
-  if (redaction == 2 || redaction == 3) {
+  if (redacting == kRedactingActive || redacting == kRedactingStarting) {
     WriteZeroLength(2 * dht + 1);
   }
 
-  for  (; coeffs <= 63;) {
+  for (; coeffs <= 63;) {
     int start_coeff = coeffs;
     unsigned int ac_symbol;
     if (num_bits_ <= 16)
@@ -134,7 +274,8 @@ int JpegDecoder::DecodeOneBlock(int dht, int comp, int redaction) {
       dhts_[2*dht + 1]->Decode(current_bits_, num_bits_, &ac_symbol);
     const int zero_run_length = ac_symbol >>4;
     ac_symbol  &= 0xf;
-    if (redaction == 1 || redaction == 5) CopyBits(ac_length);
+    if (redacting == kRedactingInactive || redacting == kRedactingEnding)
+      CopyBits(ac_length);
     DropBits(ac_length);
     // If symbol is (15,0) there's no  value, but we skip 16.
     coeffs += zero_run_length;
@@ -145,7 +286,8 @@ int JpegDecoder::DecodeOneBlock(int dht, int comp, int redaction) {
     if (ac_symbol == 0 && zero_run_length == 0) break;
     if (num_bits_ < ac_symbol)
       FillBits();
-    if (redaction == 1 || redaction == 5) CopyBits(ac_symbol);
+    if (redacting == kRedactingInactive || redacting == kRedactingEnding)
+      CopyBits(ac_symbol);
     DropBits(ac_symbol); // Could actually decode the value here.
   }
   if (debug >=2 && coeffs >= 63) printf("EOB64\n");

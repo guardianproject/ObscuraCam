@@ -89,7 +89,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	ActionItem idAction;
 	ActionItem encryptAction;
 	
-	//ActionItem blurObscureAction;
+	ActionItem blurObscureAction;
 	ActionItem anonObscureAction;
 	ActionItem solidObscureAction;
 	ActionItem pixelizeObscureAction;
@@ -212,9 +212,9 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			public static final int PIXELIZE = 3; // PixelizeObscure
 			*/
 			
-			/*
+			
 			blurObscureAction = new ActionItem();
-			blurObscureAction.setTitle("Blur");
+			blurObscureAction.setTitle("Reverse Blur");
 			blurObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_blur));
 			blurObscureAction.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
@@ -224,8 +224,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 				}
 			});
 			qa.addActionItem(blurObscureAction);
-			*/
-			
 			
 			
 			solidObscureAction = new ActionItem();

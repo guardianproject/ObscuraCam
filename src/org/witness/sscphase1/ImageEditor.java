@@ -890,7 +890,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			switch (currentRegion.obscureType) {
 				case ImageRegion.BLUR:
 					Log.v(LOGTAG,"obscureType: BLUR");
-					om = new BlurObscure(obscuredBmp);
+					om = new CrowdBlurObscure(obscuredBmp);
 				break;
 				
 				case ImageRegion.ANON:
