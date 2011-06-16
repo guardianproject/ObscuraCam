@@ -6,6 +6,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -18,6 +19,8 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
+
+import org.witness.sscphase1.ImageRegion;
 
 import org.witness.sscphase1.R;
 
@@ -96,11 +99,19 @@ public class QuickAction extends CustomPopupWindow {
 		int xPos, yPos;
 		
 		int[] location 		= new int[2];
-	
+			
 		anchor.getLocationOnScreen(location);
 
-		Rect anchorRect 	= new Rect(location[0], location[1], location[0] + anchor.getWidth(), location[1] 
-		                	+ anchor.getHeight());
+		// This is a hack
+		//RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) anchor.getLayoutParams();
+		//location[0] = lp.leftMargin;
+		//location[1] = lp.topMargin;
+		
+		// Continue hack
+		//Rect anchorRect = new Rect(location[0], location[1], location[0] + lp.width, location[1] + lp.height);
+		
+		// This is the non hacked version
+		Rect anchorRect 	= new Rect(location[0], location[1], location[0] + anchor.getWidth(), location[1] + anchor.getHeight());
 
 		createActionList();
 		
