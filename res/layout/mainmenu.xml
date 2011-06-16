@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"  android:background="@drawable/sscbg"  android:id="@+id/FrameLayout" android:layout_width="fill_parent" android:layout_height="fill_parent">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"  android:background="@drawable/sscbg"  android:id="@+id/FrameLayout" android:layout_width="fill_parent" android:layout_height="fill_parent" android:paddingTop="20sp">
 	<LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
 		 <ImageView android:src="@drawable/ic_ssc" 
 		 	android:layout_width="fill_parent" 
   			android:layout_height="200dp"
-  			android:gravity="center_horizontal"/>
+  			android:gravity="center_horizontal" android:layout_marginTop="20dp"/>
 		
 		<TextView android:text="@string/SplashTextViewString"
 			android:id="@+id/SplashTextView" android:layout_width="fill_parent"
@@ -17,15 +17,13 @@
 			android:layout_height="fill_parent" android:gravity="center_vertical|center_horizontal">
 			<Button  android:id="@+id/TakePictureButton" 
 				android:text="Take Picture" 
-				android:layout_width="125dp" 
 				android:layout_height="90dp"
-				android:drawableTop="@drawable/ic_camera">
+				android:drawableTop="@drawable/ic_camera" android:layout_width="125dp" android:layout_marginRight="15dp">
 			</Button>
 			<Button  android:id="@+id/ChoosePictureButton" 
 				android:text="Choose Media" 
-				android:layout_width="125dp"  
 				android:layout_height="90dp"
-				android:drawableTop="@drawable/ic_gallery">
+				android:drawableTop="@drawable/ic_gallery" android:layout_width="125dp" android:layout_marginLeft="15dp">
 			</Button>
 		</LinearLayout>
 	</LinearLayout>

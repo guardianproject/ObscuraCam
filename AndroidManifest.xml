@@ -5,7 +5,7 @@
       android:versionName="1.0.3"
       android:installLocation="auto">
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher_ssc" android:debuggable="false">
-        <activity android:name=".CameraObscuraMainMenu" android:configChanges="orientation|keyboardHidden">
+        <activity android:name=".CameraObscuraMainMenu" android:theme="@android:style/Theme.Black.NoTitleBar" android:configChanges="orientation|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
