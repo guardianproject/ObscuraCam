@@ -17,6 +17,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -32,6 +33,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.provider.MediaStore;
 import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.view.Display;
@@ -183,6 +185,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			originalImageUri = (Uri) getIntent().getExtras().get(Intent.EXTRA_STREAM);
 		}
 
+		Log.v(LOGTAG,"The Path" + pullPathFromUri(originalImageUri));
+		
 		// Instantiate the vibrator
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
@@ -1030,6 +1034,21 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 		
 		progressDialog.cancel();
+    }
+    
+    // Queries the contentResolver to pull out the path for the actual file.
+    /*  This code is currently unused but i often find myself needing it so I 
+     * am placing it here for safe keeping ;-) */
+    public String pullPathFromUri(Uri originalUri) {
+    	String originalImageFilePath = null;
+    	String[] columnsToSelect = { MediaStore.Images.Media.DATA };
+    	Cursor imageCursor = getContentResolver().query( originalImageUri, columnsToSelect, null, null, null );
+    	if ( imageCursor != null && imageCursor.getCount() == 1 ) {
+	        imageCursor.moveToFirst();
+	        originalImageFilePath = imageCursor.getString(imageCursor.getColumnIndex(MediaStore.Images.Media.DATA));
+    	}
+
+    	return originalImageFilePath;
     }
 
     /*
