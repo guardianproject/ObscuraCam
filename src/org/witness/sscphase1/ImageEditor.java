@@ -18,11 +18,13 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.database.SQLException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -43,6 +45,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
+import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -189,7 +193,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
 		if (imageUri != null) {
-			
 			try {
 				// Load up the image's dimensions not the image itself
 				BitmapFactory.Options bmpFactoryOptions = new BitmapFactory.Options();
@@ -210,7 +213,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 				Log.v(LOGTAG, "HEIGHTRATIO:" + heightRatio);
 				Log.v(LOGTAG, "WIDTHRATIO:" + widthRatio);
-	
 				// If both of the ratios are greater than 1,
 				// one of the sides of the image is greater than the screen
 				if (heightRatio > 1 && widthRatio > 1) {
@@ -231,25 +233,22 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				if (imageBitmap == null) {
 					Log.v(LOGTAG,"bmp is null");
 				}
-				
-				
-				
+
 				float matrixScale = 1;
 				matrix.setScale(matrixScale, matrixScale);
 				imageView.setImageBitmap(createObscuredBitmap());
 				imageView.setImageMatrix(matrix);
 				overlayImageView.setImageMatrix(matrix);
-								
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
 			
 			// Call SSCMetadataHandler to make a new entry into the database
 			mdh = new SSCMetadataHandler(this);
 			try {
 				mdh.createDatabase();
 			} catch(IOException e) {}
+			
 			try {
 				mdh.openDataBase();
 			} catch(SQLException e) {}
@@ -284,21 +283,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			//how take care of the original!
 			if (deleteOriginal)
 				handleDelete();
-			
-
 		}
 	}
 	
 	private void handleDelete () 
 	{
-		
 		final AlertDialog.Builder b = new AlertDialog.Builder(this);
 		b.setIcon(android.R.drawable.ic_dialog_alert);
 		b.setTitle(getString(R.string.app_name));
 		b.setMessage(getString(R.string.confirm_delete));
 		b.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-
                 /* User clicked OK so do some stuff */
         		getContentResolver().delete(imageUri, null, null);
         		imageUri = null;
@@ -306,18 +301,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         });
 		b.setNegativeButton(android.R.string.no, null);
 		b.show();
-		
-
 	}
 	
 	private void initPreferences ()
 	{
-		
 		//OriginalImagePref
     	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
     	int defState = Integer.parseInt(prefs.getString("OriginalImagePref", "0"));
-    	
     	if (defState == 2)
     		deleteOriginal = true;
 	}
@@ -350,7 +341,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    }
 	    return dialog;
 	}	
-	
 
 	/*
 	 * This handles the callbacks from the EncryptObscure hand off to APG, or any other
@@ -360,18 +350,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 */	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-	
 		super.onActivityResult(requestCode, resultCode, data);
 		
 		if (requestCode ==  Apg.ENCRYPT_MESSAGE
 				|| requestCode == Apg.SELECT_PUBLIC_KEYS
-					|| requestCode == Apg.SELECT_SECRET_KEY)
-		{
+					|| requestCode == Apg.SELECT_SECRET_KEY) {
 			Apg apg = Apg.getInstance();
 			apg.onActivityResult(this, requestCode, resultCode, data);
-			
 			String encryptedData = apg.getEncryptedData();
-			
 		} else if(requestCode == RESULT_ID_TAGGER) {
 			if(resultCode == Activity.RESULT_OK) {
 				String ir = data.getStringExtra("imageRegion");
@@ -401,7 +387,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	private void doAutoDetection() {
 		// This should be called via a pop-up/alert mechanism
-		
 		Rect[] autodetectedRects = runFaceDetection();
 		for (int adr = 0; adr < autodetectedRects.length; adr++) {
 			Log.v(LOGTAG,autodetectedRects[adr].toString());
@@ -416,10 +401,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					originalImageHeight, 
 					DETECTED_COLOR);
 		}
-		
 		Toast autodetectedToast = Toast.makeText(this, "" + autodetectedRects.length + " faces deteceted", Toast.LENGTH_SHORT);
 		autodetectedToast.show();
-		
 		clearOverlay();			
 	}
 	
@@ -463,32 +446,22 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		sendIntent.setData(Uri.parse("sms:"));
 		sendIntent.putExtra("sms_body", "Obscura hash: " + hash + " (" + hashTime.toGMTString() + ")"); 
 		startActivity(sendIntent);
-		 
 	}
 	
 	private String generateSecureHash()
 	{
 		String result = "";
 	//	ProgressDialog progressDialog =ProgressDialog.show(this, "", "generating hash...");
-		
-		
 		try
 		{
 			InputStream is = getContentResolver().openInputStream(imageUri);		
 			result = MediaHasher.hash(is, "SHA-1");
 			mdh.mediaHash(result);
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			Log.e(LOGTAG, "error generating hash",e);
-		}
-		finally
-		{
+		} finally {
 		//	progressDialog.dismiss();
 		}
-		
-		
-		
 		return result;
 	}
 	
@@ -502,22 +475,18 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	
 	public boolean onTouch(View v, MotionEvent event) {
-		
 		boolean handled = false;
 		
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
 				// Single Finger
 				mode = TAP;
-				
 				// Save the Start point. 
 				startPoint.set(event.getX(), event.getY());
-												
 				break;
 				
 			case MotionEvent.ACTION_POINTER_DOWN:
 				// Two Fingers
-				
 				// Get the spacing of the fingers, 2 fingers
 				float sx = event.getX(0) - event.getX(1);
 				float sy = event.getY(0) - event.getY(1);
@@ -526,7 +495,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				Log.d(LOGTAG, "Start Finger Spacing=" + startFingerSpacing);
 				
 				if (startFingerSpacing > 10f) {
-
 					float xsum = event.getX(0) + event.getX(1);
 					float ysum = event.getY(0) + event.getY(1);
 					startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
@@ -534,32 +502,26 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					mode = ZOOM;
 					Log.d(LOGTAG, "mode=ZOOM");
 				}
-				
 				break;
 				
 			case MotionEvent.ACTION_UP:
 				// Single Finger Up
-								
 				mode = NONE;
 				Log.v(LOGTAG,"mode=NONE");
-
 				break;
 				
 			case MotionEvent.ACTION_POINTER_UP:
 				// Multiple Finger Up
-				
 				mode = NONE;
 				Log.d(LOGTAG, "mode=NONE");
 				break;
 				
 			case MotionEvent.ACTION_MOVE:
-				
 				float distance = (float) (Math.sqrt(Math.abs(startPoint.x - event.getX()) + Math.abs(startPoint.y - event.getY())));
 				Log.v(LOGTAG,"Move Distance: " + distance);
 				Log.v(LOGTAG,"Min Distance: " + minMoveDistance);
 				
 				if (distance > minMoveDistance) {
-				
 					if (mode == TAP || mode == DRAG) {
 						mode = DRAG;
 						
@@ -571,14 +533,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 						putOnScreen();
 						redrawRegions();
-						
 						handled = true;
-	
 					} else if (mode == ZOOM) {
-						
 						// Save the current matrix so that if zoom goes to big, we can revert
 						savedMatrix.set(matrix);
-						
 						// Get the spacing of the fingers, 2 fingers
 						float ex = event.getX(0) - event.getX(1);
 						float ey = event.getY(0) - event.getY(1);
@@ -619,23 +577,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							float xsum = event.getX(0) + event.getX(1);
 							float ysum = event.getY(0) + event.getY(1);
 							startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
-							
 							handled = true;
 						}
 					}
 				}
 				break;
 		}
-
-
 		return handled; // indicate event was handled
 	}
 	
-	public void updateDisplayImage ()
-	{
-
+	public void updateDisplayImage ()	{
 		imageView.setImageBitmap(createObscuredBitmap());
-
 	}
 	
 	
@@ -813,7 +765,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	
 	public void putOnScreen() {
-
 		// Get Rectangle of Tranformed Image
 		RectF theRect = new RectF(0,0,imageBitmap.getWidth(), imageBitmap.getHeight());
 		matrix.mapRect(theRect);
@@ -845,21 +796,18 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	}
 	
 	public void clearOverlay() {
-				
 		Paint clearPaint = new Paint();
 		clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
 		overlayCanvas.drawRect(0, 0, overlayCanvas.getWidth(), overlayCanvas.getHeight(), clearPaint);
 		
 		overlayImageView.invalidate();
-		
 	}
 	
 	private void clearImageRegionsEditMode ()
 	{
 		Iterator<ImageRegion> itRegions = imageRegions.iterator();
 		
-		while (itRegions.hasNext())
-		{
+		while (itRegions.hasNext())	{
 			itRegions.next().changeMode(ImageRegion.NORMAL_MODE);
 		}
 	}
@@ -888,8 +836,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		addImageRegionToLayout(imageRegion);
 		mdh.registerImageRegion(imageRegion);
 		clearOverlay();
-		
-
 	}
 	
 	public void deleteRegion(ImageRegion ir)
@@ -906,7 +852,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	}
 
 	public void addImageRegionToLayout(ImageRegion imageRegion) {
-
 		// Get Rectangle of Current Transformed Image
 		RectF theRect = new RectF(0,0,imageBitmap.getWidth(), imageBitmap.getHeight());
 		matrix.mapRect(theRect);
@@ -991,14 +936,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, (int)startPoint.y-DEFAULT_REGION_HEIGHT/2, (int)startPoint.x+DEFAULT_REGION_WIDTH/2, (int)startPoint.y+DEFAULT_REGION_HEIGHT/2, overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
 			return true;
 		}
-		
 		return false;
 	}
 	
 	
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
     	MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.image_editor_menu, menu);
 		/*
@@ -1014,7 +957,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
     public boolean onOptionsItemSelected(MenuItem item) {
     	switch (item.getItemId()) {
- 
     		case R.id.menu_new_region:
     			// Set the Start point. 
 				startPoint.set(overlayCanvas.getWidth()/2, overlayCanvas.getHeight()/2);
@@ -1052,7 +994,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }
     
     private void shareImage() {
-    	
     	//how take care of the original!
 		if (deleteOriginal && imageUri != null)
 			handleDelete();
@@ -1102,8 +1043,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
             else {
             	om = new PaintSquareObscure();		            	
             }
-            
-	    	
 	    	// WORKS
 	    	//obscuredCanvas.drawRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredPaint);
 	    	
@@ -1112,40 +1051,36 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    		//new PaintSquareObscure();
              Rect rect = currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight());
 	    	om.obscureRect(rect, obscuredCanvas);
-
 	    }
-	    
     	return obscuredBmp;
     }
     
+    // Queries the contentResolver to pull out the path for the actual file.
+    public String pullPathFromUri(Uri originalImageUri) {
+        String originalImageFilePath = null;
+        String[] columnsToSelect = { MediaStore.Images.Media.DATA };
+        Cursor imageCursor = getContentResolver().query( originalImageUri, columnsToSelect, null, null, null );
+        if ( imageCursor != null && imageCursor.getCount() == 1 ) {
+                imageCursor.moveToFirst();
+                originalImageFilePath = imageCursor.getString(imageCursor.getColumnIndex(MediaStore.Images.Media.DATA));
+        }
+
+        return originalImageFilePath;
+    }
+ 
+    
     private void saveImage() {
-       	String src_filename;
-       	String dest_filename = "/sdcard/myssctest.jpg";
+       	String src_filename = pullPathFromUri(imageUri);
        	
-    	if (imageUri != null) {
-     		src_filename = mdh.getFileNameFromUri(imageUri);
-    	} else {
-           	// Where does the newly-captured image come from?
-   		src_filename = "nofilename";
-    	}
-    	//how take care of the original!
- //   	Bitmap obscuredBmp = createObscuredBitmap();
-    	
     	// Uri is savedImageUri which is global
-    	if (savedImageUri == null) {
-    		// Create the Uri
-    		File newFile = createSecureFile();
-    		if (newFile != null) {
-    			savedImageUri = Uri.fromFile(newFile);
-    			if (savedImageUri == null)
-    			  return;
-    		} else {
-    			imageSaved = false;    			
-    			return;
-    		}
+       	if (savedImageUri == null) {
+       		ContentValues cv = new ContentValues();
+       		savedImageUri = getContentResolver().insert(
+       				Media.EXTERNAL_CONTENT_URI, cv);
     	}	
-		// dest_filename = mdh.getFileNameFromUri(savedImageUri);
-		Log.v(LOGTAG,"dest_filename" + dest_filename );
+       	String dest_filename = pullPathFromUri(savedImageUri);//mdh.getFileNameFromUri(savedImageUri);
+		Log.v(LOGTAG,"src_filename :" + src_filename );
+		Log.v(LOGTAG,"dest_filename:" + dest_filename );
     	
 		try {
 		    // Build up a string of semi-colon separated regions l,r,t,b in image coords.
@@ -1181,7 +1116,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }
     
     private File createSecureFile() {
-    	
     	File newFile = null;
     	// This could be a secure directory
     	File directory = new File("/sdcard/");
@@ -1191,7 +1125,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
     	return newFile;
     }
     
