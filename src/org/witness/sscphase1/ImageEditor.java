@@ -50,7 +50,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
-import org.witness.securesmartcam.jpegredaction.JpegRedaction;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener, OnLongClickListener {
 
@@ -224,6 +223,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 				Log.v(LOGTAG, "HEIGHTRATIO:" + heightRatio);
 				Log.v(LOGTAG, "WIDTHRATIO:" + widthRatio);
+	
 				// If both of the ratios are greater than 1,
 				// one of the sides of the image is greater than the screen
 				if (heightRatio > 1 && widthRatio > 1) {
