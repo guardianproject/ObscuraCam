@@ -3,29 +3,21 @@ package org.witness.sscphase1;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.witness.sscphase1.secure.Apg;
-import org.witness.sscphase1.secure.EncryptObscureMethod;
-import org.witness.sscphase1.secure.EncryptTagger;
-import org.witness.sscphase1.secure.MediaHasher;
-
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -33,18 +25,14 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PointF;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Bitmap.CompressFormat;
-import android.graphics.Bitmap.Config;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Vibrator;
-import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images.Media;
 import android.util.Log;
@@ -59,7 +47,6 @@ import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -67,24 +54,28 @@ import org.witness.securesmartcam.jpegredaction.JpegRedaction;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener, OnLongClickListener {
 
-	final static String LOGTAG = "[Camera Obscura : ImageEditor] **************************** ";
-	final static String SSC = LOGTAG;
+	final static String LOGTAG = "[Camera Obscura ImageEditor]";
 
-	// Colors for region squares
-	public final static int DRAW_COLOR = Color.argb(128, 0, 255, 0);// Green
-	public final static int DETECTED_COLOR = Color.argb(128, 0, 0, 255); // Blue
-	public final static int OBSCURED_COLOR = Color.argb(128, 255, 0, 0); // Red
-	public final static int TAGGED_COLOR = Color.argb(128, 128, 128, 0); // Something else
+	/* This isn't necessary 
+	// Maximum dimension for sharing
+	//public final static int SHARE_SIZE_MAX_WIDTH_HEIGHT = 320;
+	*/
 	
-	public final static int PREFERENCES_MENU_ITEM = 0;
-	public final static int PANIC_MENU_ITEM = 1;
+	// Colors for region squares
+	public final static int DRAW_COLOR = Color.argb(200, 0, 255, 0);// Green
+	public final static int DETECTED_COLOR = Color.argb(200, 0, 0, 255); // Blue
+	public final static int OBSCURED_COLOR = Color.argb(200, 255, 0, 0); // Red
+
+	// Constants for the menu items, currently these are in an XML file (menu/image_editor_menu.xml, strings.xml)
+	public final static int ABOUT_MENU_ITEM = 0;
+	public final static int DELETE_ORIGINAL_MENU_ITEM = 1;
 	public final static int SAVE_MENU_ITEM = 2;
 	public final static int SHARE_MENU_ITEM = 3;
-	public final static int NEW_TAG_MENU_ITEM = 4;
-	public final static int HASH_MENU_ITEM = 5;
+	public final static int NEW_REGION_MENU_ITEM = 4;
 	
 	// Image Matrix
 	Matrix matrix = new Matrix();
+
 	// Saved Matrix for not allowing a current operation (over max zoom)
 	Matrix savedMatrix = new Matrix();
 		
@@ -92,15 +83,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	static final int NONE = 0;
 	static final int DRAG = 1;
 	static final int ZOOM = 2;
-	static final int DRAW = 3;
-	static final int TAP = 4;
+	static final int TAP = 3;
 	int mode = NONE;
 
+	// Default ImageRegion width and height
 	static final int DEFAULT_REGION_WIDTH = 160;
 	static final int DEFAULT_REGION_HEIGHT = 160;
 	
+	// Maximum zoom scale
 	static final float MAX_SCALE = 10f;
-
+	
+	// Constant for autodetection dialog
 	static final int DIALOG_DO_AUTODETECTION = 0;
 	
 	// For Zooming
@@ -111,88 +104,96 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	// For Dragging
 	PointF startPoint = new PointF();
 	
-	//float minMoveDistance = 10f; // 10 pixels??  Perhaps should be density independent
+	// Don't allow it to move until the finger moves more than this amount
+	// Later in the code, the minMoveDistance in real pixels is calculated
+	// to account for different touch screen resolutions
 	float minMoveDistanceDP = 5f;
 	float minMoveDistance; // = ViewConfiguration.get(this).getScaledTouchSlop();
-	float scale; // Current display scale
 	
+	// zoom in and zoom out buttons
 	Button zoomIn, zoomOut;
+	
+	// ImageView for the original (scaled) image
 	ImageView imageView;
-	ImageView overlayImageView;
 	
+	// Layout that all of the ImageRegions will be in
 	RelativeLayout regionButtonsLayout;
-	FrameLayout frameRoot;
-	
-	// Touch Timer Related (Long Clicks)
-	Handler touchTimerHandler;
-	Runnable touchTimerRunnable;
-	
-	Bitmap imageBitmap;
-	Bitmap overlayBitmap;
-	
-	Canvas overlayCanvas;
-	Paint overlayPaint;
-	
-	Vector<ImageRegion> imageRegions = new Vector<ImageRegion>();  // Being lazy 
-	//ImageRegion[] imageRegions;
 		
+	// Bitmap for the original image (scaled)
+	Bitmap imageBitmap;
+		
+	// Vector to hold ImageRegions 
+	Vector<ImageRegion> imageRegions = new Vector<ImageRegion>(); 
+		
+	// The original image dimensions (not scaled)
 	int originalImageWidth;
 	int originalImageHeight;
-		
-	/* For database handling of metadata
-	 * imageUriSource added because if user takes a photo
-	 * with the camera, a file URI is returned
-	 * but if user chooses a gallery image, URI has to be looked up.
-	 */
-	Bundle imageSource;
-	Uri imageUri;
-	SSCMetadataHandler mdh;
-	
+
+	// So we can give some haptic feedback to the user
 	Vibrator vibe;
+
+	// Original Image Uri
+	Uri originalImageUri;
 	
-	// This will need to be updated when changes are made to the image
-	boolean imageSaved = false;
-	Uri savedImageUri = null;
+	// Saved Image Uri
+	Uri savedImageUri;
 	
-	// pref booleans
-	private boolean deleteOriginal = false; //auto delete on import
-	private boolean autoSign = false; //auto sign all exports
-	private boolean autoEncryption = false; //auto encrypt
+	// Constant for temp filename
+	private final static String TMP_FILE_NAME = "temporary.jpg";
+	private final static String TMP_FILE_DIRECTORY = "/Android/data/org.witness.sscphase1/files/";
 	
+	// Temporary Image Uri
+	Uri tmpImageUri;
+	
+	//handles threaded events for the UI thread
+    private Handler mHandler = new Handler();
+    
+    // Handles when we should do realtime preview and when we shouldn't
+    boolean doRealtimePreview = true;
+
+    private Runnable mUpdateTimeTask = new Runnable() {
+    	   public void run() {
+    		   doAutoDetection();
+    	   }
+    	};
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		initPreferences();
-		
-        requestWindowFeature(Window.FEATURE_NO_TITLE);  
+				
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.imageviewer);
-		
-		scale = this.getResources().getDisplayMetrics().density;
-		minMoveDistance = minMoveDistanceDP * scale + 0.5f;
-		
-		imageView = (ImageView) findViewById(R.id.ImageEditorImageView);
-		overlayImageView = (ImageView) findViewById(R.id.ImageEditorOverlayImageView);
-		frameRoot = (FrameLayout) findViewById(R.id.frameRoot);
 
+		// Calculate the minimum distance
+		minMoveDistance = minMoveDistanceDP * this.getResources().getDisplayMetrics().density + 0.5f;
+		
+		// The ImageView that contains the image we are working with
+		imageView = (ImageView) findViewById(R.id.ImageEditorImageView);
+		
+		// Buttons for zooming
 		zoomIn = (Button) this.findViewById(R.id.ZoomIn);
 		zoomOut = (Button) this.findViewById(R.id.ZoomOut);
 
+		// this, ImageEditor will be the onClickListener for the buttons
 		zoomIn.setOnClickListener(this);
 		zoomOut.setOnClickListener(this);
 
-		// I made this URI global, as we should require it in other methods (HNH 2/22/11)
-		imageUri = getIntent().getData();
-		imageSource = getIntent().getExtras();
-
-		if (imageUri == null) {
-			imageUri = (Uri) imageSource.get("android.intent.extra.STREAM");
+		// Passed in from CameraObscuraMainMenu
+		originalImageUri = getIntent().getData();
+		
+		// If originalImageUri is null, we are likely coming from another app via "share"
+		if (originalImageUri == null && getIntent().hasExtra(Intent.EXTRA_STREAM)) {
+			originalImageUri = (Uri) getIntent().getExtras().get(Intent.EXTRA_STREAM);
 		}
 
+		Log.v(LOGTAG,"The Path" + pullPathFromUri(originalImageUri));
+		
+		// Instantiate the vibrator
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-		if (imageUri != null) {
+		// Load the image if it isn't null
+		if (originalImageUri != null) {
+			// Load up smaller image
 			try {
 				// Load up the image's dimensions not the image itself
 				BitmapFactory.Options bmpFactoryOptions = new BitmapFactory.Options();
@@ -201,16 +202,26 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Needs to be this config for Google Face Detection 
 				bmpFactoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
 				
-				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri), null, bmpFactoryOptions);
+				// Parse the image
+				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(originalImageUri), null, bmpFactoryOptions);
 
+				// Hold onto the unscaled dimensions
 				originalImageWidth = bmpFactoryOptions.outWidth;
 				originalImageHeight = bmpFactoryOptions.outHeight;
 				
+				// Get the current display to calculate ratios
 				Display currentDisplay = getWindowManager().getDefaultDisplay();
+
+				Log.v(LOGTAG,"Display Width: " + currentDisplay.getWidth());
+				Log.v(LOGTAG,"Display Height: " + currentDisplay.getHeight());
 				
-				int widthRatio = (int) Math.ceil(bmpFactoryOptions.outWidth / (float) currentDisplay.getWidth());
-				int heightRatio = (int) Math.ceil(bmpFactoryOptions.outHeight / (float) currentDisplay.getHeight());
-	
+				Log.v(LOGTAG,"Image Width: " + originalImageWidth);
+				Log.v(LOGTAG,"Image Height: " + originalImageHeight);
+				
+				// Ratios between the display and the image
+				int widthRatio = (int) Math.floor(bmpFactoryOptions.outWidth / (float) currentDisplay.getWidth());
+				int heightRatio = (int) Math.floor(bmpFactoryOptions.outHeight / (float) currentDisplay.getHeight());
+
 				Log.v(LOGTAG, "HEIGHTRATIO:" + heightRatio);
 				Log.v(LOGTAG, "WIDTHRATIO:" + widthRatio);
 				// If both of the ratios are greater than 1,
@@ -227,66 +238,56 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 				// Decode it for real
 				bmpFactoryOptions.inJustDecodeBounds = false;
-				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri), null, bmpFactoryOptions);
+				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(originalImageUri), null, bmpFactoryOptions);
 				Log.v(LOGTAG,"Was: " + imageBitmap.getConfig());
 
 				if (imageBitmap == null) {
 					Log.v(LOGTAG,"bmp is null");
 				}
+				
+				float matrixWidthRatio = (float) currentDisplay.getWidth() / (float) imageBitmap.getWidth();
+				float matrixHeightRatio = (float) currentDisplay.getHeight() / (float) imageBitmap.getHeight();
 
-				float matrixScale = 1;
-				matrix.setScale(matrixScale, matrixScale);
-				imageView.setImageBitmap(createObscuredBitmap());
+				// Setup the imageView and matrix for scaling
+				float matrixScale = matrixHeightRatio;
+				
+				if (matrixWidthRatio < matrixHeightRatio) {
+					matrixScale = matrixWidthRatio;
+				} 
+				
+				imageView.setImageBitmap(imageBitmap);
+				
+				PointF midpoint = new PointF((float)imageBitmap.getWidth()/2f, (float)imageBitmap.getHeight()/2f);
+				matrix.postScale(matrixScale, matrixScale);
+
+				// This doesn't completely center the image but it get's closer
+				int fudge = 42;
+				matrix.postTranslate((float)((float)currentDisplay.getWidth()-(float)imageBitmap.getWidth()*(float)matrixScale)/2f,(float)((float)currentDisplay.getHeight()-(float)imageBitmap.getHeight()*matrixScale)/2f-fudge);
+				
 				imageView.setImageMatrix(matrix);
-				overlayImageView.setImageMatrix(matrix);
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 			
-			// Call SSCMetadataHandler to make a new entry into the database
-			mdh = new SSCMetadataHandler(this);
-			try {
-				mdh.createDatabase();
-			} catch(IOException e) {}
-			
-			try {
-				mdh.openDataBase();
-			} catch(SQLException e) {}
-			
-			try {
-				// Need to make sure imageSource exists
-				if (imageSource.containsKey("imageSource")) {
-					mdh.initiateMedia(imageUri,1,imageSource.getInt("imageSource"));  // which is 1 vs. 2
-				} else {
-					mdh.initiateMedia(imageUri,1,2);  // which is 1 vs. 2
-				}
-			} catch (IOException e) {}
-			
-			// Canvas for drawing
-			overlayBitmap = Bitmap.createBitmap(imageBitmap.getWidth(), imageBitmap.getHeight(), Config.ARGB_8888);
-			overlayCanvas = new Canvas(overlayBitmap);
-			overlayPaint = new Paint();
-			overlayImageView.setImageBitmap(overlayBitmap); 
-			//redrawOverlay();
-				
-			overlayImageView.setOnTouchListener(this);
-			overlayImageView.setOnLongClickListener(this); // What about normal onClick??\
-			// Long click doesn't give place.. :-(
+			// Set the OnTouch and OnLongClick listeners to this (ImageEditor)
+			imageView.setOnTouchListener(this);
+			imageView.setOnLongClickListener(this);
 			
 			// Layout for Image Regions
 			regionButtonsLayout = (RelativeLayout) this.findViewById(R.id.RegionButtonsLayout);
 			
-			// Only want to do this if we are starting with a new image
-			// Do popup
-			showDialog(DIALOG_DO_AUTODETECTION);
-			
-			//how take care of the original!
-			if (deleteOriginal)
-				handleDelete();
+			// Do auto detect popup
+			Toast autodetectedToast = Toast.makeText(this, "Detecting faces...", Toast.LENGTH_SHORT);
+			autodetectedToast.show();
+			mHandler.postDelayed(mUpdateTimeTask, 1000);
 		}
 	}
 	
-	private void handleDelete () 
+	/*
+	 * Call this to delete the original image, will ask the user
+	 */
+	private void handleDelete() 
 	{
 		final AlertDialog.Builder b = new AlertDialog.Builder(this);
 		b.setIcon(android.R.drawable.ic_dialog_alert);
@@ -294,240 +295,207 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		b.setMessage(getString(R.string.confirm_delete));
 		b.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                /* User clicked OK so do some stuff */
-        		getContentResolver().delete(imageUri, null, null);
-        		imageUri = null;
+
+                // User clicked OK so go ahead and delete
+        		deleteOriginal();
             }
         });
 		b.setNegativeButton(android.R.string.no, null);
 		b.show();
 	}
 	
-	private void initPreferences ()
-	{
-		//OriginalImagePref
-    	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-
-    	int defState = Integer.parseInt(prefs.getString("OriginalImagePref", "0"));
-    	if (defState == 2)
-    		deleteOriginal = true;
+	/*
+	 * Actual deletion of original
+	 */
+	private void deleteOriginal() {
+		getContentResolver().delete(originalImageUri, null, null);
+		originalImageUri = null;
 	}
 	
-	protected Dialog onCreateDialog(int id) {
-		Log.v(LOGTAG,"Within onCreateDialog" + id);
-	    Dialog dialog = null;
-	    switch(id) {
-	    	case DIALOG_DO_AUTODETECTION:
-	    		Log.v(LOGTAG,"Within onCreateDialog right case");
-	    		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-	    		builder.setTitle("Scan Image?");
-	    		builder.setMessage("Would you like to scan this image for faces?");
-	    		builder.setCancelable(false);
-	    		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-	    		           public void onClick(DialogInterface dialog, int id) {
-	    		                ImageEditor.this.doAutoDetection();
-	    		           }
-	    		       });
-	    		builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-	    		           public void onClick(DialogInterface dialog, int id) {
-	    		                dialog.cancel();
-	    		           }
-	    		       });
-	    		dialog = builder.create();	    		
-	    		break;
-	        
-	    	default:
-	    		dialog = null;
-	    }
-	    return dialog;
-	}	
-
 	/*
-	 * This handles the callbacks from the EncryptObscure hand off to APG, or any other
-	 * Result-based Intent launch
-	 * 
-	 * Also now included: callbacks from IdTagger and EncryptTagger classes.
-	 */	
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		
-		if (requestCode ==  Apg.ENCRYPT_MESSAGE
-				|| requestCode == Apg.SELECT_PUBLIC_KEYS
-					|| requestCode == Apg.SELECT_SECRET_KEY) {
-			Apg apg = Apg.getInstance();
-			apg.onActivityResult(this, requestCode, resultCode, data);
-			String encryptedData = apg.getEncryptedData();
-		} else if(requestCode == RESULT_ID_TAGGER) {
-			if(resultCode == Activity.RESULT_OK) {
-				String ir = data.getStringExtra("imageRegion");
-				// loop through image regions to find the matching image region, and set its subject
-				// is this sloppy?  i don't know!!!  other suggestions welcome :)
-				for(ImageRegion m : imageRegions) {
-					if(ir.compareTo(m.toString()) == 0) {
-						m.addSubjectId(data.getStringExtra("addedSubject"), Integer.parseInt(data.getStringExtra("subjectConsent")));
-					}
-				}
-				mdh.registerSubject(data.getStringExtra("addedSubject"),
-						Integer.parseInt(data.getStringExtra("subjectConsent")),
-						null, mdh.getImageRegionResource(),ir);
-			}
-		} else if(requestCode == RESULT_ENCRYPT_TAGGER) {
-			if(resultCode == Activity.RESULT_OK) {
-				String ir = data.getStringExtra("imageRegion");
-				for(ImageRegion m : imageRegions) {
-					if(ir.compareTo(m.toString()) == 0) {
-						m.addEncryptedKey(data.getStringArrayListExtra("addedKeys"));
-					}
-				}
-				mdh.registerKeys(data.getStringArrayListExtra("addedKeys"),mdh.getImageRegionResource(),ir);
-			}
-		}
+	 * Ask user to approve auto detection
+	 */
+	private void askToDoAutoDetect() {
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle("Scan Image?");
+		builder.setMessage("Would you like to scan this image for faces?");
+		builder.setCancelable(false);
+		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		                ImageEditor.this.doAutoDetection();
+		           }
+		       });
+		builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		                dialog.cancel();
+		           }
+		       });
+		builder.show();
 	}
+	
+	/*
+	 * Do actual auto detection and create regions
+	 * 
+	 * public void createImageRegion(int _scaledStartX, int _scaledStartY, 
+			int _scaledEndX, int _scaledEndY, 
+			int _scaledImageWidth, int _scaledImageHeight, 
+			int _imageWidth, int _imageHeight, 
+			int _backgroundColor) {
+	 */
 	
 	private void doAutoDetection() {
 		// This should be called via a pop-up/alert mechanism
-		Rect[] autodetectedRects = runFaceDetection();
+		
+		RectF[] autodetectedRects = runFaceDetection();
 		for (int adr = 0; adr < autodetectedRects.length; adr++) {
-			Log.v(LOGTAG,autodetectedRects[adr].toString());
+
+			Log.v(LOGTAG,"AUTODETECTED imageView Width, Height: " + imageView.getWidth() + " " + imageView.getHeight());
+			Log.v(LOGTAG,"UNSCALED RECT:" + autodetectedRects[adr].left + " " + autodetectedRects[adr].top + " " + autodetectedRects[adr].right + " " + autodetectedRects[adr].bottom);
+			
+			float scaledStartX = (float)autodetectedRects[adr].left * (float)imageView.getWidth()/(float)imageBitmap.getWidth();
+			float scaledStartY = (float)autodetectedRects[adr].top * (float)imageView.getHeight()/(float)imageBitmap.getHeight();
+			float scaledEndX = (float)autodetectedRects[adr].right * (float)imageView.getWidth()/(float)imageBitmap.getWidth();
+			float scaledEndY = (float)autodetectedRects[adr].bottom * (float)imageView.getHeight()/(float)imageBitmap.getHeight();
+			
+			RectF autodetectedRectScaled = new RectF(scaledStartX, scaledStartY, scaledEndX, scaledEndY);
+			Log.v(LOGTAG,"SCALED RECT:" + autodetectedRectScaled.left + " " + autodetectedRectScaled.top + " " + autodetectedRectScaled.right + " " + autodetectedRectScaled.bottom);
+
+			
+			// Probably need to map autodetectedRects to scaled rects
+			//matrix.mapRect(autodetectedRects[adr]);		
+			//Log.v(LOGTAG,"MAPPED RECT:" + autodetectedRects[adr].left + " " + autodetectedRects[adr].top + " " + autodetectedRects[adr].right + " " + autodetectedRects[adr].bottom);
+			
+			float faceBuffer = (autodetectedRectScaled.right-autodetectedRectScaled.left)/5;
+			
+			boolean showPopup = false;
+			if (adr == autodetectedRects.length - 1) {
+				showPopup = true;
+			}
 			createImageRegion(
-					autodetectedRects[adr].left,
-					autodetectedRects[adr].top,
-					autodetectedRects[adr].right,
-					autodetectedRects[adr].bottom,
-					overlayCanvas.getWidth(), 
-					overlayCanvas.getHeight(), 
+					(int)(autodetectedRectScaled.left-faceBuffer),
+					(int)(autodetectedRectScaled.top-faceBuffer),
+					(int)(autodetectedRectScaled.right+faceBuffer),
+					(int)(autodetectedRectScaled.bottom+faceBuffer),
+					imageView.getWidth(),
+					imageView.getHeight(),
+					originalImageWidth, 
+					originalImageHeight, 
+					DETECTED_COLOR,
+					showPopup);
+		}	
+			/*
+			createImageRegion(
+					(int)autodetectedRects[adr].left,
+					(int)autodetectedRects[adr].top,
+					(int)autodetectedRects[adr].right,
+					(int)autodetectedRects[adr].bottom,
+					imageView.getWidth(),
+					imageView.getHeight(),
 					originalImageWidth, 
 					originalImageHeight, 
 					DETECTED_COLOR);
 		}
-		Toast autodetectedToast = Toast.makeText(this, "" + autodetectedRects.length + " faces deteceted", Toast.LENGTH_SHORT);
+		*/
+		
+		Toast autodetectedToast = Toast.makeText(this, "" + autodetectedRects.length + " faces detected", Toast.LENGTH_SHORT);
 		autodetectedToast.show();
-		clearOverlay();			
 	}
 	
-	// This should really have a class for the regions to obscure, each with it's own information
 	/*
-	private void createObscuredBmp(Rect[] obscureRects) {
-		// Canvas for drawing
-		Bitmap alteredBitmap = Bitmap.createBitmap(imageBitmap.getWidth(), imageBitmap.getHeight(), imageBitmap.getConfig());
-		Canvas canvas = new Canvas(alteredBitmap);
-		Paint paint = new Paint();
-		canvas.drawBitmap(imageBitmap, 0, 0, paint);
-		
-		int OBSCURE_SQUARE = 0;
-		int OBSCURE_BLUR = 1;
-		
-		int obscureMethod = OBSCURE_SQUARE;
-		
-        // Using the interface
-        ObscureMethod om;
-        
-        // Load the appropriate class/method based on obscureMethod variable/constants
-        if (obscureMethod == OBSCURE_BLUR) {
-        	om = new BlurObscure(alteredBitmap);
-        } else {
-        	om = new PaintSquareObscure();		            	
-        }
-        
-		for (int i = 0; i < obscureRects.length; i++) {				            	
-			// Apply the obscure method
-			om.obscureRect(obscureRects[i], canvas);
-		}
-	}*/
-
-	
-	private void sendSecureHashSMS ()
-	{
-		Date hashTime = new Date();
-		String hash = generateSecureHash ();
-		
-		Intent sendIntent = new Intent(Intent.ACTION_VIEW);         
-		sendIntent.setData(Uri.parse("sms:"));
-		sendIntent.putExtra("sms_body", "Obscura hash: " + hash + " (" + hashTime.toGMTString() + ")"); 
-		startActivity(sendIntent);
-	}
-	
-	private String generateSecureHash()
-	{
-		String result = "";
-	//	ProgressDialog progressDialog =ProgressDialog.show(this, "", "generating hash...");
-		try
-		{
-			InputStream is = getContentResolver().openInputStream(imageUri);		
-			result = MediaHasher.hash(is, "SHA-1");
-			mdh.mediaHash(result);
-		} catch (Exception e) {
-			Log.e(LOGTAG, "error generating hash",e);
-		} finally {
-		//	progressDialog.dismiss();
-		}
-		return result;
-	}
-	
-	private Rect[] runFaceDetection() {
+	 * The actual face detection calling method
+	 */
+	private RectF[] runFaceDetection() {
 		GoogleFaceDetection gfd = new GoogleFaceDetection(imageBitmap);
 		int numFaces = gfd.findFaces();
         Log.v(LOGTAG,"Num Faces Found: " + numFaces); 
-        Rect[] possibleFaceRects = gfd.getFaces();
+        RectF[] possibleFaceRects = gfd.getFaces();
 		return possibleFaceRects;				
 	}
 	
-	
-	public boolean onTouch(View v, MotionEvent event) {
+	/*
+	 * Handles touches on ImageView
+	 */
+	@Override
+	public boolean onTouch(View v, MotionEvent event) 
+	{
 		boolean handled = false;
-		
+	
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
-				// Single Finger
+				// Single Finger down
 				mode = TAP;
+				
+				// Don't do realtime preview while touching screen
+				//doRealtimePreview = false;
+				//updateDisplayImage();
+
 				// Save the Start point. 
 				startPoint.set(event.getX(), event.getY());
+						
+				clearImageRegionsEditMode();
+				
 				break;
 				
 			case MotionEvent.ACTION_POINTER_DOWN:
-				// Two Fingers
+				// Two Fingers down
+
+				// Don't do realtime preview while touching screen
+				//doRealtimePreview = false;
+				//updateDisplayImage();
+
 				// Get the spacing of the fingers, 2 fingers
 				float sx = event.getX(0) - event.getX(1);
 				float sy = event.getY(0) - event.getY(1);
 				startFingerSpacing = (float) Math.sqrt(sx * sx + sy * sy);
 
-				Log.d(LOGTAG, "Start Finger Spacing=" + startFingerSpacing);
+				//Log.d(LOGTAG, "Start Finger Spacing=" + startFingerSpacing);
 				
-				if (startFingerSpacing > 10f) {
-					float xsum = event.getX(0) + event.getX(1);
-					float ysum = event.getY(0) + event.getY(1);
-					startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
+				// Get the midpoint
+				float xsum = event.getX(0) + event.getX(1);
+				float ysum = event.getY(0) + event.getY(1);
+				startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
 				
-					mode = ZOOM;
-					Log.d(LOGTAG, "mode=ZOOM");
-				}
+				mode = ZOOM;
+				//Log.d(LOGTAG, "mode=ZOOM");
+				
+				clearImageRegionsEditMode();
 				break;
 				
 			case MotionEvent.ACTION_UP:
 				// Single Finger Up
+				
+			    // Re-enable realtime preview
+				doRealtimePreview = true;
+				updateDisplayImage();
+				
 				mode = NONE;
-				Log.v(LOGTAG,"mode=NONE");
+				//Log.v(LOGTAG,"mode=NONE");
+
 				break;
 				
 			case MotionEvent.ACTION_POINTER_UP:
 				// Multiple Finger Up
+			    // Re-enable realtime preview
+				doRealtimePreview = true;
+				updateDisplayImage();
 				mode = NONE;
-				Log.d(LOGTAG, "mode=NONE");
+				//Log.d(LOGTAG, "mode=NONE");
 				break;
 				
 			case MotionEvent.ACTION_MOVE:
-				float distance = (float) (Math.sqrt(Math.abs(startPoint.x - event.getX()) + Math.abs(startPoint.y - event.getY())));
-				Log.v(LOGTAG,"Move Distance: " + distance);
-				Log.v(LOGTAG,"Min Distance: " + minMoveDistance);
 				
+				// Calculate distance moved
+				float distance = (float) (Math.sqrt(Math.abs(startPoint.x - event.getX()) + Math.abs(startPoint.y - event.getY())));
+				//Log.v(LOGTAG,"Move Distance: " + distance);
+				//Log.v(LOGTAG,"Min Distance: " + minMoveDistance);
+				
+				// If greater than minMoveDistance, it is likely a drag or zoom
 				if (distance > minMoveDistance) {
 					if (mode == TAP || mode == DRAG) {
 						mode = DRAG;
 						
 						matrix.postTranslate(event.getX() - startPoint.x, event.getY() - startPoint.y);
 						imageView.setImageMatrix(matrix);
-						overlayImageView.setImageMatrix(matrix);
 						// Reset the start point
 						startPoint.set(event.getX(), event.getY());
 	
@@ -542,8 +510,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						float ey = event.getY(0) - event.getY(1);
 						endFingerSpacing = (float) Math.sqrt(ex * ex + ey * ey);
 	
-						Log.d(LOGTAG, "End Finger Spacing=" + endFingerSpacing);
+						//Log.d(LOGTAG, "End Finger Spacing=" + endFingerSpacing);
 		
+						// If we moved far enough
 						if (endFingerSpacing > minMoveDistance) {
 							
 							// Ratio of spacing..  If it was 5 and goes to 10 the image is 2x as big
@@ -551,19 +520,23 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							// Scale from the midpoint
 							matrix.postScale(scale, scale, startFingerSpacingMidPoint.x, startFingerSpacingMidPoint.y);
 		
+							// Make sure that the matrix isn't bigger than max scale/zoom
 							float[] matrixValues = new float[9];
 							matrix.getValues(matrixValues);
+							/*
 							Log.v(LOGTAG, "Total Scale: " + matrixValues[0]);
 							Log.v(LOGTAG, "" + matrixValues[0] + " " + matrixValues[1]
 									+ " " + matrixValues[2] + " " + matrixValues[3]
 									+ " " + matrixValues[4] + " " + matrixValues[5]
 									+ " " + matrixValues[6] + " " + matrixValues[7]
 									+ " " + matrixValues[8]);
+							*/
+							// x = 1.5 * 1 + 0 * y + -120 * 1
+							
 							if (matrixValues[0] > MAX_SCALE) {
 								matrix.set(savedMatrix);
 							}
 							imageView.setImageMatrix(matrix);
-							overlayImageView.setImageMatrix(matrix);
 							
 							putOnScreen();
 							redrawRegions();
@@ -572,11 +545,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							float esx = event.getX(0) - event.getX(1);
 							float esy = event.getY(0) - event.getY(1);
 							startFingerSpacing = (float) Math.sqrt(esx * esx + esy * esy);
-							Log.d(LOGTAG, "New Start Finger Spacing=" + startFingerSpacing);
+							//Log.d(LOGTAG, "New Start Finger Spacing=" + startFingerSpacing);
 							
-							float xsum = event.getX(0) + event.getX(1);
-							float ysum = event.getY(0) + event.getY(1);
-							startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
+							// Reset the midpoint
+							float x_sum = event.getX(0) + event.getX(1);
+							float y_sum = event.getY(0) + event.getY(1);
+							startFingerSpacingMidPoint.set(x_sum / 2, y_sum / 2);
 							handled = true;
 						}
 					}
@@ -586,188 +560,25 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		return handled; // indicate event was handled
 	}
 	
-	public void updateDisplayImage ()	{
-		imageView.setImageBitmap(createObscuredBitmap());
+	/*
+	 * For live previews
+	 */	
+	public void updateDisplayImage()
+	{
+		if (doRealtimePreview) {
+			imageView.setImageBitmap(createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight()));
+		} else {
+			imageView.setImageBitmap(imageBitmap);
+		}
 	}
 	
-	
 	/*
-	public boolean onTouch(View v, MotionEvent event) {
-		switch (event.getAction() & MotionEvent.ACTION_MASK) {
-			case MotionEvent.ACTION_DOWN:
-				// Single Finger
-				
-				// Stop current timer if running
-				if (touchTimerRunnable != null) {
-					touchTimerHandler.removeCallbacks(touchTimerRunnable);
-				}
-				
-				// Save the Start point. 
-				startPoint.set(event.getX(), event.getY());
-				
-				// Start out as a drag unless they keep their finger down
-				mode = DRAG;
-				Log.d(LOGTAG, "mode=DRAG");
-				
-				// Start timer to determine if this should be drawing mode
-				touchTimerRunnable = new Runnable() {
-					public void run() {
-						mode = DRAW;
-						// Tell the user somehow
-						Log.v(LOGTAG,"DRAWING DRAWING DRAWING");
-					}
-				};
-				touchTimerHandler = new Handler();
-				touchTimerHandler.postDelayed(touchTimerRunnable,1000); // Hold down for one second
-				
-				break;
-				
-			case MotionEvent.ACTION_POINTER_DOWN:
-				// Two Fingers
-				
-				// Stop current timer if running
-				if (touchTimerRunnable != null) {
-					touchTimerHandler.removeCallbacks(touchTimerRunnable);
-				}
-				
-				// Get the spacing of the fingers, 2 fingers
-				float sx = event.getX(0) - event.getX(1);
-				float sy = event.getY(0) - event.getY(1);
-				startFingerSpacing = (float) Math.sqrt(sx * sx + sy * sy);
-
-				Log.d(LOGTAG, "Start Finger Spacing=" + startFingerSpacing);
-				
-				if (startFingerSpacing > 10f) {
-
-					float xsum = event.getX(0) + event.getX(1);
-					float ysum = event.getY(0) + event.getY(1);
-					startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
-				
-					mode = ZOOM;
-					Log.d(LOGTAG, "mode=ZOOM");
-				}
-				
-				break;
-				
-			case MotionEvent.ACTION_UP:
-				// Single Finger Up
-				
-				if (touchTimerRunnable != null) {
-					touchTimerHandler.removeCallbacks(touchTimerRunnable);
-				}
-				
-				if (mode == DRAW) {
-					// Create Region
-					vibe.vibrate(50);
-					
-					createImageRegion((int)startPoint.x, (int)startPoint.y, (int)event.getX(), (int)event.getY(), overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
-				}
-
-				mode = NONE;
-				Log.v(LOGTAG,"mode=NONE");
-				break;
-				
-			case MotionEvent.ACTION_POINTER_UP:
-				// Multiple Finger Up
-				
-				if (touchTimerRunnable != null) {
-					touchTimerHandler.removeCallbacks(touchTimerRunnable);
-				}
-								
-				mode = NONE;
-				Log.d(LOGTAG, "mode=NONE");
-				break;
-				
-			case MotionEvent.ACTION_MOVE:
-				
-				float distance = (float) (Math.sqrt(Math.abs(startPoint.x - event.getX()) + Math.abs(startPoint.y - event.getY())));
-				Log.v(LOGTAG,"Move Distance: " + distance);
-				Log.v(LOGTAG,"Min Distance: " + minMoveDistance);
-				
-				if (distance > minMoveDistance) {
-				
-					if (touchTimerRunnable != null) {
-						touchTimerHandler.removeCallbacks(touchTimerRunnable);
-					}
-					
-					if (mode == DRAG) {
-					
-						matrix.postTranslate(event.getX() - startPoint.x, event.getY() - startPoint.y);
-						imageView.setImageMatrix(matrix);
-						overlayImageView.setImageMatrix(matrix);
-						// Reset the start point
-						startPoint.set(event.getX(), event.getY());
-	
-						putOnScreen();
-						redrawRegions();
-	
-					} else if (mode == DRAW) { 
-						
-						clearOverlay();
-						overlayPaint.setColor(DRAW_COLOR);
-						overlayPaint.setStyle(Paint.Style.STROKE);
-						overlayCanvas.drawRect(startPoint.x, startPoint.y, event.getX(), event.getY(), overlayPaint);
-						overlayImageView.invalidate();
-	
-					} else if (mode == ZOOM) {
-						
-						// Save the current matrix so that if zoom goes to big, we can revert
-						savedMatrix.set(matrix);
-						
-						// Get the spacing of the fingers, 2 fingers
-						float ex = event.getX(0) - event.getX(1);
-						float ey = event.getY(0) - event.getY(1);
-						endFingerSpacing = (float) Math.sqrt(ex * ex + ey * ey);
-	
-						Log.d(LOGTAG, "End Finger Spacing=" + endFingerSpacing);
-		
-						if (endFingerSpacing > 10f) {
-							
-							// Ratio of spacing..  If it was 5 and goes to 10 the image is 2x as big
-							float scale = endFingerSpacing / startFingerSpacing;
-							// Scale from the midpoint
-							matrix.postScale(scale, scale, startFingerSpacingMidPoint.x, startFingerSpacingMidPoint.y);
-		
-							float[] matrixValues = new float[9];
-							matrix.getValues(matrixValues);
-							Log.v(LOGTAG, "Total Scale: " + matrixValues[0]);
-							Log.v(LOGTAG, "" + matrixValues[0] + " " + matrixValues[1]
-									+ " " + matrixValues[2] + " " + matrixValues[3]
-									+ " " + matrixValues[4] + " " + matrixValues[5]
-									+ " " + matrixValues[6] + " " + matrixValues[7]
-									+ " " + matrixValues[8]);
-							if (matrixValues[0] > MAX_SCALE) {
-								matrix.set(savedMatrix);
-							}
-							imageView.setImageMatrix(matrix);
-							overlayImageView.setImageMatrix(matrix);
-							
-							putOnScreen();
-							redrawRegions();
-	
-							// Reset Start Finger Spacing
-							float esx = event.getX(0) - event.getX(1);
-							float esy = event.getY(0) - event.getY(1);
-							startFingerSpacing = (float) Math.sqrt(esx * esx + esy * esy);
-							Log.d(LOGTAG, "New Start Finger Spacing=" + startFingerSpacing);
-							
-							float xsum = event.getX(0) + event.getX(1);
-							float ysum = event.getY(0) + event.getY(1);
-							startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
-						}
-					}
-				}
-				break;
-		}
-
-		return true; // indicate event was handled
-	}*/
-
-	
-	public void putOnScreen() {
+	 * Move the image onto the screen if it has been moved off
+	 */
+	public void putOnScreen() 
+	{
 		// Get Rectangle of Tranformed Image
-		RectF theRect = new RectF(0,0,imageBitmap.getWidth(), imageBitmap.getHeight());
-		matrix.mapRect(theRect);
+		RectF theRect = getScaleOfImage();
 		
 		Log.v(LOGTAG,theRect.width() + " " + theRect.height());
 		
@@ -791,19 +602,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		Log.v(LOGTAG,"Deltas:" + deltaX + " " + deltaY);
 		
 		matrix.postTranslate(deltaX,deltaY);
+		updateDisplayImage();
 		imageView.setImageMatrix(matrix);
-		overlayImageView.setImageMatrix(matrix);
 	}
 	
-	public void clearOverlay() {
-		Paint clearPaint = new Paint();
-		clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
-		overlayCanvas.drawRect(0, 0, overlayCanvas.getWidth(), overlayCanvas.getHeight(), clearPaint);
-		
-		overlayImageView.invalidate();
-	}
-	
-	private void clearImageRegionsEditMode ()
+	/* 
+	 * Put all regions into normal mode, out of edit mode
+	 */
+	public void clearImageRegionsEditMode()
 	{
 		Iterator<ImageRegion> itRegions = imageRegions.iterator();
 		
@@ -812,11 +618,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 	}
 	
+	/*
+	 * Create new ImageRegion
+	 */
 	public void createImageRegion(int _scaledStartX, int _scaledStartY, 
 			int _scaledEndX, int _scaledEndY, 
 			int _scaledImageWidth, int _scaledImageHeight, 
 			int _imageWidth, int _imageHeight, 
-			int _backgroundColor) {
+			int _backgroundColor, boolean showPopup) {
 		
 		clearImageRegionsEditMode();
 		
@@ -833,77 +642,63 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				_backgroundColor);
 		
 		imageRegions.add(imageRegion);
-		addImageRegionToLayout(imageRegion);
-		mdh.registerImageRegion(imageRegion);
-		clearOverlay();
+		addImageRegionToLayout(imageRegion,showPopup);
 	}
 	
+	/*
+	 * Delete/Remove specific ImageRegion
+	 */
 	public void deleteRegion(ImageRegion ir)
 	{
 		imageRegions.remove(ir);
-		//regionButtonsLayout.removeView(ir);
 		redrawRegions();
+		updateDisplayImage();
 	}
 	
-	public RectF getScaleOfImage() {
+	/*
+	 * Returns the Rectangle of Tranformed Image
+	 */
+	public RectF getScaleOfImage() 
+	{
 		RectF theRect = new RectF(0,0,imageBitmap.getWidth(), imageBitmap.getHeight());
 		matrix.mapRect(theRect);
 		return theRect;
 	}
 
-	public void addImageRegionToLayout(ImageRegion imageRegion) {
+	/*
+	 * Add an ImageRegion to the layout
+	 */
+	public void addImageRegionToLayout(ImageRegion imageRegion, boolean showPopup) 
+	{
 		// Get Rectangle of Current Transformed Image
-		RectF theRect = new RectF(0,0,imageBitmap.getWidth(), imageBitmap.getHeight());
-		matrix.mapRect(theRect);
+		RectF theRect = getScaleOfImage();
 		Log.v(LOGTAG,"New Width:" + theRect.width());
-
-		Rect regionScaledRect = imageRegion.getScaledRect((int)theRect.width(), (int)theRect.height());
-		
-    	RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(regionScaledRect.width(),regionScaledRect.height());
-    	lp.leftMargin = (int)theRect.left + regionScaledRect.left;
-    	lp.topMargin = (int)theRect.top + regionScaledRect.top;
-    	imageRegion.setLayoutParams(lp);
-    	
-    	// should always have been removed
-    	//if (regionButtonsLayout.)
-    	regionButtonsLayout.addView(imageRegion,lp);
+		imageRegion.updateScaledRect((int)theRect.width(), (int)theRect.height());
+				
+    	regionButtonsLayout.addView(imageRegion);
+    	if (showPopup) {
+    		imageRegion.inflatePopup(true);
+    	}
     }
 	
-	public void drawRegions() {
+	/*
+	 * Removes and adds all of the regions to the layout again 
+	 */
+	public void redrawRegions() {
+		regionButtonsLayout.removeAllViews();
+		
 		Iterator<ImageRegion> i = imageRegions.iterator();
 	    while (i.hasNext()) {
 	    	ImageRegion currentRegion = i.next();
-	    	addImageRegionToLayout(currentRegion);
+	    	addImageRegionToLayout(currentRegion, false);
 	    }
 	}
 	
-	public void redrawRegions() {
-		// Easier ??
-		regionButtonsLayout.removeAllViews();
-		drawRegions();
-		// TODO: update db with new coords?
-		
-		// Put the buttons in the right place
-		/* Not working
-		Iterator<ImageRegion> i = imageRegions.iterator();
-	    while (i.hasNext()) {
-	    	ImageRegion currentRegion = i.next();
-	    	Rect scaledRect = currentRegion.getScaledRect(overlayCanvas.getWidth(), overlayCanvas.getHeight());
-	    	RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) currentRegion.getLayoutParams();
-	    	params.leftMargin = scaledRect.left;
-	    	params.topMargin = scaledRect.top;
-	    	params.height = scaledRect.height();
-	    	params.width = scaledRect.width();
-	    	currentRegion.setLayoutParams(params);
-	    	currentRegion.invalidate();
-	    }		
-	    */
-	}
-	
-	public void updateRegionCoordinates(ImageRegion ir) {
-		mdh.updateRegionCoordinates(ir);
-	}
-
+	/*
+	 * Handles normal onClicks for buttons registered to this.
+	 * Currently only the zoomIn and zoomOut buttons
+	 */
+	@Override
 	public void onClick(View v) {
 		if (v == zoomIn) 
 		{
@@ -912,264 +707,354 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
 			matrix.postScale(scale, scale, midpoint.x, midpoint.y);
 			imageView.setImageMatrix(matrix);
-			overlayImageView.setImageMatrix(matrix);
 			putOnScreen();
 			redrawRegions();
-		} else if (v == zoomOut) {
+		} 
+		else if (v == zoomOut) 
+		{
 			float scale = 0.75f;
 
 			PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
 			matrix.postScale(scale, scale, midpoint.x, midpoint.y);
 			imageView.setImageMatrix(matrix);
-			overlayImageView.setImageMatrix(matrix);
 			putOnScreen();
 			redrawRegions();
-		} else if (v instanceof ImageRegion) {
-			// Menu goes here
-		}
+		} 
 	}
 	
+	// Long Clicks create new image regions
+	@Override
 	public boolean onLongClick (View v)
 	{
 		if (mode != DRAG && mode != ZOOM) {
 			vibe.vibrate(50);
-			createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, (int)startPoint.y-DEFAULT_REGION_HEIGHT/2, (int)startPoint.x+DEFAULT_REGION_WIDTH/2, (int)startPoint.y+DEFAULT_REGION_HEIGHT/2, overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
+			
+			float scaledStartX = (float)startPoint.x-DEFAULT_REGION_WIDTH/2 * (float)imageView.getWidth()/(float)imageBitmap.getWidth();
+			float scaledStartY = (float)startPoint.y-DEFAULT_REGION_HEIGHT/2 * (float)imageView.getHeight()/(float)imageBitmap.getHeight();
+			float scaledEndX = (float)startPoint.x+DEFAULT_REGION_WIDTH/2 * (float)imageView.getWidth()/(float)imageBitmap.getWidth();
+			float scaledEndY = (float)startPoint.y+DEFAULT_REGION_HEIGHT/2 * (float)imageView.getHeight()/(float)imageBitmap.getHeight();
+
+			createImageRegion((int)scaledStartX, (int)scaledStartY, 
+							(int)scaledEndX, (int)scaledEndY, 
+							imageView.getWidth(), imageView.getHeight(), 
+							originalImageWidth, originalImageHeight, DRAW_COLOR, false);
 			return true;
 		}
 		return false;
 	}
 	
-	
+	/*
+	 * Standard method for menu items.  Uses res/menu/image_editor_menu.xml
+	 */
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
     	MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.image_editor_menu, menu);
-		/*
-    	MenuItem newTagMenuItem = menu.add(Menu.NONE, NEW_TAG_MENU_ITEM, Menu.NONE, "New Tag");
-		MenuItem panicMenuItem = menu.add(Menu.NONE, PANIC_MENU_ITEM, Menu.NONE, "Panic");
-        MenuItem preferencesMenuItem = menu.add(Menu.NONE, PREFERENCES_MENU_ITEM, Menu.NONE, "Preferences");
-        MenuItem saveMenuItem = menu.add(Menu.NONE, SAVE_MENU_ITEM, Menu.NONE, "Save");
-        MenuItem shareMenuItem = menu.add(Menu.NONE, SHARE_MENU_ITEM, Menu.NONE, "Share");
-        MenuItem hashMenuItem = menu.add(Menu.NONE, HASH_MENU_ITEM, Menu.NONE, "Send Hash");
-        */
+
         return true;
     }
-    
+	
+    /*
+     * Normal menu item selected method.  Uses menu items defined in XML: res/menu/image_editor_menu.xml
+     */
+	@Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
     	switch (item.getItemId()) {
     		case R.id.menu_new_region:
     			// Set the Start point. 
-				startPoint.set(overlayCanvas.getWidth()/2, overlayCanvas.getHeight()/2);
+				startPoint.set(imageView.getWidth()/2, imageView.getHeight()/2);
+				
     			// Add new region at default location (center)
-    			createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, (int)startPoint.y-DEFAULT_REGION_HEIGHT/2, (int)startPoint.x+DEFAULT_REGION_WIDTH/2, (int)startPoint.y+DEFAULT_REGION_HEIGHT/2, overlayCanvas.getWidth(), overlayCanvas.getHeight(), originalImageWidth, originalImageHeight, DRAW_COLOR);
+    			createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, 
+    					(int)startPoint.y-DEFAULT_REGION_HEIGHT/2, 
+    					(int)startPoint.x+DEFAULT_REGION_WIDTH/2, 
+    					(int)startPoint.y+DEFAULT_REGION_HEIGHT/2, 
+    					imageView.getWidth(), 
+    					imageView.getHeight(), 
+    					originalImageWidth, 
+    					originalImageHeight, 
+    					DRAW_COLOR, false);
 
     			return true;
-    		case R.id.menu_panic:
-    		// Look up preferences and do what is required
-    		
-    			return true;
-    		case R.id.menu_image_prefs:
-        	 	// Load Image Preferences Activity
-        		launchImagePrefs();
-        		return true;
-
+    			
         	case R.id.menu_save:
         		// Save Image
         		saveImage();
         		
         		return true;
+        		
         	case R.id.menu_share:
         		// Share Image
         		shareImage();
         		
         		return true;
-        	case R.id.menu_send_hash:
-        		// Send hash of image via SMS
-        		sendSecureHashSMS();
+        	
+/*
+ 			case R.id.menu_delete_original:
+        		// Delete Original Image
+        		handleDelete();
         		
         		return true;
+*/        		
+        	case R.id.menu_about:
+        		// Pull up about screen
+        		displayAbout();
+        		
+        		return true;
+        	
+        	case R.id.menu_preview:
+        		showPreview();
+        		
+        		return true;
+        		
     		default:
     			return false;
     	}
     }
-    
+	/*
+	 * Display the about screen
+	 */
+	private void displayAbout() {
+		Intent i = new Intent(Intent.ACTION_VIEW);
+		i.setData(Uri.parse("https://guardianproject.info/apps/securecam/about-v1/"));
+		startActivity(i);
+	}
+	
+	/*
+	 * Display preview image
+	 */
+	private void showPreview() {
+		// Open Preview Activity
+		saveTmpImage();
+		
+		Intent intent = new Intent(this, ImagePreview.class);
+    	intent.putExtra(ImagePreview.IMAGEURI, tmpImageUri.toString());
+		startActivity(intent);				
+	}
+	
+	/*
+	 * When the user selects the Share menu item
+	 * Uses saveTmpImage (overwriting what is already there) and uses the standard Android Share Intent
+	 */
     private void shareImage() {
-    	//how take care of the original!
-		if (deleteOriginal && imageUri != null)
-			handleDelete();
-    	
-    	saveImage();
-    	
-    	Intent share = new Intent(Intent.ACTION_SEND);
-    	share.setType("image/jpeg");
-    	share.putExtra(Intent.EXTRA_STREAM, savedImageUri);
-    	startActivity(Intent.createChooser(share, "Share Image"));    	
+    	if (saveTmpImage()) {
+        	Intent share = new Intent(Intent.ACTION_SEND);
+        	share.setType("image/jpeg");
+        	share.putExtra(Intent.EXTRA_STREAM, tmpImageUri);
+        	startActivity(Intent.createChooser(share, "Share Image"));    	
+    	} else {
+    		Toast t = Toast.makeText(this,"Saving Temporary File Failed!", Toast.LENGTH_SHORT); 
+    		t.show();
+    	}
     }
     
     /*
-     * This may introduce memory issues and therefore have to be done in a 
-     * different activity
+     * Goes through the regions that have been defined and creates a bitmap with them obscured.
+     * This may introduce memory issues and therefore have to be done in a different manner.
      */
-    private Bitmap createObscuredBitmap() {
-    	Bitmap obscuredBmp = Bitmap.createBitmap( imageBitmap.getWidth(),imageBitmap.getHeight(),imageBitmap.getConfig());
-    	Canvas obscuredCanvas = new Canvas(obscuredBmp); 
+    private Bitmap createObscuredBitmap(int width, int height) 
+    {
+    	// Create the bitmap that we'll output from this method
+    	Bitmap obscuredBmp = Bitmap.createBitmap(width, height,imageBitmap.getConfig());
     	
-    	Paint obscuredPaint = new Paint();     	
+    	// Create the canvas to draw on
+    	Canvas obscuredCanvas = new Canvas(obscuredBmp); 
+    	// Create the paint used to draw with
+    	Paint obscuredPaint = new Paint();   
+    	// Create a default matrix
     	Matrix obscuredMatrix = new Matrix();
+    	
+    	// Draw the scaled image on the new bitmap
     	obscuredCanvas.drawBitmap(imageBitmap, obscuredMatrix, obscuredPaint);
 
+    	// Iterate through the regions that have been created
     	Iterator<ImageRegion> i = imageRegions.iterator();
-	    while (i.hasNext()) {
+	    while (i.hasNext()) 
+	    {
 	    	ImageRegion currentRegion = i.next();
 	    	
-	    	//REWORK THIS CODE
-	    	// If the currentRegion is to be obscured:
-            // Using the interface
-            ObscureMethod om;
-            int obscureMethod = 1;
-            
-            // Load the appropriate class/method based on obscureMethod variable/constants
-            if (obscureMethod == 1) {
-            	//om = new BlurObscure(obscuredBmp);
-            	om = new PixelizeObscure(obscuredBmp);
-            	//om = new AnonObscure(this, obscuredBmp, obscuredPaint);
-            }
-            else if (obscureMethod == 2)
-            {
-            	long signKey = 1;
-    	    	long encryptKeys[] = {1};
-    	    	om = new EncryptObscureMethod(this, obscuredBmp, signKey, encryptKeys);    	    		
-            }
-            else {
-            	om = new PaintSquareObscure();		            	
-            }
-	    	// WORKS
-	    	//obscuredCanvas.drawRect(currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight()), obscuredPaint);
-	    	
-	    	// This should be determined by the currentRegion.whatever  
-	     		
-	    		//new PaintSquareObscure();
-             Rect rect = currentRegion.getScaledRect(imageBitmap.getWidth(), imageBitmap.getHeight());
+	    	// Would like this to not be dependent on knowing the relationship between 
+	    	// the classes and the constants in ImageRegion.  Would like there to be a 
+	    	// method within ImageRegion that creates the ObscureMethod object and passes
+	    	// it back.  Right now though, all of the ObscureMethods take in different
+	    	// arguments which makes it painful.
+	    	// Select the ObscureMethod as contained in the ImageRegion
+	    	ObscureMethod om;
+			switch (currentRegion.obscureType) {
+				case ImageRegion.BLUR:
+					Log.v(LOGTAG,"obscureType: BLUR");
+					om = new CrowdBlurObscure(obscuredBmp);
+				break;
+				
+				case ImageRegion.ANON:
+					Log.v(LOGTAG,"obscureType: ANON");
+					om = new AnonObscure(this.getApplicationContext(), obscuredBmp, obscuredPaint);
+					break;
+					
+				case ImageRegion.SOLID:
+					Log.v(LOGTAG,"obscureType: SOLID");
+					om = new PaintSquareObscure();
+					break;
+					
+				case ImageRegion.PIXELIZE:
+					Log.v(LOGTAG,"obscureType: PIXELIZE");
+					om = new PixelizeObscure(obscuredBmp);
+					break;
+					
+				default:
+					Log.v(LOGTAG,"obscureType: NONE/BLUR");
+					om = new BlurObscure(obscuredBmp);
+					break;
+			}
+			
+			// Get the Rect for the region and do the obscure
+            Rect rect = currentRegion.getAScaledRect(obscuredBmp.getWidth(),obscuredBmp.getHeight());
+            Log.v(LOGTAG,"unscaled rect: left:" + rect.left + " right:" + rect.right 
+            		+ " top:" + rect.top + " bottom:" + rect.bottom);
+            			
 	    	om.obscureRect(rect, obscuredCanvas);
-	    }
-    	return obscuredBmp;
+		}
+
+	    return obscuredBmp;
+    }
+    
+    /*
+     * Save a temporary image for sharing only
+     */
+    private boolean saveTmpImage() {
+    	
+    	String storageState = Environment.getExternalStorageState();
+        if (!Environment.MEDIA_MOUNTED.equals(storageState)) {
+        	Toast t = Toast.makeText(this,"External storage not available", Toast.LENGTH_SHORT); 
+    		t.show();
+    		return false;
+    	}
+    	
+    	//Why does this not show?
+    	ProgressDialog progressDialog = ProgressDialog.show(this, "", "Exporting for share...", true, true);    	
+    	
+    	// Create the bitmap that will be saved
+    	// Perhaps this should be smaller than screen size??
+    	int w = imageBitmap.getWidth();
+    	int h = imageBitmap.getHeight();
+    	/* This isn't necessary
+    	if (imageBitmap.getWidth() > SHARE_SIZE_MAX_WIDTH_HEIGHT || imageBitmap.getHeight() > SHARE_SIZE_MAX_WIDTH_HEIGHT) {
+    		// Size it down proportionally
+    		float ratio = 1;
+    		if (imageBitmap.getWidth() > imageBitmap.getHeight()) {
+    			ratio = (float)SHARE_SIZE_MAX_WIDTH_HEIGHT/(float)imageBitmap.getWidth();
+    		} else {
+    			ratio = (float)SHARE_SIZE_MAX_WIDTH_HEIGHT/(float)imageBitmap.getHeight();
+    		}
+
+			w = (int) (ratio * imageBitmap.getWidth());
+			h = (int) (ratio * imageBitmap.getHeight());
+    	}
+    	*/
+    	Bitmap obscuredBmp = createObscuredBitmap(w,h);
+    	
+    	// Create the Uri - This can't be "private"
+    	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory().getPath() + TMP_FILE_DIRECTORY);
+    	File tmpFile = new File(tmpFileDirectory,TMP_FILE_NAME);
+    	Log.v(LOGTAG, tmpFile.getPath());
+    	
+		try {
+	    	if (!tmpFileDirectory.exists()) {
+	    		tmpFileDirectory.mkdirs();
+	    	}
+	    	tmpImageUri = Uri.fromFile(tmpFile);
+	    	
+			OutputStream imageFileOS;
+
+			int quality = 75;
+			imageFileOS = getContentResolver().openOutputStream(tmpImageUri);
+			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
+
+			progressDialog.cancel();
+			return true;
+		} catch (FileNotFoundException e) {
+			progressDialog.cancel();
+			e.printStackTrace();
+			return false;
+		}
+    }
+    
+    /*
+     * The method that actually saves the altered image.  
+     * This in combination with createObscuredBitmap could/should be done in another, more memory efficient manner. 
+     */
+    private void saveImage() 
+    {
+    	//Why does this not show?
+    	ProgressDialog progressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
+
+    	// Create the bitmap that will be saved
+    	// Screen size
+    	Bitmap obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight());
+    	
+    	ContentValues cv = new ContentValues();
+    	/* 
+    	// Add a date so it shows up in a reasonable place in the gallery - Should we do this??
+    	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
+    	Date date = new Date();
+
+		// Which one?
+    	cv.put(Media.DATE_ADDED, dateFormat.format(date));
+    	cv.put(Media.DATE_TAKEN, dateFormat.format(date));
+    	cv.put(Media.DATE_MODIFIED, dateFormat.format(date));
+    	*/
+    	
+    	// Uri is savedImageUri which is global
+    	// Create the Uri, this should put it in the gallery
+    	// New Each time
+    	savedImageUri = getContentResolver().insert(
+				Media.EXTERNAL_CONTENT_URI, cv);
+    	    	
+		OutputStream imageFileOS;
+		try {
+			int quality = 100; //lossless?  good question - still a smaller version
+			imageFileOS = getContentResolver().openOutputStream(savedImageUri);
+			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
+
+    		Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
+    		t.show();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		
+		progressDialog.cancel();
     }
     
     // Queries the contentResolver to pull out the path for the actual file.
-    public String pullPathFromUri(Uri originalImageUri) {
-        String originalImageFilePath = null;
-        String[] columnsToSelect = { MediaStore.Images.Media.DATA };
-        Cursor imageCursor = getContentResolver().query( originalImageUri, columnsToSelect, null, null, null );
-        if ( imageCursor != null && imageCursor.getCount() == 1 ) {
-                imageCursor.moveToFirst();
-                originalImageFilePath = imageCursor.getString(imageCursor.getColumnIndex(MediaStore.Images.Media.DATA));
-        }
+    /*  This code is currently unused but i often find myself needing it so I 
+     * am placing it here for safe keeping ;-) */
+    public String pullPathFromUri(Uri originalUri) {
+    	String originalImageFilePath = null;
+    	String[] columnsToSelect = { MediaStore.Images.Media.DATA };
+    	Cursor imageCursor = getContentResolver().query( originalImageUri, columnsToSelect, null, null, null );
+    	if ( imageCursor != null && imageCursor.getCount() == 1 ) {
+	        imageCursor.moveToFirst();
+	        originalImageFilePath = imageCursor.getString(imageCursor.getColumnIndex(MediaStore.Images.Media.DATA));
+    	}
 
-        return originalImageFilePath;
+    	return originalImageFilePath;
     }
- 
-    private void saveImage() {
-       	String src_filename = pullPathFromUri(imageUri);
-       	
-    	// Uri is savedImageUri which is global
-       	if (savedImageUri == null) {
-       		ContentValues cv = new ContentValues();
-       		savedImageUri = getContentResolver().insert(
-       				Media.EXTERNAL_CONTENT_URI, cv);
-    	}	
-       	String dest_filename = pullPathFromUri(savedImageUri);//mdh.getFileNameFromUri(savedImageUri);
-		Log.v(LOGTAG,"src_filename : " + src_filename );
-		Log.v(LOGTAG,"dest_filename: " + dest_filename );
-    	
-		try {
-		    // Build up a string of semi-colon separated regions l,r,t,b in image coords.
-    		String regions = "";//"10,400,500,1000;400,800,300,700";
-    	   	Iterator<ImageRegion> i = imageRegions.iterator();
-    	    while (i.hasNext()) {
-    	    	ImageRegion currentRegion = i.next();
-    	    	regions = regions + String.format("%.0f,%.0f,%.0f,%.0f;",
-    	    				currentRegion.startX, currentRegion.endX,
-    	    				currentRegion.startY, currentRegion.endY);
-    	    }
-   		Log.v(LOGTAG,"saveImage" + src_filename );
-       		JpegRedaction redactor = new JpegRedaction();
-    		redactor.redactit(src_filename, dest_filename, regions);
-			
-        	imageSaved = true;
-        	Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
-    		t.show();
-		} catch (Exception e) { //FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		if (deleteOriginal && imageUri != null)
-			handleDelete();
-		  	
-    	// Encrypt Regions
-    	Iterator<ImageRegion> i = imageRegions.iterator();
-	    while (i.hasNext()) {
-	    	ImageRegion currentRegion = i.next();
-	    	if (currentRegion.whattodo == ImageRegion.ENCRYPT) {
-	    		// NATHAN
-	    	}
-	    }
-    }
-    
-    private File createSecureFile() {
-    	File newFile = null;
-    	// This could be a secure directory
-    	File directory = new File("/sdcard/");
-    	try {
-			newFile = File.createTempFile("ssc", ".jpg", directory);
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    	return newFile;
-    }
-    
-    // TODO: let's handle the menu activities here...
-    public void launchImagePrefs() {
-    	// save state here?
-		Intent intent = new Intent(this, PreferencesActivity.class);
-		startActivity(intent);
-    }
-    
-   
-    private int RESULT_ENCRYPT_TAGGER = 9999;
-    private int RESULT_ID_TAGGER = 9998;
-    
-    public void launchEncryptTagger(String ir) {
-    	Intent intent = new Intent(this, EncryptTagger.class);
-    	intent.putExtra("imageRegion", ir);
-    	startActivityForResult(intent,RESULT_ENCRYPT_TAGGER);
-    }
-    
-    public void launchIdTagger(String ir) {
-    	Intent intent = new Intent(this, IdTagger.class);
-    	intent.putExtra("imageRegion", ir);
-    	startActivityForResult(intent,RESULT_ID_TAGGER);
-    }
-    
+
+    /*
+     * Handling screen configuration changes ourselves, we don't want the activity to restart on rotation
+     */
     @Override
-    public void onConfigurationChanged(Configuration conf) {
+    public void onConfigurationChanged(Configuration conf) 
+    {
         super.onConfigurationChanged(conf);
     }
-    
-    /*
-    @Override
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
-    	Log.v(LOGTAG,"onRestoreInstanceState");
-        if (savedInstanceState.containsKey("imageRegions")) {
-        	imageRegions = (Vector) savedInstanceState.getSerializable("imageRegions");
-        	redrawRegions();
-        }
-    }
-    
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-    	Log.v(LOGTAG,"onSaveInstanceState");
-    	savedInstanceState.putSerializable("imageRegions", imageRegions);
-    	super.onSaveInstanceState(savedInstanceState);
-    }*/
-    
+
+	@Override
+	protected void onPostResume() {
+		// TODO Auto-generated method stub
+		super.onPostResume();
+		
+		
+	}
 }

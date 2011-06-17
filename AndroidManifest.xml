@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.witness.sscphase1"
-      android:versionCode="1"
-      android:versionName="1.0">
-    <application android:label="@string/app_name" android:icon="@drawable/ic_launcher_ssc" android:debuggable="true">
-    	<activity android:name=".SplashScreenActivity" android:label="@string/app_name">
+      android:versionCode="7"
+      android:versionName="1.0.3"
+      android:installLocation="auto">
+    <application android:label="@string/app_name" android:icon="@drawable/ic_launcher_ssc" android:debuggable="false">
+        <activity android:name=".CameraObscuraMainMenu" android:theme="@android:style/Theme.Black.NoTitleBar" android:configChanges="orientation|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-    	</activity>
-        <activity android:name=".CameraObscura"></activity>
-        <activity android:name=".PreferencesActivity"></activity>
-        <activity android:name=".CameraObscuraMainMenu"></activity>
-        <activity android:name=".IdTagger" android:theme="@style/Theme.CustomDialog"></activity>
-        <activity android:name=".secure.EncryptTagger" android:theme="@style/Theme.CustomDialog"></activity>
+        </activity>
         <activity android:name=".ImageEditor" android:configChanges="orientation|keyboardHidden">
 			<intent-filter>
                  <action android:name="android.intent.action.VIEW" />
@@ -28,20 +24,10 @@
                  <data android:mimeType="image/*" />
              </intent-filter>        
         </activity>
-        <service android:enabled="true" android:name=".SSCSensorSucker" />
+        <activity android:name=".ImagePreview" android:label="@string/image_preview" android:configChanges="orientation|keyboardHidden" />
     </application>
     <uses-sdk android:minSdkVersion="7" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.ACCESS_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> 
-    <uses-permission android:name="android.permission.ACCESS_GPS" />
-    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />  
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE"/>
-    
-    <uses-permission android:name="org.thialfihar.android.apg.permission.READ_KEY_DETAILS" />
 </manifest> 

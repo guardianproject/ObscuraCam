@@ -1,3 +1,7 @@
+/*
+ * This ObscureMethod paints a solid blue rectangle over the region
+ */
+
 package org.witness.sscphase1;
 
 import android.graphics.Canvas;
@@ -11,7 +15,7 @@ public class PaintSquareObscure implements ObscureMethod {
 	
 	public PaintSquareObscure() {
 		paint = new Paint();
-        paint.setColor(Color.BLUE);
+        paint.setColor(Color.BLACK);
 	}
  	
 	public void obscureRect(Rect rect, Canvas canvas) {
