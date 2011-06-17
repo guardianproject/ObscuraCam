@@ -28,8 +28,8 @@ Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactit(JNIEnv *env
     jpeg_redaction::Redaction redaction;
     redaction.AddRegions(regions);
     jpeg_decoder.DecodeImage(&redaction, NULL);
+    jpeg_decoder.RemoveAllSensitive();
     jpeg_decoder.Save(dest_filename);
-
   } catch (const char *error) {
     __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","ERROR");
   }

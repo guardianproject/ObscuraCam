@@ -1068,7 +1068,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         return originalImageFilePath;
     }
  
-    
     private void saveImage() {
        	String src_filename = pullPathFromUri(imageUri);
        	
@@ -1079,8 +1078,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
        				Media.EXTERNAL_CONTENT_URI, cv);
     	}	
        	String dest_filename = pullPathFromUri(savedImageUri);//mdh.getFileNameFromUri(savedImageUri);
-		Log.v(LOGTAG,"src_filename :" + src_filename );
-		Log.v(LOGTAG,"dest_filename:" + dest_filename );
+		Log.v(LOGTAG,"src_filename : " + src_filename );
+		Log.v(LOGTAG,"dest_filename: " + dest_filename );
     	
 		try {
 		    // Build up a string of semi-colon separated regions l,r,t,b in image coords.
