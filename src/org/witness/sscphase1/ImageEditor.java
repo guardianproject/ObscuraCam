@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.witness.securesmartcam.jpegredaction.JpegRedaction;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -923,7 +925,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * Save a temporary image for sharing only
      */
     private boolean saveTmpImage() {
-    	
     	String storageState = Environment.getExternalStorageState();
         if (!Environment.MEDIA_MOUNTED.equals(storageState)) {
         	Toast t = Toast.makeText(this,"External storage not available", Toast.LENGTH_SHORT); 
@@ -952,8 +953,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			h = (int) (ratio * imageBitmap.getHeight());
     	}
     	*/
-    	Bitmap obscuredBmp = createObscuredBitmap(w,h);
-    	
     	// Create the Uri - This can't be "private"
     	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory().getPath() + TMP_FILE_DIRECTORY);
     	File tmpFile = new File(tmpFileDirectory,TMP_FILE_NAME);
@@ -969,7 +968,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 			int quality = 75;
 			imageFileOS = getContentResolver().openOutputStream(tmpImageUri);
-			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
+//			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
 
 			progressDialog.cancel();
 			return true;
@@ -986,12 +985,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      */
     private void saveImage() 
     {
+      	String src_filename = pullPathFromUri(originalImageUri);
     	//Why does this not show?
     	ProgressDialog progressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
 
     	// Create the bitmap that will be saved
     	// Screen size
-    	Bitmap obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight());
+  //  	Bitmap obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight());
     	
     	ContentValues cv = new ContentValues();
     	/* 
@@ -1010,19 +1010,28 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	// New Each time
     	savedImageUri = getContentResolver().insert(
 				Media.EXTERNAL_CONTENT_URI, cv);
-    	    	
-		OutputStream imageFileOS;
+    	// AWS
+      	String dest_filename = pullPathFromUri(savedImageUri);
 		try {
-			int quality = 100; //lossless?  good question - still a smaller version
-			imageFileOS = getContentResolver().openOutputStream(savedImageUri);
-			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
-
-    		Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
+		    // Build up a string of semi-colon separated regions l,r,t,b in image coords.
+    		String regions = "";//"10,400,500,1000;400,800,300,700";
+    	   	Iterator<ImageRegion> i = imageRegions.iterator();
+    	    while (i.hasNext()) {
+    	    	ImageRegion currentRegion = i.next();
+    	    	regions = regions + String.format("%.0f,%.0f,%.0f,%.0f;",
+    	    				currentRegion.unscaledRect.left, currentRegion.unscaledRect.right,
+    	    				currentRegion.unscaledRect.top, currentRegion.unscaledRect.bottom);
+    	    }
+    	    Log.v(LOGTAG,"saveImage " + src_filename + " : " + regions);
+       		JpegRedaction redactor = new JpegRedaction();
+    		redactor.redactit(src_filename, dest_filename, regions);
+			
+        	Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
     		t.show();
-		} catch (FileNotFoundException e) {
+		} catch (Exception e) { //FileNotFoundException e) {
 			e.printStackTrace();
-		}
-		
+		} 
+    	//AWS	
 		progressDialog.cancel();
     }
     

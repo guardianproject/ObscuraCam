@@ -53,7 +53,14 @@ namespace jpeg_redaction {
       fprintf(stderr, "Couldn't open file %s\n", pczFilename);
       return false;
     }
-    int rv = LoadFromFile(pFile, loadall, 0);
+    try { 
+      int rv = LoadFromFile(pFile, loadall, 0);
+    } catch(const char *const error) {
+      fclose(pFile);
+      throw(error);
+    } catch(...) {
+      fclose(pFile);
+    }
     fclose(pFile);
     return rv == 0;
   }
