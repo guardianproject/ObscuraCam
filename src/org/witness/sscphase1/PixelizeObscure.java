@@ -46,26 +46,32 @@ public class PixelizeObscure extends Activity implements ObscureMethod {
 			
 		int px, py;
 		
-		for (int x = rect.left; x < rect.right - 1; x++) {
-			for (int y = rect.top; y < rect.bottom - 1; y++) {
+		for (int x = rect.left; x < rect.right - 1; x+=pixelSize) {
+			for (int y = rect.top; y < rect.bottom - 1; y+=pixelSize) {
 				
-				// I don't understand.. doesn't this make px, py always == to x, y?
 				px = (x/pixelSize)*pixelSize;
 				py = (y/pixelSize)*pixelSize;
 
 				try
 				{ 
-					originalBmp.setPixel(x, y, originalBmp.getPixel(px,py));
+					//originalBmp.setPixel(x, y, originalBmp.getPixel(px,py));
+					
+					int pixels[] = new int[pixelSize*pixelSize];
+					int newPixel = originalBmp.getPixel(px, py);
+					for (int i = 0; i < pixels.length; i++)
+						pixels[i] = newPixel;
+					
+					originalBmp.setPixels(pixels, 0, pixelSize, px, py, pixelSize, pixelSize);
 				}
 				catch (IllegalArgumentException iae)
 				{
 					//something is wrong with our pixel math
 					break; //stop the filter
-					// Single break, does it get out of both loops?
 				}
 			}
 		}
 	}
+	
 }
 
 

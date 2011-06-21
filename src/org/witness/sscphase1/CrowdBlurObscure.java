@@ -15,7 +15,7 @@ public class CrowdBlurObscure extends Activity implements ObscureMethod {
 
 	Bitmap originalBmp;
 	
-	private final static int PIXEL_BLOCK = 10;
+	public static int PIXEL_BLOCK = 50;
 	
 	public CrowdBlurObscure(Bitmap _originalBmp) {
 		originalBmp = _originalBmp;
@@ -23,14 +23,12 @@ public class CrowdBlurObscure extends Activity implements ObscureMethod {
 	
 	public void obscureRect(Rect rect, Canvas canvas) {
 	
-		int pixelSize = 5;
-		/*
-		int pixelSize = (rect.right-rect.left)/PIXEL_BLOCK;
+		
+		int pixelSize = originalBmp.getWidth()/PIXEL_BLOCK;
 		
 		if (pixelSize <= 0) //1 is the smallest it can be
 			pixelSize = 1;
-		*/
-		
+	
 		pixelate(rect, pixelSize);
 	}
 	
@@ -48,13 +46,10 @@ public class CrowdBlurObscure extends Activity implements ObscureMethod {
 			rect.bottom = originalBmp.getHeight();
 		}
 		
-		//Path path = new Path();
-		//path.addCircle(rect.exactCenterX(), rect.exactCenterY(), rect.width()/2, Direction.CW);
-		
 		int px, py;
 		
-		for (int x = 0; x < originalBmp.getWidth() - 1; x++) {
-			for (int y = 0; y < originalBmp.getHeight() - 1; y++) {
+		for (int x = 0; x < originalBmp.getWidth() - 1; x+=pixelSize) {
+			for (int y = 0; y < originalBmp.getHeight() - 1; y+=pixelSize) {
 				
 				if (rect.contains(x, y))
 					continue;
@@ -64,7 +59,14 @@ public class CrowdBlurObscure extends Activity implements ObscureMethod {
 
 				try
 				{ 
-					originalBmp.setPixel(x, y, originalBmp.getPixel(px,py));
+					//originalBmp.setPixel(x, y, originalBmp.getPixel(px,py));
+					
+					int pixels[] = new int[pixelSize*pixelSize];
+					int newPixel = originalBmp.getPixel(px, py);
+					for (int i = 0; i < pixels.length; i++)
+						pixels[i] = newPixel;
+					
+					originalBmp.setPixels(pixels, 0, pixelSize, px, py, pixelSize, pixelSize);
 				}
 				catch (IllegalArgumentException iae)
 				{
