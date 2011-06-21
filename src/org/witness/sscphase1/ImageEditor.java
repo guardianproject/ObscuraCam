@@ -907,7 +907,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 				case ImageRegion.ANON:
 					Log.v(LOGTAG,"obscureType: ANON");
-					om = new AnonObscure(this.getApplicationContext(), obscuredBmp, obscuredPaint);
+					om = new MaskObscure(this.getApplicationContext(), obscuredBmp, obscuredPaint);
 					break;
 					
 				case ImageRegion.SOLID:

@@ -63,7 +63,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	 * createObscuredBitmap method in ImageEditor
 	 */
 	public static final int BLUR = 0; // BlurObscure
-	public static final int ANON = 1; // AnonObscure
+	public static final int ANON = 1; // MaskObscure
 	public static final int SOLID = 2; // PaintSquareObscure
 	public static final int PIXELIZE = 3; // PixelizeObscure
 	int obscureType = PIXELIZE;
@@ -205,23 +205,11 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			ActionItem pixelizeObscureAction;
 			
 			public static final int BLUR = 0; // BlurObscure
-			public static final int ANON = 1; // AnonObscure
+			public static final int ANON = 1; // MaskObscure
 			public static final int SOLID = 2; // PaintSquareObscure
 			public static final int PIXELIZE = 3; // PixelizeObscure
 			*/
 			
-			
-			blurObscureAction = new ActionItem();
-			blurObscureAction.setTitle("Reverse Blur");
-			blurObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_blur));
-			blurObscureAction.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					qa.dismiss();
-					whatToDo = OBSCURE;
-					obscureType = BLUR;
-				}
-			});
-			qa.addActionItem(blurObscureAction);
 			
 			
 			solidObscureAction = new ActionItem();
@@ -249,6 +237,20 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 				}
 			});
 			qa.addActionItem(pixelizeObscureAction);
+			
+
+			
+			blurObscureAction = new ActionItem();
+			blurObscureAction.setTitle("bgPixelate");
+			blurObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_blur));
+			blurObscureAction.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					qa.dismiss();
+					whatToDo = OBSCURE;
+					obscureType = BLUR;
+				}
+			});
+			qa.addActionItem(blurObscureAction);
 
 			anonObscureAction = new ActionItem();
 			anonObscureAction.setTitle("Mask");
