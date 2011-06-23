@@ -269,6 +269,7 @@ protected:
   int dct_gain_;
   int redacting_; // Are we redacting this image: see kRedacting* flags above.
   int y_value_; // The most recent decoded brightness value.
+  std::vector<int> dc_values_;
 
   int redaction_dc_[3];
   std::vector<unsigned char> image_data_;
@@ -280,6 +281,8 @@ protected:
   int redaction_bit_pointer_;
   std::vector<unsigned char> redacted_data_;
   JpegStrip *current_strip_;
+  // Pointer to the current redaction, while decoding.
+  Redaction *redaction_;
 };
 }  // namespace jpeg_redaction
 

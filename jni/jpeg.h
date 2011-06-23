@@ -112,10 +112,14 @@ public:
   void DecodeImage(Redaction *redaction, const char *pgm_save_filename);
   // Invert the redaction by pasting in the strips from redaction.
   int ReverseRedaction(const Redaction &redaction);
-
+  int GetHeight() const { return height_; }
+  int GetWidth() const { return width_; }
+  Jpeg *GetThumbnail();
+  int RedactThumbnail(Redaction *redaction);
   // Save the current (possibly redacted) version of the JPEG out.
   // Return 0 on success.
   int Save(const char * const filename);
+  int Save(FILE *pFile);
 
   const char *MarkerName(int marker) const;
   Iptc *GetIptc();

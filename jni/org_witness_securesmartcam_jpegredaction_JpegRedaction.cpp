@@ -20,9 +20,16 @@ Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactit(JNIEnv *env
 
     printf("hello world");
     jpeg_redaction::Jpeg jpeg_decoder;
-    jpeg_decoder.LoadFromFile(source_filename, true);
+    bool success = jpeg_decoder.LoadFromFile(source_filename, true);
+    if (!success) {
+      __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION",
+			  "Couldn't load file");
+      return;
+    }
     std::string message = "Loaded: ";
     message += source_filename;
+    message += " ";
+    message += regions;
     __android_log_write(ANDROID_LOG_INFO,"JPEGREDACTION", message.c_str());
     jpeg_redaction::Redaction redaction;
     redaction.AddRegions(regions);

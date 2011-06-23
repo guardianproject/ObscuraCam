@@ -1010,11 +1010,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	// New Each time
     	savedImageUri = getContentResolver().insert(
 				Media.EXTERNAL_CONTENT_URI, cv);
-    	// AWS
-      	String dest_filename = pullPathFromUri(savedImageUri);
+     	String dest_filename = pullPathFromUri(savedImageUri);
 		try {
 		    // Build up a string of semi-colon separated regions l,r,t,b in image coords.
-    		String regions = "";//"10,400,500,1000;400,800,300,700";
+    		String regions = "";
     	   	Iterator<ImageRegion> i = imageRegions.iterator();
     	    while (i.hasNext()) {
     	    	ImageRegion currentRegion = i.next();
@@ -1031,7 +1030,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		} catch (Exception e) { //FileNotFoundException e) {
 			e.printStackTrace();
 		} 
-    	//AWS	
 		progressDialog.cancel();
     }
     

@@ -95,14 +95,14 @@ public:
   }
   int GetNTags() const { return tags_.size(); }
   void ListTags() const;
-
+  Jpeg *GetJpeg() { return jpeg_;}
 protected:
   void Reset();
 
   bool byte_swapping_;
   unsigned int nextifdoffset_;
   std::vector<TiffTag *> tags_;
-  unsigned char *data_;
+  std::vector<unsigned char> data_;
   unsigned int subfileoffset_;
   Jpeg *jpeg_;
 };

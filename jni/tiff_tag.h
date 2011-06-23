@@ -41,6 +41,7 @@ public:
   void TraceValue(int maxvals) const;
   void Print() const;
   TiffIfd *GetExif() {
+    throw("Not implemented yet");
   }
   void SetValOut(unsigned int val);
   enum tag_types {tiff_unknown=0,

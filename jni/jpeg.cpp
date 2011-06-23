@@ -53,14 +53,7 @@ namespace jpeg_redaction {
       fprintf(stderr, "Couldn't open file %s\n", pczFilename);
       return false;
     }
-    try { 
-      int rv = LoadFromFile(pFile, loadall, 0);
-    } catch(const char *const error) {
-      fclose(pFile);
-      throw(error);
-    } catch(...) {
-      fclose(pFile);
-    }
+    int rv = LoadFromFile(pFile, loadall, 0);
     fclose(pFile);
     return rv == 0;
   }
@@ -332,6 +325,17 @@ namespace jpeg_redaction {
       fprintf(stderr, "Can't open output file : %s\n", filename);
       return 1;
     }
+    int rv = Save(pFile);
+    fclose(pFile);
+    return rv;
+  }
+
+  // Save the image to disk (after preloading).
+  int Jpeg::Save(FILE *pFile) {
+    const bool arch_big_endian = ArchBigEndian();
+    if (pFile == NULL) {
+      throw("NULL file in Jpeg::Save");
+    }
     // Write the header,
     unsigned short magic = 0xd8ff;
     if (arch_big_endian) ByteSwapInPlace(&magic, 1);
@@ -404,7 +408,6 @@ namespace jpeg_redaction {
       if (markers_[i]->Save(pFile)==0)
 	printf("Failed with marker %d\n", i);;
     }
-    fclose(pFile);
     return 0;
   }
 
@@ -424,7 +427,36 @@ namespace jpeg_redaction {
       ++table;
     }
   }
+  // First find the IFD with tags 0x201 & 0x202.
+  // should contain data_
+  Jpeg *Jpeg::GetThumbnail() {
+    for (int i = 0 ; i < ifds_.size(); ++i) {
+      if (ifds_[i]->GetJpeg() &&
+	  ifds_[i]->FindTag(TiffTag::tag_thumbnailoffset))
+	return ifds_[i]->GetJpeg();
+    }
+    return NULL;
+  }
 
+  // Redact the thumbnail 
+  // Returns: 0: no thumbnail found N:  N thumbnails found and redacted
+  // <0 failed to redact thumbnail.
+  int Jpeg::RedactThumbnail(Redaction *redaction) {
+    printf("Redacting thumbnail\n");
+    int return_val = 0;
+    Jpeg *thumbnail = GetThumbnail();
+    if (thumbnail == NULL)
+      return 0;
+    // Get thumbnail width/height
+    const int width = thumbnail->GetWidth();
+    const int height = thumbnail->GetHeight();
+    // scale the redaction object
+    Redaction *thumbnail_redaction = redaction->Copy();
+    thumbnail_redaction->Scale(width, height, GetWidth(), GetHeight());
+    // Call redaction to redact the SOS block.
+    thumbnail->DecodeImage(thumbnail_redaction, NULL);
+    delete thumbnail_redaction;
+  }
   void Jpeg::DecodeImage(Redaction *redaction,
 			 const char *pgm_save_filename) {
     JpegMarker *sos_block = GetMarker(jpeg_sos);
@@ -468,6 +500,7 @@ namespace jpeg_redaction {
     // Now keep on dumping data out.
     printf("H %d W %d\n", width_, height_);
     //  DumpHex((unsigned char*)&sos_block->data_[check_offset], check_len);
+    RedactThumbnail(redaction);
   }
 
   int Jpeg::ReverseRedaction(const Redaction &redaction) {
@@ -521,6 +554,13 @@ namespace jpeg_redaction {
     int rv = 0;
     unsigned char zero = 0x00;
     int stuff_bytes = 0;
+    // Repeatedly look for the next ff.
+    // Then write all the data up to & including it and write out the
+    // stuff byte (00).
+    if (check > data_.size()) {
+      printf("data size is %d\n", data_.size());
+      throw("data too short in stuffing.");
+    }
     while (check < data_.size()) {
       if (data_[check] == 0xff) {
 	rv = fwrite(&data_[written], sizeof(char), check + 1 - written, pFile);
@@ -534,6 +574,8 @@ namespace jpeg_redaction {
       }
       ++check;
     }
+    if (check != data_.size()) throw("data_.size() mismatch in stuffing.");
+    // Write out the last chunk of data.
     if (written < check)
       rv = fwrite(&data_[written], sizeof(char), check - written, pFile);
     printf("Inserted %d stuff_bytes in %d now %d\n", stuff_bytes,

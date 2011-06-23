@@ -30,8 +30,8 @@
 //////////////////////////////////////////////////////////////////////
 
 namespace jpeg_redaction {
-TiffTag::TiffTag(FILE *pFile, bool byte_swapping) : data_(NULL), subifd_(NULL)
-{
+TiffTag::TiffTag(FILE *pFile, bool byte_swapping) : 
+  data_(NULL), subifd_(NULL) {
     if (pFile == NULL)
       throw("NULL file");
     int iRV = fread(&tagid_, sizeof(short), 1, pFile);
@@ -109,7 +109,8 @@ int TiffTag::Write(FILE *pFile) const {
   if (iRV != 4) throw("Can't write file");
   // Return where the pointer has to be written.
   if (totallength > 4 || TagIsSubIFD() ||
-      tagid_ == tag_stripoffset|| tagid_ == tag_thumbnailoffset) {
+      tagid_ == tag_stripoffset || tagid_ == tag_thumbnailoffset ||
+      tagid_ == tag_stripbytes || tagid_ == tag_thumbnaillength) {
     return pointer_location;
   } else {
     return 0;
