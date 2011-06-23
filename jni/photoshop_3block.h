@@ -75,10 +75,10 @@ class Photoshop3Block
 		  pascalstringlengthrounded, pFile);
 
       iRV = fread(&bim_length_, sizeof(bim_length_), 1, pFile);
-
+      
       if (!arch_big_endian)
 	ByteSwapInPlace(&bim_length_, 1);
-
+      printf("bim_length read is %d\n", bim_length_);
       unsigned int bim_length_rounded =
 	bim_length_ + (bim_length_%2);  // Rounded to be even.
       if (bim_type_ == tag_bim_iptc_) {
@@ -101,7 +101,8 @@ class Photoshop3Block
       return sizeof(bim_type_) + sizeof(magic_) + bim_length_  +
 	(bim_length_%2) + sizeof(bim_length_) +
         pascalstringlength_ +  sizeof(pascalstringlength_) +
-	1  - (pascalstringlength_%2);}
+	1  - (pascalstringlength_%2);
+    }
 
     int Write(FILE *pFile) {
       printf("Writing BIM3 at %d\n", ftell(pFile));
@@ -112,20 +113,26 @@ class Photoshop3Block
       if (!arch_big_endian)
 	ByteSwapInPlace(&magic, 1);
       iRV = fwrite(&magic, sizeof(magic), 1, pFile);
+      length += sizeof(magic);
 
       unsigned short bim_type = bim_type_;
       if (!arch_big_endian)
 	ByteSwapInPlace(&bim_type, 1);
       iRV = fwrite(&bim_type, sizeof(bim_type), 1, pFile);
+      length += sizeof(bim_type);
       
       // Number of bytes to write out - to make the (length + string)
       // structure even length.
       
       iRV = fwrite(&pascalstringlength_, sizeof(pascalstringlength_), 1, pFile);
+      length += sizeof(pascalstringlength_);
+
       unsigned char pascalstringlengthrounded =
 	pascalstringlength_ + (1-(pascalstringlength_%2));
       iRV = fwrite(&pascalstring_[0], sizeof(unsigned char),
 		   pascalstringlengthrounded, pFile);
+      length += iRV;
+
       // Rounded to be even.
       const unsigned int bim_length_rounded = bim_length_ + (bim_length_%2);
       unsigned int bim_length_rounded_swap = bim_length_rounded;
@@ -133,12 +140,20 @@ class Photoshop3Block
 	ByteSwapInPlace(&bim_length_rounded_swap, 1);
 
       iRV = fwrite(&bim_length_rounded_swap, sizeof(unsigned int), 1, pFile);
-      printf("Writing BIM length %d, %x %d\n", bim_length_rounded, &data_[0], data_.size());
+      length += sizeof(unsigned int);
+
+      printf("Writing BIM length %d, %x %d\n",
+	     bim_length_rounded, &data_[0], data_.size());
       if (bim_type_ == tag_bim_iptc_) {
 	if (iptc_ == NULL) throw("IPTC is null in write");
-	iptc_->Write(pFile);
+	iRV = iptc_->Write(pFile);
+	length += iRV;
+	printf("Wrote tag_bim_iptc_ %d\n", iRV);
       } else {
-      iRV = fwrite(&data_[0], sizeof(unsigned char), bim_length_rounded, pFile);
+	iRV = fwrite(&data_[0], sizeof(unsigned char),
+		     bim_length_rounded, pFile);
+	length += iRV;
+	printf("Wrote BIM block %d", iRV);
       }
       return length;
     }

@@ -37,7 +37,6 @@ using std::vector;
 namespace jpeg_redaction {
 class Iptc
 {
-
 public:
   class IptcTag
   {
@@ -190,27 +189,32 @@ public:
       return data_.size() + 5;
     }
 
+    // Return number of bytes written.
     int Write(FILE *pFile)
     {
       const unsigned short length = data_.size();
       printf("Writing IPTC tag %d\n", tag_, length);
+
       int iRV = fwrite(&Iptc::tag_marker_, sizeof(unsigned char), 1, pFile);
       if (iRV != 1) throw("IPTC write fail");
+
       iRV = fwrite(&record_, sizeof(unsigned char), 1, pFile);
       if (iRV != 1) throw("IPTC write fail record");
 
       iRV = fwrite(&tag_, sizeof(unsigned char), 1, pFile);
       if (iRV != 1) throw("IPTC write fail tag");
+
       unsigned short length_swap = length;
       const bool arch_big_endian = ArchBigEndian();
       if (!arch_big_endian) ByteSwapInPlace(&length_swap, 1);
+
       iRV = fwrite(&length_swap, sizeof(unsigned short), 1, pFile);
       if (iRV != 1) throw("IPTC write fail length");
 
       iRV = fwrite(&data_[0], sizeof(unsigned char), length, pFile);
       if (iRV != length) throw("IPTC write fail data");
 
-      return 5 + length;
+      return 3 * sizeof(unsigned char) + sizeof(unsigned short) + length;
     }
 
     unsigned char tag_;
@@ -253,7 +257,7 @@ virtual ~Iptc()
 
 int Write(FILE *pFile)
 {
-  int iRV;
+  int iRV = 0;
   int length = 0;
   for (int i = 0; i < tags_.size(); ++i) {
     iRV = tags_[i]->Write(pFile);
@@ -261,9 +265,11 @@ int Write(FILE *pFile)
   }
 
   unsigned char bindummy;
-  if (length %2 == 1) // Length is rounded to be even.
+  if ((length % 2) == 1) {// Length is rounded to be even.
     iRV = fwrite(&bindummy, sizeof(unsigned char), 1, pFile);
-  printf("iptc lenght is %d\n", length);
+    length++;
+  }
+  printf("iptc length is %d\n", length);
   return length;
 }
 static const unsigned char tag_marker_;

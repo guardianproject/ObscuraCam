@@ -65,7 +65,14 @@ JpegDecoder::JpegDecoder(int w, int h,
 	  ac_dht = dhts[i];
       }
     }
-    if (ac_dht == NULL || dc_dht == NULL) throw("Can't find table ");
+    if (ac_dht == NULL || dc_dht == NULL) {
+      for (int i = 0; i < dhts.size(); ++i)
+	printf("DHT %d id %d\n", i, dhts[i]->id_);
+      printf("comp %d/%d table %d dhts %d AC %x dc %x\n",
+	     comp, components->size(),
+	     (*components)[comp]->table_, dhts.size(), ac_dht, dc_dht);
+      throw("Can't find table ");
+    }
     dhts_.push_back(dc_dht);
     dhts_.push_back(ac_dht);
   }

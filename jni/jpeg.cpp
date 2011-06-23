@@ -107,13 +107,14 @@ namespace jpeg_redaction {
       }
 
       if (marker == jpeg_app + 0xd) { // App13 is Photoshop/IPTC
-	printf("Photoshop\n");
 	unsigned short blocksize;
 	unsigned int magic = 0, exifoffset = 0;
 	// unsigned short myshort;
 	iRV = fread(&blocksize, sizeof(unsigned short), 1, pFile);
 	if (!arch_big_endian)
 	  ByteSwapInPlace(&blocksize, 1);
+	printf("Photoshop 0x%x at %d length %d\n",
+	       marker, ftell(pFile), blocksize);
 	try {
 	  photoshop3_ = new Photoshop3Block(pFile, blocksize-sizeof(blocksize));
 	}  catch (char *ex) {
@@ -122,7 +123,8 @@ namespace jpeg_redaction {
 	}
 	fseek(pFile, blockloc + blocksize + sizeof(marker), SEEK_SET);
 	continue;
-      } else 
+      }
+      // If it's not an app_n marker we've already dealt with above.
       if (marker >= jpeg_app && marker < jpeg_app + 16) {
 	unsigned short blocksize;
 	iRV = fread(&blocksize, sizeof(unsigned short), 1, pFile);
@@ -400,8 +402,23 @@ namespace jpeg_redaction {
       }
       rv = fseek(pFile, 0, SEEK_END);
     }
-    if (photoshop3_)
-      photoshop3_->Write(pFile);
+    if (photoshop3_) {
+      unsigned short marker =jpeg_app + 0xd;
+      if (!arch_big_endian)
+	ByteSwapInPlace(&marker, 1);
+      int rv = fwrite(&marker, sizeof(unsigned short), 1, pFile);
+      unsigned short blocksize = 0;
+      unsigned int blockloc = ftell(pFile);
+      rv = fwrite(&blocksize, sizeof(unsigned short), 1, pFile);
+      blocksize = photoshop3_->Write(pFile) + sizeof(blocksize);
+      printf("  IPTC Written bytes: %d vs %d\n", ftell(pFile) - blockloc,
+	     blocksize);
+      fseek(pFile, blockloc, SEEK_SET);
+      if (!arch_big_endian)
+	ByteSwapInPlace(&blocksize, 1);
+      rv = fwrite(&blocksize, sizeof(unsigned short), 1, pFile);
+      fseek(pFile, 0, SEEK_END);
+    }
     // Write the other markers.
     printf("Saving: %lu markers\n", markers_.size());
     for (int i = 0 ; i < markers_.size(); ++i) {
@@ -447,6 +464,7 @@ namespace jpeg_redaction {
     Jpeg *thumbnail = GetThumbnail();
     if (thumbnail == NULL)
       return 0;
+    
     // Get thumbnail width/height
     const int width = thumbnail->GetWidth();
     const int height = thumbnail->GetHeight();
@@ -457,6 +475,8 @@ namespace jpeg_redaction {
     thumbnail->DecodeImage(thumbnail_redaction, NULL);
     delete thumbnail_redaction;
   }
+
+  // Parse the JPEG image stream, applying redaction if provided.
   void Jpeg::DecodeImage(Redaction *redaction,
 			 const char *pgm_save_filename) {
     JpegMarker *sos_block = GetMarker(jpeg_sos);
@@ -500,7 +520,7 @@ namespace jpeg_redaction {
     // Now keep on dumping data out.
     printf("H %d W %d\n", width_, height_);
     //  DumpHex((unsigned char*)&sos_block->data_[check_offset], check_len);
-    RedactThumbnail(redaction);
+    if (redaction) RedactThumbnail(redaction);
   }
 
   int Jpeg::ReverseRedaction(const Redaction &redaction) {
