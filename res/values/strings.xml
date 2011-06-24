@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hello">Hello World</string>
-    <string name="app_name">Obscura Cam</string>
+    <string name="app_name">ObscuraCam</string>
+    <string name="app_name_label">Obscura Cam</string>
     <string name="image_preview">ObscuraCam Image Preview</string>
 	<string name="SplashTextViewString">ObscuraCam</string>
 	<string name="CreditsTextViewString">Powered by the Guardian Project and Witness</string>
