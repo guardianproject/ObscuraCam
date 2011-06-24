@@ -1035,8 +1035,33 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			imageFileOS = getContentResolver().openOutputStream(savedImageUri);
 			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
 
-    		Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
+    		Toast t = Toast.makeText(this,"JPEG image saved to Gallery (and SDCard)", Toast.LENGTH_SHORT); 
     		t.show();
+    		
+    		  //Ask the user if they want to quit
+			/*
+            new AlertDialog.Builder(this)
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setTitle("Image Saved")
+            .setMessage("Would you like to view the obscured image in the Gallery?")
+            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+
+                	Intent intent = new Intent(Intent.ACTION_VIEW, savedImageUri);
+                	intent.setDataAndType(savedImageUri,"image/jpeg");
+                	
+            		startActivity(intent);    
+            		
+                }
+
+            })
+            .setNegativeButton("Not now", null)
+            .show();
+    		 */
+
+    		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
