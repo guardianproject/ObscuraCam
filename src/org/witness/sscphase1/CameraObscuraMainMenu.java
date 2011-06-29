@@ -73,7 +73,9 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 			if (requestCode == GALLERY_RESULT || requestCode == CAMERA_RESULT) {
 									
 				if (requestCode == GALLERY_RESULT || imageFileUri == null) {
-					
+					Log.v("MYLOGTAG","Yes I am here, which may explain something or nothing");
+
+
 					// If imageFileUri is null and we are coming from the camera app,
 					// the below code will may give us a small version of the image
 					// I am not sure we want that...
