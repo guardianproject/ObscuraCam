@@ -18,13 +18,13 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
 
-public class AnonObscure extends Activity implements ObscureMethod {
+public class MaskObscure extends Activity implements ObscureMethod {
 
 	Bitmap _bitmap;
 	Paint _painter;
 	Context _context;
 	
-	public AnonObscure(Context context, Bitmap bitmap, Paint painter) {
+	public MaskObscure(Context context, Bitmap bitmap, Paint painter) {
 		_bitmap = bitmap;
 		_painter = painter;
 		_context = context;
@@ -34,7 +34,7 @@ public class AnonObscure extends Activity implements ObscureMethod {
 	
 		try
 		{
-		  Bitmap mask = loadBitmap(_context,"anon.png");
+		  Bitmap mask = loadBitmap(_context,"mask.png");
 		  canvas.drawBitmap(mask, null, rect, _painter);
 		}
 		catch (IOException e)

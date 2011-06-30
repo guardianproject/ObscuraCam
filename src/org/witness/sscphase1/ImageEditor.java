@@ -884,14 +884,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	// Select the ObscureMethod as contained in the ImageRegion
 	    	ObscureMethod om;
 			switch (currentRegion.obscureType) {
-				case ImageRegion.BLUR:
-					Log.v(LOGTAG,"obscureType: BLUR");
+				case ImageRegion.BG_PIXELIZE:
+					Log.v(LOGTAG,"obscureType: BGPIXELIZE");
 					om = new CrowdBlurObscure(obscuredBmp);
 				break;
 				
 				case ImageRegion.ANON:
 					Log.v(LOGTAG,"obscureType: ANON");
-					om = new AnonObscure(this.getApplicationContext(), obscuredBmp, obscuredPaint);
+					om = new MaskObscure(this.getApplicationContext(), obscuredBmp, obscuredPaint);
 					break;
 					
 				case ImageRegion.SOLID:

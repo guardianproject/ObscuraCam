@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.witness.sscphase1"
-      android:versionCode="7"
-      android:versionName="1.0.3"
+      android:versionCode="10"
+      android:versionName="1.0.4.2"
       android:installLocation="auto">
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher_ssc" android:debuggable="true">
-        <activity android:name=".CameraObscuraMainMenu" android:theme="@android:style/Theme.Black.NoTitleBar" android:configChanges="orientation|keyboardHidden">
+        <activity android:label="@string/app_name_label" android:name=".CameraObscuraMainMenu" android:theme="@android:style/Theme.Black.NoTitleBar" android:configChanges="orientation|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -28,6 +28,7 @@
     </application>
     <uses-sdk android:minSdkVersion="7" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.INTERNET" />
+	<!--  removing for now until we add upload or another network features -->
+ <!--   <uses-permission android:name="android.permission.INTERNET" /> --> 
     <uses-permission android:name="android.permission.VIBRATE"/>
 </manifest> 
