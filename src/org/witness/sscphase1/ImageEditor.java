@@ -187,7 +187,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			originalImageUri = (Uri) getIntent().getExtras().get(Intent.EXTRA_STREAM);
 		}
 
-		Log.v(LOGTAG,"The Path" + pullPathFromUri(originalImageUri));
+		Log.v(LOGTAG,"The Path: " + pullPathFromUri(originalImageUri));
 		
 		// Instantiate the vibrator
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -989,30 +989,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	//Why does this not show?
     	ProgressDialog progressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
 
-    	// Create the bitmap that will be saved
-    	// Screen size
-  //  	Bitmap obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight());
-    	
-    	ContentValues cv = new ContentValues();
-    	/* 
-    	// Add a date so it shows up in a reasonable place in the gallery - Should we do this??
-    	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
-    	Date date = new Date();
-
-		// Which one?
-    	cv.put(Media.DATE_ADDED, dateFormat.format(date));
-    	cv.put(Media.DATE_TAKEN, dateFormat.format(date));
-    	cv.put(Media.DATE_MODIFIED, dateFormat.format(date));
-    	*/
-    	
-    	// Uri is savedImageUri which is global
-    	// Create the Uri, this should put it in the gallery
-    	// New Each time
-    	savedImageUri = getContentResolver().insert(
-				Media.EXTERNAL_CONTENT_URI, cv);
-     	String dest_filename = pullPathFromUri(savedImageUri);
+      	String dest_filename = src_filename;
+      	// Do we overwrite the original image, whether a new photo
+      	// or selected media, or do we leave it intact and write a redacted copy?
+      	boolean redactOriginal = true;
+     	if (!redactOriginal) {
+     	   	savedImageUri = getContentResolver().insert(
+     	   		android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new ContentValues());
+     		dest_filename = pullPathFromUri(savedImageUri);
+     	}
 		try {
-		    // Build up a string of semi-colon separated regions l,r,t,b in image coords.
+		    // Build up a string of semi-colon separated regions l,r,t,b;l2,r2,t2,b2... in image coords.
     		String regions = "";
     	   	Iterator<ImageRegion> i = imageRegions.iterator();
     	    while (i.hasNext()) {
@@ -1025,7 +1012,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
        		JpegRedaction redactor = new JpegRedaction();
     		redactor.redactit(src_filename, dest_filename, regions);
 			
-        	Toast t = Toast.makeText(this,"Saved JPEG!", Toast.LENGTH_SHORT); 
+        	Toast t = Toast.makeText(this,"Saved redacted JPEG to "+ dest_filename + 
+        				(redactOriginal ? " overwriting original." : " preserving original."), Toast.LENGTH_SHORT); 
     		t.show();
 		} catch (Exception e) { //FileNotFoundException e) {
 			e.printStackTrace();
@@ -1039,12 +1027,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     public String pullPathFromUri(Uri originalUri) {
     	String originalImageFilePath = null;
     	String[] columnsToSelect = { MediaStore.Images.Media.DATA };
-    	Cursor imageCursor = getContentResolver().query( originalImageUri, columnsToSelect, null, null, null );
+    	Cursor imageCursor = getContentResolver().query(originalUri, columnsToSelect, null, null, null );
     	if ( imageCursor != null && imageCursor.getCount() == 1 ) {
 	        imageCursor.moveToFirst();
 	        originalImageFilePath = imageCursor.getString(imageCursor.getColumnIndex(MediaStore.Images.Media.DATA));
     	}
-
     	return originalImageFilePath;
     }
 
