@@ -16,14 +16,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-// jpeg.cpp: implementation of the Jpeg class.
-//
-//////////////////////////////////////////////////////////////////////
+// jpeg.cpp: implementation of the Jpeg class to store all the information
+// from a JPEG file.
 
 #include "jpeg.h"
 #include "jpeg_dht.h"
 #include "jpeg_decoder.h"
+#include "jpeg_marker.h"
 #include "redaction.h"
 #include "photoshop_3block.h"
 #include "byte_swapping.h"
@@ -509,12 +508,17 @@ namespace jpeg_redaction {
     }
     if (redaction && redaction->NumRegions() > 0) {
       // Keep the 10 byte header.
-      printf("Redacted data length %lu\n", decoder.GetRedactedData().size());
+      const std::vector<unsigned char> &redacted_data =
+	decoder.GetRedactedData();
+      printf("Redacted data length %lu bytes %d bits\n",
+	     redacted_data.size(),
+	     decoder.GetBitLength());
       sos_block->data_.erase(sos_block->data_.begin() + 10,
 			     sos_block->data_.end());
       sos_block->data_.insert(sos_block->data_.end(),
-			      decoder.GetRedactedData().begin(),
-			      decoder.GetRedactedData().end());
+			      redacted_data.begin(),
+			      redacted_data.end());
+      sos_block->SetBitLength(decoder.GetBitLength() + 10 * 8);
       printf("sos block now %d bytes\n", sos_block->data_.size());
     }
     // Now keep on dumping data out.
@@ -526,105 +530,61 @@ namespace jpeg_redaction {
   int Jpeg::ReverseRedaction(const Redaction &redaction) {
     JpegMarker *sos_block = GetMarker(jpeg_sos);
     // For each strip insert it into the JPEG data.
-    int data_bits = 8 * sos_block->data_.size();
-    printf("Before patching size %d\n", sos_block->data_.size());
+    int data_bits = sos_block->GetBitLength();
+    printf("Before patching size %d bytes %d bits.\n",
+	   sos_block->data_.size(), data_bits);
     // We pass the data with the header in it, so start at this bit.
     int offset = 10 * 8;
     for (int i = 0; i < redaction.NumStrips(); ++i) {
       printf("Patching in strip %d\n", i);
       // If we patch all the strips in, they need no offset.
       int shift = redaction.GetStrip(i)->PatchIn(offset, &sos_block->data_,
-				     &data_bits);
+						 &data_bits);
+      sos_block->SetBitLength(data_bits);
       //      offset += shift;
     }
   }
+  int Jpeg::RemoveIPTC() {
+    if (photoshop3_  != NULL) {
+      delete photoshop3_;
+      photoshop3_ = NULL;
+      return 1;
+    }
+    return 0;
+  }
+  JpegMarker *Jpeg::GetMarker(int marker) {
+    for (int i = 0 ; i < markers_.size(); ++i) {
+      /* printf("Marker %d is %04x seeking %04x\n", */
+      /* 	     i, markers_[i]->marker_, marker); */
+      if (markers_[i]->marker_ == marker)
+	return markers_[i];
+    }
+    return NULL;
+  }
 
-  // Save this (preloaded) marker to disk.
-  int JpegMarker::Save(FILE *pFile) {
-    const int location = ftell(pFile);
-    if (pFile == NULL)
-      throw("Null File in JpegMarker::Save.");
-    unsigned short markerswapped = byteswap2(marker_);
-    int rv = fwrite(&markerswapped, sizeof(unsigned short), 1, pFile);
-    if (rv != 1) return 0;
-    unsigned short slice_or_length = length_;
-    if (marker_ == Jpeg::jpeg_sos)
-      slice_or_length = slice_;
-    ByteSwapInPlace(&slice_or_length, 1);
-    rv = fwrite(&slice_or_length, sizeof(unsigned short), 1, pFile);
-    if (rv != 1) return 0;
-    if (marker_ == Jpeg::jpeg_sos) {
-      WriteWithStuffBytes(pFile);
-      // Add the EOI
-      unsigned char eoi0 = 0xff;
-      unsigned char eoi1 = 0xd9;
-      fwrite(&eoi0, sizeof(eoi0), 1, pFile);
-      fwrite(&eoi1, sizeof(eoi1), 1, pFile);
-    } else {
-      rv = fwrite(&data_[0], sizeof(char), data_.size(), pFile);
-      if (rv != data_.size()) return 0;
-    }
-    printf("Saved marker %04x length %u at %d\n", marker_, length_, location);
-    return 1;
+  JpegMarker *Jpeg::AddSOMarker(int location, int length,
+				FILE *pFile, bool loadall, int slice) {
+    // We have true byte length here, + 2 bytes of EOI. AddMarker needs
+    // payload length which assumes there were 2 bytes of length.
+    JpegMarker *markerptr = AddMarker(jpeg_sos, location, length + 2 - 2,
+				      pFile, loadall);
+    if (loadall)
+      markerptr->RemoveStuffBytes();
+    int rv = fseek(pFile, 2, SEEK_CUR);
+    if (rv != 0)
+      throw("Fail seeking in AddSOMarker");
+    markerptr->slice_ = slice;
+    return markerptr;
   }
-  // Write out the marker inserting stuff (0) bytes when there's an ff.
-  void JpegMarker::WriteWithStuffBytes(FILE *pFile) {
-    int written = 0; // Next byte to write out.
-    int check = 10;  // Next byte to check.
-    int rv = 0;
-    unsigned char zero = 0x00;
-    int stuff_bytes = 0;
-    // Repeatedly look for the next ff.
-    // Then write all the data up to & including it and write out the
-    // stuff byte (00).
-    if (check > data_.size()) {
-      printf("data size is %d\n", data_.size());
-      throw("data too short in stuffing.");
-    }
-    while (check < data_.size()) {
-      if (data_[check] == 0xff) {
-	rv = fwrite(&data_[written], sizeof(char), check + 1 - written, pFile);
-	if (rv != check + 1 - written) 
-	  throw("Failed to write enough bytes in WriteWithStuffBytes");
-	rv = fwrite(&zero, sizeof(char), 1, pFile);
-	if (rv != 1) 
-	  throw("Failed to write stuffbyte in WriteWithStuffBytes");
-	written = check + 1;
-	++stuff_bytes;
-      }
-      ++check;
-    }
-    if (check != data_.size()) throw("data_.size() mismatch in stuffing.");
-    // Write out the last chunk of data.
-    if (written < check)
-      rv = fwrite(&data_[written], sizeof(char), check - written, pFile);
-    printf("Inserted %d stuff_bytes in %d now %d\n", stuff_bytes,
-	   data_.size(), data_.size() + stuff_bytes);
+  // The length is the length from the file, including the storage for length.
+  JpegMarker *Jpeg::AddMarker(int marker, int location, int length,
+			      FILE *pFile, bool loadall) {
+    JpegMarker *markerptr = new JpegMarker(marker, location, length);
+    if (loadall)
+      markerptr->LoadHere(pFile);
+    else
+      fseek(pFile, location + length + 2, SEEK_SET);
+    markers_.push_back(markerptr);
+    return markerptr;
   }
-  void JpegMarker::RemoveStuffBytes() {
-    if (data_.size() != length_ - 2) {
-      printf("Data %d len %d\n", data_.size(), length_);
-      throw("Data length mismatch in RemoveStuffBytes");
-    }
-    const int start_of_huffman = 10;
-    if (data_.size() < start_of_huffman) {
-      printf("Data %d len %d\n", data_.size(), length_);
-      throw("Data too short in RemoveStuffBytes");
-    }
-
-    int dest = start_of_huffman;
-    int src  = start_of_huffman;
-    int stuff_bytes = 0;
-    for (int src = start_of_huffman; src < length_ - 2; ++dest, ++src) {
-      data_[dest] = data_[src];
-      if (data_[src] == 0xff && data_[src+1] == 0x00) {
-	++src;
-	++stuff_bytes;
-      }
-    }
-    printf("Removed %d stuff_bytes in %d now %d\n", stuff_bytes, data_.size(),
-	   data_.size() - stuff_bytes);
-    length_ -= stuff_bytes;
-    data_.resize(data_.size() - stuff_bytes);
-  }
-} // namespace redaction
+} // namespace jpeg_redaction

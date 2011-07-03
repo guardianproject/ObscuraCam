@@ -72,6 +72,7 @@ public:
     BitShifts::Overwrite(data, *data_bits,
     			 src_start_ + offset, 
     			 data_, bits_);
+    BitShifts::PadLastByte(data, *data_bits);
     return tail_shift;
   }
   bool Valid(int *offset) const {
@@ -113,18 +114,51 @@ public:
   enum redaction_method {redact_copystrip = 0,
 			 redact_solid = 1,
 			 redact_pixellate = 2,
-			 redact_overlay   = 3};
+			 redact_overlay   = 3,
+			 redact_inverse_pixellate = 4};
 
   // Simple rectangle class for redaction regions.
-  class Rect {
-   public:
+  class Region {
+  public:
     // Top left is 0,0 so t<b, l<r.
-    Rect(int l, int r, int t, int b) : l_(l), r_(r), t_(t), b_(b) {
+    Region(int l, int r, int t, int b) : l_(l), r_(r), t_(t), b_(b) {
+      redaction_method_ = redact_solid;
       if (l >= r || t >= b) throw("Bad rectangle created");
     }
+    void SetRedactionMethod(redaction_method method) {
+      redaction_method_ = method;
+    }
+    void SetRedactionMethod(const char *const method) {
+      switch (method[0]) {
+      case 'c':
+	redaction_method_ = redact_copystrip;
+	break;
+      case 's':
+	redaction_method_ = redact_solid;
+	break;
+      case 'p':
+	redaction_method_ = redact_pixellate;
+	break;
+      case 'o':
+	redaction_method_ = redact_overlay;
+	break;
+      case 'i':
+	redaction_method_ = redact_inverse_pixellate;
+	break;
+      default:
+	printf("Unknown redaction method: %s\n", method);
+	return;
+      }
+    }
+    redaction_method GetRedactionMethod() {
+      return redaction_method_;
+    }
     int l_, r_, t_, b_;
+
+  protected:
+    redaction_method redaction_method_;
   };
-  Redaction() : redaction_method_(redact_solid) {}
+  Redaction() {}
   virtual ~Redaction() {
     for (int i = 0; i < strips_.size(); ++i)
       delete strips_[i];
@@ -137,13 +171,7 @@ public:
     }
     return copy;
   }
-  void SetRedactionMethod(redaction_method method) {
-    redaction_method_ = method;
-  }
-  redaction_method GetRedactionMethod() const {
-    return redaction_method_;
-  }
-  void AddRegion(const Rect &rect) {
+  void AddRegion(const Region &rect) {
     if (rect.l_ >= rect.r_ || rect.t_ >= rect.b_) {
       printf("Bad region %d %d %d %d\n",
 	     rect.l_, rect.r_, rect.t_, rect.b_);
@@ -151,22 +179,27 @@ public:
     }
     regions_.push_back(rect);
   }
-  // Make a region from a string of comma coordinates: l,r,t,b
+
+  // Make a region from a string of comma coordinates: l,r,t,b:method
   void AddRegion(const std::string &rect_string) {
     int l, r, t, b;
     if (rect_string.empty())
       return;
-    int rv = sscanf(rect_string.c_str(), "%d,%d,%d,%d", &l, &r, &t, &b);
-    //    printf("Rect: %s rv %d\n", rect_string.c_str(), rv);
-    if (rv != 4) {
+    char method[11];
+    int rv = sscanf(rect_string.c_str(), "%d,%d,%d,%d:%10s", &l, &r, &t, &b,
+		    method);
+    //    printf("Region: %s rv %d\n", rect_string.c_str(), rv);
+    if (rv != 4 && rv != 5) {
       std::string message("Region string badly formed, should be l,r,t,b");
       message += rect_string;
       throw(message.c_str());
     }
-    Rect rect(l, r, t, b);
+    Region rect(l, r, t, b);
+    if (rv == 5)
+      rect.SetRedactionMethod(method);
     regions_.push_back(rect);
   }
-  // Make regions from semi-colon-separated regions l,r,t,b;l,r,t,b...
+  // Make regions from semi-colon-separated regions l,r,t,b[:method];l,r,t,b...
   void AddRegions(const std::string &rect_strings) {
     int start = 0;
     do { 
@@ -196,7 +229,7 @@ public:
     for (int i = 0; i < red.NumRegions(); ++i)
       regions_.push_back(red.GetRegion(i));
   }
-  Rect GetRegion(int i) const {
+  Region GetRegion(int i) const {
     return regions_[i];
   }
   int NumRegions() const {
@@ -228,21 +261,21 @@ public:
   }
   // Test if a box of width dx, dy, with top left corner at x,y
   // intersects with any of the rectangular regions.
-  bool InRegion(int x, int y, int dx, int dy) const {
+  // if so return the index of the region. If not return -1;
+  int InRegion(int x, int y, int dx, int dy) const {
     for (int i = 0; i < regions_.size(); ++i)
       if (x      < regions_[i].r_ &&
           x + dx > regions_[i].l_ &&
           y      < regions_[i].b_ &&
           y + dy > regions_[i].t_) {
-        return true;
+        return i;
       }
-    return false;
+    return -1;
   }
 protected:
-  redaction_method  redaction_method_;
   // Information redacted.
   std::vector<const JpegStrip*> strips_;
-  std::vector<Rect> regions_;
+  std::vector<Region> regions_;
 };
 } // namespace jpeg_redaction
 #endif // INCLUDE_REDACTION

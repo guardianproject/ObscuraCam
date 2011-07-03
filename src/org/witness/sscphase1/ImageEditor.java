@@ -262,9 +262,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				PointF midpoint = new PointF((float)imageBitmap.getWidth()/2f, (float)imageBitmap.getHeight()/2f);
 				matrix.postScale(matrixScale, matrixScale);
 
-				// This doesn't completely center the image but it get's closer
+				// This doesn't completely center the image but it gets closer
 				int fudge = 42;
-				matrix.postTranslate((float)((float)currentDisplay.getWidth()-(float)imageBitmap.getWidth()*(float)matrixScale)/2f,(float)((float)currentDisplay.getHeight()-(float)imageBitmap.getHeight()*matrixScale)/2f-fudge);
+				matrix.postTranslate((float)((float)currentDisplay.getWidth()-(float)imageBitmap.getWidth()*(float)matrixScale)/2f,
+						(float)((float)currentDisplay.getHeight()-(float)imageBitmap.getHeight()*matrixScale)/2f-fudge);
 				
 				imageView.setImageMatrix(matrix);
 				
@@ -1003,10 +1004,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     		String regions = "";
     	   	Iterator<ImageRegion> i = imageRegions.iterator();
     	    while (i.hasNext()) {
+    	    		String method = "pix";
+    	    		
     	    	ImageRegion currentRegion = i.next();
-    	    	regions = regions + String.format("%.0f,%.0f,%.0f,%.0f;",
+    	    // TODO: allow selecting other redaction methods.
+	    		if (currentRegion.obscureType == ImageRegion.SOLID) method = "solid";
+    	    	regions = regions + String.format("%.0f,%.0f,%.0f,%.0f:%s;",
     	    				currentRegion.unscaledRect.left, currentRegion.unscaledRect.right,
-    	    				currentRegion.unscaledRect.top, currentRegion.unscaledRect.bottom);
+    	    				currentRegion.unscaledRect.top, currentRegion.unscaledRect.bottom,
+    	    					method);
     	    }
     	    Log.v(LOGTAG,"saveImage " + src_filename + " : " + regions);
        		JpegRedaction redactor = new JpegRedaction();

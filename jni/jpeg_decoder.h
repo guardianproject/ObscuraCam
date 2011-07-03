@@ -24,6 +24,7 @@
 #include <vector>
 #include <string>
 #include <stdio.h>
+#include "bit_shifts.h"
 #include "jpeg.h"
 #include "jpeg_dht.h"
 #include "redaction.h"
@@ -49,10 +50,7 @@ class JpegDecoder {
 	redaction_bit_pointer_ < (redacted_data_.size() * 8) - 8) {
       throw("RedactedData length mismatch");
     }
-    // Pad the last byte with ones.
-    int used_bits_last_byte = (redaction_bit_pointer_ % 8);
-    unsigned char unused_bits_mask = (1 << (8 - used_bits_last_byte)) - 1;
-    redacted_data_.back() |= unused_bits_mask;
+    BitShifts::PadLastByte(&redacted_data_, redaction_bit_pointer_);
     return redacted_data_;
   }
   // Write the grey scale decoded image to a file.
@@ -95,6 +93,8 @@ class JpegDecoder {
     }
     image_data_.assign(c.begin(), c.end());
   }
+  // Return the current length of the data block (in bits).
+  int GetBitLength() const { return length_; }
 
 
 protected:
@@ -104,6 +104,8 @@ protected:
   // bit. We shuffle in data so that there are at least N (16?) bits
   // at all times.
   // Assumes that stuff bytes and tags have already been removed.
+  // data_pointer is the next bit to shift into current_bits_
+  // num_bits_ is the number of bits in current_bits_
   void FillBits() {
     int byte = data_pointer_ >> 3;
     // The remaining bits in this byte.
@@ -182,6 +184,7 @@ protected:
   }
   int NextValue(int len);
   int DecodeOneBlock(int dht, int comp, int subblock_redaction);
+  int LookupPixellationValue(int comp);
 
   void WriteValue(int which_dht, int value);
   void WriteZeroLength(int which_dht);
@@ -202,7 +205,6 @@ protected:
     redaction_bit_pointer_ = 0;
 
     dct_gain_ = 0; // Number of bits to shift.
-    y_value_ = 0;
     current_bits_ = 0;  // Buffer of 32 bits.
     num_bits_ = 0;  // Number of bits remaining in current_bits_
     data_pointer_ = 0;  // Next bit to get into current_bits;
@@ -222,9 +224,10 @@ protected:
     const int mcu_y = mcus_ / mcu_width;
     return mcu_y * vq;
   }
-
+    
   // Does the current MCU overlap a redaction region.
-  bool InRedactionRegion(const Redaction *const redaction) const {
+  // return the index of the region, -1 if not
+  int InRedactionRegion(const Redaction *const redaction) const {
     const int mcu_width = w_blocks_ / mcu_h_;
     const int hq = kBlockSize * mcu_h_;
     const int vq = kBlockSize * mcu_v_;
@@ -268,10 +271,20 @@ protected:
   int h_blocks_;  // Height of the image in MCUs
   int dct_gain_;
   int redacting_; // Are we redacting this image: see kRedacting* flags above.
-  int y_value_; // The most recent decoded brightness value.
-  std::vector<int> dc_values_;
 
-  int redaction_dc_[3];
+  // What is the redaction method for the current region.
+  Redaction::redaction_method  redaction_method_;
+  // The current (input) DC (delta) value for this MCU, one per channel.
+  std::vector<int> dc_values_;
+  // The current DC (delta) value for this MCU, one per channel, as output.
+  // Differs from dc_values_ when we're redacting.
+  std::vector<int> redaction_dc_;
+
+  // This stores the cumulative DC values for all components, interleaved.
+  // before down-scaling.
+  std::vector<int> int_image_data_;
+  // The DC values scaled to bytes. Currently intensity only.
+  // Initially in MCU order, but then reordered to raster for writing as a pgm.
   std::vector<unsigned char> image_data_;
   // These are pointers into the Jpeg's table of DHTs
   // The decoder does not own the memory.

@@ -35,38 +35,8 @@ extern int debug;
 
 class Iptc;
 class JpegDHT;
+class JpegMarker;
 class Redaction;
-class JpegMarker {
- public:
-  // Length is payload size- includes storage for length itself.
-  JpegMarker(unsigned short marker, unsigned int location,
-	     int length) {
-    marker_ = marker;
-    location_ = location_;
-    length_ = length;
-  }
-  void LoadFromLocation(FILE *pFile) {
-    fseek(pFile, location_ + 4, SEEK_SET);
-    LoadHere(pFile);
-  }
-  void LoadHere(FILE *pFile) {
-    data_.resize(length_-2);
-    int rv = fread(&data_[0], sizeof(char), length_-2, pFile);
-    if (rv  != length_-2) {
-      printf("Failed to read marker %x at %d\n", marker_, length_);
-      throw("Failed to read marker");
-    }
-  }
-  void WriteWithStuffBytes(FILE *pFile);
-  void RemoveStuffBytes();
-  int Save(FILE *pFile);
-  unsigned short slice_;
-  // Length is payload size- includes storage for length itself.
-  int length_;
-  unsigned int location_;
-  unsigned short marker_;
-  std::vector<unsigned char> data_;
-};  // JpegMarker
 
 class Photoshop3Block;
 class Jpeg {
@@ -138,6 +108,8 @@ public:
     }
     return removed;
   }
+  // Remove the whole IPTC record.
+  int RemoveIPTC();
   // Add here a list of all the tags that are considered sensitive.
   int RemoveAllSensitive() {
     RemoveTag(TiffTag::tag_exif);
@@ -145,44 +117,18 @@ public:
     RemoveTag(TiffTag::tag_makernote);
     RemoveTag(TiffTag::tag_make);
     RemoveTag(TiffTag::tag_model);
-    // e.g. times, owner, IPTC etc.
+    RemoveIPTC();
+    // e.g. times, owner
   }
 
-  JpegMarker *GetMarker(int marker) {
-    for (int i = 0 ; i < markers_.size(); ++i) {
-      /* printf("Marker %d is %04x seeking %04x\n", */
-      /* 	     i, markers_[i]->marker_, marker); */
-      if (markers_[i]->marker_ == marker)
-	return markers_[i];
-    }
-    return NULL;
-  }
+  // Return a pointer to the marker of the given type.
+  JpegMarker *GetMarker(int marker);
   // If it's a SOF or SOS we pass a slice.
   JpegMarker *AddSOMarker(int location, int length,
-			  FILE *pFile, bool loadall, int slice) {
-    // We have true byte length here, + 2 bytes of EOI. AddMarker needs
-    // payload length which assumes there were 2 bytes of length.
-    JpegMarker *markerptr = AddMarker(jpeg_sos, location, length + 2 - 2,
-				      pFile, loadall);
-    if (loadall)
-      markerptr->RemoveStuffBytes();
-    int rv = fseek(pFile, 2, SEEK_CUR);
-    if (rv != 0)
-      throw("Fail seeking in AddSOMarker");
-    markerptr->slice_ = slice;
-    return markerptr;
-  }
+			  FILE *pFile, bool loadall, int slice);
   // The length is the length from the file, including the storage for length.
   JpegMarker *AddMarker(int marker, int location, int length,
-                        FILE *pFile, bool loadall) {
-    JpegMarker *markerptr = new JpegMarker(marker, location, length);
-    if (loadall)
-      markerptr->LoadHere(pFile);
-    else
-      fseek(pFile, location + length + 2, SEEK_SET);
-    markers_.push_back(markerptr);
-    return markerptr;
-  }
+                        FILE *pFile, bool loadall);
 protected:
   // After loading an SO Marker, remove the stuff bytes so the bitstream
   // can be read more easily.
