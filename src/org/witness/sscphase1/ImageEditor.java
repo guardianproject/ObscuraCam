@@ -925,7 +925,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	if (imageBitmap == null)
     		return null;
     	
-    	
     	if (obscuredBmp == null || (obscuredBmp.getWidth() != width))
     	{
     		// Create the bitmap that we'll output from this method
