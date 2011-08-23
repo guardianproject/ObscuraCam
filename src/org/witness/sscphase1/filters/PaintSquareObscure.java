@@ -2,7 +2,8 @@
  * This ObscureMethod paints a solid blue rectangle over the region
  */
 
-package org.witness.sscphase1;
+package org.witness.sscphase1.filters;
+
 
 import android.graphics.Canvas;
 import android.graphics.Color;

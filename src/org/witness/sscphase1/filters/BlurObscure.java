@@ -2,7 +2,8 @@
  * This ObscureMethod blurs the contents of the region
  */
 
-package org.witness.sscphase1;
+package org.witness.sscphase1.filters;
+
 
 import android.app.Activity;
 import android.graphics.Bitmap;

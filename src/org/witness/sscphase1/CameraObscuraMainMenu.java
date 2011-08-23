@@ -35,6 +35,12 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	protected void onDestroy() {
 		super.onDestroy();
 		
+		deleteTmpFile();
+		
+	}
+	
+	private void deleteTmpFile ()
+	{
 		File fileDir = getExternalFilesDir(null);
 		
 		if (fileDir == null || !fileDir.exists())
@@ -55,6 +61,8 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
         super.onCreate(savedInstanceState);
 
         setLayout();
+        
+        deleteTmpFile();
     }
     
     private void setLayout() {

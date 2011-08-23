@@ -2,11 +2,12 @@
  * This ObscureMethod paints the "anon.jpg" over the region
  */
 
-package org.witness.sscphase1;
+package org.witness.sscphase1.filters;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
 
 import android.app.Activity;
 import android.content.Context;

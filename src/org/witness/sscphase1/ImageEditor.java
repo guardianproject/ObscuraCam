@@ -9,6 +9,14 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.witness.sscphase1.detect.GoogleFaceDetection;
+import org.witness.sscphase1.filters.BlurObscure;
+import org.witness.sscphase1.filters.CrowdBlurObscure;
+import org.witness.sscphase1.filters.MaskObscure;
+import org.witness.sscphase1.filters.ObscureMethod;
+import org.witness.sscphase1.filters.PaintSquareObscure;
+import org.witness.sscphase1.filters.PixelizeObscure;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -1149,6 +1157,21 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     public void onConfigurationChanged(Configuration conf) 
     {
         super.onConfigurationChanged(conf);
+        
+        recenterImage();
+    }
+    
+    private void recenterImage ()
+    {
+        matrix.postTranslate(0,0);
+		imageView.setImageMatrix(matrix);
+//		// Reset the start point
+		startPoint.set(0,0);
+
+		putOnScreen();
+		redrawRegions();
+		
+        updateDisplayImage();
     }
 
 	@Override

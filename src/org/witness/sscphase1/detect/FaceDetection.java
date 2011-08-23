@@ -1,4 +1,4 @@
-package org.witness.sscphase1;
+package org.witness.sscphase1.detect;
 
 import android.graphics.Bitmap;
 import android.graphics.Rect;
