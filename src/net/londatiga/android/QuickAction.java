@@ -46,7 +46,7 @@ public class QuickAction extends CustomPopupWindow {
 	private ViewGroup mTrack;
 	private ScrollView scroller;
 	private ArrayList<ActionItem> actionList;
-	
+	private boolean actionListCreated = false;
 	/**
 	 * Constructor
 	 * 
@@ -113,7 +113,8 @@ public class QuickAction extends CustomPopupWindow {
 		// This is the non hacked version
 		Rect anchorRect 	= new Rect(location[0], location[1], location[0] + anchor.getWidth(), location[1] + anchor.getHeight());
 
-		createActionList();
+		if (actionListCreated)		
+			createActionList();
 		
 		root.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 		root.measure(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
@@ -157,6 +158,7 @@ public class QuickAction extends CustomPopupWindow {
 			}
 		}
 		
+	
 		showArrow(((onTop) ? R.id.arrow_down : R.id.arrow_up), anchorRect.centerX()-xPos);
 		
 		setAnimationStyle(screenWidth, anchorRect.centerX(), onTop);
@@ -226,6 +228,8 @@ public class QuickAction extends CustomPopupWindow {
 			 
 			mTrack.addView(view);
 		}
+		
+		actionListCreated = true;
 	}
 	
 	/**

@@ -46,11 +46,13 @@
     
     <string name="unknown_crypto_signature_user_id">&lt;unknown&gt;</string>
     <string name="key_id">id: %s</string>
-    <string name="insufficient_apg_permissions">K-9 doesn\'t have permission to access APG fully, please reinstall K-9 to fix that.</string>
+    <string name="insufficient_apg_permissions">This app doesn\'t have permission to access APG fully, please reinstall the app to fix that.</string>
     <string name="pgp_mime_unsupported">PGP/MIME messages are not supported yet.</string>
     <string name="attachment_encryption_unsupported">Warning: attachments are NOT signed or encrypted yet.</string>
     <string name="send_aborted">Send aborted.</string>
     <string name="menu_delete_original">Delete Original</string>
     <string name="menu_about">About</string>
     <string name="menu_preview">Preview</string>
+    
+    <string name="loading_image">Loading photo...</string>
 </resources>
