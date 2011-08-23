@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	    
@@ -46,11 +47,19 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
     }
 
 	public void onClick(View v) {
-		if (v == choosePictureButton) {
+		if (v == choosePictureButton) 
+		{
 			
-			Intent i = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-			startActivityForResult(i, GALLERY_RESULT);
-			
+			try
+			{
+				Intent i = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+				startActivityForResult(i, GALLERY_RESULT);
+			}
+			catch (Exception e)
+			{
+				Toast.makeText(this, "Unable to open Gallery app", Toast.LENGTH_LONG).show();
+				Log.e(LOGTAG, "error loading gallery app to choose photo: " + e.getMessage(), e);
+			}
 		} else if (v == takePictureButton) {
 			
 			// Create the Uri, this should put it in the gallery, is this desired?
