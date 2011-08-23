@@ -16,12 +16,12 @@
 			android:layout_width="fill_parent" 
 			android:layout_height="fill_parent" android:gravity="center_vertical|center_horizontal">
 			<Button  android:id="@+id/TakePictureButton" 
-				android:text="Take Picture" 
+				android:text="Take Photo" 
 				android:layout_height="90dp"
 				android:drawableTop="@drawable/ic_camera" android:layout_width="125dp" android:layout_marginRight="15dp">
 			</Button>
 			<Button  android:id="@+id/ChoosePictureButton" 
-				android:text="Choose Media" 
+				android:text="Select Photo" 
 				android:layout_height="90dp"
 				android:drawableTop="@drawable/ic_gallery" android:layout_width="125dp" android:layout_marginLeft="15dp">
 			</Button>
