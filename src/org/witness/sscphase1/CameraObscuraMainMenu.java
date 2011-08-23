@@ -1,11 +1,15 @@
 package org.witness.sscphase1;
 
+import java.io.File;
+
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.view.Menu;
@@ -25,6 +29,18 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	
 	final static int ABOUT = 0;
 	
+	final static String CAMERA_TMP_FILE = "tmp.jpg";
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		
+		File tmpFile = new File(this.getExternalFilesDir(null),CAMERA_TMP_FILE);
+		if (tmpFile.exists())
+			tmpFile.delete();
+	}
+
+
 	Button choosePictureButton, takePictureButton;		
 	
 	Uri imageFileUri;
@@ -65,12 +81,12 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 			
 		} else if (v == takePictureButton) {
 			
-			// Create the Uri, this should put it in the gallery, is this desired?
-			imageFileUri = getContentResolver().insert(
-					Media.EXTERNAL_CONTENT_URI, new ContentValues());
-	    	
+			imageFileUri = Uri.fromFile( new File(getExternalFilesDir(null),CAMERA_TMP_FILE));
+
 			Intent i = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-			i.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, imageFileUri);
+			//i.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, imageFileUri);
+			i.putExtra(MediaStore.EXTRA_OUTPUT, imageFileUri); // URI of the file where pic will be stored
+
 			startActivityForResult(i, CAMERA_RESULT);
 
 			takePictureButton.setVisibility(View.VISIBLE);
@@ -81,34 +97,42 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		super.onActivityResult(requestCode, resultCode, intent);
 
-		if (resultCode == RESULT_OK) {
-			if (requestCode == GALLERY_RESULT || requestCode == CAMERA_RESULT) {
-									
-				if (requestCode == GALLERY_RESULT || imageFileUri == null) {
-					
-					// If imageFileUri is null and we are coming from the camera app,
-					// the below code will may give us a small version of the image
-					// I am not sure we want that...
-					// http://code.google.com/p/android/issues/detail?id=1480
-					imageFileUri = intent.getData();
-					
-				}
 		
+		if (requestCode == GALLERY_RESULT) 
+		{
+			imageFileUri = intent.getData();
 				
-				// This comes back null if we are rotated as the activity is restarted
-				// Let's lock in portrait for now
+			if (imageFileUri != null)
+			{
+				Intent passingIntent = new Intent(this,ImageEditor.class);
+				passingIntent.setData(imageFileUri);
+				startActivityForResult(passingIntent, IMAGE_EDITOR);
+			}
 				
+		}
+		else if (requestCode == CAMERA_RESULT)
+		{
+			File fileTmp = new File(this.getExternalFilesDir(null),CAMERA_TMP_FILE);
+			
+			if (fileTmp.exists())
+			{
+				imageFileUri = Uri.fromFile(fileTmp);
+				Intent passingIntent = new Intent(this,ImageEditor.class);
+				passingIntent.setData(imageFileUri);
+				startActivity(passingIntent);
+			}
+			else if (intent.hasExtra("data"))
+			{
+				Bitmap b = (Bitmap) intent.getExtras().get("data");
 				
-				if (imageFileUri != null)
-				{
-					Log.v(LOGTAG,"Sending: " + imageFileUri.toString());					
-					
-					Intent passingIntent = new Intent(this,ImageEditor.class);
-					passingIntent.setData(imageFileUri);
-					startActivityForResult(passingIntent, IMAGE_EDITOR);
-				}
+				Intent passingIntent = new Intent(this,ImageEditor.class);
+				passingIntent.putExtra("bitmap", b);
+				startActivity(passingIntent);
+				
 			}
 		}
+		
+		
 	}	
 
 	/*

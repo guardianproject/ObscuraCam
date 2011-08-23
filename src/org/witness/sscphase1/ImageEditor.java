@@ -177,17 +177,32 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		zoomIn.setOnClickListener(this);
 		zoomOut.setOnClickListener(this);
 
+
+		// Instantiate the vibrator
+		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+		
 		// Passed in from CameraObscuraMainMenu
 		originalImageUri = getIntent().getData();
 		
 		// If originalImageUri is null, we are likely coming from another app via "share"
-		if (originalImageUri == null && getIntent().hasExtra(Intent.EXTRA_STREAM)) {
-			originalImageUri = (Uri) getIntent().getExtras().get(Intent.EXTRA_STREAM);
+		if (originalImageUri == null)
+		{
+			if (getIntent().hasExtra(Intent.EXTRA_STREAM)) 
+			{
+				originalImageUri = (Uri) getIntent().getExtras().get(Intent.EXTRA_STREAM);
+			}
+			else if (getIntent().hasExtra("bitmap"))
+			{
+				Bitmap b = (Bitmap)getIntent().getExtras().get("bitmap");
+				setBitmap(b);
+				originalImageWidth = b.getWidth();
+				originalImageHeight = b.getHeight();
+				return;
+				
+			}
 		}
-
 		
-		// Instantiate the vibrator
-		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+		
 
 		// Load the image if it isn't null
 		if (originalImageUri != null) {
@@ -199,12 +214,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Load up the image's dimensions not the image itself
 				BitmapFactory.Options bmpFactoryOptions = new BitmapFactory.Options();
 				bmpFactoryOptions.inJustDecodeBounds = true;
-
 				// Needs to be this config for Google Face Detection 
 				bmpFactoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
-				
 				// Parse the image
-				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(originalImageUri), null, bmpFactoryOptions);
+				Bitmap loadedBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(originalImageUri), null, bmpFactoryOptions);
 
 				// Hold onto the unscaled dimensions
 				originalImageWidth = bmpFactoryOptions.outWidth;
@@ -240,54 +253,66 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 				// Decode it for real
 				bmpFactoryOptions.inJustDecodeBounds = false;
-				imageBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(originalImageUri), null, bmpFactoryOptions);
-				Log.v(LOGTAG,"Was: " + imageBitmap.getConfig());
+				loadedBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(originalImageUri), null, bmpFactoryOptions);
+				Log.v(LOGTAG,"Was: " + loadedBitmap.getConfig());
 
-				if (imageBitmap == null) {
+				if (loadedBitmap == null) {
 					Log.v(LOGTAG,"bmp is null");
+				
 				}
-				
-				float matrixWidthRatio = (float) currentDisplay.getWidth() / (float) imageBitmap.getWidth();
-				float matrixHeightRatio = (float) currentDisplay.getHeight() / (float) imageBitmap.getHeight();
-
-				// Setup the imageView and matrix for scaling
-				float matrixScale = matrixHeightRatio;
-				
-				if (matrixWidthRatio < matrixHeightRatio) {
-					matrixScale = matrixWidthRatio;
-				} 
-				
-				imageView.setImageBitmap(imageBitmap);
-				
-				PointF midpoint = new PointF((float)imageBitmap.getWidth()/2f, (float)imageBitmap.getHeight()/2f);
-				matrix.postScale(matrixScale, matrixScale);
-
-				// This doesn't completely center the image but it get's closer
-				int fudge = 42;
-				matrix.postTranslate((float)((float)currentDisplay.getWidth()-(float)imageBitmap.getWidth()*(float)matrixScale)/2f,(float)((float)currentDisplay.getHeight()-(float)imageBitmap.getHeight()*matrixScale)/2f-fudge);
-				
-				imageView.setImageMatrix(matrix);
+				else
+					setBitmap (loadedBitmap);
 				
 			} catch (IOException e) {
-				e.printStackTrace();
+				Log.e(LOGTAG, "error loading bitmap from Uri: " + e.getMessage(), e);
 			}
 			
-			// Set the OnTouch and OnLongClick listeners to this (ImageEditor)
-			imageView.setOnTouchListener(this);
-			imageView.setOnLongClickListener(this);
 			
-			// Layout for Image Regions
-			regionButtonsLayout = (RelativeLayout) this.findViewById(R.id.RegionButtonsLayout);
-			
-			// Do auto detect popup
-
-			Toast autodetectedToast = Toast.makeText(this, "Detecting faces...", Toast.LENGTH_SHORT);
-			autodetectedToast.show();
-			mHandler.postDelayed(mUpdateTimeTask, 1000);
 			
 		}
 	}
 	
+	private void setBitmap (Bitmap nBitmap)
+	{
+		imageBitmap = nBitmap;
+		
+		// Get the current display to calculate ratios
+		Display currentDisplay = getWindowManager().getDefaultDisplay();
+
+		float matrixWidthRatio = (float) currentDisplay.getWidth() / (float) imageBitmap.getWidth();
+		float matrixHeightRatio = (float) currentDisplay.getHeight() / (float) imageBitmap.getHeight();
+
+		// Setup the imageView and matrix for scaling
+		float matrixScale = matrixHeightRatio;
+		
+		if (matrixWidthRatio < matrixHeightRatio) {
+			matrixScale = matrixWidthRatio;
+		} 
+		
+		imageView.setImageBitmap(imageBitmap);
+		
+		PointF midpoint = new PointF((float)imageBitmap.getWidth()/2f, (float)imageBitmap.getHeight()/2f);
+		matrix.postScale(matrixScale, matrixScale);
+
+		// This doesn't completely center the image but it get's closer
+		int fudge = 42;
+		matrix.postTranslate((float)((float)currentDisplay.getWidth()-(float)imageBitmap.getWidth()*(float)matrixScale)/2f,(float)((float)currentDisplay.getHeight()-(float)imageBitmap.getHeight()*matrixScale)/2f-fudge);
+		
+		imageView.setImageMatrix(matrix);
+		
+		// Set the OnTouch and OnLongClick listeners to this (ImageEditor)
+		imageView.setOnTouchListener(this);
+		imageView.setOnLongClickListener(this);
+		
+		// Layout for Image Regions
+		regionButtonsLayout = (RelativeLayout) this.findViewById(R.id.RegionButtonsLayout);
+		
+		// Do auto detect popup
+
+		Toast autodetectedToast = Toast.makeText(this, "Detecting faces...", Toast.LENGTH_SHORT);
+		autodetectedToast.show();
+		mHandler.postDelayed(mUpdateTimeTask, 1000);
+	}
 	/*
 	 * Call this to delete the original image, will ask the user
 	 */
@@ -504,7 +529,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						
 						matrix.postTranslate(event.getX() - startPoint.x, event.getY() - startPoint.y);
 						imageView.setImageMatrix(matrix);
-						// Reset the start point
+//						// Reset the start point
 						startPoint.set(event.getX(), event.getY());
 	
 						putOnScreen();
@@ -575,6 +600,21 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		return handled; // indicate event was handled
 	}
 	
+	public void moveAndZoom (float x, float y, float scale)
+	{
+		matrix.postTranslate(x - startPoint.x, y - startPoint.y);
+		imageView.setImageMatrix(matrix);
+//		// Reset the start point
+		startPoint.set(x, y);
+		
+		matrix.postScale(scale, scale, startFingerSpacingMidPoint.x, startFingerSpacingMidPoint.y);
+		
+		imageView.setImageMatrix(matrix);
+		
+		putOnScreen();
+		redrawRegions();
+		
+	}
 	/*
 	 * For live previews
 	 */	
