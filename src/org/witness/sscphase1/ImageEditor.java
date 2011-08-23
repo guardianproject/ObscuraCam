@@ -1057,7 +1057,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	Bitmap obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight());
     	
     	ContentValues cv = new ContentValues();
-    	/* 
+    	
     	// Add a date so it shows up in a reasonable place in the gallery - Should we do this??
     	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
     	Date date = new Date();
@@ -1066,7 +1066,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	cv.put(Media.DATE_ADDED, dateFormat.format(date));
     	cv.put(Media.DATE_TAKEN, dateFormat.format(date));
     	cv.put(Media.DATE_MODIFIED, dateFormat.format(date));
-    	*/
+    	
     	
     	// Uri is savedImageUri which is global
     	// Create the Uri, this should put it in the gallery

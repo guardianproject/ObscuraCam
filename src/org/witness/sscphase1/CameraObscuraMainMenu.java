@@ -35,7 +35,12 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	protected void onDestroy() {
 		super.onDestroy();
 		
-		File tmpFile = new File(this.getExternalFilesDir(null),CAMERA_TMP_FILE);
+		File fileDir = getExternalFilesDir(null);
+		
+		if (fileDir == null || !fileDir.exists())
+			fileDir = getFilesDir();
+		
+		File tmpFile = new File(fileDir,CAMERA_TMP_FILE);
 		if (tmpFile.exists())
 			tmpFile.delete();
 	}
@@ -81,7 +86,12 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 			
 		} else if (v == takePictureButton) {
 			
-			imageFileUri = Uri.fromFile( new File(getExternalFilesDir(null),CAMERA_TMP_FILE));
+			File fileDir = getExternalFilesDir(null);
+			
+			if (fileDir == null || !fileDir.exists())
+				fileDir = getFilesDir();
+			
+			imageFileUri = Uri.fromFile( new File(fileDir,CAMERA_TMP_FILE));
 
 			Intent i = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
 			//i.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, imageFileUri);
@@ -100,19 +110,37 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 		
 		if (requestCode == GALLERY_RESULT) 
 		{
-			imageFileUri = intent.getData();
-				
-			if (imageFileUri != null)
+			if (intent != null)
 			{
-				Intent passingIntent = new Intent(this,ImageEditor.class);
-				passingIntent.setData(imageFileUri);
-				startActivityForResult(passingIntent, IMAGE_EDITOR);
+				imageFileUri = intent.getData();
+					
+				if (imageFileUri != null)
+				{
+					Intent passingIntent = new Intent(this,ImageEditor.class);
+					passingIntent.setData(imageFileUri);
+					startActivityForResult(passingIntent, IMAGE_EDITOR);
+				}
+				else
+				{
+					Toast.makeText(this, "Unable to load photo.", Toast.LENGTH_LONG).show();
+
+				}
+			}
+			else
+			{
+				Toast.makeText(this, "Unable to load photo.", Toast.LENGTH_LONG).show();
+
 			}
 				
 		}
 		else if (requestCode == CAMERA_RESULT)
 		{
-			File fileTmp = new File(this.getExternalFilesDir(null),CAMERA_TMP_FILE);
+			File fileDir = getExternalFilesDir(null);
+			
+			if (fileDir == null || !fileDir.exists())
+				fileDir = getFilesDir();
+			
+			File fileTmp = new File(fileDir,CAMERA_TMP_FILE);
 			
 			if (fileTmp.exists())
 			{
@@ -121,14 +149,9 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 				passingIntent.setData(imageFileUri);
 				startActivity(passingIntent);
 			}
-			else if (intent.hasExtra("data"))
+			else
 			{
-				Bitmap b = (Bitmap) intent.getExtras().get("data");
-				
-				Intent passingIntent = new Intent(this,ImageEditor.class);
-				passingIntent.putExtra("bitmap", b);
-				startActivity(passingIntent);
-				
+				Toast.makeText(this, "Unable to load photo.", Toast.LENGTH_LONG).show();
 			}
 		}
 		
