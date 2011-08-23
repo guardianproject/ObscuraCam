@@ -52,8 +52,10 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 			
 			try
 			{
-				Intent i = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-				startActivityForResult(i, GALLERY_RESULT);
+				Intent intent = new Intent(Intent.ACTION_PICK);
+				intent.setType("image/*"); //limit to image types for now
+				startActivityForResult(intent, GALLERY_RESULT);
+				
 			}
 			catch (Exception e)
 			{
