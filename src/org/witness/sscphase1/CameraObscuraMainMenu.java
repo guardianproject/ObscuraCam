@@ -60,6 +60,7 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 				Toast.makeText(this, "Unable to open Gallery app", Toast.LENGTH_LONG).show();
 				Log.e(LOGTAG, "error loading gallery app to choose photo: " + e.getMessage(), e);
 			}
+			
 		} else if (v == takePictureButton) {
 			
 			// Create the Uri, this should put it in the gallery, is this desired?
