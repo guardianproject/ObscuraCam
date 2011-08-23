@@ -164,6 +164,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         requestWindowFeature(Window.FEATURE_NO_TITLE);  
 		setContentView(R.layout.imageviewer);
 		
+		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+		
 		scale = this.getResources().getDisplayMetrics().density;
 		minMoveDistance = minMoveDistanceDP * scale + 0.5f;
 		
@@ -183,12 +185,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		if (imageUri == null) {
 			imageUri = (Uri) imageSource.get("android.intent.extra.STREAM");
-		}
-
-		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
-		if (imageUri != null) {
-			
+		} else {
 			try {
 				// Load up the image's dimensions not the image itself
 				BitmapFactory.Options bmpFactoryOptions = new BitmapFactory.Options();
