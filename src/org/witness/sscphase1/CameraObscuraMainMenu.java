@@ -199,8 +199,23 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
-    	MenuItem aboutMenuItem = menu.add(Menu.NONE, ABOUT, Menu.NONE, "About");
+		
+		String aboutString = "About ObscuraCam ";
+
+        String versNum = "";
+        
+        try {
+            String pkg = getPackageName();
+            versNum = getPackageManager().getPackageInfo(pkg, 0).versionName;
+        } catch (Exception e) {
+        	versNum = "";
+        }
+        
+        aboutString += " v" + versNum;
+		
+    	MenuItem aboutMenuItem = menu.add(Menu.NONE, ABOUT, Menu.NONE, aboutString);
     	aboutMenuItem.setIcon(R.drawable.ic_menu_about);
+    	
     	
     	return true;
 	}

@@ -174,6 +174,18 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 				
+
+        String versNum = "";
+        
+        try {
+            String pkg = getPackageName();
+            versNum = getPackageManager().getPackageInfo(pkg, 0).versionName;
+        } catch (Exception e) {
+        	versNum = "";
+        }
+        
+        setTitle(getString(R.string.app_name) + " (" + versNum + ")");
+        
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.imageviewer);
 
