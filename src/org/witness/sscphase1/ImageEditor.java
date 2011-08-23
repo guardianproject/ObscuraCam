@@ -36,6 +36,7 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Bitmap.CompressFormat;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -448,10 +449,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 * The actual face detection calling method
 	 */
 	private RectF[] runFaceDetection() {
-		GoogleFaceDetection gfd = new GoogleFaceDetection(imageBitmap);
-		int numFaces = gfd.findFaces();
-        Log.v(LOGTAG,"Num Faces Found: " + numFaces); 
-        RectF[] possibleFaceRects = gfd.getFaces();
+		RectF[] possibleFaceRects;
+		
+		try {
+			GoogleFaceDetection gfd = new GoogleFaceDetection(imageBitmap);
+			int numFaces = gfd.findFaces();
+	        Log.v(LOGTAG,"Num Faces Found: " + numFaces); 
+	        possibleFaceRects = gfd.getFaces();
+		} catch(NullPointerException e) {
+			possibleFaceRects = null;
+		}
 		return possibleFaceRects;				
 	}
 	
@@ -1098,6 +1105,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			int quality = 100; //lossless?  good question - still a smaller version
 			imageFileOS = getContentResolver().openOutputStream(savedImageUri);
 			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
+			
+			// force mediascanner to update file
+			MediaScannerConnection.scanFile(
+					this,
+					new String[] {pullPathFromUri(savedImageUri)},
+					new String[] {"image/jpeg"},
+					null);
+			
 
     		Toast t = Toast.makeText(this,"JPEG image saved to Gallery (and SDCard)", Toast.LENGTH_SHORT); 
     		t.show();
@@ -1136,7 +1151,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     // Queries the contentResolver to pull out the path for the actual file.
     /*  This code is currently unused but i often find myself needing it so I 
      * am placing it here for safe keeping ;-) */
+    
     /*
+     * Yep, uncommenting it back out so we can use the original path to refresh media scanner
+     * HNH 8/23/11
+     */
     public String pullPathFromUri(Uri originalUri) {
     	
     	String originalImageFilePath = null;
@@ -1148,7 +1167,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	}
 
     	return originalImageFilePath;
-    }*/
+    }
 
     /*
      * Handling screen configuration changes ourselves, we don't want the activity to restart on rotation
