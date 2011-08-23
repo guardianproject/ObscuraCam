@@ -185,13 +185,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			originalImageUri = (Uri) getIntent().getExtras().get(Intent.EXTRA_STREAM);
 		}
 
-		Log.v(LOGTAG,"The Path" + pullPathFromUri(originalImageUri));
 		
 		// Instantiate the vibrator
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
 		// Load the image if it isn't null
 		if (originalImageUri != null) {
+			
+			//Log.v(LOGTAG,"loading uri: " + pullPathFromUri(originalImageUri));
+
 			// Load up smaller image
 			try {
 				// Load up the image's dimensions not the image itself
@@ -873,6 +875,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      */
     private Bitmap createObscuredBitmap(int width, int height) 
     {
+    	if (imageBitmap == null)
+    		return null;
+    	
     	// Create the bitmap that we'll output from this method
     	Bitmap obscuredBmp = Bitmap.createBitmap(width, height,imageBitmap.getConfig());
     	
@@ -1072,7 +1077,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     // Queries the contentResolver to pull out the path for the actual file.
     /*  This code is currently unused but i often find myself needing it so I 
      * am placing it here for safe keeping ;-) */
+    /*
     public String pullPathFromUri(Uri originalUri) {
+    	
     	String originalImageFilePath = null;
     	String[] columnsToSelect = { MediaStore.Images.Media.DATA };
     	Cursor imageCursor = getContentResolver().query( originalImageUri, columnsToSelect, null, null, null );
@@ -1082,7 +1089,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	}
 
     	return originalImageFilePath;
-    }
+    }*/
 
     /*
      * Handling screen configuration changes ourselves, we don't want the activity to restart on rotation
