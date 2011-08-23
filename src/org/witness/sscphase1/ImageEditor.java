@@ -120,7 +120,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 	// Bitmap for the original image (scaled)
 	Bitmap imageBitmap;
-		
+	
+	// Bitmap for holding the realtime obscured image
+    Bitmap obscuredBmp;
+    
+    // Canvas for drawing the realtime obscuring
+    Canvas obscuredCanvas;
+	
 	// Vector to hold ImageRegions 
 	Vector<ImageRegion> imageRegions = new Vector<ImageRegion>(); 
 		
@@ -909,6 +915,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	}
     }
     
+    
     /*
      * Goes through the regions that have been defined and creates a bitmap with them obscured.
      * This may introduce memory issues and therefore have to be done in a different manner.
@@ -918,11 +925,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	if (imageBitmap == null)
     		return null;
     	
-    	// Create the bitmap that we'll output from this method
-    	Bitmap obscuredBmp = Bitmap.createBitmap(width, height,imageBitmap.getConfig());
     	
-    	// Create the canvas to draw on
-    	Canvas obscuredCanvas = new Canvas(obscuredBmp); 
+    	if (obscuredBmp == null || (obscuredBmp.getWidth() != width))
+    	{
+    		// Create the bitmap that we'll output from this method
+    		obscuredBmp = Bitmap.createBitmap(width, height,imageBitmap.getConfig());
+    	
+    		// Create the canvas to draw on
+    		obscuredCanvas = new Canvas(obscuredBmp); 
+    	}
+    	
     	// Create the paint used to draw with
     	Paint obscuredPaint = new Paint();   
     	// Create a default matrix
