@@ -33,40 +33,51 @@ public class PixelizeObscure extends Activity implements ObscureMethod {
 	{
 		
 		if (rect.left <= 0) {
-			rect.left = 1;
+			rect.left = 0;
 		} else if (rect.right >= originalBmp.getWidth()-1) {
 			rect.right = originalBmp.getWidth() - 1;
 		}
 		
 		if (rect.top <= 0) {
-			rect.top = 1;
+			rect.top = 0;
 		} else if (rect.bottom >= originalBmp.getHeight()) {
-			rect.bottom = originalBmp.getHeight();
+			rect.bottom = originalBmp.getHeight() - 1;
 		}
-			
-		int px, py;
 		
-		for (int x = rect.left; x < rect.right - 1; x+=pixelSize) {
-			for (int y = rect.top; y < rect.bottom - 1; y+=pixelSize) {
-				
-				px = (x/pixelSize)*pixelSize;
-				py = (y/pixelSize)*pixelSize;
+		
+		int pixels[];
+		int newPixel;
+		int wPixelSize = pixelSize;
+		int hPixelSize = pixelSize;
+		
+		for (int x = rect.left; x < rect.right; x+=pixelSize) {
+			for (int y = rect.top; y < rect.bottom; y+=pixelSize) {
 
+				wPixelSize = pixelSize;
+				hPixelSize = pixelSize;
+				
 				try
 				{ 
-					//originalBmp.setPixel(x, y, originalBmp.getPixel(px,py));
-					
-					int pixels[] = new int[pixelSize*pixelSize];
-					int newPixel = originalBmp.getPixel(px, py);
+					pixels = new int[pixelSize*pixelSize];
+					newPixel = originalBmp.getPixel(x, y);
 					for (int i = 0; i < pixels.length; i++)
 						pixels[i] = newPixel;
 					
-					originalBmp.setPixels(pixels, 0, pixelSize, px, py, pixelSize, pixelSize);
+					if (x+pixelSize>rect.right)
+					{
+						wPixelSize = rect.right - x;
+					}
+					
+					if (y+pixelSize> rect.bottom)
+					{
+						hPixelSize = rect.bottom - y;
+					}
+					
+					originalBmp.setPixels(pixels, 0, pixelSize, x, y, wPixelSize, hPixelSize);
 				}
 				catch (IllegalArgumentException iae)
 				{
-					//something is wrong with our pixel math
-					break; //stop the filter
+					iae.printStackTrace();
 				}
 			}
 		}
