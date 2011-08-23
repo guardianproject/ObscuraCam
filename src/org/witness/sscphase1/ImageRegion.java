@@ -393,7 +393,11 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
     	
     	lp.width = (int)scaledRect.width();
     	lp.height = (int)scaledRect.height();
+    	
     	this.setLayoutParams(lp);	
+    	
+    	//not working yet
+    	//imageEditor.moveAndZoom(x, y, 2);
     	
     	Log.v(LOGTAG,"Left Margin: " + lp.leftMargin + ", Top Margin: " + lp.topMargin + " Width: " + lp.width + " Height: " + lp.height);
 	}
