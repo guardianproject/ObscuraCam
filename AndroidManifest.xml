@@ -3,7 +3,7 @@
       package="org.witness.sscphase1"
       android:versionCode="11"
       android:versionName="1.0.4.3"
-      android:installLocation="auto">
+      android:installLocation="preferExternal">
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher_ssc" android:debuggable="false">
         <activity android:label="@string/app_name_label" android:name=".CameraObscuraMainMenu" android:theme="@android:style/Theme.Black.NoTitleBar" android:configChanges="orientation|keyboardHidden">
             <intent-filter>
