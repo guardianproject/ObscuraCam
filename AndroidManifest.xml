@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.witness.sscphase1"
-      android:versionCode="11"
+      android:versionCode="12"
       android:versionName="1.0.4.3"
       android:installLocation="preferExternal">
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher_ssc" android:debuggable="false">
