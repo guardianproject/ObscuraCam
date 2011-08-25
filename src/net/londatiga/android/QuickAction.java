@@ -113,7 +113,7 @@ public class QuickAction extends CustomPopupWindow {
 		// This is the non hacked version
 		Rect anchorRect 	= new Rect(location[0], location[1], location[0] + anchor.getWidth(), location[1] + anchor.getHeight());
 
-		if (actionListCreated)		
+		if (!actionListCreated)		
 			createActionList();
 		
 		root.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
@@ -145,7 +145,8 @@ public class QuickAction extends CustomPopupWindow {
 			if (rootHeight > dyTop) {
 				yPos 			= 15;
 				LayoutParams l 	= scroller.getLayoutParams();
-				l.height		= dyTop - anchor.getHeight();
+				l.height		= dyTop;//anchor.getHeight() - dyTop;
+				//- ;
 			} else {
 				yPos = anchorRect.top - rootHeight;
 			}
