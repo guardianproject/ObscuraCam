@@ -55,4 +55,11 @@
     <string name="menu_preview">Preview</string>
     
     <string name="loading_image">Loading photo...</string>
+    
+    <string name="about">This app was developed by the SecureSmartCam Team, a joint effort by WITNESS and the Guardian Project.</string>
+
+	<string name="about2">Learn more at http://witness.org and https://guardianproject.info</string>
+	
+	<string name="about3">This software is freely licensed under the GNU GPL v3.</string>
+	
 </resources>

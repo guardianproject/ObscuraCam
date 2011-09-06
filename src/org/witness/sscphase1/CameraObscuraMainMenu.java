@@ -1,5 +1,6 @@
 package org.witness.sscphase1;
 
+
 import java.io.File;
 
 import android.app.Activity;
@@ -105,15 +106,16 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 			
 			setContentView(R.layout.mainloading);
 			
+			/*
 			File fileDir = getExternalFilesDir(null);
 			
 			if (fileDir == null || !fileDir.exists())
 				fileDir = getFilesDir();
 			
 			imageFileUri = Uri.fromFile( new File(fileDir,CAMERA_TMP_FILE));
-
+*/
 			Intent i = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);			
-			i.putExtra(MediaStore.EXTRA_OUTPUT, imageFileUri); // URI of the file where pic will be stored			
+	//		i.putExtra(MediaStore.EXTRA_OUTPUT, imageFileUri); // URI of the file where pic will be stored			
 			startActivityForResult(i, CAMERA_RESULT);
 
 			takePictureButton.setVisibility(View.VISIBLE);
@@ -122,8 +124,7 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	}
 
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-		//super.onActivityResult(requestCode, resultCode, intent);
-
+		
 		if (resultCode == RESULT_OK)
 		{
 			setContentView(R.layout.mainloading);
@@ -192,16 +193,11 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	 * Display the about screen
 	 */
 	private void displayAbout() {
-		Intent i = new Intent(Intent.ACTION_VIEW);
-		i.setData(Uri.parse("https://guardianproject.info/apps/securecam/about-v1/"));
-		startActivity(i);
-	}
-
-	@Override
-    public boolean onCreateOptionsMenu(Menu menu) {
 		
-		String aboutString = "About ObscuraCam ";
-
+		StringBuffer msg = new StringBuffer();
+		
+		msg.append(getString(R.string.app_name));
+		
         String versNum = "";
         
         try {
@@ -211,7 +207,38 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
         	versNum = "";
         }
         
-        aboutString += " v" + versNum;
+        msg.append(" v" + versNum);
+        msg.append('\n');
+        msg.append('\n');
+        
+        msg.append(getString(R.string.about));
+	        
+        msg.append('\n');
+        msg.append('\n');
+        
+        msg.append(getString(R.string.about2));
+        
+        msg.append('\n');
+        msg.append('\n');
+        
+        msg.append(getString(R.string.about3));
+        
+		showDialog(msg.toString());
+	}
+	
+	private void showDialog (String msg)
+	{
+		 new AlertDialog.Builder(this)
+         .setTitle(getString(R.string.app_name))
+         .setMessage(msg)
+         .create().show();
+	}
+
+
+	@Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+		
+		String aboutString = "About ObscuraCam";
 		
     	MenuItem aboutMenuItem = menu.add(Menu.NONE, ABOUT, Menu.NONE, aboutString);
     	aboutMenuItem.setIcon(R.drawable.ic_menu_about);
