@@ -20,9 +20,9 @@ Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactit(JNIEnv *env
     jpeg_redaction::Jpeg jpeg_decoder;
     jpeg_decoder.LoadFromFile(source_filename, true);
     __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","Loaded");
-    jpeg_redaction::Redaction::Rect rect(50, 600, 50, 600);
+    jpeg_redaction::Redaction::Region region(50, 600, 50, 600);
     jpeg_redaction::Redaction redaction;
-    redaction.AddRegion(rect);
+    redaction.AddRegion(region);
     jpeg_decoder.DecodeImage(&redaction, NULL);
     jpeg_decoder.Save(dest_filename);
 
