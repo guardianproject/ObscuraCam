@@ -377,13 +377,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 */
 	private void deleteOriginal() {
 		
-		if (originalImageUri.getScheme().equals("file"))
+		if (originalImageUri != null)
 		{
-			new File(originalImageUri.toString()).delete();
-		}
-		else
-		{
-			getContentResolver().delete(originalImageUri, null, null);
+			if (originalImageUri.getScheme().equals("file"))
+			{
+				new File(originalImageUri.toString()).delete();
+			}
+			else
+			{
+				getContentResolver().delete(originalImageUri, null, null);
+			}
 		}
 		
 		originalImageUri = null;
@@ -930,6 +933,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 * Display preview image
 	 */
 	private void showPreview() {
+		
+
+    	//Why does this not show?
+    	mProgressDialog = ProgressDialog.show(this, "", "Exporting for share...", true, true);    	
+    	
 		// Open Preview Activity
 		Uri tmpImageUri = saveTmpImage();
 		
@@ -1020,7 +1028,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					om = new CrowdBlurObscure(obscuredBmp);
 				break;
 				
-				case ImageRegion.ANON:
+				case ImageRegion.OVERLAY:
 					Log.v(LOGTAG,"obscureType: ANON");
 					om = new MaskObscure(this.getApplicationContext(), obscuredBmp, obscuredPaint);
 					break;
@@ -1050,6 +1058,23 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 
 	    return obscuredBmp;
+    }
+    
+    private boolean canDoNative ()
+    {
+    	if (originalImageUri == null)
+    		return false;
+    				
+    	// Iterate through the regions that have been created
+    	Iterator<ImageRegion> i = imageRegions.iterator();
+	    while (i.hasNext()) 
+	    {
+	    	ImageRegion iRegion = i.next();
+	    	if (iRegion.obscureType == ImageRegion.OVERLAY)
+	    		return false;
+	    }
+	    
+	    return true;
     }
     
     /*
@@ -1123,9 +1148,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     		return null;
     	}
     	
-    	//Why does this not show?
-    	ProgressDialog progressDialog = ProgressDialog.show(this, "", "Exporting for share...", true, true);    	
-    	
     	// Create the bitmap that will be saved
     	// Perhaps this should be smaller than screen size??
     	int w = imageBitmap.getWidth();
@@ -1163,10 +1185,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			imageFileOS = getContentResolver().openOutputStream(tmpImageUri);
 			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
 
-			progressDialog.cancel();
+			mProgressDialog.cancel();
 			return tmpImageUri;
 		} catch (FileNotFoundException e) {
-			progressDialog.cancel();
+			mProgressDialog.cancel();
 			e.printStackTrace();
 			return null;
 		}
@@ -1202,9 +1224,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		savedImageUri = getContentResolver().insert(
 				Media.EXTERNAL_CONTENT_URI, cv);
     	
-    	boolean doNative = true;
-    	
-    	if (doNative)
+    	if (canDoNative())
     	{
     		try {
     			File savedNativeTmp = processNativeRes();
