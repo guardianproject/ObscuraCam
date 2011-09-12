@@ -2,9 +2,11 @@
  * This Activity will be the initial Activity for the application.
  * It will load the main Activity (CameraObscuraMainMenu) on click
  */
-package org.witness.sscphase1;
+package org.witness.securesmartcam;
 
 import java.io.IOException;
+
+import org.witness.sscphase1.R;
 
 import android.app.Activity;
 import android.content.Intent;

@@ -2,6 +2,13 @@ package org.witness.sscphase1;
 
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+
+import org.witness.securesmartcam.ImageEditor;
+import org.witness.sscphase1.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -11,6 +18,7 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images.Media;
 import android.util.Log;
@@ -21,9 +29,9 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
-public class CameraObscuraMainMenu extends Activity implements OnClickListener {
+public class ObscuraApp extends Activity implements OnClickListener {
 	    
-	final static String LOGTAG = "[Camera Obscura : CameraObscuraMainMenu]";
+	final static String LOGTAG = "SSC";
 		
 	final static int CAMERA_RESULT = 0;
 	final static int GALLERY_RESULT = 1;
@@ -31,7 +39,12 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	
 	final static int ABOUT = 0;
 	
-	final static String CAMERA_TMP_FILE = "tmp.jpg";
+	final static String CAMERA_TMP_FILE = "ssctmp.jpg";
+	
+
+	private Button choosePictureButton, takePictureButton;		
+	
+	private File fileImageTmp;
 	
 	@Override
 	protected void onDestroy() 
@@ -54,9 +67,6 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 	}
 
 
-	Button choosePictureButton, takePictureButton;		
-	
-	Uri imageFileUri;
 					
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -106,24 +116,42 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 			
 			setContentView(R.layout.mainloading);
 			
-			/*
-			File fileDir = getExternalFilesDir(null);
-			
-			if (fileDir == null || !fileDir.exists())
-				fileDir = getFilesDir();
-			
-			imageFileUri = Uri.fromFile( new File(fileDir,CAMERA_TMP_FILE));
-*/
-			Intent i = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);			
-	//		i.putExtra(MediaStore.EXTRA_OUTPUT, imageFileUri); // URI of the file where pic will be stored			
-			startActivityForResult(i, CAMERA_RESULT);
+			String storageState = Environment.getExternalStorageState();
+	        if(storageState.equals(Environment.MEDIA_MOUNTED)) {
 
+	            //String path = Environment.getExternalStorageDirectory().getName() + File.separatorChar + "Android/data/" + ObscuraApp.this.getPackageName() + "/files/" + md5(upc) + ".jpg";
+	           
+	        	File folderPhotos = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+	       
+	            fileImageTmp = new File(folderPhotos, CAMERA_TMP_FILE);
+	            try {
+	                if(fileImageTmp.exists() == false) {
+	                	fileImageTmp.getParentFile().mkdirs();
+	                	fileImageTmp.createNewFile();
+	                }
+
+	            } catch (IOException e) {
+	                Log.e(LOGTAG, "Could not create file.", e);
+	            }
+
+	            Uri _fileUri = Uri.fromFile(fileImageTmp);
+	            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE );
+	            intent.putExtra( MediaStore.EXTRA_OUTPUT, _fileUri);
+	            startActivityForResult(intent, CAMERA_RESULT);
+	        }   else {
+	            new AlertDialog.Builder(ObscuraApp.this)
+	            .setMessage("External Storeage (SD Card) is required.\n\nCurrent state: " + storageState)
+	            .setCancelable(true).create().show();
+	        }
+	        
 			takePictureButton.setVisibility(View.VISIBLE);
 			choosePictureButton.setVisibility(View.VISIBLE);
 		} 
 	}
 
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+		
+		Uri uriImageResult = null;
 		
 		if (resultCode == RESULT_OK)
 		{
@@ -133,12 +161,12 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 			{
 				if (intent != null)
 				{
-					imageFileUri = intent.getData();
+					uriImageResult = intent.getData();
 						
-					if (imageFileUri != null)
+					if (uriImageResult != null)
 					{
 						Intent passingIntent = new Intent(this,ImageEditor.class);
-						passingIntent.setData(imageFileUri);
+						passingIntent.setData(uriImageResult);
 						startActivityForResult(passingIntent,IMAGE_EDITOR);
 						
 					}
@@ -157,29 +185,21 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
 			}
 			else if (requestCode == CAMERA_RESULT)
 			{
-				File fileDir = getExternalFilesDir(null);
+
+				if (intent != null)
+           	 		uriImageResult = intent.getData();
+           	 
+				if (uriImageResult == null && fileImageTmp != null && fileImageTmp.exists()) {
+					uriImageResult = Uri.fromFile(fileImageTmp);
+	             } 
 				
-				if (fileDir == null || !fileDir.exists())
-					fileDir = getFilesDir();
-				
-				File fileTmp = new File(fileDir,CAMERA_TMP_FILE);
-				
-				if (fileTmp.exists())
+			
+				if (uriImageResult != null)
 				{
-					imageFileUri = Uri.fromFile(fileTmp);
 					Intent passingIntent = new Intent(this,ImageEditor.class);
-					passingIntent.setData(imageFileUri);
+					passingIntent.setData(uriImageResult);
 					startActivityForResult(passingIntent,IMAGE_EDITOR);
-					
 				}
-				else
-				{
-					Toast.makeText(this, "Unable to load photo.", Toast.LENGTH_LONG).show();
-				}
-			}
-			else if (requestCode == CAMERA_RESULT)
-			{
-				setLayout();
 			}
 		}
 		else
@@ -271,4 +291,5 @@ public class CameraObscuraMainMenu extends Activity implements OnClickListener {
         // Reset the layout to use the landscape config
         setLayout();
     }
+    
 }

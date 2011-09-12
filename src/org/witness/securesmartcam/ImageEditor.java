@@ -1,21 +1,24 @@
-package org.witness.sscphase1;
+package org.witness.securesmartcam;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 
-import org.witness.sscphase1.detect.GoogleFaceDetection;
-import org.witness.sscphase1.filters.BlurObscure;
-import org.witness.sscphase1.filters.CrowdBlurObscure;
-import org.witness.sscphase1.filters.MaskObscure;
-import org.witness.sscphase1.filters.ObscureMethod;
-import org.witness.sscphase1.filters.PaintSquareObscure;
-import org.witness.sscphase1.filters.PixelizeObscure;
+import org.witness.securesmartcam.detect.GoogleFaceDetection;
+import org.witness.securesmartcam.filters.BlurObscure;
+import org.witness.securesmartcam.filters.CrowdBlurObscure;
+import org.witness.securesmartcam.filters.MaskObscure;
+import org.witness.securesmartcam.filters.ObscureMethod;
+import org.witness.securesmartcam.filters.PaintSquareObscure;
+import org.witness.securesmartcam.filters.PixelizeObscure;
+import org.witness.securesmartcam.jpegredaction.JpegRedaction;
+import org.witness.sscphase1.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -156,14 +159,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	private final static String TMP_FILE_NAME = "temporary.jpg";
 	private final static String TMP_FILE_DIRECTORY = "/Android/data/org.witness.sscphase1/files/";
 	
-	// Temporary Image Uri
-	Uri tmpImageUri;
 	
 	//handles threaded events for the UI thread
     private Handler mHandler = new Handler();
+
+    //UI for background threads
+    ProgressDialog mProgressDialog;
     
     // Handles when we should do realtime preview and when we shouldn't
     boolean doRealtimePreview = true;
+    
 
     private Runnable mUpdateTimeTask = new Runnable() {
     	   public void run() {
@@ -354,9 +359,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
                 // User clicked OK so go ahead and delete
         		deleteOriginal();
+            	viewImage(savedImageUri);
+
             }
         });
-		b.setNegativeButton(android.R.string.no, null);
+		b.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+
+            	viewImage(savedImageUri);
+            }
+        });
 		b.show();
 	}
 	
@@ -364,30 +376,19 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 * Actual deletion of original
 	 */
 	private void deleteOriginal() {
-		getContentResolver().delete(originalImageUri, null, null);
+		
+		if (originalImageUri.getScheme().equals("file"))
+		{
+			new File(originalImageUri.toString()).delete();
+		}
+		else
+		{
+			getContentResolver().delete(originalImageUri, null, null);
+		}
+		
 		originalImageUri = null;
 	}
 	
-	/*
-	 * Ask user to approve auto detection
-	 */
-	private void askToDoAutoDetect() {
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Scan Image?");
-		builder.setMessage("Would you like to scan this image for faces?");
-		builder.setCancelable(false);
-		builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-		           public void onClick(DialogInterface dialog, int id) {
-		                ImageEditor.this.doAutoDetection();
-		           }
-		       });
-		builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-		           public void onClick(DialogInterface dialog, int id) {
-		                dialog.cancel();
-		           }
-		       });
-		builder.show();
-	}
 	
 	/*
 	 * Do actual auto detection and create regions
@@ -871,14 +872,25 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     			return true;
     			
         	case R.id.menu_save:
-        		// Save Image
-        		saveImage();
+
+				//Why does this not show?
+		    	mProgressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
+	
+        		mHandler.postDelayed(new Runnable() {
+        			  @Override
+        			  public void run() {
+        			    // this will be done in the Pipeline Thread
+        	        		saveImage();
+        			  }
+        			},500);
+
         		
         		return true;
         		
         	case R.id.menu_share:
         		// Share Image
-        		shareImage();
+          		shareImage();
+
         		
         		return true;
         	
@@ -919,11 +931,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 */
 	private void showPreview() {
 		// Open Preview Activity
-		saveTmpImage();
+		Uri tmpImageUri = saveTmpImage();
 		
-		Intent intent = new Intent(this, ImagePreview.class);
-    	intent.putExtra(ImagePreview.IMAGEURI, tmpImageUri.toString());
-		startActivity(intent);				
+		if (tmpImageUri != null)
+		{
+			Intent intent = new Intent(this, ImagePreview.class);
+			intent.putExtra(ImagePreview.IMAGEURI, tmpImageUri.toString());
+			startActivity(intent);				
+		}
 	}
 	
 	/*
@@ -931,7 +946,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 * Uses saveTmpImage (overwriting what is already there) and uses the standard Android Share Intent
 	 */
     private void shareImage() {
-    	if (saveTmpImage()) {
+    	Uri tmpImageUri;
+    	
+    	if ((tmpImageUri = saveTmpImage()) != null) {
         	Intent share = new Intent(Intent.ACTION_SEND);
         	share.setType("image/jpeg");
         	share.putExtra(Intent.EXTRA_STREAM, tmpImageUri);
@@ -940,6 +957,21 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     		Toast t = Toast.makeText(this,"Saving Temporary File Failed!", Toast.LENGTH_SHORT); 
     		t.show();
     	}
+    }
+    
+	/*
+	 * When the user selects the Share menu item
+	 * Uses saveTmpImage (overwriting what is already there) and uses the standard Android Share Intent
+	 */
+    private void viewImage(Uri imgView) {
+    	
+    	Intent iView = new Intent(Intent.ACTION_VIEW);
+    	iView.setType("image/jpeg");
+    	iView.putExtra(Intent.EXTRA_STREAM, imgView);
+    	iView.setDataAndType(imgView, "image/jpeg");
+
+    	startActivity(Intent.createChooser(iView, "View Image"));    	
+	
     }
     
     
@@ -1021,15 +1053,74 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }
     
     /*
+     * Goes through the regions that have been defined and creates a bitmap with them obscured.
+     * This may introduce memory issues and therefore have to be done in a different manner.
+     */
+    private File processNativeRes () throws IOException
+    {
+    	// Create the Uri - This can't be "private"
+    	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory(), TMP_FILE_DIRECTORY);
+    	File tmpFile = new File(tmpFileDirectory,TMP_FILE_NAME);
+    	Log.v(LOGTAG, tmpFile.getPath());
+    
+    	if (!tmpFileDirectory.exists()) {
+    		tmpFileDirectory.mkdirs();
+    	}
+    
+    	Uri tmpImageUri = Uri.fromFile(tmpFile);
+    	
+		copy (originalImageUri, tmpImageUri);
+		
+    	// Iterate through the regions that have been created
+    	Iterator<ImageRegion> i = imageRegions.iterator();
+	    while (i.hasNext()) 
+	    {
+	    	ImageRegion currentRegion = i.next();
+	    	
+	    	ObscureMethod om = new JpegRedaction(currentRegion.obscureType, tmpFile, tmpFile);
+		
+			// Get the Rect for the region and do the obscure
+            Rect rect = currentRegion.getRect();
+            Log.v(LOGTAG,"unscaled rect: left:" + rect.left + " right:" + rect.right 
+            		+ " top:" + rect.top + " bottom:" + rect.bottom);
+            			
+	    	om.obscureRect(rect, obscuredCanvas);
+		
+		}
+
+	    return tmpFile;
+    }
+    
+    private void copy (Uri uriSrc, Uri uriTarget) throws IOException
+    {
+    	
+    	InputStream is = getContentResolver().openInputStream(uriSrc);
+		
+		OutputStream os = getContentResolver().openOutputStream(uriTarget);
+			
+		byte buffer[] = new byte[4096];
+		int i;
+		
+		while ((i = is.read(buffer))!=-1)
+		{
+			os.write(buffer, 0, i);
+		}
+		
+		os.close();
+		is.close();
+
+    	
+    }
+    /*
      * Save a temporary image for sharing only
      */
-    private boolean saveTmpImage() {
+    private Uri saveTmpImage() {
     	
     	String storageState = Environment.getExternalStorageState();
         if (!Environment.MEDIA_MOUNTED.equals(storageState)) {
         	Toast t = Toast.makeText(this,"External storage not available", Toast.LENGTH_SHORT); 
     		t.show();
-    		return false;
+    		return null;
     	}
     	
     	//Why does this not show?
@@ -1064,7 +1155,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	if (!tmpFileDirectory.exists()) {
 	    		tmpFileDirectory.mkdirs();
 	    	}
-	    	tmpImageUri = Uri.fromFile(tmpFile);
+	    	Uri tmpImageUri = Uri.fromFile(tmpFile);
 	    	
 			OutputStream imageFileOS;
 
@@ -1073,11 +1164,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
 
 			progressDialog.cancel();
-			return true;
+			return tmpImageUri;
 		} catch (FileNotFoundException e) {
 			progressDialog.cancel();
 			e.printStackTrace();
-			return false;
+			return null;
 		}
     }
     
@@ -1087,13 +1178,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      */
     private void saveImage() 
     {
-    	//Why does this not show?
-    	ProgressDialog progressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
-
     	// Create the bitmap that will be saved
     	// Screen size
-    	Bitmap obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight());
-    	
+    	Bitmap obscuredBmp = null;
+
+
     	ContentValues cv = new ContentValues();
     	
     	// Add a date so it shows up in a reasonable place in the gallery - Should we do this??
@@ -1105,59 +1194,60 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	cv.put(Media.DATE_TAKEN, dateFormat.format(date));
     	cv.put(Media.DATE_MODIFIED, dateFormat.format(date));
     	
-    	
     	// Uri is savedImageUri which is global
     	// Create the Uri, this should put it in the gallery
     	// New Each time
-    	savedImageUri = getContentResolver().insert(
+    	
+
+		savedImageUri = getContentResolver().insert(
 				Media.EXTERNAL_CONTENT_URI, cv);
-    	    	
-		OutputStream imageFileOS;
-		try {
-			int quality = 100; //lossless?  good question - still a smaller version
-			imageFileOS = getContentResolver().openOutputStream(savedImageUri);
-			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
-			
-			// force mediascanner to update file
-			MediaScannerConnection.scanFile(
-					this,
-					new String[] {pullPathFromUri(savedImageUri)},
-					new String[] {"image/jpeg"},
-					null);
-			
+    	
+    	boolean doNative = true;
+    	
+    	if (doNative)
+    	{
+    		try {
+    			File savedNativeTmp = processNativeRes();
 
-    		Toast t = Toast.makeText(this,"JPEG image saved to Gallery (and SDCard)", Toast.LENGTH_SHORT); 
-    		t.show();
-    		
-    		  //Ask the user if they want to quit
-			/*
-            new AlertDialog.Builder(this)
-            .setIcon(android.R.drawable.ic_dialog_alert)
-            .setTitle("Image Saved")
-            .setMessage("Would you like to view the obscured image in the Gallery?")
-            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+    			Log.v(LOGTAG,"saved native tmp file size: " + savedNativeTmp.length());
+    			
+    			copy(Uri.fromFile(savedNativeTmp), savedImageUri);
+    			
+    			savedNativeTmp.delete();
+    			
+    		} catch (IOException e) {
+    			Log.e(LOGTAG, "error doing native redact",e);
+    		}
+    	}
+    	else
+    	{
+    		obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight());
+    
+			OutputStream imageFileOS;
+			try {
+				int quality = 100; //lossless?  good question - still a smaller version
+				imageFileOS = getContentResolver().openOutputStream(savedImageUri);
+				obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
+				
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
 
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
+    	}
 
-                	Intent intent = new Intent(Intent.ACTION_VIEW, savedImageUri);
-                	intent.setDataAndType(savedImageUri,"image/jpeg");
-                	
-            		startActivity(intent);    
-            		
-                }
-
-            })
-            .setNegativeButton("Not now", null)
-            .show();
-    		 */
-
-    		
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
+		// force mediascanner to update file
+		MediaScannerConnection.scanFile(
+				this,
+				new String[] {pullPathFromUri(savedImageUri)},
+				new String[] {"image/jpeg"},
+				null);
+    	
+		Toast t = Toast.makeText(this,"JPEG image saved to Gallery (and SDCard)", Toast.LENGTH_SHORT); 
+		t.show();
 		
-		progressDialog.cancel();
+		handleDelete ();
+		
+		mProgressDialog.cancel();
     }
     
     // Queries the contentResolver to pull out the path for the actual file.
@@ -1172,7 +1262,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	
     	String originalImageFilePath = null;
     	String[] columnsToSelect = { MediaStore.Images.Media.DATA };
-    	Cursor imageCursor = getContentResolver().query( originalImageUri, columnsToSelect, null, null, null );
+    	Cursor imageCursor = getContentResolver().query(originalUri, columnsToSelect, null, null, null );
     	if ( imageCursor != null && imageCursor.getCount() == 1 ) {
 	        imageCursor.moveToFirst();
 	        originalImageFilePath = imageCursor.getString(imageCursor.getColumnIndex(MediaStore.Images.Media.DATA));

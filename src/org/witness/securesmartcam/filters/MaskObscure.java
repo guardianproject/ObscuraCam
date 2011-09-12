@@ -2,14 +2,12 @@
  * This ObscureMethod paints the "anon.jpg" over the region
  */
 
-package org.witness.sscphase1.filters;
+package org.witness.securesmartcam.filters;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -19,7 +17,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
 
-public class MaskObscure extends Activity implements ObscureMethod {
+public class MaskObscure implements ObscureMethod {
 
 	Bitmap _bitmap;
 	Paint _painter;

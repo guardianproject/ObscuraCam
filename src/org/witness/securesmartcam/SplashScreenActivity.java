@@ -4,7 +4,10 @@
  * 
  * NOT BEING USED
  */
-package org.witness.sscphase1;
+package org.witness.securesmartcam;
+
+import org.witness.sscphase1.ObscuraApp;
+import org.witness.sscphase1.R;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -47,7 +50,7 @@ public class SplashScreenActivity extends Activity implements OnClickListener {
     
 	public void onClick(View view) {
 		if (view == splashScreenTextView || view == splashScreenImageView) {
-			Intent intent = new Intent(this, CameraObscuraMainMenu.class);
+			Intent intent = new Intent(this, ObscuraApp.class);
 			startActivity(intent);				
 		} else if (view == creditsTextView) {
 			String url = "https://guardianproject.info/apps/securecam/";

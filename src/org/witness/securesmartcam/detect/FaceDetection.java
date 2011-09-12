@@ -1,4 +1,4 @@
-package org.witness.sscphase1.detect;
+package org.witness.securesmartcam.detect;
 
 import android.graphics.Bitmap;
 import android.graphics.Rect;

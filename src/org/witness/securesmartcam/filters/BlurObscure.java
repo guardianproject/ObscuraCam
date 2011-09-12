@@ -2,16 +2,15 @@
  * This ObscureMethod blurs the contents of the region
  */
 
-package org.witness.sscphase1.filters;
+package org.witness.securesmartcam.filters;
 
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
 
-public class BlurObscure extends Activity implements ObscureMethod {
+public class BlurObscure implements ObscureMethod {
 
 	Bitmap originalBmp;
 

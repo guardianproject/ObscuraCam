@@ -1,4 +1,4 @@
-package org.witness.sscphase1;
+package org.witness.securesmartcam;
 
 import android.content.Context;
 import android.content.SharedPreferences;

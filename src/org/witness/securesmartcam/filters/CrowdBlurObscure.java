@@ -2,17 +2,16 @@
  * This ObscureMethod pixelizes the region
  */
 
-package org.witness.sscphase1.filters;
+package org.witness.securesmartcam.filters;
 
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Path;
 import android.graphics.Path.Direction;
 import android.graphics.Rect;
 
-public class CrowdBlurObscure extends Activity implements ObscureMethod {
+public class CrowdBlurObscure implements ObscureMethod {
 
 	Bitmap originalBmp;
 	

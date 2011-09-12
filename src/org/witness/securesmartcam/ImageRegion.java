@@ -1,4 +1,6 @@
-package org.witness.sscphase1;
+package org.witness.securesmartcam;
+
+import org.witness.sscphase1.R;
 
 import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
@@ -358,6 +360,12 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 		float scaledEndY = (float)unscaledRect.bottom * (float)scaledHeight/(float)imageHeight;
 		
 		return new Rect((int)scaledStartX, (int)scaledStartY, (int)scaledEndX, (int)scaledEndY);
+	}
+	
+	public Rect getRect ()
+	{
+		return new Rect((int)unscaledRect.left, (int)unscaledRect.top, (int)unscaledRect.right, (int)unscaledRect.bottom);
+		
 	}
 	
 	private void updateLayoutParams() {
