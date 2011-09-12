@@ -5,13 +5,13 @@
       android:versionName="1.0.4.3"
       android:installLocation="preferExternal">
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher_ssc" android:debuggable="false">
-        <activity android:label="@string/app_name_label" android:name=".CameraObscuraMainMenu" android:theme="@android:style/Theme.Black.NoTitleBar" android:configChanges="orientation|keyboardHidden">
+        <activity android:label="@string/app_name_label" android:name=".ObscuraApp" android:theme="@android:style/Theme.Black.NoTitleBar" android:configChanges="orientation|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ImageEditor" android:configChanges="orientation|keyboardHidden">
+        <activity android:name="org.witness.securesmartcam.ImageEditor" android:configChanges="orientation|keyboardHidden">
 			<intent-filter>
                  <action android:name="android.intent.action.VIEW" />
                  <action android:name="android.intent.action.EDIT" />
@@ -24,11 +24,9 @@
                  <data android:mimeType="image/*" />
              </intent-filter>        
         </activity>
-        <activity android:name=".ImagePreview" android:label="@string/image_preview" android:configChanges="orientation|keyboardHidden" />
+        <activity android:name="org.witness.securesmartcam.ImagePreview" android:label="@string/image_preview" android:configChanges="orientation|keyboardHidden" />
     </application>
     <uses-sdk android:minSdkVersion="7" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-	<!--  removing for now until we add upload or another network features -->
- <!--   <uses-permission android:name="android.permission.INTERNET" /> --> 
     <uses-permission android:name="android.permission.VIBRATE"/>
 </manifest> 
