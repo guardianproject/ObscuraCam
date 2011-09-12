@@ -13,7 +13,7 @@ extern "C" {
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactit
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jstring, jstring, int, int, int, int, jstring);
 
 #ifdef __cplusplus
 }

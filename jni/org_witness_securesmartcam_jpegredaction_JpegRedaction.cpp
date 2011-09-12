@@ -10,21 +10,38 @@
 #include "org_witness_securesmartcam_jpegredaction_JpegRedaction.h"
 
 JNIEXPORT void JNICALL
-Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactit(JNIEnv *env, jobject obj) {
+Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactit(JNIEnv *env, jobject obj, jstring jstrSrcFilename, jstring jstrDestFilename, int left, int right, int top, int bottom, jstring jStrRedactionMethod) {
   __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","Running");
   try {
-    const char *source_filename = "/sdcard/windows.jpg";
-    const char *dest_filename = "/sdcard/jrl_test_output.jpg";
 
-    printf("hello world");
     jpeg_redaction::Jpeg jpeg_decoder;
-    jpeg_decoder.LoadFromFile(source_filename, true);
+    const char* strSrcFilename;
+    const char* strDestFilename;
+    const char* strRedactionMethod;
+    
+    strSrcFilename = (env)->GetStringUTFChars(jstrSrcFilename , NULL);
+    strDestFilename = (env)->GetStringUTFChars(jstrDestFilename , NULL);
+    strRedactionMethod = (env)->GetStringUTFChars(jStrRedactionMethod , NULL);
+    
+    jpeg_decoder.LoadFromFile(strSrcFilename, true);
     __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","Loaded");
-    jpeg_redaction::Redaction::Region region(50, 600, 50, 600);
+    __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION",strSrcFilename);
+    
+    jpeg_redaction::Redaction::Region region(left, right, top, bottom);
+    region.SetRedactionMethod(strRedactionMethod);
     jpeg_redaction::Redaction redaction;
     redaction.AddRegion(region);
-    jpeg_decoder.DecodeImage(&redaction, NULL);
-    jpeg_decoder.Save(dest_filename);
+    __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","added redact region");
+    
+    jpeg_decoder.DecodeImage(&redaction,NULL);
+    __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","redacted");
+    
+    jpeg_decoder.Save(strDestFilename);
+    __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","saved");
+
+	(env)->ReleaseStringUTFChars(jstrSrcFilename , strSrcFilename); // release jstring
+	(env)->ReleaseStringUTFChars(jstrDestFilename , strDestFilename); // release jstring
+    
 
   } catch (const char *error) {
     __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","ERROR");
