@@ -65,7 +65,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	 * createObscuredBitmap method in ImageEditor
 	 */
 	public static final int BG_PIXELIZE = 0; // BlurObscure
-	public static final int ANON = 1; // MaskObscure
+	public static final int OVERLAY = 1; // MaskObscure
 	public static final int SOLID = 2; // PaintSquareObscure
 	public static final int PIXELIZE = 3; // PixelizeObscure
 	int obscureType = PIXELIZE;
@@ -268,7 +268,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			public void onClick(View v) {
 				qa.dismiss();
 				whatToDo = OBSCURE;
-				obscureType = ANON;
+				obscureType = OVERLAY;
 				imageEditor.updateDisplayImage();
 			}
 		});
