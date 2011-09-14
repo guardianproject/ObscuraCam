@@ -18,6 +18,7 @@ import org.witness.securesmartcam.filters.ObscureMethod;
 import org.witness.securesmartcam.filters.PaintSquareObscure;
 import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.securesmartcam.jpegredaction.JpegRedaction;
+import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
 
 import android.app.Activity;
@@ -65,7 +66,6 @@ import android.widget.Toast;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener, OnLongClickListener {
 
-	final static String LOGTAG = "[Camera Obscura ImageEditor]";
 
 	/* This isn't necessary 
 	// Maximum dimension for sharing
@@ -239,7 +239,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// Load the image if it isn't null
 		if (originalImageUri != null) {
 			
-			//Log.v(LOGTAG,"loading uri: " + pullPathFromUri(originalImageUri));
+			//Log.v(ObscuraApp.TAG,"loading uri: " + pullPathFromUri(originalImageUri));
 
 			// Load up smaller image
 			try {
@@ -258,18 +258,18 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Get the current display to calculate ratios
 				Display currentDisplay = getWindowManager().getDefaultDisplay();
 
-				Log.v(LOGTAG,"Display Width: " + currentDisplay.getWidth());
-				Log.v(LOGTAG,"Display Height: " + currentDisplay.getHeight());
+				Log.v(ObscuraApp.TAG,"Display Width: " + currentDisplay.getWidth());
+				Log.v(ObscuraApp.TAG,"Display Height: " + currentDisplay.getHeight());
 				
-				Log.v(LOGTAG,"Image Width: " + originalImageWidth);
-				Log.v(LOGTAG,"Image Height: " + originalImageHeight);
+				Log.v(ObscuraApp.TAG,"Image Width: " + originalImageWidth);
+				Log.v(ObscuraApp.TAG,"Image Height: " + originalImageHeight);
 				
 				// Ratios between the display and the image
 				int widthRatio = (int) Math.floor(bmpFactoryOptions.outWidth / (float) currentDisplay.getWidth());
 				int heightRatio = (int) Math.floor(bmpFactoryOptions.outHeight / (float) currentDisplay.getHeight());
 
-				Log.v(LOGTAG, "HEIGHTRATIO:" + heightRatio);
-				Log.v(LOGTAG, "WIDTHRATIO:" + widthRatio);
+				Log.v(ObscuraApp.TAG, "HEIGHTRATIO:" + heightRatio);
+				Log.v(ObscuraApp.TAG, "WIDTHRATIO:" + widthRatio);
 	
 				// If both of the ratios are greater than 1,
 				// one of the sides of the image is greater than the screen
@@ -286,17 +286,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Decode it for real
 				bmpFactoryOptions.inJustDecodeBounds = false;
 				loadedBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(originalImageUri), null, bmpFactoryOptions);
-				Log.v(LOGTAG,"Was: " + loadedBitmap.getConfig());
+				Log.v(ObscuraApp.TAG,"Was: " + loadedBitmap.getConfig());
 
 				if (loadedBitmap == null) {
-					Log.v(LOGTAG,"bmp is null");
+					Log.v(ObscuraApp.TAG,"bmp is null");
 				
 				}
 				else
 					setBitmap (loadedBitmap);
 				
 			} catch (IOException e) {
-				Log.e(LOGTAG, "error loading bitmap from Uri: " + e.getMessage(), e);
+				Log.e(ObscuraApp.TAG, "error loading bitmap from Uri: " + e.getMessage(), e);
 			}
 			
 			
@@ -360,7 +360,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
                 // User clicked OK so go ahead and delete
         		deleteOriginal();
             	viewImage(savedImageUri);
-
+            	finish();
             }
         });
 		b.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -409,8 +409,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		RectF[] autodetectedRects = runFaceDetection();
 		for (int adr = 0; adr < autodetectedRects.length; adr++) {
 
-			Log.v(LOGTAG,"AUTODETECTED imageView Width, Height: " + imageView.getWidth() + " " + imageView.getHeight());
-			Log.v(LOGTAG,"UNSCALED RECT:" + autodetectedRects[adr].left + " " + autodetectedRects[adr].top + " " + autodetectedRects[adr].right + " " + autodetectedRects[adr].bottom);
+			Log.v(ObscuraApp.TAG,"AUTODETECTED imageView Width, Height: " + imageView.getWidth() + " " + imageView.getHeight());
+			Log.v(ObscuraApp.TAG,"UNSCALED RECT:" + autodetectedRects[adr].left + " " + autodetectedRects[adr].top + " " + autodetectedRects[adr].right + " " + autodetectedRects[adr].bottom);
 			
 			float scaledStartX = (float)autodetectedRects[adr].left * (float)imageView.getWidth()/(float)imageBitmap.getWidth();
 			float scaledStartY = (float)autodetectedRects[adr].top * (float)imageView.getHeight()/(float)imageBitmap.getHeight();
@@ -418,12 +418,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			float scaledEndY = (float)autodetectedRects[adr].bottom * (float)imageView.getHeight()/(float)imageBitmap.getHeight();
 			
 			RectF autodetectedRectScaled = new RectF(scaledStartX, scaledStartY, scaledEndX, scaledEndY);
-			Log.v(LOGTAG,"SCALED RECT:" + autodetectedRectScaled.left + " " + autodetectedRectScaled.top + " " + autodetectedRectScaled.right + " " + autodetectedRectScaled.bottom);
+			Log.v(ObscuraApp.TAG,"SCALED RECT:" + autodetectedRectScaled.left + " " + autodetectedRectScaled.top + " " + autodetectedRectScaled.right + " " + autodetectedRectScaled.bottom);
 
 			
 			// Probably need to map autodetectedRects to scaled rects
 			//matrix.mapRect(autodetectedRects[adr]);		
-			//Log.v(LOGTAG,"MAPPED RECT:" + autodetectedRects[adr].left + " " + autodetectedRects[adr].top + " " + autodetectedRects[adr].right + " " + autodetectedRects[adr].bottom);
+			//Log.v(ObscuraApp.TAG,"MAPPED RECT:" + autodetectedRects[adr].left + " " + autodetectedRects[adr].top + " " + autodetectedRects[adr].right + " " + autodetectedRects[adr].bottom);
 			
 			float faceBuffer = (autodetectedRectScaled.right-autodetectedRectScaled.left)/5;
 			
@@ -470,7 +470,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		try {
 			GoogleFaceDetection gfd = new GoogleFaceDetection(imageBitmap);
 			int numFaces = gfd.findFaces();
-	        Log.v(LOGTAG,"Num Faces Found: " + numFaces); 
+	        Log.v(ObscuraApp.TAG,"Num Faces Found: " + numFaces); 
 	        possibleFaceRects = gfd.getFaces();
 		} catch(NullPointerException e) {
 			possibleFaceRects = null;
@@ -514,7 +514,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				float sy = event.getY(0) - event.getY(1);
 				startFingerSpacing = (float) Math.sqrt(sx * sx + sy * sy);
 
-				//Log.d(LOGTAG, "Start Finger Spacing=" + startFingerSpacing);
+				//Log.d(ObscuraApp.TAG, "Start Finger Spacing=" + startFingerSpacing);
 				
 				// Get the midpoint
 				float xsum = event.getX(0) + event.getX(1);
@@ -522,7 +522,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
 				
 				mode = ZOOM;
-				//Log.d(LOGTAG, "mode=ZOOM");
+				//Log.d(ObscuraApp.TAG, "mode=ZOOM");
 				
 				clearImageRegionsEditMode();
 				
@@ -536,7 +536,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				updateDisplayImage();
 				
 				mode = NONE;
-				//Log.v(LOGTAG,"mode=NONE");
+				//Log.v(ObscuraApp.TAG,"mode=NONE");
 
 				break;
 				
@@ -548,15 +548,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				updateDisplayImage();
 				
 				mode = NONE;
-				//Log.d(LOGTAG, "mode=NONE");
+				//Log.d(ObscuraApp.TAG, "mode=NONE");
 				break;
 				
 			case MotionEvent.ACTION_MOVE:
 				
 				// Calculate distance moved
 				float distance = (float) (Math.sqrt(Math.abs(startPoint.x - event.getX()) + Math.abs(startPoint.y - event.getY())));
-				//Log.v(LOGTAG,"Move Distance: " + distance);
-				//Log.v(LOGTAG,"Min Distance: " + minMoveDistance);
+				//Log.v(ObscuraApp.TAG,"Move Distance: " + distance);
+				//Log.v(ObscuraApp.TAG,"Min Distance: " + minMoveDistance);
 				
 				// If greater than minMoveDistance, it is likely a drag or zoom
 				if (distance > minMoveDistance) {
@@ -584,7 +584,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						float ey = event.getY(0) - event.getY(1);
 						endFingerSpacing = (float) Math.sqrt(ex * ex + ey * ey);
 	
-						//Log.d(LOGTAG, "End Finger Spacing=" + endFingerSpacing);
+						//Log.d(ObscuraApp.TAG, "End Finger Spacing=" + endFingerSpacing);
 		
 						// If we moved far enough
 						if (endFingerSpacing > minMoveDistance) {
@@ -598,8 +598,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							float[] matrixValues = new float[9];
 							matrix.getValues(matrixValues);
 							/*
-							Log.v(LOGTAG, "Total Scale: " + matrixValues[0]);
-							Log.v(LOGTAG, "" + matrixValues[0] + " " + matrixValues[1]
+							Log.v(ObscuraApp.TAG, "Total Scale: " + matrixValues[0]);
+							Log.v(ObscuraApp.TAG, "" + matrixValues[0] + " " + matrixValues[1]
 									+ " " + matrixValues[2] + " " + matrixValues[3]
 									+ " " + matrixValues[4] + " " + matrixValues[5]
 									+ " " + matrixValues[6] + " " + matrixValues[7]
@@ -619,7 +619,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							float esx = event.getX(0) - event.getX(1);
 							float esy = event.getY(0) - event.getY(1);
 							startFingerSpacing = (float) Math.sqrt(esx * esx + esy * esy);
-							//Log.d(LOGTAG, "New Start Finger Spacing=" + startFingerSpacing);
+							//Log.d(ObscuraApp.TAG, "New Start Finger Spacing=" + startFingerSpacing);
 							
 							// Reset the midpoint
 							float x_sum = event.getX(0) + event.getX(1);
@@ -672,7 +672,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// Get Rectangle of Tranformed Image
 		RectF theRect = getScaleOfImage();
 		
-		Log.v(LOGTAG,theRect.width() + " " + theRect.height());
+		Log.v(ObscuraApp.TAG,theRect.width() + " " + theRect.height());
 		
 		float deltaX = 0, deltaY = 0;
 		if (theRect.width() < imageView.getWidth()) {
@@ -691,7 +691,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			deltaY = imageView.getHeight() - theRect.bottom;
 		}
 		
-		Log.v(LOGTAG,"Deltas:" + deltaX + " " + deltaY);
+		Log.v(ObscuraApp.TAG,"Deltas:" + deltaX + " " + deltaY);
 		
 		matrix.postTranslate(deltaX,deltaY);
 		updateDisplayImage();
@@ -765,7 +765,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	{
 		// Get Rectangle of Current Transformed Image
 		RectF theRect = getScaleOfImage();
-		Log.v(LOGTAG,"New Width:" + theRect.width());
+		Log.v(ObscuraApp.TAG,"New Width:" + theRect.width());
 		imageRegion.updateScaledRect((int)theRect.width(), (int)theRect.height());
 				
     	regionButtonsLayout.addView(imageRegion);
@@ -924,9 +924,45 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 * Display the about screen
 	 */
 	private void displayAbout() {
-		Intent i = new Intent(Intent.ACTION_VIEW);
-		i.setData(Uri.parse("https://guardianproject.info/apps/securecam/about-v1/"));
-		startActivity(i);
+		
+		StringBuffer msg = new StringBuffer();
+		
+		msg.append(getString(R.string.app_name));
+		
+        String versNum = "";
+        
+        try {
+            String pkg = getPackageName();
+            versNum = getPackageManager().getPackageInfo(pkg, 0).versionName;
+        } catch (Exception e) {
+        	versNum = "";
+        }
+        
+        msg.append(" v" + versNum);
+        msg.append('\n');
+        msg.append('\n');
+        
+        msg.append(getString(R.string.about));
+	        
+        msg.append('\n');
+        msg.append('\n');
+        
+        msg.append(getString(R.string.about2));
+        
+        msg.append('\n');
+        msg.append('\n');
+        
+        msg.append(getString(R.string.about3));
+        
+		showDialog(msg.toString());
+	}
+	
+	private void showDialog (String msg)
+	{
+		 new AlertDialog.Builder(this)
+         .setTitle(getString(R.string.app_name))
+         .setMessage(msg)
+         .create().show();
 	}
 	
 	/*
@@ -1024,34 +1060,34 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	ObscureMethod om;
 			switch (currentRegion.obscureType) {
 				case ImageRegion.BG_PIXELIZE:
-					Log.v(LOGTAG,"obscureType: BGPIXELIZE");
+					Log.v(ObscuraApp.TAG,"obscureType: BGPIXELIZE");
 					om = new CrowdBlurObscure(obscuredBmp);
 				break;
 				
 				case ImageRegion.OVERLAY:
-					Log.v(LOGTAG,"obscureType: ANON");
+					Log.v(ObscuraApp.TAG,"obscureType: ANON");
 					om = new MaskObscure(this.getApplicationContext(), obscuredBmp, obscuredPaint);
 					break;
 					
 				case ImageRegion.SOLID:
-					Log.v(LOGTAG,"obscureType: SOLID");
+					Log.v(ObscuraApp.TAG,"obscureType: SOLID");
 					om = new PaintSquareObscure();
 					break;
 					
 				case ImageRegion.PIXELIZE:
-					Log.v(LOGTAG,"obscureType: PIXELIZE");
+					Log.v(ObscuraApp.TAG,"obscureType: PIXELIZE");
 					om = new PixelizeObscure(obscuredBmp);
 					break;
 					
 				default:
-					Log.v(LOGTAG,"obscureType: NONE/BLUR");
+					Log.v(ObscuraApp.TAG,"obscureType: NONE/BLUR");
 					om = new BlurObscure(obscuredBmp);
 					break;
 			}
 			
 			// Get the Rect for the region and do the obscure
             Rect rect = currentRegion.getAScaledRect(obscuredBmp.getWidth(),obscuredBmp.getHeight());
-            Log.v(LOGTAG,"unscaled rect: left:" + rect.left + " right:" + rect.right 
+            Log.v(ObscuraApp.TAG,"unscaled rect: left:" + rect.left + " right:" + rect.right 
             		+ " top:" + rect.top + " bottom:" + rect.bottom);
             			
 	    	om.obscureRect(rect, obscuredCanvas);
@@ -1081,12 +1117,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * Goes through the regions that have been defined and creates a bitmap with them obscured.
      * This may introduce memory issues and therefore have to be done in a different manner.
      */
-    private File processNativeRes () throws IOException
+    private File processNativeRes () throws Exception
     {
     	// Create the Uri - This can't be "private"
     	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory(), TMP_FILE_DIRECTORY);
     	File tmpFile = new File(tmpFileDirectory,TMP_FILE_NAME);
-    	Log.v(LOGTAG, tmpFile.getPath());
+    	Log.v(ObscuraApp.TAG, tmpFile.getPath());
     
     	if (!tmpFileDirectory.exists()) {
     		tmpFileDirectory.mkdirs();
@@ -1106,7 +1142,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 			// Get the Rect for the region and do the obscure
             Rect rect = currentRegion.getRect();
-            Log.v(LOGTAG,"unscaled rect: left:" + rect.left + " right:" + rect.right 
+            Log.v(ObscuraApp.TAG,"unscaled rect: left:" + rect.left + " right:" + rect.right 
             		+ " top:" + rect.top + " bottom:" + rect.bottom);
             			
 	    	om.obscureRect(rect, obscuredCanvas);
@@ -1171,7 +1207,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	// Create the Uri - This can't be "private"
     	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory().getPath() + TMP_FILE_DIRECTORY);
     	File tmpFile = new File(tmpFileDirectory,TMP_FILE_NAME);
-    	Log.v(LOGTAG, tmpFile.getPath());
+    	Log.v(ObscuraApp.TAG, tmpFile.getPath());
     	
 		try {
 	    	if (!tmpFileDirectory.exists()) {
@@ -1198,7 +1234,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * The method that actually saves the altered image.  
      * This in combination with createObscuredBitmap could/should be done in another, more memory efficient manner. 
      */
-    private void saveImage() 
+    private boolean saveImage() 
     {
     	// Create the bitmap that will be saved
     	// Screen size
@@ -1224,33 +1260,42 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		savedImageUri = getContentResolver().insert(
 				Media.EXTERNAL_CONTENT_URI, cv);
     	
+		boolean nativeSuccess = false;
+		
     	if (canDoNative())
     	{
     		try {
     			File savedNativeTmp = processNativeRes();
 
-    			Log.v(LOGTAG,"saved native tmp file size: " + savedNativeTmp.length());
+    			Log.v(ObscuraApp.TAG,"saved native tmp file size: " + savedNativeTmp.length());
     			
     			copy(Uri.fromFile(savedNativeTmp), savedImageUri);
     			
     			savedNativeTmp.delete();
     			
-    		} catch (IOException e) {
-    			Log.e(LOGTAG, "error doing native redact",e);
+    			nativeSuccess = true;
+    			
+    		} catch (Exception e) {
+    			Log.e(ObscuraApp.TAG, "error doing native redact",e);
     		}
     	}
-    	else
+    	
+    	
+    	if (!nativeSuccess)
     	{
-    		obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight());
+    		try {
+    			
+    			obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight());
     
-			OutputStream imageFileOS;
-			try {
+    			OutputStream imageFileOS;
+			
 				int quality = 100; //lossless?  good question - still a smaller version
 				imageFileOS = getContentResolver().openOutputStream(savedImageUri);
 				obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
 				
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
+			} catch (Exception e) {
+				Log.e(ObscuraApp.TAG, "error doing redact",e);
+				return false;
 			}
 
     	}
@@ -1262,12 +1307,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				new String[] {"image/jpeg"},
 				null);
     	
-		Toast t = Toast.makeText(this,"JPEG image saved to Gallery (and SDCard)", Toast.LENGTH_SHORT); 
+		Toast t = Toast.makeText(this,"Image saved to Gallery", Toast.LENGTH_SHORT); 
 		t.show();
 		
 		handleDelete ();
 		
 		mProgressDialog.cancel();
+		
+		return true;
     }
     
     // Queries the contentResolver to pull out the path for the actual file.

@@ -31,7 +31,7 @@ import android.widget.Toast;
 
 public class ObscuraApp extends Activity implements OnClickListener {
 	    
-	final static String LOGTAG = "SSC";
+	public final static String TAG = "SSC";
 		
 	final static int CAMERA_RESULT = 0;
 	final static int GALLERY_RESULT = 1;
@@ -41,10 +41,13 @@ public class ObscuraApp extends Activity implements OnClickListener {
 	
 	final static String CAMERA_TMP_FILE = "ssctmp.jpg";
 	
+	
 
 	private Button choosePictureButton, takePictureButton;		
 	
-	private File fileImageTmp;
+	private Uri uriImageResult = null;
+	
+	//private File fileImageTmp;
 	
 	@Override
 	protected void onDestroy() 
@@ -109,7 +112,7 @@ public class ObscuraApp extends Activity implements OnClickListener {
 			catch (Exception e)
 			{
 				Toast.makeText(this, "Unable to open Gallery app", Toast.LENGTH_LONG).show();
-				Log.e(LOGTAG, "error loading gallery app to choose photo: " + e.getMessage(), e);
+				Log.e(TAG, "error loading gallery app to choose photo: " + e.getMessage(), e);
 			}
 			
 		} else if (v == takePictureButton) {
@@ -121,6 +124,7 @@ public class ObscuraApp extends Activity implements OnClickListener {
 
 	            //String path = Environment.getExternalStorageDirectory().getName() + File.separatorChar + "Android/data/" + ObscuraApp.this.getPackageName() + "/files/" + md5(upc) + ".jpg";
 	           
+	        	/*
 	        	File folderPhotos = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
 	       
 	            fileImageTmp = new File(folderPhotos, CAMERA_TMP_FILE);
@@ -132,11 +136,21 @@ public class ObscuraApp extends Activity implements OnClickListener {
 
 	            } catch (IOException e) {
 	                Log.e(LOGTAG, "Could not create file.", e);
-	            }
+	            }*/
+	            
+	          
+	            ContentValues values = new ContentValues();
+	          
+	            values.put(MediaStore.Images.Media.TITLE, CAMERA_TMP_FILE);
+	          
+	            values.put(MediaStore.Images.Media.DESCRIPTION,"ssctmp");
+	          
+	            //imageUri is the current activity attribute, define and save it for later usage (also in onSaveInstanceState)
+	          
+	            uriImageResult = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
 
-	            Uri _fileUri = Uri.fromFile(fileImageTmp);
 	            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE );
-	            intent.putExtra( MediaStore.EXTRA_OUTPUT, _fileUri);
+	            intent.putExtra( MediaStore.EXTRA_OUTPUT, uriImageResult);
 	            startActivityForResult(intent, CAMERA_RESULT);
 	        }   else {
 	            new AlertDialog.Builder(ObscuraApp.this)
@@ -151,7 +165,6 @@ public class ObscuraApp extends Activity implements OnClickListener {
 
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		
-		Uri uriImageResult = null;
 		
 		if (resultCode == RESULT_OK)
 		{
@@ -185,20 +198,17 @@ public class ObscuraApp extends Activity implements OnClickListener {
 			}
 			else if (requestCode == CAMERA_RESULT)
 			{
-
-				if (intent != null)
-           	 		uriImageResult = intent.getData();
-           	 
-				if (uriImageResult == null && fileImageTmp != null && fileImageTmp.exists()) {
-					uriImageResult = Uri.fromFile(fileImageTmp);
-	             } 
-				
 			
 				if (uriImageResult != null)
 				{
 					Intent passingIntent = new Intent(this,ImageEditor.class);
 					passingIntent.setData(uriImageResult);
 					startActivityForResult(passingIntent,IMAGE_EDITOR);
+				}
+				else
+				{
+					takePictureButton.setVisibility(View.VISIBLE);
+					choosePictureButton.setVisibility(View.VISIBLE);
 				}
 			}
 		}
