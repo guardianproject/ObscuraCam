@@ -1096,8 +1096,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    return obscuredBmp;
     }
     
+    //TODO disable native for now, until we get the black redact in
     private boolean canDoNative ()
     {
+    	return false;
+    	/*
     	if (originalImageUri == null)
     		return false;
     				
@@ -1111,6 +1114,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    }
 	    
 	    return true;
+	    */
     }
     
     /*
