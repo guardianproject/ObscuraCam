@@ -40,6 +40,7 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Bitmap.CompressFormat;
+import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
@@ -169,6 +170,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     // Handles when we should do realtime preview and when we shouldn't
     boolean doRealtimePreview = true;
     
+    // Keep track of the orientation
+    private int originalImageOrientation = ExifInterface.ORIENTATION_NORMAL;    
 
     private Runnable mUpdateTimeTask = new Runnable() {
     	   public void run() {
@@ -189,7 +192,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         } catch (Exception e) {
         	versNum = "";
         }
-        
+
         setTitle(getString(R.string.app_name) + " (" + versNum + ")");
         
         requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -239,6 +242,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// Load the image if it isn't null
 		if (originalImageUri != null) {
 			
+			// Get the orientation
+			String originalFilename = pullPathFromUri(originalImageUri);			
+			try {
+				ExifInterface ei = new ExifInterface(originalFilename);
+				originalImageOrientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+				Log.v(ObscuraApp.TAG,"Orientation: " + originalImageOrientation);
+			} catch (IOException e1) {
+				Log.v(ObscuraApp.TAG,"Couldn't get Orientation");
+				e1.printStackTrace();
+			}
+
 			//Log.v(ObscuraApp.TAG,"loading uri: " + pullPathFromUri(originalImageUri));
 
 			// Load up smaller image
@@ -254,7 +268,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Hold onto the unscaled dimensions
 				originalImageWidth = bmpFactoryOptions.outWidth;
 				originalImageHeight = bmpFactoryOptions.outHeight;
-				
+				// If it is rotated, transpose the width and height
+				// Should probably look to see if there are different rotation constants being used
+				if (originalImageOrientation == ExifInterface.ORIENTATION_ROTATE_90 
+						|| originalImageOrientation == ExifInterface.ORIENTATION_ROTATE_270) {
+					int tmpWidth = originalImageWidth;
+					originalImageWidth = originalImageHeight;
+					originalImageHeight = tmpWidth;
+				}
+
 				// Get the current display to calculate ratios
 				Display currentDisplay = getWindowManager().getDefaultDisplay();
 
@@ -293,8 +315,25 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 				}
 				else
+				{
+					// Only dealing with 90 and 270 degree rotations, might need to check for others
+					if (originalImageOrientation == ExifInterface.ORIENTATION_ROTATE_90) 
+					{
+						Log.v(ObscuraApp.TAG,"Rotating Bitmap 90");
+						Matrix rotateMatrix = new Matrix();
+						rotateMatrix.postRotate(90);
+						loadedBitmap = Bitmap.createBitmap(loadedBitmap,0,0,loadedBitmap.getWidth(),loadedBitmap.getHeight(),rotateMatrix,false);
+					}
+					else if (originalImageOrientation == ExifInterface.ORIENTATION_ROTATE_270) 
+					{
+						Log.v(ObscuraApp.TAG,"Rotating Bitmap 270");
+						Matrix rotateMatrix = new Matrix();
+						rotateMatrix.postRotate(270);
+						loadedBitmap = Bitmap.createBitmap(loadedBitmap,0,0,loadedBitmap.getWidth(),loadedBitmap.getHeight(),rotateMatrix,false);
+					}
+
 					setBitmap (loadedBitmap);
-				
+				}				
 			} catch (IOException e) {
 				Log.e(ObscuraApp.TAG, "error loading bitmap from Uri: " + e.getMessage(), e);
 			}
