@@ -62,4 +62,6 @@
 	
 	<string name="about3">This software is freely licensed under the GNU GPL v3.</string>
 	
+	<string name="yes">Yes</string>
+	<string name="no">No</string>
 </resources>
