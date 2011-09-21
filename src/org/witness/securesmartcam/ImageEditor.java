@@ -393,7 +393,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		b.setIcon(android.R.drawable.ic_dialog_alert);
 		b.setTitle(getString(R.string.app_name));
 		b.setMessage(getString(R.string.confirm_delete));
-		b.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+		b.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
 
                 // User clicked OK so go ahead and delete
@@ -402,7 +402,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
             	finish();
             }
         });
-		b.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+		b.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
 
             	viewImage(savedImageUri);
@@ -1009,10 +1009,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 */
 	private void showPreview() {
 		
-
-    	//Why does this not show?
-    	mProgressDialog = ProgressDialog.show(this, "", "Exporting for share...", true, true);    	
-    	
 		// Open Preview Activity
 		Uri tmpImageUri = saveTmpImage();
 		
@@ -1351,10 +1347,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	
 		Toast t = Toast.makeText(this,"Image saved to Gallery", Toast.LENGTH_SHORT); 
 		t.show();
+
+		mProgressDialog.cancel();
 		
 		handleDelete ();
 		
-		mProgressDialog.cancel();
 		
 		return true;
     }
