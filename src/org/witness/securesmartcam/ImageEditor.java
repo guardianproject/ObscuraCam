@@ -1264,7 +1264,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			imageFileOS = getContentResolver().openOutputStream(tmpImageUri);
 			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
 
-			mProgressDialog.cancel();
 			return tmpImageUri;
 		} catch (FileNotFoundException e) {
 			mProgressDialog.cancel();
