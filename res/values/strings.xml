@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hello">Hello World</string>
-    <string name="app_name">Obscura</string>
-	<string name="SplashTextViewString">Camera Obscura</string>
-	<string name="CreditsTextViewString">Powered by the Guardian Project</string>
+    <string name="app_name">ObscuraCam</string>
+    <string name="app_name_label">Obscura Cam</string>
+    <string name="image_preview">ObscuraCam Image Preview</string>
+	<string name="SplashTextViewString">ObscuraCam</string>
+	<string name="CreditsTextViewString">Powered by the Guardian Project and Witness</string>
 	<string name="WalkThroughSkipButton">Skip</string>
 	<string name="WalkThroughContinueButton">Continue</string>
 	<string name="WalkThroughTextView">This is an application which helps protect the privacy of individuals that may appear in pictures.</string>
@@ -44,8 +46,22 @@
     
     <string name="unknown_crypto_signature_user_id">&lt;unknown&gt;</string>
     <string name="key_id">id: %s</string>
-    <string name="insufficient_apg_permissions">K-9 doesn\'t have permission to access APG fully, please reinstall K-9 to fix that.</string>
+    <string name="insufficient_apg_permissions">This app doesn\'t have permission to access APG fully, please reinstall the app to fix that.</string>
     <string name="pgp_mime_unsupported">PGP/MIME messages are not supported yet.</string>
     <string name="attachment_encryption_unsupported">Warning: attachments are NOT signed or encrypted yet.</string>
     <string name="send_aborted">Send aborted.</string>
+    <string name="menu_delete_original">Delete Original</string>
+    <string name="menu_about">About</string>
+    <string name="menu_preview">Preview</string>
+    
+    <string name="loading_image">Loading photo...</string>
+    
+    <string name="about">This app was developed by the SecureSmartCam Team, a joint effort by WITNESS and the Guardian Project.</string>
+
+	<string name="about2">Learn more at http://witness.org and https://guardianproject.info</string>
+	
+	<string name="about3">This software is freely licensed under the GNU GPL v3.</string>
+	
+	<string name="yes">Yes</string>
+	<string name="no">No</string>
 </resources>

@@ -1,0 +1,29 @@
+TERMS OF USE
+
+WHO WE ARE
+We are The Guardian Project, an Open Source software project creating easy to use mobile applications and developer tools that help users more effectively protect their identity. We've developed ObscuraCam, an application for your Android mobile device, and we also maintain a website located at https://guardianproject.info. We will refer to the application hereafter as “App” and the website as “Site.” 
+
+THE APP
+The App is designed to enable simple and straightforward redacting and anonymizing of mobile photos. To that end the App provides utilities for the user to automatically scan for faces and redact regions using methods such as solid color fill, pixelation and 'masking.' The tools we use for facial recognition are open source utilities developed by third parties and in no way do we claim that they will be 100% effective in facial detection.
+
+USAGE GUIDELINES
+The App is designed to protect the identity of users and bystanders. Please use it in accordance with this design. While we recognize that your mobile device is your own and you may take whatever pictures you see fit, we encourage you to use the App in socially responsible ways. 
+
+SOURCE CODE & LICENSING
+The App source code is hosted publicly at https://github.com/guardianproject/SecureSmartCam/ and is licensed under the GNU General Public License v3 (GPLv3). The GPL is a copyleft license for general use, meaning that derived works can only be distributed under the same license terms. In other words, you're more than welcome to use the project's code in your own projects, but they must be similarly licensed. Please reference https://github.com/guardianproject/SecureSmartCam/blob/master/LICENSE for relevant 
+
+MINORS
+THIS SERVICE IS NOT MEANT FOR MINORS. We are committed to protecting the privacy needs of children and we encourage parents and guardians to take an active role in their children’s online activities and interests. The Service is not intended for and may not be used by children under the age of 13. Minors over the age of 13 should seek permission from their parents to use the App.
+
+CONTENT OWNERSHIP
+YOU OWN THE CONTENT YOU CREATE. Whatever pictures you create using our App are yours to do with what you wish. Any pictures you take will also be saved to your Device’s native Image folder and you can download those images to your computer according to the software your Device uses. 
+
+YOU DON’T OWN ALL THE CONTENT YOU SEE. If you didn’t create the Content, you don’t own it. This includes images you may have downloaded from the Internet or by other means. That means you cannot use it without permission from the original content owner, in accordance with their wishes. If you did create the Content, and you want to give someone permission to use it, that is your right.
+
+And now for some boring legalese…
+
+INDEMNIFICATION AND RELEASE
+You will indemnify, defend and hold us and our investors, officers, directors, affiliates, subsidiaries, licensors, partners, licensees, consultants, contractors, agents, attorneys, advertisers and employees (collectively, the “Indemnified Parties”) harmless from and against any and all actual or threatened suits, actions, proceedings (at law or in equity), claims (groundless or otherwise), damages, payments, deficiencies, fines, judgments, settlements, liabilities, losses, costs and expenses (including, but not limited to, reasonable attorney and expert fees, costs, penalties, interest and disbursements) resulting from any claim (including third party claims), suit, action, or proceeding against a Indemnified Party, whether successful or not, resulting from or arising in connection with: (i) your use of the Site, the Mobile applications, the Materials and/or the Service; (ii) your conduct; (iii) any breach by you of these Terms (including, but not limited to, any breach of any of your representations or warranties); and/or (iii) any Content you upload to, posted on, create on, transmitted through or linked from the Site. 
+
+UPDATES TO TERMS OF USE
+We reserve the right to change or modify any provisions of these Terms and any policies or guidelines governing your use of the Service, at any time in our sole discretion and without liability to you. Any such changes or modifications will be effective immediately upon posting of revisions on the Service. Your continued use of the Service following the posting of such changes or modifications constitutes your acceptance thereof. Therefore, you should frequently review these Terms and all applicable policies or guidelines on the Site in order to understand the terms and conditions applicable to your use of the Service. If you do not agree to any changes or modifications to these Terms or to any applicable policies or guidelines, your sole recourse is to stop using the Service. 

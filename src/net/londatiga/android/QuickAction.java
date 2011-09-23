@@ -6,6 +6,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -18,6 +19,8 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
+
+import org.witness.securesmartcam.ImageRegion;
 
 import org.witness.sscphase1.R;
 
@@ -43,7 +46,7 @@ public class QuickAction extends CustomPopupWindow {
 	private ViewGroup mTrack;
 	private ScrollView scroller;
 	private ArrayList<ActionItem> actionList;
-	
+	private boolean actionListCreated = false;
 	/**
 	 * Constructor
 	 * 
@@ -96,13 +99,22 @@ public class QuickAction extends CustomPopupWindow {
 		int xPos, yPos;
 		
 		int[] location 		= new int[2];
-	
+			
 		anchor.getLocationOnScreen(location);
 
-		Rect anchorRect 	= new Rect(location[0], location[1], location[0] + anchor.getWidth(), location[1] 
-		                	+ anchor.getHeight());
+		// This is a hack
+	//	RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) anchor.getLayoutParams();
+	//	location[0] = lp.leftMargin;
+	//	location[1] = lp.topMargin;
+		
+		// Continue hack
+	//	Rect anchorRect = new Rect(location[0], location[1], location[0] + lp.width, location[1] + lp.height);
+		
+		// This is the non hacked version
+		Rect anchorRect 	= new Rect(location[0], location[1], location[0] + anchor.getWidth(), location[1] + anchor.getHeight());
 
-		createActionList();
+		if (!actionListCreated)		
+			createActionList();
 		
 		root.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 		root.measure(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
@@ -131,9 +143,12 @@ public class QuickAction extends CustomPopupWindow {
 
 		if (onTop) {
 			if (rootHeight > dyTop) {
+				
 				yPos 			= 15;
 				LayoutParams l 	= scroller.getLayoutParams();
-				l.height		= dyTop - anchor.getHeight();
+				l.height		= dyTop;//anchor.getHeight() - dyTop;
+				yPos = anchorRect.top - dyTop;
+				//- ;
 			} else {
 				yPos = anchorRect.top - rootHeight;
 			}
@@ -146,6 +161,7 @@ public class QuickAction extends CustomPopupWindow {
 			}
 		}
 		
+	
 		showArrow(((onTop) ? R.id.arrow_down : R.id.arrow_up), anchorRect.centerX()-xPos);
 		
 		setAnimationStyle(screenWidth, anchorRect.centerX(), onTop);
@@ -215,6 +231,8 @@ public class QuickAction extends CustomPopupWindow {
 			 
 			mTrack.addView(view);
 		}
+		
+		actionListCreated = true;
 	}
 	
 	/**
