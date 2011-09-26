@@ -12,7 +12,8 @@ import android.os.Bundle;
 
 public class JpegRedaction implements ObscureMethod {
 	
-    private native void redactit(String src, String target, int left, int right, int top, int bottom, String method);
+    private native void redactRegion(String src, String target, int left, int right, int top, int bottom, String method);
+    private native void redactRegions(String src, String target, String regions);
 
     static {
         System.loadLibrary("JpegRedaction");
@@ -32,6 +33,11 @@ public class JpegRedaction implements ObscureMethod {
     {
     	setFiles (inFile, outFile);
     	setMethod (iMethod);
+    }
+    
+    public JpegRedaction (File inFile, File outFile)
+    {
+    	setFiles (inFile, outFile);
     }
     
     public void setFiles (File inFile, File outFile)
@@ -66,7 +72,15 @@ public class JpegRedaction implements ObscureMethod {
 
 		 String strInFile = mInFile.getAbsolutePath();
 		 String strOutFile = mOutFile.getAbsolutePath();
-	     redactit(strInFile, strOutFile, rect.left, rect.right, rect.top, rect.bottom, mMethod);
+	     redactRegion(strInFile, strOutFile, rect.left, rect.right, rect.top, rect.bottom, mMethod);
+		
+	}
+	
+	public void obscureRegions(String regions) {
+
+		 String strInFile = mInFile.getAbsolutePath();
+		 String strOutFile = mOutFile.getAbsolutePath();
+	     redactRegions(strInFile, strOutFile, regions);
 		
 	}
 }
