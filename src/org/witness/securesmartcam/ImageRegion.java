@@ -1,5 +1,6 @@
 package org.witness.securesmartcam;
 
+import org.witness.informa.InformaEditor;
 import org.witness.sscphase1.R;
 
 import net.londatiga.android.ActionItem;
@@ -99,6 +100,11 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	ActionItem pixelizeObscureAction;
 	
 	ActionItem removeRegionAction;
+	
+	/*
+	 * hello, Informa!
+	 */
+	ActionItem informaAction;
 	
 	/*
 	 * minMoveDistance to determine if we should count this as a move or not
@@ -274,6 +280,18 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 		});
 		
 		qa.addActionItem(anonObscureAction);
+		
+		informaAction = new ActionItem();
+		informaAction.setTitle("Identify");
+		informaAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_id));
+		informaAction.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				qa.dismiss();
+				imageEditor.launchInforma();
+			}
+		});
+		qa.addActionItem(informaAction);
+		
 					
 		removeRegionAction = new ActionItem();
 		removeRegionAction.setTitle("Delete Tag");

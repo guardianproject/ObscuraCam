@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.witness.informa.InformaEditor;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.BlurObscure;
 import org.witness.securesmartcam.filters.CrowdBlurObscure;
@@ -1399,6 +1400,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		redrawRegions();
 		
         updateDisplayImage();
+    }
+    
+    public void launchInforma() {
+    	Intent informa = new Intent(this,InformaEditor.class);
+    	startActivity(informa);
     }
 
 	@Override
