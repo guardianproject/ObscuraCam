@@ -1402,8 +1402,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         updateDisplayImage();
     }
     
-    public void launchInforma() {
+    public void launchInforma(ImageRegion ir) {
+    	// put whatever info from the image region that should be recorded
+    	Bundle regionInfo = new Bundle();
+    	regionInfo.putIntArray("regionDimensions", new int[] {ir.imageWidth,ir.imageHeight});
+    	regionInfo.putInt("obscureType", ir.obscureType);
+    	
+    	
     	Intent informa = new Intent(this,InformaEditor.class);
+    	informa.putExtra("regionInfo", regionInfo);
     	startActivity(informa);
     }
 

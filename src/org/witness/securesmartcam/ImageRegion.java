@@ -287,7 +287,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 		informaAction.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				qa.dismiss();
-				imageEditor.launchInforma();
+				imageEditor.launchInforma(ImageRegion.this);
 			}
 		});
 		qa.addActionItem(informaAction);
