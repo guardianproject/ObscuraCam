@@ -31,12 +31,9 @@
     		android:id="@+id/subjectNameHolder"
     		android:hint="Subject's Name or Pseudonym" />
     </LinearLayout>
-    <LinearLayout
-    	xmlns:android="http://schemas.android.com/apk/res/android"
-    	android:orientation="horizontal"
+    <ListView
     	android:layout_width="fill_parent"
     	android:layout_height="wrap_content"
-    	android:weightSum="1.0"
     	android:layout_weight="0.45"
     	android:id="@+id/otherInformaOptionsHolder" />    	
     <Button

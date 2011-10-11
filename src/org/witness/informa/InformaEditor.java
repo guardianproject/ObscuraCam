@@ -1,5 +1,9 @@
 package org.witness.informa;
 
+import java.util.ArrayList;
+
+import org.witness.informa.utils.InformaOptions;
+import org.witness.informa.utils.InformaOptionsAdapter;
 import org.witness.sscphase1.R;
 
 import android.app.Activity;
@@ -14,6 +18,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 
 public class InformaEditor extends Activity implements OnClickListener {
 	SharedPreferences _sp;
@@ -23,21 +28,31 @@ public class InformaEditor extends Activity implements OnClickListener {
 	ImageView imageRegionThumb;
 	EditText subjectNameHolder;
 	Button informaSubmit;
-	LinearLayout otherInformaOptionsHolder;
+	ListView otherInformaOptionsHolder;
 	
 	Bundle regionInfo;
+	ArrayList<InformaOptions> informaOptions;
 	
 	public static final String LOG = "[Informa **********************]";
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		
 		setContentView(R.layout.informaeditor);
+		
 		
 		imageRegionThumb = (ImageView) findViewById(R.id.imageRegionThumb);
 		subjectNameHolder = (EditText) findViewById(R.id.subjectNameHolder);
 		informaSubmit = (Button) findViewById(R.id.informaSubmit);
-		otherInformaOptionsHolder = (LinearLayout) findViewById(R.id.otherInformaOptionsHolder);
+		
+		otherInformaOptionsHolder = (ListView) findViewById(R.id.otherInformaOptionsHolder);
+		
+		// unpack the options user can perform on the image region
+		informaOptions = new ArrayList<InformaOptions>();
+		informaOptions.add(new InformaOptions(this,getResources().getString(R.string.informaOpt_consent),false));
+		informaOptions.add(new InformaOptions(this,getResources().getString(R.string.informaOpt_autoFilter),false));
 		
 		_sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 		_ed = _sp.edit();
@@ -52,6 +67,8 @@ public class InformaEditor extends Activity implements OnClickListener {
 			
 			Log.d(LOG, "region extras:\nwidth: " + dims[0] + " height: " + dims[1] + " obscureType: " + ot);
 		}
+		
+		otherInformaOptionsHolder.setAdapter(new InformaOptionsAdapter(this,informaOptions));
 		
 	}
 	
