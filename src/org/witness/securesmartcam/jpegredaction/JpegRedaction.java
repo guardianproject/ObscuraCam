@@ -50,15 +50,15 @@ public class JpegRedaction implements ObscureMethod {
     {
     	switch (iMethod)
     	{
-    		case ImageRegion.BG_PIXELIZE:
+    		case ImageRegion.BG_PIXELATE:
     			mMethod = METHOD_INVERSE_PIXELLATE;
     		break;
     		
-    		case ImageRegion.SOLID:
+    		case ImageRegion.REDACT:
     			mMethod = METHOD_SOLID;
     		break;
     		
-    		case ImageRegion.PIXELIZE:
+    		case ImageRegion.PIXELATE:
     			mMethod = METHOD_PIXELLATE;
     		break;
     		

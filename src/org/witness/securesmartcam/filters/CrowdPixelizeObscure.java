@@ -11,13 +11,13 @@ import android.graphics.Path;
 import android.graphics.Path.Direction;
 import android.graphics.Rect;
 
-public class CrowdBlurObscure implements ObscureMethod {
+public class CrowdPixelizeObscure implements ObscureMethod {
 
 	Bitmap originalBmp;
 	
 	public static int PIXEL_BLOCK = 50;
 	
-	public CrowdBlurObscure(Bitmap _originalBmp) {
+	public CrowdPixelizeObscure(Bitmap _originalBmp) {
 		originalBmp = _originalBmp;
 	}
 	

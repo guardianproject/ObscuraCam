@@ -12,7 +12,7 @@ import java.util.Vector;
 
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.BlurObscure;
-import org.witness.securesmartcam.filters.CrowdBlurObscure;
+import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
 import org.witness.securesmartcam.filters.MaskObscure;
 import org.witness.securesmartcam.filters.ObscureMethod;
 import org.witness.securesmartcam.filters.PaintSquareObscure;
@@ -1091,22 +1091,22 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	// Select the ObscureMethod as contained in the ImageRegion
 	    	ObscureMethod om;
 			switch (currentRegion.obscureType) {
-				case ImageRegion.BG_PIXELIZE:
+				case ImageRegion.BG_PIXELATE:
 					Log.v(ObscuraApp.TAG,"obscureType: BGPIXELIZE");
-					om = new CrowdBlurObscure(obscuredBmp);
+					om = new CrowdPixelizeObscure(obscuredBmp);
 				break;
 				
-				case ImageRegion.OVERLAY:
+				case ImageRegion.MASK:
 					Log.v(ObscuraApp.TAG,"obscureType: ANON");
 					om = new MaskObscure(this.getApplicationContext(), obscuredBmp, obscuredPaint);
 					break;
 					
-				case ImageRegion.SOLID:
+				case ImageRegion.REDACT:
 					Log.v(ObscuraApp.TAG,"obscureType: SOLID");
 					om = new PaintSquareObscure();
 					break;
 					
-				case ImageRegion.PIXELIZE:
+				case ImageRegion.PIXELATE:
 					Log.v(ObscuraApp.TAG,"obscureType: PIXELIZE");
 					om = new PixelizeObscure(obscuredBmp);
 					break;
@@ -1138,7 +1138,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    while (i.hasNext()) 
 	    {
 	    	ImageRegion iRegion = i.next();
-	    	if (iRegion.obscureType == ImageRegion.OVERLAY)
+	    	if (iRegion.obscureType == ImageRegion.MASK)
 	    		return false;
 	    }
 	    
