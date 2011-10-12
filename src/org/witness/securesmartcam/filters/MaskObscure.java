@@ -7,6 +7,7 @@ package org.witness.securesmartcam.filters;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Properties;
 
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -17,20 +18,22 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.Log;
 
-public class MaskObscure implements ObscureMethod {
+public class MaskObscure implements RegionProcesser {
 
 	Bitmap _bitmap;
 	Paint _painter;
 	Context _context;
 	
-	public MaskObscure(Context context, Bitmap bitmap, Paint painter) {
-		_bitmap = bitmap;
+	public MaskObscure(Context context, Paint painter) {
+		
 		_painter = painter;
 		_context = context;
 	}
 	
-	public void obscureRect(Rect rect, Canvas canvas) {
+	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitmap) {
 	
+		_bitmap = bitmap;
+		
 		try
 		{
 		  Bitmap mask = loadBitmap(_context,"mask.png");
@@ -49,6 +52,16 @@ public class MaskObscure implements ObscureMethod {
 	    InputStream buf = new BufferedInputStream((assets.open(filename)));
 	    Bitmap bitmap = BitmapFactory.decodeStream(buf);
 	    return bitmap;
+	}
+	
+	public Properties getProperties()
+	{
+		return null;
+	}
+	
+	public void setProperties(Properties props)
+	{
+		
 	}
 }
 

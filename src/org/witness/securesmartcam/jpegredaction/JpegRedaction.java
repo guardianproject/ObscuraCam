@@ -1,16 +1,18 @@
 package org.witness.securesmartcam.jpegredaction;
 
 import java.io.File;
+import java.util.Properties;
 
 import org.witness.securesmartcam.ImageRegion;
-import org.witness.securesmartcam.filters.ObscureMethod;
+import org.witness.securesmartcam.filters.RegionProcesser;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Bundle;
 
-public class JpegRedaction implements ObscureMethod {
+public class JpegRedaction implements RegionProcesser {
 	
     private native void redactRegion(String src, String target, int left, int right, int top, int bottom, String method);
     private native void redactRegions(String src, String target, String regions);
@@ -68,7 +70,7 @@ public class JpegRedaction implements ObscureMethod {
     }
     
 	@Override
-	public void obscureRect(Rect rect, Canvas canvas) {
+	public void processRegion(Rect rect, Canvas canvas, Bitmap bitmap) {
 
 		 String strInFile = mInFile.getAbsolutePath();
 		 String strOutFile = mOutFile.getAbsolutePath();
@@ -81,6 +83,16 @@ public class JpegRedaction implements ObscureMethod {
 		 String strInFile = mInFile.getAbsolutePath();
 		 String strOutFile = mOutFile.getAbsolutePath();
 	     redactRegions(strInFile, strOutFile, regions);
+		
+	}
+	
+	public Properties getProperties()
+	{
+		return null;
+	}
+	
+	public void setProperties(Properties props)
+	{
 		
 	}
 }

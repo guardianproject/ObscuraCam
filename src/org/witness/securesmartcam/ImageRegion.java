@@ -59,8 +59,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	// What should be done to this region
 	public static final int NOTHING = 0;
 	public static final int OBSCURE = 1;
-	int whatToDo = OBSCURE;
-
 	/*
 	 * Add each ObscureMethod to this list and update the 
 	 * createObscuredBitmap method in ImageEditor
@@ -69,12 +67,13 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	public static final int PIXELATE = 1; // PixelizeObscure
 	public static final int BG_PIXELATE = 2; // BlurObscure
 	public static final int MASK = 3; // MaskObscure	
-	public static final int BLUR = 4; // PixelizeObscure
+	//public static final int BLUR = 4; // PixelizeObscure
+	public static final int CONSENT = 5; // PixelizeObscure
 	
 	int obscureType = PIXELATE;
 
-	private final static String[] filterLabels = {"Redact","Pixelate","bgPixelate","Mask","Blur"};
-	private final static int[] filterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_blur, R.drawable.ic_context_mask, R.drawable.ic_context_blur};
+	private final static String[] filterLabels = {"Redact","Pixelate","bgPixelate","Mask","Consent"};
+	private final static int[] filterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_pixelate, R.drawable.ic_context_mask, R.drawable.ic_context_id};
 	
 	// The ImageEditor object that contains us
 	ImageEditor imageEditor;
@@ -577,7 +576,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
             	break;
             default:
             	obscureType = pos - 2;
-            	whatToDo = OBSCURE;					
 				imageEditor.updateDisplayImage();
             	
 		}

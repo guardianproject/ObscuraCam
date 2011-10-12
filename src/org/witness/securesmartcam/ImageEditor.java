@@ -14,7 +14,7 @@ import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.BlurObscure;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
 import org.witness.securesmartcam.filters.MaskObscure;
-import org.witness.securesmartcam.filters.ObscureMethod;
+import org.witness.securesmartcam.filters.RegionProcesser;
 import org.witness.securesmartcam.filters.PaintSquareObscure;
 import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.securesmartcam.jpegredaction.JpegRedaction;
@@ -1089,16 +1089,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	// it back.  Right now though, all of the ObscureMethods take in different
 	    	// arguments which makes it painful.
 	    	// Select the ObscureMethod as contained in the ImageRegion
-	    	ObscureMethod om;
+	    	RegionProcesser om;
 			switch (currentRegion.obscureType) {
 				case ImageRegion.BG_PIXELATE:
 					Log.v(ObscuraApp.TAG,"obscureType: BGPIXELIZE");
-					om = new CrowdPixelizeObscure(obscuredBmp);
+					om = new CrowdPixelizeObscure();
 				break;
 				
 				case ImageRegion.MASK:
 					Log.v(ObscuraApp.TAG,"obscureType: ANON");
-					om = new MaskObscure(this.getApplicationContext(), obscuredBmp, obscuredPaint);
+					om = new MaskObscure(this.getApplicationContext(), obscuredPaint);
 					break;
 					
 				case ImageRegion.REDACT:
@@ -1108,12 +1108,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					
 				case ImageRegion.PIXELATE:
 					Log.v(ObscuraApp.TAG,"obscureType: PIXELIZE");
-					om = new PixelizeObscure(obscuredBmp);
+					om = new PixelizeObscure();
 					break;
 					
 				default:
 					Log.v(ObscuraApp.TAG,"obscureType: NONE/BLUR");
-					om = new BlurObscure(obscuredBmp);
+					om = new BlurObscure();
 					break;
 			}
 			
@@ -1122,7 +1122,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
             Log.v(ObscuraApp.TAG,"unscaled rect: left:" + rect.left + " right:" + rect.right 
             		+ " top:" + rect.top + " bottom:" + rect.bottom);
             			
-	    	om.obscureRect(rect, obscuredCanvas);
+	    	om.processRegion(rect, obscuredCanvas, obscuredBmp);
 		}
 
 	    return obscuredBmp;
@@ -1170,7 +1170,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	ImageRegion currentRegion = i.next();
 	    	
 	    	JpegRedaction om = new JpegRedaction(currentRegion.obscureType, tmpFile, tmpFile);	
-	    	om.obscureRect(currentRegion.getRect(), obscuredCanvas);
+	    	om.processRegion(currentRegion.getRect(), obscuredCanvas, obscuredBmp);
 		
 		}
 	    

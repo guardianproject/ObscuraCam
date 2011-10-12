@@ -5,12 +5,15 @@
 package org.witness.securesmartcam.filters;
 
 
+import java.util.Properties;
+
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 
-public class PaintSquareObscure implements ObscureMethod {
+public class PaintSquareObscure implements RegionProcesser {
 
 	Paint paint;
 	
@@ -19,8 +22,17 @@ public class PaintSquareObscure implements ObscureMethod {
         paint.setColor(Color.BLACK);
 	}
  	
-	public void obscureRect(Rect rect, Canvas canvas) {
+	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitma) {
 		canvas.drawRect(rect, paint);
 	}
 
+	public Properties getProperties()
+	{
+		return null;
+	}
+	
+	public void setProperties(Properties props)
+	{
+		
+	}
 }
