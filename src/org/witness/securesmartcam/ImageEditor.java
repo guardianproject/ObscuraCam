@@ -7,7 +7,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 
 import org.witness.informa.InformaEditor;
@@ -85,6 +87,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public final static int SAVE_MENU_ITEM = 2;
 	public final static int SHARE_MENU_ITEM = 3;
 	public final static int NEW_REGION_MENU_ITEM = 4;
+	
+	// Constants for Informa
+	public final static int FROM_INFORMA = 100;
+	public final static String LOG = "[Image Editor ********************]";
 	
 	// Image Matrix
 	Matrix matrix = new Matrix();
@@ -1403,15 +1409,29 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }
     
     public void launchInforma(ImageRegion ir) {
-    	// put whatever info from the image region that should be recorded
-    	Bundle regionInfo = new Bundle();
-    	regionInfo.putIntArray("regionDimensions", new int[] {ir.imageWidth,ir.imageHeight});
-    	regionInfo.putInt("obscureType", ir.obscureType);
+    	// right now, i'm only passing an id to the image region.
+    	// in the future, we might pass other bits of data...
     	
+    	Bundle regionInfo = new Bundle();
+    	regionInfo.putInt("regionId", imageRegions.indexOf(ir));
     	
     	Intent informa = new Intent(this,InformaEditor.class);
     	informa.putExtra("regionInfo", regionInfo);
-    	startActivity(informa);
+    	startActivityForResult(informa,FROM_INFORMA);
+    }
+    
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    	if(resultCode == Activity.RESULT_OK) {
+    		if(requestCode == FROM_INFORMA) {
+    			// update corresponding image region
+    			// do something with image region!
+    			//imageRegions.get(data.getBundleExtra("informaReturn").getInt("regionId"))
+    			
+    			
+    			
+    		}
+    	}
     }
 
 	@Override

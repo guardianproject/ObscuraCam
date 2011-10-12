@@ -5,17 +5,10 @@
     android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
     android:weightSum="1.0">
-    <LinearLayout 
-	    xmlns:android="http://schemas.android.com/apk/res/android"
-	    android:orientation="horizontal"
-	    android:layout_width="0dip"
-		android:layout_height="fill_parent"
-	    android:layout_weight="0.25">
-	    <ImageView
-	    	android:layout_width="100dip"
-	    	android:layout_height="100dip"
-	    	android:id="@+id/optionSelection" />
-    </LinearLayout>
+	<CheckBox
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"
+    	android:id="@+id/optionSelection" />
     <TextView 
     	android:layout_width="0dip"
     	android:layout_height="wrap_content"

@@ -7,6 +7,7 @@ import org.witness.informa.utils.InformaOptionsAdapter;
 import org.witness.sscphase1.R;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -17,8 +18,8 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class InformaEditor extends Activity implements OnClickListener {
 	SharedPreferences _sp;
@@ -30,7 +31,9 @@ public class InformaEditor extends Activity implements OnClickListener {
 	Button informaSubmit;
 	ListView otherInformaOptionsHolder;
 	
-	Bundle regionInfo;
+	Bundle regionRect,regionInfo;
+	int regionId, obscureType;
+	
 	ArrayList<InformaOptions> informaOptions;
 	
 	public static final String LOG = "[Informa **********************]";
@@ -44,15 +47,17 @@ public class InformaEditor extends Activity implements OnClickListener {
 		
 		
 		imageRegionThumb = (ImageView) findViewById(R.id.imageRegionThumb);
-		subjectNameHolder = (EditText) findViewById(R.id.subjectNameHolder);
+		subjectNameHolder = (EditText) findViewById(R.id.subjectNameHolder);		
+		
 		informaSubmit = (Button) findViewById(R.id.informaSubmit);
+		informaSubmit.setOnClickListener(this);
 		
 		otherInformaOptionsHolder = (ListView) findViewById(R.id.otherInformaOptionsHolder);
 		
 		// unpack the options user can perform on the image region
 		informaOptions = new ArrayList<InformaOptions>();
-		informaOptions.add(new InformaOptions(this,getResources().getString(R.string.informaOpt_consent),false));
-		informaOptions.add(new InformaOptions(this,getResources().getString(R.string.informaOpt_autoFilter),false));
+		informaOptions.add(new InformaOptions(getResources().getString(R.string.informaOpt_consent),false));
+		informaOptions.add(new InformaOptions(getResources().getString(R.string.informaOpt_autoFilter),false));
 		
 		_sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 		_ed = _sp.edit();
@@ -60,12 +65,13 @@ public class InformaEditor extends Activity implements OnClickListener {
 		alignPreferences();
 		
 		if(getIntent().hasExtra("regionInfo")) {
+			// and it should have it!
 			regionInfo = getIntent().getBundleExtra("regionInfo");
+						
+			regionId = regionInfo.getInt("regionId");
+			obscureType = regionInfo.getInt("obscureType");
+			regionRect = regionInfo.getBundle("regionRect");
 			
-			int[] dims = regionInfo.getIntArray("regionDimensions");
-			int ot = regionInfo.getInt("obscureType");
-			
-			Log.d(LOG, "region extras:\nwidth: " + dims[0] + " height: " + dims[1] + " obscureType: " + ot);
 		}
 		
 		otherInformaOptionsHolder.setAdapter(new InformaOptionsAdapter(this,informaOptions));
@@ -81,7 +87,28 @@ public class InformaEditor extends Activity implements OnClickListener {
 	@Override
 	public void onClick(View v) {
 		if(v == informaSubmit) {
-			// TODO: whatever we do here to store/persist
+			// pack up a bundle to be saved with the image
+			if(subjectNameHolder.getText().toString().compareTo("") != 0) {
+				Bundle informaReturn = new Bundle();
+				
+				informaReturn.putString("regionSubject", subjectNameHolder.getText().toString());
+				informaReturn.putBoolean("informedConsent", informaOptions.get(0).getSelected());
+				informaReturn.putBoolean("persistObscureType", informaOptions.get(1).getSelected());
+				
+				// this should be handled better...
+				informaReturn.putInt("regionId", regionId);
+				
+				// TODO: if(getIntent() == OBSCURA_CAM)
+				// must prevent intent hijacking!
+				
+				getIntent().putExtra("informaReturn", informaReturn);
+				setResult(Activity.RESULT_OK,getIntent());
+				finish();
+			} else {
+				Toast.makeText(this, "You haven't identified anyone", Toast.LENGTH_LONG).show();
+			}
+			
+			
 		}
 	}
 
