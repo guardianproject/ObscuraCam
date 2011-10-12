@@ -24,19 +24,25 @@ public class MaskObscure implements RegionProcesser {
 	Paint _painter;
 	Context _context;
 	
+	Properties mProps;
+	
 	public MaskObscure(Context context, Paint painter) {
 		
 		_painter = painter;
 		_context = context;
+
+		mProps = new Properties ();
+		mProps.put("path", "mask.png");
+		
 	}
 	
 	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitmap) {
 	
-		_bitmap = bitmap;
+		_bitmap = bitmap;		
 		
 		try
 		{
-		  Bitmap mask = loadBitmap(_context,"mask.png");
+		  Bitmap mask = loadBitmap(_context,mProps.getProperty("path"));
 		  canvas.drawBitmap(mask, null, rect, _painter);
 		}
 		catch (IOException e)

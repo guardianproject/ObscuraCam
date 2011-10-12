@@ -1,11 +1,18 @@
 package org.witness.securesmartcam;
 
-import org.witness.sscphase1.R;
-
 import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
 import net.londatiga.android.QuickAction.OnActionItemClickListener;
-import android.graphics.Color;
+
+import org.witness.securesmartcam.filters.BlurObscure;
+import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
+import org.witness.securesmartcam.filters.MaskObscure;
+import org.witness.securesmartcam.filters.PaintSquareObscure;
+import org.witness.securesmartcam.filters.PixelizeObscure;
+import org.witness.securesmartcam.filters.RegionProcesser;
+import org.witness.sscphase1.ObscuraApp;
+import org.witness.sscphase1.R;
+
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -70,7 +77,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	//public static final int BLUR = 4; // PixelizeObscure
 	public static final int CONSENT = 5; // PixelizeObscure
 	
-	int obscureType = PIXELATE;
+	//int obscureType = PIXELATE;
 
 	private final static String[] filterLabels = {"Redact","Pixelate","bgPixelate","Mask","Consent"};
 	private final static int[] filterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_pixelate, R.drawable.ic_context_mask, R.drawable.ic_context_id};
@@ -101,7 +108,16 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	
 	ActionItem[] actionFilters;
 	
+	RegionProcesser rProc;
 	
+	public RegionProcesser getRegionProcessor() {
+		return rProc;
+	}
+
+	public void setRegionProcessor(RegionProcesser rProc) {
+		this.rProc = rProc;
+	}
+
 	/*
 	 * minMoveDistance to determine if we should count this as a move or not
 	 * minMoveDistance is calculated later based on screen density
@@ -187,6 +203,9 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 			}
 			
 		});
+        
+        //set default processor
+        rProc = new PixelizeObscure();
     }
 	
 	public void inflatePopup(boolean showDelayed) {
@@ -575,10 +594,41 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
             	imageEditor.deleteRegion(ImageRegion.this);
             	break;
             default:
-            	obscureType = pos - 2;
+            	int obscureType = pos - 2;
+            	updateRegionProcessor(obscureType);
 				imageEditor.updateDisplayImage();
             	
 		}
 		
 	}	
+	
+	private void updateRegionProcessor (int obscureType)
+	{
+		switch (obscureType) {
+		case ImageRegion.BG_PIXELATE:
+			Log.v(ObscuraApp.TAG,"obscureType: BGPIXELIZE");
+			rProc = new CrowdPixelizeObscure();
+		break;
+		
+		case ImageRegion.MASK:
+			Log.v(ObscuraApp.TAG,"obscureType: ANON");
+			rProc = new MaskObscure(imageEditor.getApplicationContext(), imageEditor.getPainter());
+			break;
+			
+		case ImageRegion.REDACT:
+			Log.v(ObscuraApp.TAG,"obscureType: SOLID");
+			rProc = new PaintSquareObscure();
+			break;
+			
+		case ImageRegion.PIXELATE:
+			Log.v(ObscuraApp.TAG,"obscureType: PIXELIZE");
+			rProc = new PixelizeObscure();
+			break;
+			
+		default:
+			Log.v(ObscuraApp.TAG,"obscureType: NONE/BLUR");
+			rProc = new BlurObscure();
+			break;
+	}
+	}
 }

@@ -17,6 +17,13 @@ public class PixelizeObscure implements RegionProcesser {
 	
 	private final static int PIXEL_BLOCK = 10;
 	
+	Properties mProps;
+	
+	public PixelizeObscure ()
+	{
+		mProps = new Properties ();
+		mProps.put("size", "10");		
+	}
 	
 	public void processRegion(Rect rect, Canvas canvas, Bitmap bitmap) {
 	

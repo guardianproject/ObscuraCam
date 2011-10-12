@@ -136,6 +136,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     // Canvas for drawing the realtime obscuring
     Canvas obscuredCanvas;
 	
+    // Paint obscured
+    Paint obscuredPaint;
+    
 	// Vector to hold ImageRegions 
 	Vector<ImageRegion> imageRegions = new Vector<ImageRegion>(); 
 		
@@ -1070,10 +1073,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	}
     	
     	// Create the paint used to draw with
-    	Paint obscuredPaint = new Paint();   
+    	obscuredPaint = new Paint();   
     	// Create a default matrix
-    	Matrix obscuredMatrix = new Matrix();
-    	
+    	Matrix obscuredMatrix = new Matrix();    	
     	// Draw the scaled image on the new bitmap
     	obscuredCanvas.drawBitmap(imageBitmap, obscuredMatrix, obscuredPaint);
 
@@ -1082,13 +1084,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    while (i.hasNext()) 
 	    {
 	    	ImageRegion currentRegion = i.next();
-	    	
-	    	// Would like this to not be dependent on knowing the relationship between 
-	    	// the classes and the constants in ImageRegion.  Would like there to be a 
-	    	// method within ImageRegion that creates the ObscureMethod object and passes
-	    	// it back.  Right now though, all of the ObscureMethods take in different
-	    	// arguments which makes it painful.
-	    	// Select the ObscureMethod as contained in the ImageRegion
+	    	RegionProcesser om = currentRegion.getRegionProcessor();
+	    	/*
 	    	RegionProcesser om;
 			switch (currentRegion.obscureType) {
 				case ImageRegion.BG_PIXELATE:
@@ -1115,18 +1112,19 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					Log.v(ObscuraApp.TAG,"obscureType: NONE/BLUR");
 					om = new BlurObscure();
 					break;
-			}
+			}*/
 			
 			// Get the Rect for the region and do the obscure
             Rect rect = currentRegion.getAScaledRect(obscuredBmp.getWidth(),obscuredBmp.getHeight());
-            Log.v(ObscuraApp.TAG,"unscaled rect: left:" + rect.left + " right:" + rect.right 
-            		+ " top:" + rect.top + " bottom:" + rect.bottom);
+           // Log.v(ObscuraApp.TAG,"unscaled rect: left:" + rect.left + " right:" + rect.right 
+            //		+ " top:" + rect.top + " bottom:" + rect.bottom);
             			
 	    	om.processRegion(rect, obscuredCanvas, obscuredBmp);
 		}
 
 	    return obscuredBmp;
     }
+    
     
     private boolean canDoNative ()
     {
@@ -1138,7 +1136,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    while (i.hasNext()) 
 	    {
 	    	ImageRegion iRegion = i.next();
-	    	if (iRegion.obscureType == ImageRegion.MASK)
+	    	if (iRegion.getRegionProcessor() instanceof MaskObscure)
 	    		return false;
 	    }
 	    
@@ -1169,7 +1167,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    {
 	    	ImageRegion currentRegion = i.next();
 	    	
-	    	JpegRedaction om = new JpegRedaction(currentRegion.obscureType, tmpFile, tmpFile);	
+	    	JpegRedaction om = new JpegRedaction(currentRegion.getRegionProcessor(), tmpFile, tmpFile);	
 	    	om.processRegion(currentRegion.getRect(), obscuredCanvas, obscuredBmp);
 		
 		}
@@ -1394,5 +1392,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		super.onPostResume();
 		
 		
+	}
+	
+	public Paint getPainter ()
+	{
+		return obscuredPaint;
 	}
 }

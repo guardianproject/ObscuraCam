@@ -4,6 +4,9 @@ import java.io.File;
 import java.util.Properties;
 
 import org.witness.securesmartcam.ImageRegion;
+import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
+import org.witness.securesmartcam.filters.PaintSquareObscure;
+import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
 
 import android.app.Activity;
@@ -31,7 +34,7 @@ public class JpegRedaction implements RegionProcesser {
     private final static String METHOD_OVERLAY = "o";
     private final static String METHOD_INVERSE_PIXELLATE = "i";
     	 
-    public JpegRedaction (int iMethod, File inFile, File outFile)
+    public JpegRedaction (RegionProcesser iMethod, File inFile, File outFile)
     {
     	setFiles (inFile, outFile);
     	setMethod (iMethod);
@@ -48,25 +51,21 @@ public class JpegRedaction implements RegionProcesser {
     	mOutFile = outFile;
     }
 
-    public void setMethod (int iMethod)
+    public void setMethod (RegionProcesser rProc)
     {
-    	switch (iMethod)
+    	if (rProc instanceof CrowdPixelizeObscure)
     	{
-    		case ImageRegion.BG_PIXELATE:
-    			mMethod = METHOD_INVERSE_PIXELLATE;
-    		break;
-    		
-    		case ImageRegion.REDACT:
-    			mMethod = METHOD_SOLID;
-    		break;
-    		
-    		case ImageRegion.PIXELATE:
-    			mMethod = METHOD_PIXELLATE;
-    		break;
-    		
-    		default:
-    			mMethod = METHOD_SOLID;
+    		mMethod = METHOD_INVERSE_PIXELLATE;
     	}
+    	else if (rProc instanceof PixelizeObscure)
+    	{
+    		mMethod = METHOD_PIXELLATE;
+    	}
+    	else
+    	{
+    		mMethod = METHOD_INVERSE_PIXELLATE;
+    	}
+    	    	
     }
     
 	@Override

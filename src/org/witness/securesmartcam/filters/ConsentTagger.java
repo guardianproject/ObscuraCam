@@ -14,6 +14,8 @@ public class ConsentTagger implements RegionProcesser
 	{
 		mProps = new Properties ();
 		mProps.put("id", "");
+		mProps.put("consent", "false");
+		
 	}
 	
 	@Override
