@@ -5,6 +5,7 @@ import net.londatiga.android.QuickAction;
 import net.londatiga.android.QuickAction.OnActionItemClickListener;
 
 import org.witness.securesmartcam.filters.BlurObscure;
+import org.witness.securesmartcam.filters.ConsentTagger;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
 import org.witness.securesmartcam.filters.MaskObscure;
 import org.witness.securesmartcam.filters.PaintSquareObscure;
@@ -75,11 +76,11 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	public static final int BG_PIXELATE = 2; // BlurObscure
 	public static final int MASK = 3; // MaskObscure	
 	//public static final int BLUR = 4; // PixelizeObscure
-	public static final int CONSENT = 5; // PixelizeObscure
+	public static final int CONSENT = 4; // PixelizeObscure
 	
 	//int obscureType = PIXELATE;
 
-	private final static String[] filterLabels = {"Redact","Pixelate","bgPixelate","Mask","Consent"};
+	private final static String[] filterLabels = {"Redact","Pixelate","bgPixelate","Mask","Identify"};
 	private final static int[] filterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_pixelate, R.drawable.ic_context_mask, R.drawable.ic_context_id};
 	
 	// The ImageEditor object that contains us
@@ -118,11 +119,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 		this.rProc = rProc;
 	}
 
-	/*
-	 * hello, Informa!
-	 */
-	ActionItem informaAction;
-	
 	/*
 	 * minMoveDistance to determine if we should count this as a move or not
 	 * minMoveDistance is calculated later based on screen density
@@ -629,11 +625,15 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 			Log.v(ObscuraApp.TAG,"obscureType: PIXELIZE");
 			rProc = new PixelizeObscure();
 			break;
-			
+		case ImageRegion.CONSENT:
+			Log.v(ObscuraApp.TAG,"obscureType: CONSENTIFY!");
+			rProc = new ConsentTagger();
+			imageEditor.launchInforma(this);
+			break;
 		default:
 			Log.v(ObscuraApp.TAG,"obscureType: NONE/BLUR");
 			rProc = new BlurObscure();
 			break;
-	}
+		}
 	}
 }

@@ -15,6 +15,9 @@ public class ConsentTagger implements RegionProcesser
 		mProps = new Properties ();
 		mProps.put("id", "");
 		mProps.put("consent", "false");
+		mProps.put("persistObscureType", "false");
+		
+		// broadcast to ImageEditor to launch Informa?
 		
 	}
 	
