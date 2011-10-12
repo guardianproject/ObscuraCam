@@ -1,18 +1,24 @@
 package org.witness.securesmartcam.jpegredaction;
 
 import java.io.File;
+import java.util.Properties;
 
 import org.witness.securesmartcam.ImageRegion;
-import org.witness.securesmartcam.filters.ObscureMethod;
+import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
+import org.witness.securesmartcam.filters.PaintSquareObscure;
+import org.witness.securesmartcam.filters.PixelizeObscure;
+import org.witness.securesmartcam.filters.RegionProcesser;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Bundle;
 
-public class JpegRedaction implements ObscureMethod {
+public class JpegRedaction implements RegionProcesser {
 	
-    private native void redactit(String src, String target, int left, int right, int top, int bottom, String method);
+    private native void redactRegion(String src, String target, int left, int right, int top, int bottom, String method);
+    private native void redactRegions(String src, String target, String regions);
 
     static {
         System.loadLibrary("JpegRedaction");
@@ -28,10 +34,15 @@ public class JpegRedaction implements ObscureMethod {
     private final static String METHOD_OVERLAY = "o";
     private final static String METHOD_INVERSE_PIXELLATE = "i";
     	 
-    public JpegRedaction (int iMethod, File inFile, File outFile)
+    public JpegRedaction (RegionProcesser iMethod, File inFile, File outFile)
     {
     	setFiles (inFile, outFile);
     	setMethod (iMethod);
+    }
+    
+    public JpegRedaction (File inFile, File outFile)
+    {
+    	setFiles (inFile, outFile);
     }
     
     public void setFiles (File inFile, File outFile)
@@ -40,33 +51,47 @@ public class JpegRedaction implements ObscureMethod {
     	mOutFile = outFile;
     }
 
-    public void setMethod (int iMethod)
+    public void setMethod (RegionProcesser rProc)
     {
-    	switch (iMethod)
+    	if (rProc instanceof CrowdPixelizeObscure)
     	{
-    		case ImageRegion.BG_PIXELIZE:
-    			mMethod = METHOD_INVERSE_PIXELLATE;
-    		break;
-    		
-    		case ImageRegion.SOLID:
-    			mMethod = METHOD_SOLID;
-    		break;
-    		
-    		case ImageRegion.PIXELIZE:
-    			mMethod = METHOD_PIXELLATE;
-    		break;
-    		
-    		default:
-    			mMethod = METHOD_SOLID;
+    		mMethod = METHOD_INVERSE_PIXELLATE;
     	}
+    	else if (rProc instanceof PixelizeObscure)
+    	{
+    		mMethod = METHOD_PIXELLATE;
+    	}
+    	else
+    	{
+    		mMethod = METHOD_INVERSE_PIXELLATE;
+    	}
+    	    	
     }
     
 	@Override
-	public void obscureRect(Rect rect, Canvas canvas) {
+	public void processRegion(Rect rect, Canvas canvas, Bitmap bitmap) {
 
 		 String strInFile = mInFile.getAbsolutePath();
 		 String strOutFile = mOutFile.getAbsolutePath();
-	     redactit(strInFile, strOutFile, rect.left, rect.right, rect.top, rect.bottom, mMethod);
+	     redactRegion(strInFile, strOutFile, rect.left, rect.right, rect.top, rect.bottom, mMethod);
+		
+	}
+	
+	public void obscureRegions(String regions) {
+
+		 String strInFile = mInFile.getAbsolutePath();
+		 String strOutFile = mOutFile.getAbsolutePath();
+	     redactRegions(strInFile, strOutFile, regions);
+		
+	}
+	
+	public Properties getProperties()
+	{
+		return null;
+	}
+	
+	public void setProperties(Properties props)
+	{
 		
 	}
 }

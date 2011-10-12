@@ -1,11 +1,18 @@
 package org.witness.securesmartcam;
 
-import org.witness.informa.InformaEditor;
-import org.witness.sscphase1.R;
-
 import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
-import android.graphics.Color;
+import net.londatiga.android.QuickAction.OnActionItemClickListener;
+
+import org.witness.securesmartcam.filters.BlurObscure;
+import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
+import org.witness.securesmartcam.filters.MaskObscure;
+import org.witness.securesmartcam.filters.PaintSquareObscure;
+import org.witness.securesmartcam.filters.PixelizeObscure;
+import org.witness.securesmartcam.filters.RegionProcesser;
+import org.witness.sscphase1.ObscuraApp;
+import org.witness.sscphase1.R;
+
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -19,9 +26,9 @@ import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
-public class ImageRegion extends FrameLayout implements OnTouchListener {
+public class ImageRegion extends FrameLayout implements OnTouchListener, OnActionItemClickListener {
 
-	public static final String LOGTAG = "[Camera Obscura ImageRegion]";
+	public static final String LOGTAG = "SSC.ImageRegion";
 	
 	// Rect for this when unscaled
 	public RectF unscaledRect;
@@ -59,18 +66,22 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	// What should be done to this region
 	public static final int NOTHING = 0;
 	public static final int OBSCURE = 1;
-	int whatToDo = OBSCURE;
-
 	/*
 	 * Add each ObscureMethod to this list and update the 
 	 * createObscuredBitmap method in ImageEditor
 	 */
-	public static final int BG_PIXELIZE = 0; // BlurObscure
-	public static final int OVERLAY = 1; // MaskObscure
-	public static final int SOLID = 2; // PaintSquareObscure
-	public static final int PIXELIZE = 3; // PixelizeObscure
-	int obscureType = PIXELIZE;
+	public static final int REDACT = 0; // PaintSquareObscure
+	public static final int PIXELATE = 1; // PixelizeObscure
+	public static final int BG_PIXELATE = 2; // BlurObscure
+	public static final int MASK = 3; // MaskObscure	
+	//public static final int BLUR = 4; // PixelizeObscure
+	public static final int CONSENT = 5; // PixelizeObscure
+	
+	//int obscureType = PIXELATE;
 
+	private final static String[] filterLabels = {"Redact","Pixelate","bgPixelate","Mask","Consent"};
+	private final static int[] filterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_pixelate, R.drawable.ic_context_mask, R.drawable.ic_context_id};
+	
 	// The ImageEditor object that contains us
 	ImageEditor imageEditor;
 	
@@ -93,14 +104,20 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 	ActionItem editAction;
 	ActionItem idAction;
 	ActionItem encryptAction;
-	
-	ActionItem blurObscureAction;
-	ActionItem anonObscureAction;
-	ActionItem solidObscureAction;
-	ActionItem pixelizeObscureAction;
-	
 	ActionItem removeRegionAction;
 	
+	ActionItem[] actionFilters;
+	
+	RegionProcesser rProc;
+	
+	public RegionProcesser getRegionProcessor() {
+		return rProc;
+	}
+
+	public void setRegionProcessor(RegionProcesser rProc) {
+		this.rProc = rProc;
+	}
+
 	/*
 	 * hello, Informa!
 	 */
@@ -191,119 +208,55 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			}
 			
 		});
+        
+        //set default processor
+        rProc = new PixelizeObscure();
     }
 	
 	public void inflatePopup(boolean showDelayed) {
 
-		
-		
 		if (showDelayed) {
 			// We need layout to pass again, let's wait a second or two
 			new Handler() {
 				@Override
 				 public void handleMessage(Message msg) {
-					 qa.show();
+					 qa.show(ImageRegion.this);
 			        }
 			}.sendMessageDelayed(new Message(), 500);
 		} else {
-			qa.show();
+			qa.show(ImageRegion.this);
 		}
 
 	}
 	
 	private void initPopup ()
 	{
-		qa = new QuickAction(this);
+		qa = new QuickAction(imageEditor);
 		
 		editAction = new ActionItem();
 		editAction.setTitle("Edit Tag");
 		editAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_edit));
-		editAction.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				qa.dismiss();
-				toggleMode();
-			}
-		});
+		
 		qa.addActionItem(editAction);
 
-		solidObscureAction = new ActionItem();
-		solidObscureAction.setTitle("Redact");
-		solidObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_fill));
-		solidObscureAction.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				qa.dismiss();
-				whatToDo = OBSCURE;
-				obscureType = SOLID;
-				imageEditor.updateDisplayImage();
-			}
-		});
-		qa.addActionItem(solidObscureAction);
-		
-		pixelizeObscureAction = new ActionItem();
-		pixelizeObscureAction.setTitle("Pixelate");
-		pixelizeObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_pixelate));
-		pixelizeObscureAction.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				qa.dismiss();
-				whatToDo = OBSCURE;
-				obscureType = PIXELIZE;
-				imageEditor.updateDisplayImage();
-			}
-		});
-		qa.addActionItem(pixelizeObscureAction);
-		
-
-		
-		blurObscureAction = new ActionItem();
-		blurObscureAction.setTitle("bgPixelate");
-		blurObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_blur));
-		blurObscureAction.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				qa.dismiss();
-				whatToDo = OBSCURE;
-				obscureType = BG_PIXELIZE;
-				imageEditor.updateDisplayImage();
-			}
-		});
-		qa.addActionItem(blurObscureAction);
-
-		anonObscureAction = new ActionItem();
-		anonObscureAction.setTitle("Mask");
-		anonObscureAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_mask));
-		anonObscureAction.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				qa.dismiss();
-				whatToDo = OBSCURE;
-				obscureType = OVERLAY;
-				imageEditor.updateDisplayImage();
-			}
-		});
-		
-		qa.addActionItem(anonObscureAction);
-		
-		informaAction = new ActionItem();
-		informaAction.setTitle("Identify");
-		informaAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_id));
-		informaAction.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				qa.dismiss();
-				imageEditor.launchInforma(ImageRegion.this);
-			}
-		});
-		qa.addActionItem(informaAction);
-		
-					
 		removeRegionAction = new ActionItem();
 		removeRegionAction.setTitle("Delete Tag");
 		removeRegionAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_delete));
-		removeRegionAction.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				qa.dismiss();
-            	imageEditor.deleteRegion(ImageRegion.this);
-			}
-		});
+
 		qa.addActionItem(removeRegionAction);
 		
+		for (int i = 0; i < filterLabels.length; i++)
+		{
+		
+			ActionItem aItem = new ActionItem();
+			aItem.setTitle(filterLabels[i]);
+			
+			aItem.setIcon(this.getResources().getDrawable(filterIcons[i]));			
+			
+			qa.addActionItem(aItem);
+		}
+
+		qa.setOnActionItemClickListener(this);
 	}
 	
 	void toggleMode() {
@@ -632,5 +585,55 @@ public class ImageRegion extends FrameLayout implements OnTouchListener {
 			}
 		}
 		return true;
+	}
+
+	@Override
+	public void onItemClick(int pos) {
+		
+		switch (pos)
+		{
+			case 0:
+				toggleMode();
+				break;
+			case 1:
+            	imageEditor.deleteRegion(ImageRegion.this);
+            	break;
+            default:
+            	int obscureType = pos - 2;
+            	updateRegionProcessor(obscureType);
+				imageEditor.updateDisplayImage();
+            	
+		}
+		
 	}	
+	
+	private void updateRegionProcessor (int obscureType)
+	{
+		switch (obscureType) {
+		case ImageRegion.BG_PIXELATE:
+			Log.v(ObscuraApp.TAG,"obscureType: BGPIXELIZE");
+			rProc = new CrowdPixelizeObscure();
+		break;
+		
+		case ImageRegion.MASK:
+			Log.v(ObscuraApp.TAG,"obscureType: ANON");
+			rProc = new MaskObscure(imageEditor.getApplicationContext(), imageEditor.getPainter());
+			break;
+			
+		case ImageRegion.REDACT:
+			Log.v(ObscuraApp.TAG,"obscureType: SOLID");
+			rProc = new PaintSquareObscure();
+			break;
+			
+		case ImageRegion.PIXELATE:
+			Log.v(ObscuraApp.TAG,"obscureType: PIXELIZE");
+			rProc = new PixelizeObscure();
+			break;
+			
+		default:
+			Log.v(ObscuraApp.TAG,"obscureType: NONE/BLUR");
+			rProc = new BlurObscure();
+			break;
+	}
+	}
 }

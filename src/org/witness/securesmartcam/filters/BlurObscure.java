@@ -5,27 +5,34 @@
 package org.witness.securesmartcam.filters;
 
 
+import java.util.Properties;
+
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 
-public class BlurObscure implements ObscureMethod {
+public class BlurObscure implements RegionProcesser {
 
 	Bitmap originalBmp;
 
 	private final static int BLUR_OFFSET = 10;
 	
-	public BlurObscure(Bitmap _originalBmp) {
-		originalBmp = _originalBmp;
+	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitmap) {
+		//makeItBlur(rect);
+		
+		Paint paint = new Paint();
+		paint.setColor(Color.WHITE);
+		paint.setAlpha(100);
+		canvas.drawCircle(rect.exactCenterX(), rect.exactCenterY(), rect.width()/2, paint);
+		
 	}
 	
-	public void obscureRect(Rect rect, Canvas canvas) {
-		makeItBlur(rect);
-	}
-	
+	/*
 	private void makeItBlur(Rect rect)
 	{
+		
 		if (rect.left <= (0 + BLUR_OFFSET*2)) {
 			rect.left = (1 + BLUR_OFFSET*2);
 		} else if (rect.right >= (originalBmp.getWidth()-1-BLUR_OFFSET*2)) {
@@ -93,7 +100,18 @@ public class BlurObscure implements ObscureMethod {
 			Color.blue(originalBmp.getPixel(x-blurOffset, y+blurOffset)) +
 			Color.blue(originalBmp.getPixel(x, y+blurOffset)) +
 			Color.blue(originalBmp.getPixel(x+blurOffset, y+blurOffset)))/9;		
+	}*/
+	
+	public Properties getProperties()
+	{
+		return null;
 	}
+	
+	public void setProperties(Properties props)
+	{
+		
+	}
+	
 }
 
 
