@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Vector;
 
 import org.witness.informa.InformaEditor;
@@ -1394,14 +1395,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }
     
     public void launchInforma(ImageRegion ir) {
-    	// right now, i'm only passing an id to the image region.
-    	// in the future, we might pass other bits of data...
-    	
-    	Bundle regionInfo = new Bundle();
-    	regionInfo.putInt("regionId", imageRegions.indexOf(ir));
-    	
     	Intent informa = new Intent(this,InformaEditor.class);
-    	informa.putExtra("regionInfo", regionInfo);
     	startActivityForResult(informa,FROM_INFORMA);
     }
     
@@ -1410,10 +1404,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	if(resultCode == Activity.RESULT_OK) {
     		if(requestCode == FROM_INFORMA) {
     			// update corresponding image region
-    			// do something with image region!
-    			//imageRegions.get(data.getBundleExtra("informaReturn").getInt("regionId"))
+    			Bundle informaReturn = data.getBundleExtra("informaReturn");
+    			Properties mProps = new Properties();
+    			mProps.put("regionSubject", informaReturn.getString("regionSubject"));
+    			mProps.put("informedConsent", Boolean.toString(informaReturn.getBoolean("informedConsent")));
+    			mProps.put("persistObscureType",Boolean.toString(informaReturn.getBoolean("persistObscureType")));
     			
     			
+    			RegionProcesser ir = imageRegions.get(data.getBundleExtra("informaReturn").getInt("regionId")).rProc;
+    			ir.setProperties(mProps);
+    			
+    			//Log.d(ObscuraApp.TAG,"new id: " + ir.getProperties().getProperty("regionSubject"));
     			
     		}
     	}

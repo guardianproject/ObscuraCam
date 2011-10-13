@@ -17,6 +17,7 @@ import org.witness.sscphase1.R;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -83,6 +84,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	private final static String[] filterLabels = {"Redact","Pixelate","bgPixelate","Mask","Identify"};
 	private final static int[] filterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_pixelate, R.drawable.ic_context_mask, R.drawable.ic_context_id};
 	
+	public final Drawable unidentifiedBorder, identifiedBorder;
+	
 	// The ImageEditor object that contains us
 	ImageEditor imageEditor;
 	
@@ -143,6 +146,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 		
 		// Set the imageEditor that this region belongs to to the one passed in
 		imageEditor = _imageEditor;
+		
+		// set the borders for tags in Non-Edit mode
+		identifiedBorder = imageEditor.getResources().getDrawable(R.drawable.border_idtag);
+		unidentifiedBorder = imageEditor.getResources().getDrawable(R.drawable.border);
 
 		// Calculate the minMoveDistance using the screen density
 		float scale = this.getResources().getDisplayMetrics().density;
@@ -285,7 +292,12 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 			}
 
 			//setBackgroundColor(0xffffffff);
-			setBackgroundDrawable(imageEditor.getResources().getDrawable(R.drawable.border));
+			
+			// set the inactive border drawable
+			if(this.rProc.getClass() == ConsentTagger.class)
+				setBackgroundDrawable(identifiedBorder);
+			else
+				setBackgroundDrawable(unidentifiedBorder);			
 			
 			topLeftCorner.setVisibility(View.GONE);
 			topRightCorner.setVisibility(View.GONE);
@@ -628,6 +640,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 		case ImageRegion.CONSENT:
 			Log.v(ObscuraApp.TAG,"obscureType: CONSENTIFY!");
 			rProc = new ConsentTagger();
+			Log.d(ObscuraApp.TAG,"the rProc is " + rProc.getClass().getName());
 			imageEditor.launchInforma(this);
 			break;
 		default:

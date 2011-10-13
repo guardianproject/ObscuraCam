@@ -31,9 +31,7 @@ public class InformaEditor extends Activity implements OnClickListener {
 	Button informaSubmit;
 	ListView otherInformaOptionsHolder;
 	
-	Bundle regionRect,regionInfo;
-	int regionId, obscureType;
-	
+	Bundle regionInfo;	
 	ArrayList<InformaOptions> informaOptions;
 	
 	public static final String LOG = "[Informa **********************]";
@@ -64,16 +62,6 @@ public class InformaEditor extends Activity implements OnClickListener {
 		
 		alignPreferences();
 		
-		if(getIntent().hasExtra("regionInfo")) {
-			// and it should have it!
-			regionInfo = getIntent().getBundleExtra("regionInfo");
-						
-			regionId = regionInfo.getInt("regionId");
-			obscureType = regionInfo.getInt("obscureType");
-			regionRect = regionInfo.getBundle("regionRect");
-			
-		}
-		
 		otherInformaOptionsHolder.setAdapter(new InformaOptionsAdapter(this,informaOptions));
 		
 	}
@@ -94,9 +82,6 @@ public class InformaEditor extends Activity implements OnClickListener {
 				informaReturn.putString("regionSubject", subjectNameHolder.getText().toString());
 				informaReturn.putBoolean("informedConsent", informaOptions.get(0).getSelected());
 				informaReturn.putBoolean("persistObscureType", informaOptions.get(1).getSelected());
-				
-				// this should be handled better...
-				informaReturn.putInt("regionId", regionId);
 				
 				// TODO: if(getIntent() == OBSCURA_CAM)
 				// must prevent intent hijacking!
