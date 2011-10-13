@@ -7,14 +7,17 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 
+import org.witness.informa.InformaEditor;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.BlurObscure;
-import org.witness.securesmartcam.filters.CrowdBlurObscure;
+import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
 import org.witness.securesmartcam.filters.MaskObscure;
-import org.witness.securesmartcam.filters.ObscureMethod;
+import org.witness.securesmartcam.filters.RegionProcesser;
 import org.witness.securesmartcam.filters.PaintSquareObscure;
 import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.securesmartcam.jpegredaction.JpegRedaction;
@@ -68,10 +71,6 @@ import android.widget.Toast;
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener, OnLongClickListener {
 
 
-	/* This isn't necessary 
-	// Maximum dimension for sharing
-	//public final static int SHARE_SIZE_MAX_WIDTH_HEIGHT = 320;
-	*/
 	
 	// Colors for region squares
 	public final static int DRAW_COLOR = Color.argb(200, 0, 255, 0);// Green
@@ -84,6 +83,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public final static int SAVE_MENU_ITEM = 2;
 	public final static int SHARE_MENU_ITEM = 3;
 	public final static int NEW_REGION_MENU_ITEM = 4;
+	
+	// Constants for Informa
+	public final static int FROM_INFORMA = 100;
+	public final static String LOG = "[Image Editor ********************]";
 	
 	// Image Matrix
 	Matrix matrix = new Matrix();
@@ -140,6 +143,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     // Canvas for drawing the realtime obscuring
     Canvas obscuredCanvas;
 	
+    // Paint obscured
+    Paint obscuredPaint;
+    
 	// Vector to hold ImageRegions 
 	Vector<ImageRegion> imageRegions = new Vector<ImageRegion>(); 
 		
@@ -157,7 +163,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	Uri savedImageUri;
 	
 	// Constant for temp filename
-	private final static String TMP_FILE_NAME = "temporary.jpg";
+	private final static String TMP_FILE_NAME = "tmp.jpg";
+	
 	private final static String TMP_FILE_DIRECTORY = "/Android/data/org.witness.sscphase1/files/";
 	
 	
@@ -1073,10 +1080,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	}
     	
     	// Create the paint used to draw with
-    	Paint obscuredPaint = new Paint();   
+    	obscuredPaint = new Paint();   
     	// Create a default matrix
-    	Matrix obscuredMatrix = new Matrix();
-    	
+    	Matrix obscuredMatrix = new Matrix();    	
     	// Draw the scaled image on the new bitmap
     	obscuredCanvas.drawBitmap(imageBitmap, obscuredMatrix, obscuredPaint);
 
@@ -1085,57 +1091,50 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    while (i.hasNext()) 
 	    {
 	    	ImageRegion currentRegion = i.next();
-	    	
-	    	// Would like this to not be dependent on knowing the relationship between 
-	    	// the classes and the constants in ImageRegion.  Would like there to be a 
-	    	// method within ImageRegion that creates the ObscureMethod object and passes
-	    	// it back.  Right now though, all of the ObscureMethods take in different
-	    	// arguments which makes it painful.
-	    	// Select the ObscureMethod as contained in the ImageRegion
-	    	ObscureMethod om;
+	    	RegionProcesser om = currentRegion.getRegionProcessor();
+	    	/*
+	    	RegionProcesser om;
 			switch (currentRegion.obscureType) {
-				case ImageRegion.BG_PIXELIZE:
+				case ImageRegion.BG_PIXELATE:
 					Log.v(ObscuraApp.TAG,"obscureType: BGPIXELIZE");
-					om = new CrowdBlurObscure(obscuredBmp);
+					om = new CrowdPixelizeObscure();
 				break;
 				
-				case ImageRegion.OVERLAY:
+				case ImageRegion.MASK:
 					Log.v(ObscuraApp.TAG,"obscureType: ANON");
-					om = new MaskObscure(this.getApplicationContext(), obscuredBmp, obscuredPaint);
+					om = new MaskObscure(this.getApplicationContext(), obscuredPaint);
 					break;
 					
-				case ImageRegion.SOLID:
+				case ImageRegion.REDACT:
 					Log.v(ObscuraApp.TAG,"obscureType: SOLID");
 					om = new PaintSquareObscure();
 					break;
 					
-				case ImageRegion.PIXELIZE:
+				case ImageRegion.PIXELATE:
 					Log.v(ObscuraApp.TAG,"obscureType: PIXELIZE");
-					om = new PixelizeObscure(obscuredBmp);
+					om = new PixelizeObscure();
 					break;
 					
 				default:
 					Log.v(ObscuraApp.TAG,"obscureType: NONE/BLUR");
-					om = new BlurObscure(obscuredBmp);
+					om = new BlurObscure();
 					break;
-			}
+			}*/
 			
 			// Get the Rect for the region and do the obscure
             Rect rect = currentRegion.getAScaledRect(obscuredBmp.getWidth(),obscuredBmp.getHeight());
-            Log.v(ObscuraApp.TAG,"unscaled rect: left:" + rect.left + " right:" + rect.right 
-            		+ " top:" + rect.top + " bottom:" + rect.bottom);
+           // Log.v(ObscuraApp.TAG,"unscaled rect: left:" + rect.left + " right:" + rect.right 
+            //		+ " top:" + rect.top + " bottom:" + rect.bottom);
             			
-	    	om.obscureRect(rect, obscuredCanvas);
+	    	om.processRegion(rect, obscuredCanvas, obscuredBmp);
 		}
 
 	    return obscuredBmp;
     }
     
-    //TODO disable native for now, until we get the black redact in
+    
     private boolean canDoNative ()
     {
-    	return false;
-    	/*
     	if (originalImageUri == null)
     		return false;
     				
@@ -1144,12 +1143,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    while (i.hasNext()) 
 	    {
 	    	ImageRegion iRegion = i.next();
-	    	if (iRegion.obscureType == ImageRegion.OVERLAY)
+	    	if (iRegion.getRegionProcessor() instanceof MaskObscure)
 	    		return false;
 	    }
 	    
 	    return true;
-	    */
+
     }
     
     /*
@@ -1161,33 +1160,26 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	// Create the Uri - This can't be "private"
     	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory(), TMP_FILE_DIRECTORY);
     	File tmpFile = new File(tmpFileDirectory,TMP_FILE_NAME);
-    	Log.v(ObscuraApp.TAG, tmpFile.getPath());
     
     	if (!tmpFileDirectory.exists()) {
     		tmpFileDirectory.mkdirs();
     	}
     
     	Uri tmpImageUri = Uri.fromFile(tmpFile);
-    	
 		copy (originalImageUri, tmpImageUri);
 		
-    	// Iterate through the regions that have been created
+		// Iterate through the regions that have been created
     	Iterator<ImageRegion> i = imageRegions.iterator();
 	    while (i.hasNext()) 
 	    {
 	    	ImageRegion currentRegion = i.next();
 	    	
-	    	ObscureMethod om = new JpegRedaction(currentRegion.obscureType, tmpFile, tmpFile);
-		
-			// Get the Rect for the region and do the obscure
-            Rect rect = currentRegion.getRect();
-            Log.v(ObscuraApp.TAG,"unscaled rect: left:" + rect.left + " right:" + rect.right 
-            		+ " top:" + rect.top + " bottom:" + rect.bottom);
-            			
-	    	om.obscureRect(rect, obscuredCanvas);
+	    	JpegRedaction om = new JpegRedaction(currentRegion.getRegionProcessor(), tmpFile, tmpFile);	
+	    	om.processRegion(currentRegion.getRect(), obscuredCanvas, obscuredBmp);
 		
 		}
-
+	    
+	    
 	    return tmpFile;
     }
     
@@ -1400,6 +1392,32 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
         updateDisplayImage();
     }
+    
+    public void launchInforma(ImageRegion ir) {
+    	// right now, i'm only passing an id to the image region.
+    	// in the future, we might pass other bits of data...
+    	
+    	Bundle regionInfo = new Bundle();
+    	regionInfo.putInt("regionId", imageRegions.indexOf(ir));
+    	
+    	Intent informa = new Intent(this,InformaEditor.class);
+    	informa.putExtra("regionInfo", regionInfo);
+    	startActivityForResult(informa,FROM_INFORMA);
+    }
+    
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    	if(resultCode == Activity.RESULT_OK) {
+    		if(requestCode == FROM_INFORMA) {
+    			// update corresponding image region
+    			// do something with image region!
+    			//imageRegions.get(data.getBundleExtra("informaReturn").getInt("regionId"))
+    			
+    			
+    			
+    		}
+    	}
+    }
 
 	@Override
 	protected void onPostResume() {
@@ -1407,5 +1425,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		super.onPostResume();
 		
 		
+	}
+	
+	public Paint getPainter ()
+	{
+		return obscuredPaint;
 	}
 }

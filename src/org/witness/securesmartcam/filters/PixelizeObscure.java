@@ -5,22 +5,30 @@
 package org.witness.securesmartcam.filters;
 
 
+import java.util.Properties;
+
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 
-public class PixelizeObscure implements ObscureMethod {
+public class PixelizeObscure implements RegionProcesser {
 
 	Bitmap originalBmp;
 	
 	private final static int PIXEL_BLOCK = 10;
 	
-	public PixelizeObscure(Bitmap _originalBmp) {
-		originalBmp = _originalBmp;
+	Properties mProps;
+	
+	public PixelizeObscure ()
+	{
+		mProps = new Properties ();
+		mProps.put("size", "10");		
 	}
 	
-	public void obscureRect(Rect rect, Canvas canvas) {
+	public void processRegion(Rect rect, Canvas canvas, Bitmap bitmap) {
 	
+		originalBmp = bitmap;
+		
 		int pixelSize = (rect.right-rect.left)/PIXEL_BLOCK;
 		
 		if (pixelSize <= 0) //1 is the smallest it can be
@@ -83,6 +91,15 @@ public class PixelizeObscure implements ObscureMethod {
 		}
 	}
 	
+	public Properties getProperties()
+	{
+		return null;
+	}
+	
+	public void setProperties(Properties props)
+	{
+		
+	}
 }
 
 

@@ -35,6 +35,10 @@
     <string name="confirm_delete">Do you want to delete the original media file?</string>
     <string name="confirm_delete_region">Are you sure you want to remove this region box?</string>
     
+    <!-- Informa Options -->
+    <string name="informaOpt_consent">Subject has given his/her informed consent to be photographed.</string>
+    <string name="informaOpt_autoFilter">Automatically apply this type of filter each time this person appears in an ObscuraCam photo.</string>
+    
      <!-- APG related -->
     <string name="apg_error_activity_not_found">No suitable application for this action found.</string>
     <string name="apg_error_apg_version_not_supported">The installed APG version is not supported.</string>

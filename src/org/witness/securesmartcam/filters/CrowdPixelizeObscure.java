@@ -5,24 +5,23 @@
 package org.witness.securesmartcam.filters;
 
 
+import java.util.Properties;
+
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Path;
 import android.graphics.Path.Direction;
 import android.graphics.Rect;
 
-public class CrowdBlurObscure implements ObscureMethod {
+public class CrowdPixelizeObscure implements RegionProcesser {
 
 	Bitmap originalBmp;
 	
 	public static int PIXEL_BLOCK = 50;
 	
-	public CrowdBlurObscure(Bitmap _originalBmp) {
-		originalBmp = _originalBmp;
-	}
+	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitmap) {
 	
-	public void obscureRect(Rect rect, Canvas canvas) {
-	
+		originalBmp = bitmap;
 		
 		int pixelSize = originalBmp.getWidth()/PIXEL_BLOCK;
 		
@@ -77,6 +76,15 @@ public class CrowdBlurObscure implements ObscureMethod {
 		}
 	}
 	
+	public Properties getProperties()
+	{
+		return null;
+	}
+	
+	public void setProperties(Properties props)
+	{
+		
+	}
 }
 
 

@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.witness.sscphase1"
-<<<<<<< HEAD
-      android:versionCode="1"
-      android:versionName="1.0"
-      android:installLocation="preferExternal">
-    <application android:label="@string/app_name" android:icon="@drawable/ic_launcher_ssc">
-    	<activity android:name=".SplashScreenActivity" android:label="@string/app_name">
-=======
-      android:versionCode="19"
-      android:versionName="1.1.2-dev"
+      android:versionCode="20"
+      android:versionName="1.2"
       android:installLocation="preferExternal">
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher_ssc" android:debuggable="false">
         <activity android:label="@string/app_name_label" android:name=".ObscuraApp" android:theme="@android:style/Theme.Black.NoTitleBar" android:configChanges="orientation|keyboardHidden">
->>>>>>> 557bd7e694727a4aa89947b30689a858139d9cfb
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -33,6 +25,7 @@
              </intent-filter>        
         </activity>
         <activity android:name="org.witness.securesmartcam.ImagePreview" android:label="@string/image_preview" android:configChanges="orientation|keyboardHidden" />
+    	<activity android:name="org.witness.informa.InformaEditor" android:theme="@style/Theme.CustomDialog" />
     </application>
     <uses-sdk android:minSdkVersion="7" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
