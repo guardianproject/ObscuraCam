@@ -26,9 +26,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
+import android.widget.PopupWindow.OnDismissListener;
 import android.widget.RelativeLayout;
 
-public class ImageRegion extends FrameLayout implements OnTouchListener, OnActionItemClickListener {
+public class ImageRegion extends FrameLayout implements OnTouchListener, OnActionItemClickListener, OnDismissListener {
 
 	public static final String LOGTAG = "SSC.ImageRegion";
 	
@@ -85,6 +86,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	private final static int[] filterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_pixelate, R.drawable.ic_context_mask, R.drawable.ic_context_id};
 	
 	public final Drawable unidentifiedBorder, identifiedBorder;
+	public Drawable imageRegionBorder;
 	
 	// The ImageEditor object that contains us
 	ImageEditor imageEditor;
@@ -195,7 +197,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
         // Setting the onTouchListener for the moveRegion
         // Might also want to do this for the other views (corners)
         moveRegion.setOnTouchListener(this);
-                
+        
+        imageRegionBorder = unidentifiedBorder;
         initPopup();
         
         // This doesn't work with the touch listener always returning true.  
@@ -260,6 +263,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 		}
 
 		qa.setOnActionItemClickListener(this);
+		qa.setOnDismissListener(this);
 	}
 	
 	void toggleMode() {
@@ -294,10 +298,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 			//setBackgroundColor(0xffffffff);
 			
 			// set the inactive border drawable
-			if(this.rProc.getClass() == ConsentTagger.class)
-				setBackgroundDrawable(identifiedBorder);
-			else
-				setBackgroundDrawable(unidentifiedBorder);			
+			setBackgroundDrawable(imageRegionBorder);
 			
 			topLeftCorner.setVisibility(View.GONE);
 			topRightCorner.setVisibility(View.GONE);
@@ -640,7 +641,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 		case ImageRegion.CONSENT:
 			Log.v(ObscuraApp.TAG,"obscureType: CONSENTIFY!");
 			rProc = new ConsentTagger();
-			Log.d(ObscuraApp.TAG,"the rProc is " + rProc.getClass().getName());
 			imageEditor.launchInforma(this);
 			break;
 		default:
@@ -648,5 +648,17 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 			rProc = new BlurObscure();
 			break;
 		}
+		
+		if(rProc.getClass() == ConsentTagger.class)
+			imageRegionBorder = identifiedBorder;
+		else
+			imageRegionBorder = unidentifiedBorder;
+	}
+
+	@Override
+	public void onDismiss() {
+		// TODO Auto-generated method stub
+		if(mode == NORMAL_MODE)
+			setBackgroundDrawable(imageRegionBorder);
 	}
 }
