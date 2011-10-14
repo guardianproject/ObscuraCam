@@ -11,12 +11,8 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
-import org.witness.securesmartcam.filters.BlurObscure;
-import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
 import org.witness.securesmartcam.filters.MaskObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
-import org.witness.securesmartcam.filters.PaintSquareObscure;
-import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.securesmartcam.jpegredaction.JpegRedaction;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
@@ -24,6 +20,7 @@ import org.witness.sscphase1.R;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -31,6 +28,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -39,7 +37,6 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Bitmap.CompressFormat;
 import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -56,10 +53,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnLongClickListener;
-import android.view.Window;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -156,9 +153,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	Uri savedImageUri;
 	
 	// Constant for temp filename
-	private final static String TMP_FILE_NAME = "tmp.jpg";
+	public final static String TMP_FILE_NAME = "tmp.jpg";
 	
-	private final static String TMP_FILE_DIRECTORY = "/Android/data/org.witness.sscphase1/files/";
+	public final static String TMP_FILE_DIRECTORY = "/Android/data/org.witness.sscphase1/files/";
 	
 	
 	//handles threaded events for the UI thread
@@ -279,20 +276,22 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 				// Get the current display to calculate ratios
 				Display currentDisplay = getWindowManager().getDefaultDisplay();
-
-				Log.v(ObscuraApp.TAG,"Display Width: " + currentDisplay.getWidth());
-				Log.v(ObscuraApp.TAG,"Display Height: " + currentDisplay.getHeight());
-				
-				Log.v(ObscuraApp.TAG,"Image Width: " + originalImageWidth);
-				Log.v(ObscuraApp.TAG,"Image Height: " + originalImageHeight);
 				
 				// Ratios between the display and the image
 				int widthRatio = (int) Math.floor(bmpFactoryOptions.outWidth / (float) currentDisplay.getWidth());
 				int heightRatio = (int) Math.floor(bmpFactoryOptions.outHeight / (float) currentDisplay.getHeight());
 
+				/*
+				Log.v(ObscuraApp.TAG,"Display Width: " + currentDisplay.getWidth());
+				Log.v(ObscuraApp.TAG,"Display Height: " + currentDisplay.getHeight());
+				
+				Log.v(ObscuraApp.TAG,"Image Width: " + originalImageWidth);
+				Log.v(ObscuraApp.TAG,"Image Height: " + originalImageHeight);
+
 				Log.v(ObscuraApp.TAG, "HEIGHTRATIO:" + heightRatio);
 				Log.v(ObscuraApp.TAG, "WIDTHRATIO:" + widthRatio);
-	
+				 */
+				
 				// If both of the ratios are greater than 1,
 				// one of the sides of the image is greater than the screen
 				if (heightRatio > 1 && widthRatio > 1) {
@@ -396,10 +395,20 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		b.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
 
-                // User clicked OK so go ahead and delete
-        		deleteOriginal();
-            	viewImage(savedImageUri);
-            	finish();
+            	try
+            	{
+	                // User clicked OK so go ahead and delete
+	        		deleteOriginal();
+	            	viewImage(savedImageUri);
+            	}
+            	catch (IOException e)
+            	{
+            		Log.e(ObscuraApp.TAG, "error saving", e);
+            	}
+            	finally
+            	{
+            		finish();
+            	}
             }
         });
 		b.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
@@ -414,13 +423,44 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	/*
 	 * Actual deletion of original
 	 */
-	private void deleteOriginal() {
+	private void deleteOriginal() throws IOException
+	{
 		
 		if (originalImageUri != null)
 		{
 			if (originalImageUri.getScheme().equals("file"))
 			{
-				new File(originalImageUri.toString()).delete();
+				String origFilePath = originalImageUri.getPath();
+				File fileOrig = new File(origFilePath);
+
+				String[] columnsToSelect = { MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA };
+				
+				/*
+				ExifInterface ei = new ExifInterface(origFilePath);
+				long dateTaken = new Date(ei.getAttribute(ExifInterface.TAG_DATETIME)).getTime();
+				*/
+				
+				Uri[] uriBases = {MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media.INTERNAL_CONTENT_URI};
+				
+				for (Uri uriBase : uriBases)
+				{
+					
+			    	Cursor imageCursor = getContentResolver().query(uriBase, columnsToSelect, MediaStore.Images.Media.DATA + " = ?",  new String[] {origFilePath}, null );
+					//Cursor imageCursor = getContentResolver().query(uriBase, columnsToSelect, MediaStore.Images.Media.DATE_TAKEN + " = ?",  new String[] {dateTaken+""}, null );
+					
+			        while (imageCursor.moveToNext())
+			        {
+			        
+				       long _id = imageCursor.getLong(imageCursor.getColumnIndex(MediaStore.Images.Media._ID));
+				    	   
+				       getContentResolver().delete(ContentUris.withAppendedId(uriBase, _id), null, null);
+				       
+			    	}
+				}
+				
+				if (fileOrig.exists())
+					fileOrig.delete();
+				
 			}
 			else
 			{
@@ -1152,13 +1192,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     {
     	// Create the Uri - This can't be "private"
     	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory(), TMP_FILE_DIRECTORY);
-    	File tmpFile = new File(tmpFileDirectory,TMP_FILE_NAME);
     
     	if (!tmpFileDirectory.exists()) {
     		tmpFileDirectory.mkdirs();
     	}
-    
-    	Uri tmpImageUri = Uri.fromFile(tmpFile);
+    	
+    	File tmpInFile = new File(tmpFileDirectory,TMP_FILE_NAME);
+    	File tmpOutFile = new File(tmpFileDirectory,'2' + TMP_FILE_NAME);
+        
+    	Uri tmpImageUri = Uri.fromFile(tmpInFile);
 		copy (originalImageUri, tmpImageUri);
 		
 		// Iterate through the regions that have been created
@@ -1167,13 +1209,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    {
 	    	ImageRegion currentRegion = i.next();
 	    	
-	    	JpegRedaction om = new JpegRedaction(currentRegion.getRegionProcessor(), tmpFile, tmpFile);	
+	    	JpegRedaction om = new JpegRedaction(currentRegion.getRegionProcessor(), tmpInFile, tmpOutFile);	
 	    	om.processRegion(currentRegion.getRect(), obscuredCanvas, obscuredBmp);
 		
 		}
 	    
+	    tmpInFile.delete();
 	    
-	    return tmpFile;
+	    return tmpOutFile;
     }
     
     private void copy (Uri uriSrc, Uri uriTarget) throws IOException
@@ -1350,13 +1393,21 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * HNH 8/23/11
      */
     public String pullPathFromUri(Uri originalUri) {
-    	
+
     	String originalImageFilePath = null;
-    	String[] columnsToSelect = { MediaStore.Images.Media.DATA };
-    	Cursor imageCursor = getContentResolver().query(originalUri, columnsToSelect, null, null, null );
-    	if ( imageCursor != null && imageCursor.getCount() == 1 ) {
-	        imageCursor.moveToFirst();
-	        originalImageFilePath = imageCursor.getString(imageCursor.getColumnIndex(MediaStore.Images.Media.DATA));
+
+    	if (originalUri.getScheme().equals("file"))
+    	{
+    		originalImageFilePath = originalUri.toString();
+    	}
+    	else
+    	{
+	    	String[] columnsToSelect = { MediaStore.Images.Media.DATA };
+	    	Cursor imageCursor = getContentResolver().query(originalUri, columnsToSelect, null, null, null );
+	    	if ( imageCursor != null && imageCursor.getCount() == 1 ) {
+		        imageCursor.moveToFirst();
+		        originalImageFilePath = imageCursor.getString(imageCursor.getColumnIndex(MediaStore.Images.Media.DATA));
+	    	}
     	}
 
     	return originalImageFilePath;

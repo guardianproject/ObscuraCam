@@ -77,7 +77,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	//public static final int BLUR = 4; // PixelizeObscure
 	public static final int CONSENT = 5; // PixelizeObscure
 	
-	//int obscureType = PIXELATE;
+	int mObscureType = PIXELATE;
 
 	private final static String[] filterLabels = {"Redact","Pixelate","bgPixelate","Mask","Consent"};
 	private final static int[] filterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_pixelate, R.drawable.ic_context_mask, R.drawable.ic_context_id};
@@ -594,8 +594,15 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
             	imageEditor.deleteRegion(ImageRegion.this);
             	break;
             default:
-            	int obscureType = pos - 2;
-            	updateRegionProcessor(obscureType);
+            	int selObscureType = pos - 2;
+            	if (mObscureType != selObscureType)
+            	{
+            		mObscureType = selObscureType;
+            		updateRegionProcessor(mObscureType);
+            	}
+            	
+            	//showObscureTypeMenu
+            	
 				imageEditor.updateDisplayImage();
             	
 		}
@@ -605,6 +612,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	private void updateRegionProcessor (int obscureType)
 	{
 		switch (obscureType) {
+		
 		case ImageRegion.BG_PIXELATE:
 			Log.v(ObscuraApp.TAG,"obscureType: BGPIXELIZE");
 			rProc = new CrowdPixelizeObscure();
