@@ -1,5 +1,6 @@
 package org.witness.securesmartcam.filters;
 
+import java.util.Map;
 import java.util.Properties;
 
 import android.graphics.Bitmap;

@@ -16,15 +16,16 @@ public class ConsentTagger implements RegionProcesser
 		mProps.put("regionSubject", "");
 		mProps.put("informedConsent", "false");
 		mProps.put("persistObscureType", "false");
-		
-		// broadcast to ImageEditor to launch Informa?
-		
+		mProps.put("obfuscationType", this.getClass().getName());		
 	}
 	
 	@Override
 	public void processRegion (Rect rect, Canvas canvas,  Bitmap bitmap) 
 	{
-		
+		// return properties and data as a map
+		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
+		mProps.put("regionWidth", Integer.toString(Math.abs(rect.left - rect.right)));
+		mProps.put("regionHeight", Integer.toString(Math.abs(rect.top - rect.bottom)));
 	}
 
 	public Properties getProperties()

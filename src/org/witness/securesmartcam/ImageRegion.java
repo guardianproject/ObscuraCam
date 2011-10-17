@@ -20,6 +20,8 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -217,7 +219,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
         
         //set default processor
         rProc = new PixelizeObscure();
-    }
+    }		
 	
 	public void inflatePopup(boolean showDelayed) {
 
@@ -621,35 +623,39 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 		switch (obscureType) {
 		case ImageRegion.BG_PIXELATE:
 			Log.v(ObscuraApp.TAG,"obscureType: BGPIXELIZE");
-			rProc = new CrowdPixelizeObscure();
+			setRegionProcessor(new CrowdPixelizeObscure());
 		break;
 		
 		case ImageRegion.MASK:
 			Log.v(ObscuraApp.TAG,"obscureType: ANON");
-			rProc = new MaskObscure(imageEditor.getApplicationContext(), imageEditor.getPainter());
+			setRegionProcessor(new MaskObscure(imageEditor.getApplicationContext(), imageEditor.getPainter()));
 			break;
 			
 		case ImageRegion.REDACT:
 			Log.v(ObscuraApp.TAG,"obscureType: SOLID");
-			rProc = new PaintSquareObscure();
+			setRegionProcessor(new PaintSquareObscure());
 			break;
 			
 		case ImageRegion.PIXELATE:
 			Log.v(ObscuraApp.TAG,"obscureType: PIXELIZE");
-			rProc = new PixelizeObscure();
+			setRegionProcessor(new PixelizeObscure());
 			break;
 		case ImageRegion.CONSENT:
 			Log.v(ObscuraApp.TAG,"obscureType: CONSENTIFY!");
-			rProc = new ConsentTagger();
+			// If the region processor is already a consent tagger, the user wants to edit.
+			// so no need to change the region processor.
+			if(getRegionProcessor().getClass() != ConsentTagger.class)
+				setRegionProcessor(new ConsentTagger());
+			
 			imageEditor.launchInforma(this);
 			break;
 		default:
 			Log.v(ObscuraApp.TAG,"obscureType: NONE/BLUR");
-			rProc = new BlurObscure();
+			setRegionProcessor(new BlurObscure());
 			break;
 		}
 		
-		if(rProc.getClass() == ConsentTagger.class)
+		if(getRegionProcessor().getClass() == ConsentTagger.class)
 			imageRegionBorder = identifiedBorder;
 		else
 			imageRegionBorder = unidentifiedBorder;
@@ -657,7 +663,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 
 	@Override
 	public void onDismiss() {
-		// TODO Auto-generated method stub
 		if(mode == NORMAL_MODE)
 			setBackgroundDrawable(imageRegionBorder);
 	}

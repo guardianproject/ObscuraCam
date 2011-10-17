@@ -10,10 +10,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Vector;
 
 import org.witness.informa.InformaEditor;
+import org.witness.informa.utils.MetadataParser;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.BlurObscure;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
@@ -149,6 +152,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
 	// Vector to hold ImageRegions 
 	Vector<ImageRegion> imageRegions = new Vector<ImageRegion>(); 
+	MetadataParser mp;
 		
 	// The original image dimensions (not scaled)
 	int originalImageWidth;
@@ -187,6 +191,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	   }
     	};
 
+	@SuppressWarnings("unused")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -351,6 +356,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void setBitmap (Bitmap nBitmap)
 	{
 		imageBitmap = nBitmap;
@@ -1271,7 +1277,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	// Screen size
     	Bitmap obscuredBmp = null;
 
-
     	ContentValues cv = new ContentValues();
     	
     	// Add a date so it shows up in a reasonable place in the gallery - Should we do this??
@@ -1337,6 +1342,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				new String[] {pullPathFromUri(savedImageUri)},
 				new String[] {"image/jpeg"},
 				null);
+		
+		// package and insert exif data
+		mp = new MetadataParser(dateFormat.format(date), new File(pullPathFromUri(savedImageUri)), this);
+		Iterator<ImageRegion> i = imageRegions.iterator();
+	    while (i.hasNext()) 
+	    {
+	    	mp.addRegion(i.next().rProc.getProperties());
+	    }
     	
 		Toast t = Toast.makeText(this,"Image saved to Gallery", Toast.LENGTH_SHORT); 
 		t.show();
@@ -1344,6 +1357,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		mProgressDialog.cancel();
 		
 		handleDelete ();
+		mp.flushMetadata();
 		
 		
 		return true;
@@ -1396,6 +1410,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
     public void launchInforma(ImageRegion ir) {
     	Intent informa = new Intent(this,InformaEditor.class);
+    	informa.putExtra("mProps", ir.rProc.getProperties());
+    	informa.putExtra("irIndex", imageRegions.indexOf(ir));
     	startActivityForResult(informa,FROM_INFORMA);
     }
     
@@ -1403,26 +1419,24 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
     	if(resultCode == Activity.RESULT_OK) {
     		if(requestCode == FROM_INFORMA) {
-    			// update corresponding image region
-    			Bundle informaReturn = data.getBundleExtra("informaReturn");
-    			Properties mProps = new Properties();
-    			mProps.put("regionSubject", informaReturn.getString("regionSubject"));
-    			mProps.put("informedConsent", Boolean.toString(informaReturn.getBoolean("informedConsent")));
-    			mProps.put("persistObscureType",Boolean.toString(informaReturn.getBoolean("persistObscureType")));
+    			// replace corresponding image region
+    			@SuppressWarnings("unchecked")
+				HashMap<String, String> informaReturn = (HashMap<String, String>) data.getSerializableExtra("informaReturn");    			
+    			Properties mProp = imageRegions.get(data.getIntExtra("irIndex", 0)).rProc.getProperties();
     			
+    			// iterate through returned hashmap and place these new properties in it.
+    			for(Map.Entry<String, String> entry : informaReturn.entrySet()) {
+    				mProp.setProperty(entry.getKey(), entry.getValue());
+    			}
     			
-    			RegionProcesser ir = imageRegions.get(data.getBundleExtra("informaReturn").getInt("regionId")).rProc;
-    			ir.setProperties(mProps);
-    			
-    			//Log.d(ObscuraApp.TAG,"new id: " + ir.getProperties().getProperty("regionSubject"));
-    			
+    			imageRegions.get(data.getIntExtra("irIndex", 0)).rProc.setProperties(mProp);
+    			    			
     		}
     	}
     }
 
 	@Override
 	protected void onPostResume() {
-		// TODO Auto-generated method stub
 		super.onPostResume();
 		
 		

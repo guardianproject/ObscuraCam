@@ -5,6 +5,8 @@
 package org.witness.securesmartcam.filters;
 
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import android.graphics.Bitmap;
@@ -16,8 +18,13 @@ import android.graphics.Rect;
 public class BlurObscure implements RegionProcesser {
 
 	Bitmap originalBmp;
+	Properties mProps;
 
 	private final static int BLUR_OFFSET = 10;
+	
+	public BlurObscure() {
+		mProps = new Properties ();
+	}
 	
 	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitmap) {
 		//makeItBlur(rect);
@@ -26,6 +33,11 @@ public class BlurObscure implements RegionProcesser {
 		paint.setColor(Color.WHITE);
 		paint.setAlpha(100);
 		canvas.drawCircle(rect.exactCenterX(), rect.exactCenterY(), rect.width()/2, paint);
+		
+		// return properties and data as a map
+		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
+		mProps.put("regionWidth", Integer.toString(Math.abs(rect.left - rect.right)));
+		mProps.put("regionHeight", Integer.toString(Math.abs(rect.top - rect.bottom)));
 		
 	}
 	
@@ -104,12 +116,12 @@ public class BlurObscure implements RegionProcesser {
 	
 	public Properties getProperties()
 	{
-		return null;
+		return mProps;
 	}
 	
 	public void setProperties(Properties props)
 	{
-		
+		mProps = props;
 	}
 	
 }

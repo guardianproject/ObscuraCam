@@ -5,6 +5,8 @@
 package org.witness.securesmartcam.filters;
 
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import android.graphics.Bitmap;
@@ -34,7 +36,8 @@ public class PixelizeObscure implements RegionProcesser {
 		if (pixelSize <= 0) //1 is the smallest it can be
 			pixelSize = 1;
 		
-		pixelate(rect, pixelSize);
+		pixelate(rect, pixelSize);		
+		
 	}
 	
 	private void pixelate(Rect rect, int pixelSize)
@@ -93,12 +96,12 @@ public class PixelizeObscure implements RegionProcesser {
 	
 	public Properties getProperties()
 	{
-		return null;
+		return mProps;
 	}
 	
 	public void setProperties(Properties props)
 	{
-		
+		mProps = props;
 	}
 }
 

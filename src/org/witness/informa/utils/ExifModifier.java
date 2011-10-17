@@ -14,20 +14,19 @@ public class ExifModifier {
 	File _jpeg;
 	
 	
-	public void ExifModifier(String jpeg) {
+	public ExifModifier(String jpeg) {
 		try {
 			_ei = new ExifInterface(jpeg);
 			_jpeg = new File(jpeg);
-			
-			// get all the exif tags of jpeg and hold them in memory as a JSON object
 			
 		} catch(IOException e) {
 			Log.d(ObscuraApp.TAG,"nope: " + e);
 		}
 	}
 	
-	public void addMakernotes() {
-		
+	public void addMakernotes(String makernotes) {
+		Log.d(ObscuraApp.TAG,"old model tag: " + _ei.getAttribute(ExifInterface.TAG_MAKE));
+		_ei.setAttribute(ExifInterface.TAG_MAKE, makernotes);
 	}
 	
 	public JSONObject getExifTags() {
@@ -47,6 +46,13 @@ public class ExifModifier {
 	}
 	
 	public boolean zipExifData() {
-		return false;
+		try {
+			_ei.saveAttributes();
+			Log.d(ObscuraApp.TAG,"new model tag: " + _ei.getAttribute(ExifInterface.TAG_MAKE));
+			return true;
+		} catch(IOException e) {
+			Log.d(ObscuraApp.TAG,"exif fail: " + e);
+			return false;
+		}
 	}
 }

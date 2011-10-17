@@ -39,6 +39,15 @@
     <string name="informaOpt_consent">Subject has given his/her informed consent to be photographed.</string>
     <string name="informaOpt_autoFilter">Automatically apply this type of filter each time this person appears in an ObscuraCam photo.</string>
     
+    <string name="mdHumanReadable_intro">Image taken with/modified by ObscuraCam.</string>
+    <string name="mdHumanReadable_onDate">Image saved on:</string>
+    <string name="mdHumanReadable_numTags">Number of edited regions in this image:</string>
+    <string name="mdHumanReadable_consentIntro">Subjects contained in this image:</string>
+    <string name="mdHumanReadable_psudonym">Name/Psudonym:</string>
+    <string name="mdHumanReadable_coordinates">Coordinates within this image:</string>
+    <string name="mdHumanReadable_consentGiven">Informed consent given?</string>
+    <string name="mdHumanReadable_persistObfuscation">Apply same obfuscation settings to this subject in every photo?</string>
+    
      <!-- APG related -->
     <string name="apg_error_activity_not_found">No suitable application for this action found.</string>
     <string name="apg_error_apg_version_not_supported">The installed APG version is not supported.</string>
