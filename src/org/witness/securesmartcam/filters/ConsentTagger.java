@@ -4,7 +4,7 @@ import java.util.Properties;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Rect;
+import android.graphics.RectF;
 
 public class ConsentTagger implements RegionProcesser
 {
@@ -19,7 +19,7 @@ public class ConsentTagger implements RegionProcesser
 	}
 	
 	@Override
-	public void processRegion (Rect rect, Canvas canvas,  Bitmap bitmap) 
+	public void processRegion (RectF rect, Canvas canvas,  Bitmap bitmap) 
 	{
 		
 	}

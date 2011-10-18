@@ -5,6 +5,7 @@ import java.util.Properties;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.RectF;
 
 public class TintObscure implements RegionProcesser {
 
@@ -51,11 +52,6 @@ public class TintObscure implements RegionProcesser {
 		   pix = null;
 		}
 
-	@Override
-	public void processRegion(Rect rect, Canvas canvas, Bitmap bitmap) {
-		
-		
-	}
 	
 	public Properties getProperties()
 	{
@@ -64,6 +60,12 @@ public class TintObscure implements RegionProcesser {
 	
 	public void setProperties(Properties props)
 	{
+		
+	}
+
+	@Override
+	public void processRegion(RectF rect, Canvas canvas, Bitmap originalBmp) {
+		// TODO Auto-generated method stub
 		
 	}
 }

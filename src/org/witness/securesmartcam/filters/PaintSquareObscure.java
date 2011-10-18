@@ -11,7 +11,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
+import android.graphics.RectF;
 
 public class PaintSquareObscure implements RegionProcesser {
 
@@ -22,7 +22,7 @@ public class PaintSquareObscure implements RegionProcesser {
         paint.setColor(Color.BLACK);
 	}
  	
-	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitma) {
+	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitma) {
 		canvas.drawRect(rect, paint);
 	}
 

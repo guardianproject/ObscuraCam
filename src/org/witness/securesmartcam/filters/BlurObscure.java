@@ -12,6 +12,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 
 public class BlurObscure implements RegionProcesser {
 
@@ -19,13 +20,13 @@ public class BlurObscure implements RegionProcesser {
 
 	private final static int BLUR_OFFSET = 10;
 	
-	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitmap) {
+	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitmap) {
 		//makeItBlur(rect);
 		
 		Paint paint = new Paint();
 		paint.setColor(Color.WHITE);
 		paint.setAlpha(100);
-		canvas.drawCircle(rect.exactCenterX(), rect.exactCenterY(), rect.width()/2, paint);
+		canvas.drawCircle(rect.centerX(), rect.centerY(), rect.width()/2, paint);
 		
 	}
 	

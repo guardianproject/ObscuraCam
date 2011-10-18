@@ -3,17 +3,13 @@ package org.witness.securesmartcam.jpegredaction;
 import java.io.File;
 import java.util.Properties;
 
-import org.witness.securesmartcam.ImageRegion;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
-import org.witness.securesmartcam.filters.PaintSquareObscure;
 import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Rect;
-import android.os.Bundle;
+import android.graphics.RectF;
 
 public class JpegRedaction implements RegionProcesser {
 	
@@ -69,11 +65,11 @@ public class JpegRedaction implements RegionProcesser {
     }
     
 	@Override
-	public void processRegion(Rect rect, Canvas canvas, Bitmap bitmap) {
+	public void processRegion(RectF rect, Canvas canvas, Bitmap bitmap) {
 
 		 String strInFile = mInFile.getAbsolutePath();
 		 String strOutFile = mOutFile.getAbsolutePath();
-	     redactRegion(strInFile, strOutFile, rect.left, rect.right, rect.top, rect.bottom, mMethod);
+	     redactRegion(strInFile, strOutFile, (int)rect.left, (int)rect.right, (int)rect.top, (int)rect.bottom, mMethod);
 		
 	}
 	

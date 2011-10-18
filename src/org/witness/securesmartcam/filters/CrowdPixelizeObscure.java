@@ -9,9 +9,8 @@ import java.util.Properties;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Path;
-import android.graphics.Path.Direction;
 import android.graphics.Rect;
+import android.graphics.RectF;
 
 public class CrowdPixelizeObscure implements RegionProcesser {
 
@@ -19,7 +18,7 @@ public class CrowdPixelizeObscure implements RegionProcesser {
 	
 	public static int PIXEL_BLOCK = 50;
 	
-	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitmap) {
+	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitmap) {
 	
 		originalBmp = bitmap;
 		
@@ -31,7 +30,7 @@ public class CrowdPixelizeObscure implements RegionProcesser {
 		pixelate(rect, pixelSize);
 	}
 	
-	private void pixelate(Rect rect, int pixelSize)
+	private void pixelate(RectF rect, int pixelSize)
 	{
 		if (rect.left <= 0) {
 			rect.left = 1;

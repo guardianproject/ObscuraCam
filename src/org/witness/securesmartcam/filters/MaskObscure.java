@@ -15,7 +15,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.Log;
 
 public class MaskObscure implements RegionProcesser {
@@ -36,7 +36,7 @@ public class MaskObscure implements RegionProcesser {
 		
 	}
 	
-	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitmap) {
+	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitmap) {
 	
 		_bitmap = bitmap;		
 		

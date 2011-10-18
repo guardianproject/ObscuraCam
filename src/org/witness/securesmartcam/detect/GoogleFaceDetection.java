@@ -27,8 +27,8 @@ public class GoogleFaceDetection implements FaceDetection {
 	}
 
 	public int findFaces() {
+		
 		numFaces = faceDetector.findFaces(bmp, faces);
-		Log.v(LOGTAG,"Found " + numFaces + " faces");
 		return numFaces;
 	}
 
@@ -43,8 +43,8 @@ public class GoogleFaceDetection implements FaceDetection {
 	            	float eyeDistance = faces[i].eyesDistance();
 	            	faces[i].getMidPoint(midPoint);
 
-	            	Log.v(LOGTAG,"eyeDistance: " + eyeDistance);
-	            	Log.v(LOGTAG,"midPoint: " + midPoint.x + " " + midPoint.y);
+	           // 	Log.v(LOGTAG,"eyeDistance: " + eyeDistance);
+	           // 	Log.v(LOGTAG,"midPoint: " + midPoint.x + " " + midPoint.y);
 	            	
 	            	// Create Rectangle
 	            	faceRects[i] = new RectF((midPoint.x-eyeDistance), 
@@ -52,10 +52,10 @@ public class GoogleFaceDetection implements FaceDetection {
 	            			(midPoint.x+eyeDistance), 
 	            			(midPoint.y+eyeDistance+eyeDistance));
 	            	
-	            	Log.v(LOGTAG,"faceRect: left: " + faceRects[i].left 
-	            			+ " top: " + faceRects[i].top 
-	            			+ " right: " + faceRects[i].right
-	            			+ " bottom: " + faceRects[i].bottom);
+	            //	Log.v(LOGTAG,"faceRect: left: " + faceRects[i].left 
+	            	//		+ " top: " + faceRects[i].top 
+	            		//	+ " right: " + faceRects[i].right
+	            			//+ " bottom: " + faceRects[i].bottom);
 	        	}
 	        }
 	    }	

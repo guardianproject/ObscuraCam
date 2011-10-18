@@ -13,14 +13,15 @@ import org.witness.securesmartcam.filters.RegionProcesser;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
 
+import android.graphics.Matrix;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
@@ -31,45 +32,25 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	public static final String LOGTAG = "SSC.ImageRegion";
 	
 	// Rect for this when unscaled
-	public RectF unscaledRect;
-	
-	// Rect for this when scaled
-	public RectF scaledRect;
+	public RectF mBounds;
 		
 	// Start point for touch events
-	PointF startPoint = new PointF();
+	PointF mStartPoint = new PointF();
 
-	// The unscaled image dimensions that this ImageRegion is on
-	int imageWidth;
-	int imageHeight;
-	
-	// The distance around a corner which will still represent a corner touch event
-	public static final int CORNER_TOUCH_TOLERANCE = 50;
 		
 	// Our current mode
 	public static final int NORMAL_MODE = 0;
 	public static final int EDIT_MODE = 1;
-	int mode = EDIT_MODE;
 	
-	//other values
-	public int backgroundColor;
-	
-	// The current touch event mode
+// The current touch event mode
 	public final static int NONE = 0;
 	public final static int MOVE = 1;
-	public final static int TOP_LEFT = 2;
-	public final static int BOTTOM_LEFT = 3;
-	public final static int TOP_RIGHT = 4;
-	public final static int BOTTOM_RIGHT = 5;
-	int whichEditMode = NONE;
 	
+
 	// What should be done to this region
 	public static final int NOTHING = 0;
 	public static final int OBSCURE = 1;
-	/*
-	 * Add each ObscureMethod to this list and update the 
-	 * createObscuredBitmap method in ImageEditor
-	 */
+	
 	public static final int REDACT = 0; // PaintSquareObscure
 	public static final int PIXELATE = 1; // PixelizeObscure
 	public static final int BG_PIXELATE = 2; // BlurObscure
@@ -77,122 +58,86 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	//public static final int BLUR = 4; // PixelizeObscure
 	public static final int CONSENT = 5; // PixelizeObscure
 	
+	
+	int mTouchMode = EDIT_MODE;
+	
+	private View mMoveRegion;
+	
+	int mEditMode = NONE;
+	
+	/* Add each ObscureMethod to this list and update the 
+	 * createObscuredBitmap method in ImageEditor
+	 */
 	int mObscureType = PIXELATE;
 
-	private final static String[] filterLabels = {"Redact","Pixelate","bgPixelate","Mask","Consent"};
-	private final static int[] filterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_pixelate, R.drawable.ic_context_mask, R.drawable.ic_context_id};
+	private final static String[] mFilterLabels = {"Redact","Pixelate","CrowdPixel","Mask","Identify"};
+	private final static int[] mFilterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_pixelate, R.drawable.ic_context_mask, R.drawable.ic_context_id};
 	
 	// The ImageEditor object that contains us
-	ImageEditor imageEditor;
+	ImageEditor mImageEditor;
 	
 	// Popup menu for region 
 	// What's the license for this?
-	QuickAction qa;
+	QuickAction mPopupMenu;
 		
-	/*
-	 * Views for region, handles for scaling, moving
-	 */
-	View topLeftCorner;
-	View topRightCorner;
-	View bottomLeftCorner;
-	View bottomRightCorner;
-	View moveRegion;
+	ActionItem[] mActionFilters;
 	
-	/*
-	 * ActionItems for pop-up
-	 */
-	ActionItem editAction;
-	ActionItem idAction;
-	ActionItem encryptAction;
-	ActionItem removeRegionAction;
-	
-	ActionItem[] actionFilters;
-	
-	RegionProcesser rProc;
+	RegionProcesser mRProc;
 	
 	public RegionProcesser getRegionProcessor() {
-		return rProc;
+		return mRProc;
 	}
 
 	public void setRegionProcessor(RegionProcesser rProc) {
-		this.rProc = rProc;
+		mRProc = rProc;
 	}
 
-	/*
-	 * minMoveDistance to determine if we should count this as a move or not
-	 * minMoveDistance is calculated later based on screen density
+	
+	/* For touch events, whether or not to show the menu
 	 */
-	float minMoveDistanceDP = 2f;
-	float minMoveDistance;	
-
-	/*
-	 * For touch events, whether or not to show the menu
-	 */
-	boolean doMenu = false;
+	boolean mShowMenu = false;
 				
+	Matrix mMatrix;
+	
 	public ImageRegion(
-			ImageEditor _imageEditor, 
-			int _scaledStartX, int _scaledStartY, 
-			int _scaledEndX, int _scaledEndY, 
-			int _scaledImageWidth, int _scaledImageHeight, 
-			int _imageWidth, int _imageHeight, 
-			int _backgroundColor) 
+			ImageEditor imageEditor, 
+			float left, float top, 
+			float right, float bottom, Matrix matrix) 
 	{
-		super(_imageEditor);
+		super(imageEditor);
 		
-		// Set the imageEditor that this region belongs to to the one passed in
-		imageEditor = _imageEditor;
+		// Set the mImageEditor that this region belongs to to the one passed in
+		mImageEditor = imageEditor;
 
+		mMatrix = matrix;
+		
 		// Calculate the minMoveDistance using the screen density
-		float scale = this.getResources().getDisplayMetrics().density;
-		minMoveDistance = minMoveDistanceDP * scale + 0.5f;
+		//float scale = this.getResources().getDisplayMetrics().density;
+	//	minMoveDistance = minMoveDistanceDP * scale + 0.5f;
 		
-		// Set the image width and height (these are unscaled, not original on disk)
-		imageWidth = _imageWidth;
-		imageHeight = _imageHeight;
 		
-		Log.v(LOGTAG,"unscaled width: " + imageWidth + " height: " + imageHeight);
-
-		// Update unscaled variables
-		float startX = (float)_scaledStartX * (float)imageWidth/(float)_scaledImageWidth;
-		float startY = (float)_scaledStartY * (float)imageHeight/(float)_scaledImageHeight;
-		float endX = (float)_scaledEndX * (float)imageWidth/(float)_scaledImageWidth;
-		float endY = (float)_scaledEndY * (float)imageHeight/(float)_scaledImageHeight;
+		mBounds = new RectF(left, top, right, bottom);	
 		
-		unscaledRect = new RectF(startX, startY, endX, endY);
-		scaledRect = new RectF(_scaledStartX, _scaledStartY, _scaledEndX, _scaledEndY);
-
-		Log.v(LOGTAG,"unscaled startX: " + startX);
-		Log.v(LOGTAG,"unscaled startY: " + startY);
-		Log.v(LOGTAG,"unscaled endX: " + endX);
-		Log.v(LOGTAG,"unscaled endY: " + endY);
-		
-		// Set the background color, this is based on the type of region it is,
-		// probably should be self determined rather than passed in
-		setBackgroundColor(_backgroundColor);
-		backgroundColor = _backgroundColor;
 				
 		// Inflate Layout
 		// imageregioninner is a FrameLayout
-		LayoutInflater inflater = LayoutInflater.from(imageEditor);        
+		LayoutInflater inflater = LayoutInflater.from(mImageEditor);        
 		inflater.inflate(R.layout.imageregioninner, this, true);
-		
-		// Views for elements within the imageregion
-        topLeftCorner = findViewById(R.id.TopLeftCorner);
-        topRightCorner = findViewById(R.id.TopRightCorner);
-        bottomLeftCorner = findViewById(R.id.BottomLeftCorner);
-        bottomRightCorner = findViewById(R.id.BottomRightCorner);
-        moveRegion = findViewById(R.id.MoveRegion);
-                
+		setBackgroundDrawable(mImageEditor.getResources().getDrawable(R.drawable.border));
+		updateMatrix();
+
+        mMoveRegion = (View)findViewById(R.id.MoveRegion);
+
         // Setting the onTouchListener for the moveRegion
         // Might also want to do this for the other views (corners)
-        moveRegion.setOnTouchListener(this);
+        mMoveRegion.setOnTouchListener(this);
                 
         initPopup();
         
         // This doesn't work with the touch listener always returning true.  
         // In some cases touch listener returns false and this gets triggered
-        moveRegion.setOnClickListener(new OnClickListener (){
+       
+        mMoveRegion.setOnClickListener(new OnClickListener (){
 
 			// @Override
 			public void onClick(View v)
@@ -205,7 +150,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 		});
         
         //set default processor
-        rProc = new PixelizeObscure();
+        mRProc = new PixelizeObscure();
     }
 	
 	public void inflatePopup(boolean showDelayed) {
@@ -215,172 +160,143 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 			new Handler() {
 				@Override
 				 public void handleMessage(Message msg) {
-					 qa.show(ImageRegion.this);
+					 mPopupMenu.show(ImageRegion.this);
 			        }
 			}.sendMessageDelayed(new Message(), 500);
 		} else {
-			qa.show(ImageRegion.this);
+			mPopupMenu.show(ImageRegion.this);
 		}
 
 	}
 	
 	private void initPopup ()
 	{
-		qa = new QuickAction(imageEditor);
+		mPopupMenu = new QuickAction(mImageEditor);
 		
+		/*
 		editAction = new ActionItem();
 		editAction.setTitle("Edit Tag");
 		editAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_edit));
 		
 		qa.addActionItem(editAction);
+		*/
 
-		removeRegionAction = new ActionItem();
-		removeRegionAction.setTitle("Delete Tag");
-		removeRegionAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_delete));
-
-		qa.addActionItem(removeRegionAction);
+		ActionItem aItem;
 		
-		for (int i = 0; i < filterLabels.length; i++)
+		for (int i = 0; i < mFilterLabels.length; i++)
 		{
 		
-			ActionItem aItem = new ActionItem();
-			aItem.setTitle(filterLabels[i]);
+			aItem = new ActionItem();
+			aItem.setTitle(mFilterLabels[i]);
 			
-			aItem.setIcon(this.getResources().getDrawable(filterIcons[i]));			
+			aItem.setIcon(this.getResources().getDrawable(mFilterIcons[i]));			
 			
-			qa.addActionItem(aItem);
+			mPopupMenu.addActionItem(aItem);
 		}
+		
 
-		qa.setOnActionItemClickListener(this);
+		aItem = new ActionItem();
+		aItem.setTitle("Delete Tag");
+		aItem.setIcon(this.getResources().getDrawable(R.drawable.ic_context_delete));
+
+		mPopupMenu.addActionItem(aItem);
+
+		mPopupMenu.setOnActionItemClickListener(this);
 	}
 	
 	void toggleMode() {
 		// Put this here as we don't want the massive recursion that would happen in changeMode
-		imageEditor.clearImageRegionsEditMode();
+		mImageEditor.clearImageRegionsEditMode();
 
-		if (this.mode == EDIT_MODE) {
+		if (mTouchMode == EDIT_MODE) {
 			changeMode(NORMAL_MODE);
-		} else if (this.mode == NORMAL_MODE) {
+		} else if (mTouchMode == NORMAL_MODE) {
 			changeMode(EDIT_MODE);
 		}
 	}
 			
 	public void changeMode(int newMode) 
 	{
-		mode = newMode;
-		if (mode == EDIT_MODE) {
-			editAction.setTitle("Edit Complete");
+		mTouchMode = newMode;
+		if (mTouchMode == EDIT_MODE) {
 
-			setBackgroundColor(backgroundColor);
-			
-
-			topLeftCorner.setVisibility(View.VISIBLE);
-			topRightCorner.setVisibility(View.VISIBLE);
-			bottomLeftCorner.setVisibility(View.VISIBLE);
-			bottomRightCorner.setVisibility(View.VISIBLE);
-		} else if (mode == NORMAL_MODE) {
-			if (editAction != null) {
-				editAction.setTitle("Edit");
-			}
-
-			//setBackgroundColor(0xffffffff);
-			setBackgroundDrawable(imageEditor.getResources().getDrawable(R.drawable.border));
-			
-			topLeftCorner.setVisibility(View.GONE);
-			topRightCorner.setVisibility(View.GONE);
-			bottomLeftCorner.setVisibility(View.GONE);
-			bottomRightCorner.setVisibility(View.GONE);
+			setBackgroundDrawable(mImageEditor.getResources().getDrawable(R.drawable.border));
+		
+		} else if (mTouchMode == NORMAL_MODE) {
+			setBackgroundColor(0x00000000);
+		
 		}
 	}
 	
-	public void updateScaledRect(int _scaledImageWidth, int _scaledImageHeight) 
+		
+	private void updateBounds(float left, float top, float right, float bottom) 
 	{
-		float scaledStartX = (float)unscaledRect.left * (float)_scaledImageWidth/(float)imageWidth;
-		float scaledStartY = (float)unscaledRect.top * (float)_scaledImageHeight/(float)imageHeight;
-		float scaledEndX = (float)unscaledRect.right * (float)_scaledImageWidth/(float)imageWidth;
-		float scaledEndY = (float)unscaledRect.bottom * (float)_scaledImageHeight/(float)imageHeight;
+		mBounds.set(left, top, right, bottom);
 		
-		updateScaledRect(scaledStartX, scaledStartY, scaledEndX, scaledEndY);
-	}
-		
-	public void updateScaledRect(float scaledStartX, float scaledStartY, float scaledEndX, float scaledEndY) 
-	{
-		scaledRect = new RectF(scaledStartX, scaledStartY, scaledEndX, scaledEndY);
-		
-		float startX = (float)scaledStartX * (float)imageWidth/(float)imageEditor.getScaleOfImage().width();
-		float startY = (float)scaledStartY * (float)imageHeight/(float)imageEditor.getScaleOfImage().height();
-		float endX = (float)scaledEndX * (float)imageWidth/(float)imageEditor.getScaleOfImage().width();
-		float endY = (float)scaledEndY * (float)imageHeight/(float)imageEditor.getScaleOfImage().height();
-		
-		unscaledRect = new RectF(startX, startY, endX, endY);	
-		Log.v(LOGTAG,"unscaledRect: startX: " + startX);
-		updateLayoutParams();
-	}
-		
-	
-	public Rect getAScaledRect(int scaledWidth, int scaledHeight) 
-	{
-		float scaledStartX = (float)unscaledRect.left * (float)scaledWidth/(float)imageWidth;
-		float scaledStartY = (float)unscaledRect.top * (float)scaledHeight/(float)imageHeight;
-		float scaledEndX = (float)unscaledRect.right * (float)scaledWidth/(float)imageWidth;
-		float scaledEndY = (float)unscaledRect.bottom * (float)scaledHeight/(float)imageHeight;
-		
-		return new Rect((int)scaledStartX, (int)scaledStartY, (int)scaledEndX, (int)scaledEndY);
+		updateLayout();
 	}
 	
-	public Rect getRect ()
+	float scaleX, scaleY, leftOffset, topOffset;
+	
+	public void updateMatrix ()
 	{
-		return new Rect((int)unscaledRect.left, (int)unscaledRect.top, (int)unscaledRect.right, (int)unscaledRect.bottom);
+		float[] mValues = new float[9];
+		mMatrix.getValues(mValues);
+		scaleX = mValues[Matrix.MSCALE_X];
+		scaleY = mValues[Matrix.MSCALE_Y];
 		
+		leftOffset = mValues[Matrix.MTRANS_X];
+		topOffset = mValues[Matrix.MTRANS_Y];
+		
+		updateLayout();
 	}
 	
-	private void updateLayoutParams() {
-		// Update LayoutParams
-		RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) this.getLayoutParams();
-		if (lp == null) {
-			lp = new RelativeLayout.LayoutParams((int)scaledRect.width(), (int)scaledRect.height());
+	private void updateLayout ()
+	{
+		
+		RectF lBounds = new RectF();
+		lBounds.left = (mBounds.left * scaleX) + leftOffset;
+		lBounds.top = (mBounds.top * scaleY) + topOffset;
+		lBounds.right = (mBounds.right * scaleX) + leftOffset;
+		lBounds.bottom = (mBounds.bottom * scaleY) + topOffset;
+		
+		RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams)getLayoutParams();
+		
+		if (lp == null)
+		{
+			lp = new RelativeLayout.LayoutParams((int)lBounds.width(), (int)lBounds.height());
 		}
-
-		// I hate that this is what needs to be done
-		// in order to put the region in the right place
-		// after an image has been scaled but 
-		// you gotta do what you gotta do
-		// Get the scale matrix values from the imageEditor
-		float[] matrixValues = new float[9];
-		imageEditor.matrix.getValues(matrixValues);
-		// Pull out the x and y values (actually the z index operating on each)
-		int x = (int)matrixValues[2];
-		int y = (int)matrixValues[5];
 		
-		Log.v(LOGTAG,"matrixValues[2]:" + x);
-		Log.v(LOGTAG,"matrixValues[5]:" + y);
+		lp.leftMargin = (int)lBounds.left;
+		lp.topMargin = (int)lBounds.top;
+		lp.width = (int)lBounds.width();
+		lp.height = (int)lBounds.height();
 		
-		// Change the layout margins to account for the scale changes
-    	lp.leftMargin = (int)scaledRect.left + x;
-    	lp.topMargin = (int)scaledRect.top + y;
-    	
-    	lp.width = (int)scaledRect.width();
-    	lp.height = (int)scaledRect.height();
-    	
-    	this.setLayoutParams(lp);	
-    	
-    	//not working yet
-    	//imageEditor.moveAndZoom(x, y, 2);
-    	
-    	Log.v(LOGTAG,"Left Margin: " + lp.leftMargin + ", Top Margin: " + lp.topMargin + " Width: " + lp.width + " Height: " + lp.height);
+		setLayoutParams(lp);
 	}
+	
+	
+	
+	public RectF getBounds ()
+	{
+		return mBounds;
+	}
+	
+	int fingerCount = 0;
 	
 	public boolean onTouch(View v, MotionEvent event) 
 	{
 		Log.v(LOGTAG,"onTouch");
 		
+		fingerCount = event.getPointerCount();
 		
-		if (mode == NORMAL_MODE)
+		if (mTouchMode == NORMAL_MODE)
 		{
-			// Just a click, return false
-			return false;
+			changeMode(EDIT_MODE);
+			
+			return true;
 		}
-		else if (mode == EDIT_MODE) 
+		else if (mTouchMode == EDIT_MODE) 
 		{
 			Log.v(LOGTAG,"onTouch mode EDIT");
 
@@ -388,194 +304,109 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 				
 				case MotionEvent.ACTION_DOWN:
 					
-					Log.v(LOGTAG,"ACTION_DOWN");
 					
-					imageEditor.doRealtimePreview = false;
-					imageEditor.updateDisplayImage();
+					mImageEditor.doRealtimePreview = true;
+					mImageEditor.updateDisplayImage();
 					
-					startPoint = new PointF(event.getX(),event.getY());
-					Log.v(LOGTAG,"startPoint: " + startPoint.x + " " + startPoint.y);
-										
-					if (v == topLeftCorner || (
-							event.getX() < CORNER_TOUCH_TOLERANCE &&
-							event.getY() < CORNER_TOUCH_TOLERANCE
-							)) {
-						whichEditMode = TOP_LEFT;
-						Log.v(LOGTAG,"TOP_LEFT");
-						
-					} else if (v == topRightCorner || (
-							event.getX() > this.getWidth() - CORNER_TOUCH_TOLERANCE &&
-							event.getY() < CORNER_TOUCH_TOLERANCE
-					)) {
-						whichEditMode = TOP_RIGHT;
-						Log.v(LOGTAG,"TOP_RIGHT");
-						
-					} else if (v == bottomLeftCorner || (
-							event.getX() < CORNER_TOUCH_TOLERANCE &&
-							event.getY() > this.getHeight() - CORNER_TOUCH_TOLERANCE
-					)) {
-						whichEditMode = BOTTOM_LEFT;
-						Log.v(LOGTAG,"BOTTOM_LEFT");
-						
-					} else if (v == bottomRightCorner || (
-							event.getX() > this.getWidth() - CORNER_TOUCH_TOLERANCE &&
-							event.getY() > this.getHeight() - CORNER_TOUCH_TOLERANCE
-					)) {
-						whichEditMode = BOTTOM_RIGHT;
-						Log.v(LOGTAG,"BOTTOM_RIGHT");
-						
-					} else if (v == moveRegion || (
-							event.getX() < this.getWidth() - CORNER_TOUCH_TOLERANCE &&
-							event.getX() > CORNER_TOUCH_TOLERANCE &&
-							event.getY() < this.getHeight() - CORNER_TOUCH_TOLERANCE &&
-							event.getY() > CORNER_TOUCH_TOLERANCE						
-					)) {
-						whichEditMode = MOVE;
-						Log.v(LOGTAG,"MOVE");
-						
-					} else {
-						whichEditMode = NONE;
-						Log.v(LOGTAG,"NONE");
-						
+					if (fingerCount == 1)
+					{
+						mStartPoint = new PointF(event.getX(),event.getY());
+						Log.v(LOGTAG,"startPoint: " + mStartPoint.x + " " + mStartPoint.y);
 					}
 					
-					doMenu = true;
-					return false;
-				
-				case MotionEvent.ACTION_UP:
-					Log.v(LOGTAG,"ACTION_UP");
-
-					imageEditor.doRealtimePreview = true;
-					imageEditor.updateDisplayImage();
+					mEditMode = MOVE;
 					
-					whichEditMode = NONE;
-					if (doMenu) {
-						Log.v(LOGTAG,"doMenu");
-						doMenu = false;
+					mShowMenu = true;
+					return false;
+					
+				case MotionEvent.ACTION_UP:
+
+					
+					mImageEditor.doRealtimePreview = true;
+					mImageEditor.updateDisplayImage();
+					
+					mEditMode = NONE;
+					if (mShowMenu) {
+						mShowMenu = false;
 
 						// Treat like a click
 						return false;
 					}
-					Log.v(LOGTAG,"don't doMenu");
 					return true;
 				
 				case MotionEvent.ACTION_MOVE:
-					Log.v(LOGTAG,"ACTION MOVE");
 				
-					float distance = (float) (Math.sqrt(Math.abs(startPoint.x - event.getX()) + Math.abs(startPoint.y - event.getY())));
-					Log.v(LOGTAG,"Move Distance: " + distance);
-					Log.v(LOGTAG,"Min Distance: " + minMoveDistance);
 					
-					if (distance > minMoveDistance) {
-						doMenu = false;
-											
-						float xdist = startPoint.x - event.getX();
-						float ydist = startPoint.y - event.getY();
+	                if (fingerCount > 1)
+	                {
+	                	
+	                	float x1 = event.getX(0);
+	                	float x2 = event.getX(1);
+	                	float y1 = event.getY(0);
+	                	float y2 = event.getY(1);
+	                	
+	                	
+	                	RectF newBox = new RectF();
+	                	newBox.left = Math.min(x1, x2 );
+	                	newBox.top = Math.min(y1, y2 );
+	                	newBox.right = Math.max(x1, x2);
+	                	newBox.bottom = Math.max(y1, y2);
+	                	
+	                	newBox.left = (newBox.left / scaleX) - leftOffset;
+	        			newBox.top = (newBox.top / scaleY) - topOffset;
+	        			newBox.right = (newBox.right / scaleX) - leftOffset;
+	        			newBox.bottom = (newBox.bottom / scaleY) - topOffset;
+	                	
+	        			updateBounds(newBox.left, newBox.top, newBox.right, newBox.bottom);
+
+	                }
+	                else if (fingerCount == 1)
+	                {
+	                	
+						PointF movePoint = new PointF(event.getX(),event.getY());
+	                //	Log.v(LOGTAG,"moving region: " + movePoint.x + "," + movePoint.y);
+	                	float diffX = mStartPoint.x - movePoint.x;
+	                	float diffY = mStartPoint.y - movePoint.y;
+	                	
+	                	updateBounds(mBounds.left - diffX, mBounds.top - diffY, mBounds.right - diffX, mBounds.bottom - diffY);
+	                	
+		            	
+	                }
+
+					mImageEditor.updateDisplayImage();
 						
-						Log.v(LOGTAG,"event.getX(): " + event.getX());
-						Log.v(LOGTAG,"event.getY(): " + event.getY());
-						Log.v(LOGTAG,"xdist: " + xdist);
-						Log.v(LOGTAG,"ydist: " + ydist);
-												
-						if (whichEditMode == TOP_LEFT) {
-							// Here we expand
-							Log.v(LOGTAG,"TOP LEFT CORNER");
-
-							updateScaledRect(scaledRect.left - (int)xdist,
-									scaledRect.top = scaledRect.top - (int)ydist,
-									scaledRect.right,
-									scaledRect.bottom
-							);
-							
-					    	// Reset start point
-							startPoint = new PointF(event.getX(),event.getY());
-						
-						} else if (whichEditMode == TOP_RIGHT) {
-							// Here we expand
-							Log.v(LOGTAG,"TOP RIGHT CORNER");
-
-							updateScaledRect(scaledRect.left,
-									scaledRect.top = scaledRect.top - (int)ydist,
-									scaledRect.right = scaledRect.right - (int)xdist,
-									scaledRect.bottom
-							);
-
-					    	// Reset start point
-							startPoint = new PointF(event.getX(),event.getY());
-
-						} else if (whichEditMode == BOTTOM_LEFT) {
-							// Here we expand
-							Log.v(LOGTAG,"BOTTOM LEFT CORNER");
-
-							updateScaledRect(scaledRect.left - (int)xdist,
-									scaledRect.top,
-									scaledRect.right,
-									scaledRect.bottom = scaledRect.bottom - (int)ydist
-							);
-
-					    	// Reset start point
-							startPoint = new PointF(event.getX(),event.getY());
-
-						} else if (whichEditMode == BOTTOM_RIGHT) {
-							Log.v(LOGTAG,"BOTTOM RIGHT CORNER");
-
-							updateScaledRect(scaledRect.left,
-									scaledRect.top,
-									scaledRect.right = scaledRect.right - (int)xdist,
-									scaledRect.bottom = scaledRect.bottom - (int)ydist
-							);
-
-					    	// Reset start point
-							startPoint = new PointF(event.getX(),event.getY());
-							
-						} else if (whichEditMode == MOVE) {
-							Log.v(LOGTAG,"MOVE REGION " + xdist + " " + ydist);
-							
-							updateScaledRect(scaledRect.left - (int)xdist,
-										scaledRect.top - (int)ydist,
-										scaledRect.right - (int)xdist,
-										scaledRect.bottom - (int)ydist
-								);
-							
-						}
-
-						imageEditor.updateDisplayImage();
-						
-						Log.v(LOGTAG,"AFTER MOVE: Left: " + scaledRect.left + " Right: " + scaledRect.right + 
-								" Top: " + scaledRect.top + " Bottom: " + scaledRect.bottom);
-				    	
-				    	return true;
-					}	
-					return false;
+					return true;
 					
 				case MotionEvent.ACTION_OUTSIDE:
 					Log.v(LOGTAG,"ACTION_OUTSIDE");
 					
-					imageEditor.doRealtimePreview = true;
-					imageEditor.updateDisplayImage();
+					mImageEditor.doRealtimePreview = true;
+					mImageEditor.updateDisplayImage();
 					
-					whichEditMode = NONE;
-					doMenu = false;
+					mEditMode = NONE;
+					mShowMenu = false;
+					
+
 					return true;
 					
 				case MotionEvent.ACTION_CANCEL:
 					Log.v(LOGTAG,"ACTION_CANCEL");
 					
-					imageEditor.doRealtimePreview = true;
-					imageEditor.updateDisplayImage();
+					mImageEditor.doRealtimePreview = true;
+					mImageEditor.updateDisplayImage();
 					
-					whichEditMode = NONE;
-					doMenu = false;
+					mEditMode = NONE;
+					mShowMenu = false;
 					return true;
 					
 				default:
 					Log.v(LOGTAG, "DEFAULT: " + (event.getAction() & MotionEvent.ACTION_MASK));
-					whichEditMode = NONE;
+					mEditMode = NONE;
 					
-					imageEditor.doRealtimePreview = true;
-					imageEditor.updateDisplayImage();
+					mImageEditor.doRealtimePreview = true;
+					mImageEditor.updateDisplayImage();
 					
-					doMenu = false;
+					mShowMenu = false;
 					return true;
 			}
 		}
@@ -585,28 +416,22 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	@Override
 	public void onItemClick(int pos) {
 		
-		switch (pos)
+		if (pos == mFilterLabels.length) //meaing after the last one
 		{
-			case 0:
-				toggleMode();
-				break;
-			case 1:
-            	imageEditor.deleteRegion(ImageRegion.this);
-            	break;
-            default:
-            	int selObscureType = pos - 2;
-            	if (mObscureType != selObscureType)
-            	{
-            		mObscureType = selObscureType;
-            		updateRegionProcessor(mObscureType);
-            	}
-            	
-            	//showObscureTypeMenu
-            	
-				imageEditor.updateDisplayImage();
-            	
+        	mImageEditor.deleteRegion(ImageRegion.this);
 		}
-		
+		else
+		{
+        	if (mObscureType != pos)
+        	{
+        		mObscureType = pos;
+        		updateRegionProcessor(mObscureType);
+        	}
+        		
+		}
+
+		mImageEditor.updateDisplayImage();
+
 	}	
 	
 	private void updateRegionProcessor (int obscureType)
@@ -615,28 +440,43 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 		
 		case ImageRegion.BG_PIXELATE:
 			Log.v(ObscuraApp.TAG,"obscureType: BGPIXELIZE");
-			rProc = new CrowdPixelizeObscure();
+			mRProc = new CrowdPixelizeObscure();
 		break;
 		
 		case ImageRegion.MASK:
 			Log.v(ObscuraApp.TAG,"obscureType: ANON");
-			rProc = new MaskObscure(imageEditor.getApplicationContext(), imageEditor.getPainter());
+			mRProc = new MaskObscure(mImageEditor.getApplicationContext(), mImageEditor.getPainter());
 			break;
 			
 		case ImageRegion.REDACT:
 			Log.v(ObscuraApp.TAG,"obscureType: SOLID");
-			rProc = new PaintSquareObscure();
+			mRProc = new PaintSquareObscure();
 			break;
 			
 		case ImageRegion.PIXELATE:
 			Log.v(ObscuraApp.TAG,"obscureType: PIXELIZE");
-			rProc = new PixelizeObscure();
+			mRProc = new PixelizeObscure();
 			break;
 			
 		default:
 			Log.v(ObscuraApp.TAG,"obscureType: NONE/BLUR");
-			rProc = new BlurObscure();
+			mRProc = new BlurObscure();
 			break;
 	}
 	}
+
+	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+	    @Override
+	    public boolean onScale(ScaleGestureDetector detector) {
+	    	
+	        float mScaleFactor = detector.getScaleFactor();
+	        
+	        // Don't let the object get too small or too large.
+	        mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 5.0f));
+
+	        invalidate();
+	        return true;
+	    }
+	}
+	
 }
