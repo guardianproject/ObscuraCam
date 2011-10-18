@@ -25,10 +25,15 @@ public class PaintSquareObscure implements RegionProcesser {
         paint.setColor(Color.BLACK);
         
         mProps = new Properties();
+        mProps.put("obfuscationType", this.getClass().getName());
 	}
  	
 	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitmap) {
-		canvas.drawRect(rect, paint);	
+		canvas.drawRect(rect, paint);
+		// return properties and data as a map
+		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
+		mProps.put("regionWidth", Integer.toString(Math.abs(rect.left - rect.right)));
+		mProps.put("regionHeight", Integer.toString(Math.abs(rect.top - rect.bottom)));
 	}
 
 	public Properties getProperties()

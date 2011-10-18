@@ -1346,8 +1346,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// package and insert exif data
 		mp = new MetadataParser(dateFormat.format(date), new File(pullPathFromUri(savedImageUri)), this);
 		Iterator<ImageRegion> i = imageRegions.iterator();
-	    while (i.hasNext()) 
-	    {
+	    while (i.hasNext()) {
 	    	mp.addRegion(i.next().rProc.getProperties());
 	    }
     	

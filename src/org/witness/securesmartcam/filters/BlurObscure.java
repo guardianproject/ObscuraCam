@@ -24,6 +24,7 @@ public class BlurObscure implements RegionProcesser {
 	
 	public BlurObscure() {
 		mProps = new Properties ();
+		mProps.put("obfuscationType", this.getClass().getName());
 	}
 	
 	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitmap) {

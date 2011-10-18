@@ -24,7 +24,8 @@ public class PixelizeObscure implements RegionProcesser {
 	public PixelizeObscure ()
 	{
 		mProps = new Properties ();
-		mProps.put("size", "10");		
+		mProps.put("size", "10");
+		mProps.put("obfuscationType", this.getClass().getName());
 	}
 	
 	public void processRegion(Rect rect, Canvas canvas, Bitmap bitmap) {
@@ -36,7 +37,12 @@ public class PixelizeObscure implements RegionProcesser {
 		if (pixelSize <= 0) //1 is the smallest it can be
 			pixelSize = 1;
 		
-		pixelate(rect, pixelSize);		
+		pixelate(rect, pixelSize);
+		
+		// return properties and data as a map
+		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
+		mProps.put("regionWidth", Integer.toString(Math.abs(rect.left - rect.right)));
+		mProps.put("regionHeight", Integer.toString(Math.abs(rect.top - rect.bottom)));
 		
 	}
 	

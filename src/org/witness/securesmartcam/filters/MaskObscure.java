@@ -35,7 +35,7 @@ public class MaskObscure implements RegionProcesser {
 
 		mProps = new Properties ();
 		mProps.put("path", "mask.png");
-		
+		mProps.put("obfuscationType", this.getClass().getName());
 	}
 	
 	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitmap) {

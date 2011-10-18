@@ -42,11 +42,14 @@ public class JpegRedaction implements RegionProcesser {
     	setFiles (inFile, outFile);
     	setMethod (iMethod);
     	mProps = new Properties();
+    	mProps.put("obfuscationType", this.getClass().getName());
     }
     
     public JpegRedaction (File inFile, File outFile)
     {
     	setFiles (inFile, outFile);
+    	mProps = new Properties();
+    	mProps.put("obfuscationType", this.getClass().getName());
     }
     
     public void setFiles (File inFile, File outFile)

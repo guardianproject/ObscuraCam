@@ -16,6 +16,7 @@ public class TintObscure implements RegionProcesser {
 	public TintObscure(Bitmap _originalBmp) {
 		originalBmp = _originalBmp;
 		mProps = new Properties();
+		mProps.put("obfuscationType", this.getClass().getName());
 	}
 	
 	private void tint(int deg, int picw, int pich, Bitmap mBitmap) {
