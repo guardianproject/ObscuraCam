@@ -5,7 +5,7 @@
   android:layout_height="fill_parent"
   android:id="@+id/frameRoot">
 	<ImageView android:id="@+id/ImageEditorImageView" android:scaleType="matrix" android:layout_width="fill_parent" android:layout_height="fill_parent"></ImageView>
-	<RelativeLayout 
+	<RelativeLayout
 		android:id="@+id/RegionButtonsLayout"
 		android:layout_width="fill_parent" 
 		android:layout_height="fill_parent">
