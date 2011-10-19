@@ -27,7 +27,8 @@ import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
-public class ImageRegion extends FrameLayout implements OnTouchListener, OnActionItemClickListener {
+//public class ImageRegion extends FrameLayout implements OnTouchListener, OnActionItemClickListener {
+public class ImageRegion {
 
 	public static final String LOGTAG = "SSC.ImageRegion";
 	
@@ -35,9 +36,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	public RectF mBounds;
 		
 	// Start point for touch events
-	PointF mStartPoint = new PointF();
+	PointF mStartPoint = null;
 
-		
 	// Our current mode
 	public static final int NORMAL_MODE = 0;
 	public static final int EDIT_MODE = 1;
@@ -104,7 +104,8 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 			float left, float top, 
 			float right, float bottom, Matrix matrix) 
 	{
-		super(imageEditor);
+		//super(imageEditor);
+		super();
 		
 		// Set the mImageEditor that this region belongs to to the one passed in
 		mImageEditor = imageEditor;
@@ -121,6 +122,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 				
 		// Inflate Layout
 		// imageregioninner is a FrameLayout
+		/*
 		LayoutInflater inflater = LayoutInflater.from(mImageEditor);        
 		inflater.inflate(R.layout.imageregioninner, this, true);
 		setBackgroundDrawable(mImageEditor.getResources().getDrawable(R.drawable.border));
@@ -147,7 +149,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 				inflatePopup(false);
 			}
 			
-		});
+		});*/
         
         //set default processor
         mRProc = new PixelizeObscure();
@@ -155,16 +157,19 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	
 	public void inflatePopup(boolean showDelayed) {
 
+		if (mPopupMenu == null)
+			initPopup();
+		
 		if (showDelayed) {
 			// We need layout to pass again, let's wait a second or two
 			new Handler() {
 				@Override
 				 public void handleMessage(Message msg) {
-					 mPopupMenu.show(ImageRegion.this);
+					 mPopupMenu.show(mImageEditor.getImageView());
 			        }
 			}.sendMessageDelayed(new Message(), 500);
-		} else {
-			mPopupMenu.show(ImageRegion.this);
+		} else {			
+			mPopupMenu.show(mImageEditor.getImageView());
 		}
 
 	}
@@ -189,7 +194,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 			aItem = new ActionItem();
 			aItem.setTitle(mFilterLabels[i]);
 			
-			aItem.setIcon(this.getResources().getDrawable(mFilterIcons[i]));			
+			aItem.setIcon(mImageEditor.getResources().getDrawable(mFilterIcons[i]));			
 			
 			mPopupMenu.addActionItem(aItem);
 		}
@@ -197,11 +202,11 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 
 		aItem = new ActionItem();
 		aItem.setTitle("Delete Tag");
-		aItem.setIcon(this.getResources().getDrawable(R.drawable.ic_context_delete));
+		aItem.setIcon(mImageEditor.getResources().getDrawable(R.drawable.ic_context_delete));
 
 		mPopupMenu.addActionItem(aItem);
 
-		mPopupMenu.setOnActionItemClickListener(this);
+		//mPopupMenu.setOnActionItemClickListener(this);
 	}
 	
 	void toggleMode() {
@@ -220,10 +225,11 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 		mTouchMode = newMode;
 		if (mTouchMode == EDIT_MODE) {
 
-			setBackgroundDrawable(mImageEditor.getResources().getDrawable(R.drawable.border));
+			//setBackgroundDrawable(mImageEditor.getResources().getDrawable(R.drawable.bordergreen));
 		
 		} else if (mTouchMode == NORMAL_MODE) {
-			setBackgroundColor(0x00000000);
+			
+			//setBackgroundDrawable(mImageEditor.getResources().getDrawable(R.drawable.border));
 		
 		}
 	}
@@ -231,9 +237,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 		
 	private void updateBounds(float left, float top, float right, float bottom) 
 	{
+		Log.i(LOGTAG, "updateBounds: " + left + "," + top + "," + right + "," + bottom);
 		mBounds.set(left, top, right, bottom);
 		
-		updateLayout();
+		//updateLayout();
 	}
 	
 	float scaleX, scaleY, leftOffset, topOffset;
@@ -248,9 +255,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 		leftOffset = mValues[Matrix.MTRANS_X];
 		topOffset = mValues[Matrix.MTRANS_Y];
 		
-		updateLayout();
+		//updateLayout();
 	}
 	
+	/*
 	private void updateLayout ()
 	{
 		
@@ -273,7 +281,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 		lp.height = (int)lBounds.height();
 		
 		setLayoutParams(lp);
-	}
+	}*/
 	
 	
 	
@@ -286,9 +294,9 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	
 	public boolean onTouch(View v, MotionEvent event) 
 	{
-		Log.v(LOGTAG,"onTouch");
 		
 		fingerCount = event.getPointerCount();
+		Log.v(LOGTAG,"onTouch: fingers=" + fingerCount);
 		
 		if (mTouchMode == NORMAL_MODE)
 		{
@@ -298,12 +306,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 		}
 		else if (mTouchMode == EDIT_MODE) 
 		{
-			Log.v(LOGTAG,"onTouch mode EDIT");
 
 			switch (event.getAction() & MotionEvent.ACTION_MASK) {
 				
 				case MotionEvent.ACTION_DOWN:
-					
 					
 					mImageEditor.doRealtimePreview = true;
 					mImageEditor.updateDisplayImage();
@@ -324,6 +330,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 					
 					mImageEditor.doRealtimePreview = true;
 					mImageEditor.updateDisplayImage();
+					mStartPoint = null;
 					
 					mEditMode = NONE;
 					if (mShowMenu) {
@@ -345,17 +352,11 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	                	float y1 = event.getY(0);
 	                	float y2 = event.getY(1);
 	                	
-	                	
 	                	RectF newBox = new RectF();
 	                	newBox.left = Math.min(x1, x2 );
 	                	newBox.top = Math.min(y1, y2 );
 	                	newBox.right = Math.max(x1, x2);
 	                	newBox.bottom = Math.max(y1, y2);
-	                	
-	                	newBox.left = (newBox.left / scaleX) - leftOffset;
-	        			newBox.top = (newBox.top / scaleY) - topOffset;
-	        			newBox.right = (newBox.right / scaleX) - leftOffset;
-	        			newBox.bottom = (newBox.bottom / scaleY) - topOffset;
 	                	
 	        			updateBounds(newBox.left, newBox.top, newBox.right, newBox.bottom);
 
@@ -364,11 +365,10 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	                {
 	                	
 						PointF movePoint = new PointF(event.getX(),event.getY());
-	                //	Log.v(LOGTAG,"moving region: " + movePoint.x + "," + movePoint.y);
-	                	float diffX = mStartPoint.x - movePoint.x;
-	                	float diffY = mStartPoint.y - movePoint.y;
+						float bW = mBounds.width()/2f;
+						float bH = mBounds.height()/2f;
 	                	
-	                	updateBounds(mBounds.left - diffX, mBounds.top - diffY, mBounds.right - diffX, mBounds.bottom - diffY);
+	                	updateBounds(movePoint.x-bW, movePoint.y-bH, movePoint.x+bW,movePoint.y+bH);
 	                	
 		            	
 	                }
@@ -413,6 +413,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 		return true;
 	}
 
+	/*
 	@Override
 	public void onItemClick(int pos) {
 		
@@ -432,7 +433,7 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 
 		mImageEditor.updateDisplayImage();
 
-	}	
+	}	*/
 	
 	private void updateRegionProcessor (int obscureType)
 	{
@@ -465,18 +466,6 @@ public class ImageRegion extends FrameLayout implements OnTouchListener, OnActio
 	}
 	}
 
-	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-	    @Override
-	    public boolean onScale(ScaleGestureDetector detector) {
-	    	
-	        float mScaleFactor = detector.getScaleFactor();
-	        
-	        // Don't let the object get too small or too large.
-	        mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 5.0f));
-
-	        invalidate();
-	        return true;
-	    }
-	}
+	
 	
 }

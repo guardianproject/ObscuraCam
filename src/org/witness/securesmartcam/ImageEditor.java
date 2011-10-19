@@ -31,8 +31,10 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -119,6 +121,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	// ImageView for the original (scaled) image
 	ImageView imageView;
 	
+
 	// Layout that all of the ImageRegions will be in
 	RelativeLayout regionsView;
 		
@@ -198,6 +201,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		// The ImageView that contains the image we are working with
 		imageView = (ImageView) findViewById(R.id.ImageEditorImageView);
+		imageView.setOnClickListener(this);
 		
 		// Buttons for zooming
 		zoomIn = (Button) this.findViewById(R.id.ZoomIn);
@@ -206,7 +210,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// this, ImageEditor will be the onClickListener for the buttons
 		zoomIn.setOnClickListener(this);
 		zoomOut.setOnClickListener(this);
-
 
 		// Instantiate the vibrator
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -531,24 +534,78 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		return possibleFaceRects;				
 	}
 	
+
+	ImageRegion currRegion = null;
+	
 	/*
 	 * Handles touches on ImageView
 	 */
 	@Override
 	public boolean onTouch(View v, MotionEvent event) 
 	{
-		boolean handled = false;
+
+		if (currRegion != null)
+		{
+			return onTouchRegion(v, event, currRegion);
+		}
+		else
+			return onTouchImage(v,event);
+	}
 	
+	public ImageRegion findRegion (MotionEvent event)
+	{
+		ImageRegion result = null;
+		
+		for (ImageRegion region : imageRegions)
+		{
+	
+			if (region.getBounds().contains(event.getX(), event.getY()))
+			{
+				result = region;
+				break;
+			}
+			
+		}
+	
+		
+		return result;
+	}
+	
+	public boolean onTouchRegion (View v, MotionEvent event, ImageRegion iRegion)
+	{
+		switch (event.getAction() & MotionEvent.ACTION_MASK) {
+			case MotionEvent.ACTION_UP:
+				currRegion = null;
+				return true;
+				
+			default:
+				return iRegion.onTouch(v, event);
+		}
+		
+	}
+	
+	public boolean onTouchImage(View v, MotionEvent event) 
+	{
+		boolean handled = true;
+		
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
 				// Single Finger down
 				mode = TAP;
-				
-
-				// Save the Start point. 
-				startPoint.set(event.getX(), event.getY());
-						
 				clearImageRegionsEditMode();
+				
+				currRegion = findRegion(event);
+				
+				if (currRegion != null)
+				{
+					currRegion.onTouch(v, event);
+				}
+				else
+				{
+					// 	Save the Start point. 
+					startPoint.set(event.getX(), event.getY());
+				}
+				
 				
 				break;
 				
@@ -620,7 +677,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						startPoint.set(event.getX(), event.getY());
 	
 						putOnScreen();
-						redrawRegions();
+						//redrawRegions();
 						
 						handled = true;
 	
@@ -663,7 +720,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							imageView.setImageMatrix(matrix);
 							
 							putOnScreen();
-							redrawRegions();
+							//redrawRegions();
 	
 							// Reset Start Finger Spacing
 							float esx = event.getX(0) - event.getX(1);
@@ -743,7 +800,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			deltaY = imageView.getHeight() - theRect.bottom;
 		}
 		
-		debug(ObscuraApp.TAG,"Deltas:" + deltaX + " " + deltaY);
+		//debug(ObscuraApp.TAG,"Deltas:" + deltaX + " " + deltaY);
 		
 		matrix.postTranslate(deltaX,deltaY);
 		updateDisplayImage();
@@ -779,7 +836,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				matrix);
 
 		imageRegions.add(imageRegion);
-		addImageRegionToLayout(imageRegion,showPopup);
+		//addImageRegionToLayout(imageRegion,showPopup);
 	}
 	
 	/*
@@ -788,7 +845,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public void deleteRegion(ImageRegion ir)
 	{
 		imageRegions.remove(ir);
-		redrawRegions();
+		//redrawRegions();
 		updateDisplayImage();
 	}
 	
@@ -804,22 +861,24 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	/*
 	 * Add an ImageRegion to the layout
-	 */
+	 *//*
 	public void addImageRegionToLayout(ImageRegion imageRegion, boolean showPopup) 
 	{
 		// Get Rectangle of Current Transformed Image
 		//RectF theRect = getScaleOfImage();
 		//imageRegion.updateScaledRect((int)theRect.width(), (int)theRect.height());
-				
+		
+		
 		regionsView.addView(imageRegion);
     	if (showPopup) {
     		imageRegion.inflatePopup(true);
     	}
-    }
+    }*/
 	
 	/*
 	 * Removes and adds all of the regions to the layout again 
 	 */
+	/*
 	public void redrawRegions() {
 		regionsView.removeAllViews();
 		
@@ -827,9 +886,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    while (i.hasNext()) {
 	    	ImageRegion currentRegion = i.next();
 	    	currentRegion.updateMatrix();
-	    	addImageRegionToLayout(currentRegion, false);
+	    	//addImageRegionToLayout(currentRegion, false);
 	    }
 	}
+	*/
 	
 	/*
 	 * Handles normal onClicks for buttons registered to this.
@@ -837,33 +897,42 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 */
 	@Override
 	public void onClick(View v) {
-		if (v == zoomIn) 
+		
+		if (currRegion != null)
 		{
-			float scale = 1.5f;
-			
-			PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
-			matrix.postScale(scale, scale, midpoint.x, midpoint.y);
-			imageView.setImageMatrix(matrix);
-			putOnScreen();
-			redrawRegions();
-		} 
-		else if (v == zoomOut) 
+			currRegion.inflatePopup(false);
+		}
+		else
 		{
-			float scale = 0.75f;
-
-			PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
-			matrix.postScale(scale, scale, midpoint.x, midpoint.y);
-			imageView.setImageMatrix(matrix);
-			putOnScreen();
-			redrawRegions();
-		} 
+			if (v == zoomIn) 
+			{
+				float scale = 1.5f;
+				
+				PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
+				matrix.postScale(scale, scale, midpoint.x, midpoint.y);
+				imageView.setImageMatrix(matrix);
+				putOnScreen();
+				//redrawRegions();
+			} 
+			else if (v == zoomOut) 
+			{
+				float scale = 0.75f;
+	
+				PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
+				matrix.postScale(scale, scale, midpoint.x, midpoint.y);
+				imageView.setImageMatrix(matrix);
+				putOnScreen();
+				//redrawRegions();
+			} 
+		}
 	}
 	
 	// Long Clicks create new image regions
 	@Override
 	public boolean onLongClick (View v)
 	{
-		if (mode != DRAG && mode != ZOOM) {
+		if (currRegion == null && mode != DRAG && mode != ZOOM) 
+		{
 			vibe.vibrate(50);
 
 			float defaultSize = imageView.getWidth()/4;
@@ -1107,8 +1176,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    {
 	    	ImageRegion currentRegion = i.next();
 	    	RegionProcesser om = currentRegion.getRegionProcessor();
-            RectF regionRect = currentRegion.getBounds();
+	    	
+            RectF regionRect = new RectF(currentRegion.getBounds());
 	    	om.processRegion(regionRect, obscuredCanvas, obscuredBmp);
+	    	
+	    	if (currentRegion.mEditMode == ImageRegion.EDIT_MODE)
+	    		obscuredPaint.setColor(Color.GREEN);
+	    	else
+	    		obscuredPaint.setColor(Color.WHITE);
+	    	
+	    	obscuredPaint.setStyle(Style.STROKE);
+	    	obscuredCanvas.drawRect(regionRect, obscuredPaint);
 		}
 
 	    return obscuredBmp;
@@ -1367,7 +1445,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		startPoint.set(0,0);
 
 		putOnScreen();
-		redrawRegions();
+		//redrawRegions();
 		
         updateDisplayImage();
     }
@@ -1387,4 +1465,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	{
 		Log.d(tag, message);
 	}
+	
+
+	public ImageView getImageView() {
+		return imageView;
+	}
+
 }
