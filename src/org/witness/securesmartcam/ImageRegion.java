@@ -28,13 +28,15 @@ import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
 //public class ImageRegion extends FrameLayout implements OnTouchListener, OnActionItemClickListener {
-public class ImageRegion {
+public class ImageRegion implements OnActionItemClickListener 
+{
 
 	public static final String LOGTAG = "SSC.ImageRegion";
 	
 	// Rect for this when unscaled
 	public RectF mBounds;
-		
+	public RectF mTmpBounds;
+	
 	// Start point for touch events
 	PointF mStartPoint = null;
 
@@ -79,6 +81,10 @@ public class ImageRegion {
 	
 	RegionProcesser mRProc;
 	
+	private final static float MIN_WIDTH = 10f;
+	private final static float MIN_HEIGHT = 10f;
+	
+	
 	public RegionProcesser getRegionProcessor() {
 		return mRProc;
 	}
@@ -90,7 +96,7 @@ public class ImageRegion {
 	
 	/* For touch events, whether or not to show the menu
 	 */
-	boolean mShowMenu = false;
+	boolean moved = false;
 				
 	Matrix mMatrix, iMatrix;
 
@@ -205,7 +211,7 @@ public class ImageRegion {
 
 		mPopupMenu.addActionItem(aItem);
 
-		//mPopupMenu.setOnActionItemClickListener(this);
+		mPopupMenu.setOnActionItemClickListener(this);
 	}
 	
 	void setSelected(boolean selected) {
@@ -259,52 +265,55 @@ public class ImageRegion {
 				
 				mImageEditor.doRealtimePreview = true;
 				mImageEditor.updateDisplayImage();
+				mTmpBounds = new RectF(mBounds);
 				
 				if (fingerCount == 1)
 				{
-					mStartPoint = new PointF(event.getX(),event.getY());
+					float[] points = {event.getX(), event.getY()};
+                	
+                	iMatrix.mapPoints(points);
+					mStartPoint = new PointF(points[0],points[1]);
 					Log.v(LOGTAG,"startPoint: " + mStartPoint.x + " " + mStartPoint.y);
 				}
 				
-				mShowMenu = true;
+				moved = false;
+				
 				return false;
 				
 			case MotionEvent.ACTION_UP:
 
-				
 				mImageEditor.doRealtimePreview = true;
 				mImageEditor.updateDisplayImage();
-				mStartPoint = null;
-				
-				if (mShowMenu) {
-					mShowMenu = false;
+				mTmpBounds = null;
 
-					// Treat like a click
-					return false;
-				}
-				return true;
+				return moved;
 			
 			case MotionEvent.ACTION_MOVE:
 			
 				
                 if (fingerCount > 1)
                 {
+                	float[] points = {event.getX(0), event.getY(0), event.getX(1), event.getY(1)};                	
+                	iMatrix.mapPoints(points);
                 	
-                	float x1 = event.getX(0);
-                	float x2 = event.getX(1);
-                	float y1 = event.getY(0);
-                	float y2 = event.getY(1);
                 	
-                	if (x1 != x2 && y1 != y2)
-                	{
-	                	RectF newBox = new RectF();
-	                	newBox.left = Math.min(x1, x2 );
-	                	newBox.top = Math.min(y1, y2 );
-	                	newBox.right = Math.max(x1, x2);
-	                	newBox.bottom = Math.max(y1, y2);
-	                	
-	        			updateBounds(newBox.left, newBox.top, newBox.right, newBox.bottom);
-                	}
+                	RectF newBox = new RectF();
+                	newBox.left = Math.min(points[0],points[2]);
+                	newBox.top = Math.min(points[1],points[3]);
+                	newBox.right = Math.max(points[0],points[2]);
+                	newBox.bottom = Math.max(points[1],points[3]);
+                	
+                	if (newBox.width() < MIN_WIDTH)
+                		newBox.right = newBox.left + MIN_WIDTH;
+                	
+                	if (newBox.height() < MIN_HEIGHT)
+                		newBox.bottom = newBox.top + MIN_HEIGHT;
+                	
+                	moved = true;
+                	
+                	mTmpBounds = new RectF(newBox.left, newBox.top, newBox.right, newBox.bottom);                	                
+                	updateBounds(newBox.left, newBox.top, newBox.right, newBox.bottom);
+                	
 
                 }
                 else if (fingerCount == 1)
@@ -315,26 +324,28 @@ public class ImageRegion {
                 	iMatrix.mapPoints(points);
                 	
 					PointF movePoint = new PointF(points[0],points[1]);
-					float bW = mBounds.width()/2f;
-					float bH = mBounds.height()/2f;
-                	
+				
+					float diffX = mStartPoint.x-movePoint.x;
+					float diffY = mStartPoint.y-movePoint.y;
 					
-                	updateBounds(movePoint.x-bW, movePoint.y-bH, movePoint.x+bW,movePoint.y+bH);
-                	
+					if (diffX > MIN_WIDTH || diffY > MIN_HEIGHT)
+					{
+						moved = true;
+						//updateBounds(movePoint.x-bW, movePoint.y-bH, movePoint.x+bW,movePoint.y+bH);
+						updateBounds(mTmpBounds.left-diffX,mTmpBounds.top-diffY,mTmpBounds.right-diffX,mTmpBounds.bottom-diffY);
+					}
 	            	
                 }
 
 				mImageEditor.updateDisplayImage();
 					
 				return true;
-				
+			/*	
 			case MotionEvent.ACTION_OUTSIDE:
 				Log.v(LOGTAG,"ACTION_OUTSIDE");
 				
 				mImageEditor.doRealtimePreview = true;
 				mImageEditor.updateDisplayImage();
-				
-				mShowMenu = false;
 				
 
 				return true;
@@ -345,23 +356,23 @@ public class ImageRegion {
 				mImageEditor.doRealtimePreview = true;
 				mImageEditor.updateDisplayImage();
 				
-				mShowMenu = false;
 				return true;
 				
 			default:
 				Log.v(LOGTAG, "DEFAULT: " + (event.getAction() & MotionEvent.ACTION_MASK));
 		
-				
 				mImageEditor.doRealtimePreview = true;
 				mImageEditor.updateDisplayImage();
 				
-				mShowMenu = false;
-				return true;
+				return true;*/
+				
 		}
+		
+		return false;
 		
 	}
 
-	/*
+	
 	@Override
 	public void onItemClick(int pos) {
 		
@@ -381,7 +392,7 @@ public class ImageRegion {
 
 		mImageEditor.updateDisplayImage();
 
-	}	*/
+	}
 	
 	private void updateRegionProcessor (int obscureType)
 	{

@@ -121,9 +121,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	// ImageView for the original (scaled) image
 	ImageView imageView;
 	
-
-	// Layout that all of the ImageRegions will be in
-	RelativeLayout regionsView;
 		
 	// Bitmap for the original image (scaled)
 	Bitmap imageBitmap;
@@ -201,8 +198,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		// The ImageView that contains the image we are working with
 		imageView = (ImageView) findViewById(R.id.ImageEditorImageView);
-		imageView.setOnClickListener(this);
-		
+
 		// Buttons for zooming
 		zoomIn = (Button) this.findViewById(R.id.ZoomIn);
 		zoomOut = (Button) this.findViewById(R.id.ZoomOut);
@@ -227,7 +223,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			else if (getIntent().hasExtra("bitmap"))
 			{
 				Bitmap b = (Bitmap)getIntent().getExtras().get("bitmap");
-				setBitmap(b);
+				setBitmap(b, true);
 				originalImageWidth = b.getWidth();
 				originalImageHeight = b.getHeight();
 				return;
@@ -331,7 +327,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						loadedBitmap = Bitmap.createBitmap(loadedBitmap,0,0,loadedBitmap.getWidth(),loadedBitmap.getHeight(),rotateMatrix,false);
 					}
 
-					setBitmap (loadedBitmap);
+					setBitmap (loadedBitmap, true);
 				}				
 			} catch (IOException e) {
 				Log.e(ObscuraApp.TAG, "error loading bitmap from Uri: " + e.getMessage(), e);
@@ -342,7 +338,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 	}
 	
-	private void setBitmap (Bitmap nBitmap)
+	private void setBitmap (Bitmap nBitmap, boolean autodetect)
 	{
 		imageBitmap = nBitmap;
 		
@@ -360,6 +356,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		} 
 		
 		imageView.setImageBitmap(imageBitmap);
+
+		// Set the OnTouch and OnLongClick listeners to this (ImageEditor)
+		imageView.setOnTouchListener(this);
+		imageView.setOnClickListener(this);
+		imageView.setOnLongClickListener(this);
+		
 		
 		//PointF midpoint = new PointF((float)imageBitmap.getWidth()/2f, (float)imageBitmap.getHeight()/2f);
 		matrix.postScale(matrixScale, matrixScale);
@@ -370,18 +372,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		imageView.setImageMatrix(matrix);
 		
-		// Set the OnTouch and OnLongClick listeners to this (ImageEditor)
-		imageView.setOnTouchListener(this);
-		imageView.setOnLongClickListener(this);
 		
-		// Layout for Image Regions
-		regionsView = (RelativeLayout) this.findViewById(R.id.RegionButtonsLayout);
-		
+		if (autodetect)
+		{
 		// Do auto detect popup
 
 		Toast autodetectedToast = Toast.makeText(this, "Detecting faces...", Toast.LENGTH_SHORT);
 		autodetectedToast.show();
 		mHandler.postDelayed(mUpdateTimeTask, 1000);
+		}
 	}
 	/*
 	 * Call this to delete the original image, will ask the user
@@ -543,14 +542,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	@Override
 	public boolean onTouch(View v, MotionEvent event) 
 	{
-
-		if (currRegion != null)
-		{
-			clearImageRegionsEditMode();
-			currRegion.setSelected(true);
-			mode = DRAG;
-			return onTouchRegion(v, event, currRegion);
-		}
+		if (currRegion != null)			
+			return onTouchRegion(v, event, currRegion);	
 		else
 			return onTouchImage(v,event);
 	}
@@ -558,11 +551,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public ImageRegion findRegion (MotionEvent event)
 	{
 		ImageRegion result = null;
-		
+		Matrix iMatrix = new Matrix();
+		matrix.invert(iMatrix);
+
+		float[] points = {event.getX(), event.getY()};        	
+    	iMatrix.mapPoints(points);
+    	
 		for (ImageRegion region : imageRegions)
 		{
-	
-			if (region.getBounds().contains(event.getX(), event.getY()))
+
+			if (region.getBounds().contains(points[0],points[1]))
 			{
 				result = region;
 				break;
@@ -576,14 +574,32 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	public boolean onTouchRegion (View v, MotionEvent event, ImageRegion iRegion)
 	{
+		boolean handled = false;
+		
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
+			case MotionEvent.ACTION_DOWN:
+				clearImageRegionsEditMode();
+				currRegion.setSelected(true);			
+				mode = DRAG;
+				handled = iRegion.onTouch(v, event);
+
+			break;
+			
 			case MotionEvent.ACTION_UP:
-				currRegion = null;
-				return true;
-				
+				mode = NONE;
+				handled = iRegion.onTouch(v, event);
+				currRegion.setSelected(false);
+			
+			break;
+			
 			default:
-				return iRegion.onTouch(v, event);
+				mode = DRAG;
+				handled = iRegion.onTouch(v, event);
+			
 		}
+		
+		return handled;
+		
 		
 	}
 	
@@ -594,14 +610,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
 				// Single Finger down
-				mode = TAP;
-				clearImageRegionsEditMode();
-				
+				mode = TAP;				
 				currRegion = findRegion(event);
 				
 				if (currRegion != null)
 				{
-					currRegion.onTouch(v, event);
+					return onTouchRegion(v,  event, currRegion);
 				}
 				else
 				{
@@ -770,7 +784,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public void updateDisplayImage()
 	{
 		if (doRealtimePreview) {
-			imageView.setImageBitmap(createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight()));
+			imageView.setImageBitmap(createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight(), true));
 		} else {
 			imageView.setImageBitmap(imageBitmap);
 		}
@@ -806,8 +820,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		//debug(ObscuraApp.TAG,"Deltas:" + deltaX + " " + deltaY);
 		
 		matrix.postTranslate(deltaX,deltaY);
-		updateDisplayImage();
 		imageView.setImageMatrix(matrix);
+		updateDisplayImage();
+		
 	}
 	
 	/* 
@@ -904,37 +919,34 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		if (currRegion != null)
 		{
 			currRegion.inflatePopup(false);
-		}
-		else
+			currRegion = null;
+		}			
+		else if (v == zoomIn) 
 		{
-			if (v == zoomIn) 
-			{
-				float scale = 1.5f;
-				
-				PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
-				matrix.postScale(scale, scale, midpoint.x, midpoint.y);
-				imageView.setImageMatrix(matrix);
-				putOnScreen();
-				//redrawRegions();
-			} 
-			else if (v == zoomOut) 
-			{
-				float scale = 0.75f;
-	
-				PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
-				matrix.postScale(scale, scale, midpoint.x, midpoint.y);
-				imageView.setImageMatrix(matrix);
-				putOnScreen();
-				//redrawRegions();
-			} 
-		}
+			float scale = 1.5f;
+			
+			PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
+			matrix.postScale(scale, scale, midpoint.x, midpoint.y);
+			imageView.setImageMatrix(matrix);
+			putOnScreen();
+		} 
+		else if (v == zoomOut) 
+		{
+			float scale = 0.75f;
+
+			PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
+			matrix.postScale(scale, scale, midpoint.x, midpoint.y);
+			imageView.setImageMatrix(matrix);
+			putOnScreen();
+		} 
+		
 	}
 	
 	// Long Clicks create new image regions
 	@Override
 	public boolean onLongClick (View v)
 	{
-		if (mode != DRAG && mode != ZOOM) 
+		if (currRegion == null && mode != DRAG && mode != ZOOM) 
 		{
 			vibe.vibrate(50);
 
@@ -1152,7 +1164,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * Goes through the regions that have been defined and creates a bitmap with them obscured.
      * This may introduce memory issues and therefore have to be done in a different manner.
      */
-    private Bitmap createObscuredBitmap(int width, int height) 
+    private Bitmap createObscuredBitmap(int width, int height, boolean showBorders) 
     {
     	if (imageBitmap == null)
     		return null;
@@ -1183,13 +1195,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
             RectF regionRect = new RectF(currentRegion.getBounds());
 	    	om.processRegion(regionRect, obscuredCanvas, obscuredBmp);
 
-	    	if (currentRegion.isSelected())
-	    		obscuredPaint.setColor(Color.GREEN);
-	    	else
-	    		obscuredPaint.setColor(Color.WHITE);
-	    	
-	    	obscuredPaint.setStyle(Style.STROKE);
-	    	obscuredCanvas.drawRect(regionRect, obscuredPaint);
+	    	if (showBorders)
+	    	{
+		    	if (currentRegion.isSelected())
+		    		obscuredPaint.setColor(Color.GREEN);
+		    	else
+		    		obscuredPaint.setColor(Color.WHITE);
+		    	
+		    	obscuredPaint.setStyle(Style.STROKE);
+		    	obscuredCanvas.drawRect(regionRect, obscuredPaint);
+	    	}
 		}
 
 	    return obscuredBmp;
@@ -1285,7 +1300,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	// Perhaps this should be smaller than screen size??
     	int w = imageBitmap.getWidth();
     	int h = imageBitmap.getHeight();
-    	Bitmap obscuredBmp = createObscuredBitmap(w,h);
+    	Bitmap obscuredBmp = createObscuredBitmap(w,h, false);
     	
     	// Create the Uri - This can't be "private"
     	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory().getPath() + TMP_FILE_DIRECTORY);
@@ -1367,7 +1382,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	{
     		try {
     			
-    			obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight());
+    			obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight(), false);
     
     			OutputStream imageFileOS;
 			
@@ -1442,15 +1457,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
     private void recenterImage ()
     {
+    	/*
         matrix.postTranslate(0,0);
 		imageView.setImageMatrix(matrix);
 //		// Reset the start point
 		startPoint.set(0,0);
-
+		*/
+    	
+		// Get the current display to calculate ratios
+		setBitmap(imageBitmap, false);
 		putOnScreen();
-		//redrawRegions();
 		
-        updateDisplayImage();
     }
 
 	@Override
