@@ -546,6 +546,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		if (currRegion != null)
 		{
+			clearImageRegionsEditMode();
+			currRegion.setSelected(true);
+			mode = DRAG;
 			return onTouchRegion(v, event, currRegion);
 		}
 		else
@@ -586,7 +589,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	public boolean onTouchImage(View v, MotionEvent event) 
 	{
-		boolean handled = true;
+		boolean handled = false;
 		
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
@@ -816,7 +819,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		while (itRegions.hasNext())
 		{
-			itRegions.next().changeMode(ImageRegion.NORMAL_MODE);
+			itRegions.next().setSelected(false);
 		}
 	}
 	
@@ -931,7 +934,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	@Override
 	public boolean onLongClick (View v)
 	{
-		if (currRegion == null && mode != DRAG && mode != ZOOM) 
+		if (mode != DRAG && mode != ZOOM) 
 		{
 			vibe.vibrate(50);
 
@@ -1176,11 +1179,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    {
 	    	ImageRegion currentRegion = i.next();
 	    	RegionProcesser om = currentRegion.getRegionProcessor();
-	    	
+
             RectF regionRect = new RectF(currentRegion.getBounds());
 	    	om.processRegion(regionRect, obscuredCanvas, obscuredBmp);
-	    	
-	    	if (currentRegion.mEditMode == ImageRegion.EDIT_MODE)
+
+	    	if (currentRegion.isSelected())
 	    		obscuredPaint.setColor(Color.GREEN);
 	    	else
 	    		obscuredPaint.setColor(Color.WHITE);

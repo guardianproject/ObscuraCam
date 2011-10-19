@@ -58,12 +58,7 @@ public class ImageRegion {
 	//public static final int BLUR = 4; // PixelizeObscure
 	public static final int CONSENT = 5; // PixelizeObscure
 	
-	
-	int mTouchMode = EDIT_MODE;
-	
-	private View mMoveRegion;
-	
-	int mEditMode = NONE;
+	boolean selected = false;
 	
 	/* Add each ObscureMethod to this list and update the 
 	 * createObscuredBitmap method in ImageEditor
@@ -98,6 +93,8 @@ public class ImageRegion {
 	boolean mShowMenu = false;
 				
 	Matrix mMatrix, iMatrix;
+
+	int fingerCount = 0;
 	
 	public ImageRegion(
 			ImageEditor imageEditor, 
@@ -211,32 +208,16 @@ public class ImageRegion {
 		//mPopupMenu.setOnActionItemClickListener(this);
 	}
 	
-	void toggleMode() {
-		// Put this here as we don't want the massive recursion that would happen in changeMode
-		mImageEditor.clearImageRegionsEditMode();
-
-		if (mTouchMode == EDIT_MODE) {
-			changeMode(NORMAL_MODE);
-		} else if (mTouchMode == NORMAL_MODE) {
-			changeMode(EDIT_MODE);
-		}
-	}
-			
-	public void changeMode(int newMode) 
-	{
-		mTouchMode = newMode;
-		if (mTouchMode == EDIT_MODE) {
-
-			//setBackgroundDrawable(mImageEditor.getResources().getDrawable(R.drawable.bordergreen));
-		
-		} else if (mTouchMode == NORMAL_MODE) {
-			
-			//setBackgroundDrawable(mImageEditor.getResources().getDrawable(R.drawable.border));
-		
-		}
+	void setSelected(boolean selected) {
+		this.selected = selected;
 	}
 	
-		
+	boolean isSelected ()
+	{
+		return selected;
+	}
+			
+			
 	private void updateBounds(float left, float top, float right, float bottom) 
 	{
 		Log.i(LOGTAG, "updateBounds: " + left + "," + top + "," + right + "," + bottom);
@@ -258,42 +239,13 @@ public class ImageRegion {
 		leftOffset = mValues[Matrix.MTRANS_X];
 		topOffset = mValues[Matrix.MTRANS_Y];
 		
-		//updateLayout();
 	}
-	
-	/*
-	private void updateLayout ()
-	{
-		
-		RectF lBounds = new RectF();
-		lBounds.left = (mBounds.left * scaleX) + leftOffset;
-		lBounds.top = (mBounds.top * scaleY) + topOffset;
-		lBounds.right = (mBounds.right * scaleX) + leftOffset;
-		lBounds.bottom = (mBounds.bottom * scaleY) + topOffset;
-		
-		RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams)getLayoutParams();
-		
-		if (lp == null)
-		{
-			lp = new RelativeLayout.LayoutParams((int)lBounds.width(), (int)lBounds.height());
-		}
-		
-		lp.leftMargin = (int)lBounds.left;
-		lp.topMargin = (int)lBounds.top;
-		lp.width = (int)lBounds.width();
-		lp.height = (int)lBounds.height();
-		
-		setLayoutParams(lp);
-	}*/
-	
-	
 	
 	public RectF getBounds ()
 	{
 		return mBounds;
 	}
 	
-	int fingerCount = 0;
 	
 	public boolean onTouch(View v, MotionEvent event) 
 	{
@@ -301,126 +253,112 @@ public class ImageRegion {
 		fingerCount = event.getPointerCount();
 		Log.v(LOGTAG,"onTouch: fingers=" + fingerCount);
 		
-		if (mTouchMode == NORMAL_MODE)
-		{
-			changeMode(EDIT_MODE);
+		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			
-			return true;
-		}
-		else if (mTouchMode == EDIT_MODE) 
-		{
-
-			switch (event.getAction() & MotionEvent.ACTION_MASK) {
+			case MotionEvent.ACTION_DOWN:
 				
-				case MotionEvent.ACTION_DOWN:
-					
-					mImageEditor.doRealtimePreview = true;
-					mImageEditor.updateDisplayImage();
-					
-					if (fingerCount == 1)
-					{
-						mStartPoint = new PointF(event.getX(),event.getY());
-						Log.v(LOGTAG,"startPoint: " + mStartPoint.x + " " + mStartPoint.y);
-					}
-					
-					mEditMode = MOVE;
-					
-					mShowMenu = true;
+				mImageEditor.doRealtimePreview = true;
+				mImageEditor.updateDisplayImage();
+				
+				if (fingerCount == 1)
+				{
+					mStartPoint = new PointF(event.getX(),event.getY());
+					Log.v(LOGTAG,"startPoint: " + mStartPoint.x + " " + mStartPoint.y);
+				}
+				
+				mShowMenu = true;
+				return false;
+				
+			case MotionEvent.ACTION_UP:
+
+				
+				mImageEditor.doRealtimePreview = true;
+				mImageEditor.updateDisplayImage();
+				mStartPoint = null;
+				
+				if (mShowMenu) {
+					mShowMenu = false;
+
+					// Treat like a click
 					return false;
-					
-				case MotionEvent.ACTION_UP:
-
-					
-					mImageEditor.doRealtimePreview = true;
-					mImageEditor.updateDisplayImage();
-					mStartPoint = null;
-					
-					mEditMode = NONE;
-					if (mShowMenu) {
-						mShowMenu = false;
-
-						// Treat like a click
-						return false;
-					}
-					return true;
+				}
+				return true;
+			
+			case MotionEvent.ACTION_MOVE:
+			
 				
-				case MotionEvent.ACTION_MOVE:
-				
-					
-	                if (fingerCount > 1)
-	                {
-	                	
-	                	float x1 = event.getX(0);
-	                	float x2 = event.getX(1);
-	                	float y1 = event.getY(0);
-	                	float y2 = event.getY(1);
-	                	
+                if (fingerCount > 1)
+                {
+                	
+                	float x1 = event.getX(0);
+                	float x2 = event.getX(1);
+                	float y1 = event.getY(0);
+                	float y2 = event.getY(1);
+                	
+                	if (x1 != x2 && y1 != y2)
+                	{
 	                	RectF newBox = new RectF();
 	                	newBox.left = Math.min(x1, x2 );
 	                	newBox.top = Math.min(y1, y2 );
 	                	newBox.right = Math.max(x1, x2);
 	                	newBox.bottom = Math.max(y1, y2);
 	                	
-	                	
-	                	
 	        			updateBounds(newBox.left, newBox.top, newBox.right, newBox.bottom);
+                	}
 
-	                }
-	                else if (fingerCount == 1)
-	                {
-	                	
-	                	float[] points = {event.getX(), event.getY()};
-	                	
-	                	iMatrix.mapPoints(points);
-	                	
-						PointF movePoint = new PointF(points[0],points[1]);
-						float bW = mBounds.width()/2f;
-						float bH = mBounds.height()/2f;
-	                	
-						
-	                	updateBounds(movePoint.x-bW, movePoint.y-bH, movePoint.x+bW,movePoint.y+bH);
-	                	
-		            	
-	                }
+                }
+                else if (fingerCount == 1)
+                {
+                	
+                	float[] points = {event.getX(), event.getY()};
+                	
+                	iMatrix.mapPoints(points);
+                	
+					PointF movePoint = new PointF(points[0],points[1]);
+					float bW = mBounds.width()/2f;
+					float bH = mBounds.height()/2f;
+                	
+					
+                	updateBounds(movePoint.x-bW, movePoint.y-bH, movePoint.x+bW,movePoint.y+bH);
+                	
+	            	
+                }
 
-					mImageEditor.updateDisplayImage();
-						
-					return true;
+				mImageEditor.updateDisplayImage();
 					
-				case MotionEvent.ACTION_OUTSIDE:
-					Log.v(LOGTAG,"ACTION_OUTSIDE");
-					
-					mImageEditor.doRealtimePreview = true;
-					mImageEditor.updateDisplayImage();
-					
-					mEditMode = NONE;
-					mShowMenu = false;
-					
+				return true;
+				
+			case MotionEvent.ACTION_OUTSIDE:
+				Log.v(LOGTAG,"ACTION_OUTSIDE");
+				
+				mImageEditor.doRealtimePreview = true;
+				mImageEditor.updateDisplayImage();
+				
+				mShowMenu = false;
+				
 
-					return true;
-					
-				case MotionEvent.ACTION_CANCEL:
-					Log.v(LOGTAG,"ACTION_CANCEL");
-					
-					mImageEditor.doRealtimePreview = true;
-					mImageEditor.updateDisplayImage();
-					
-					mEditMode = NONE;
-					mShowMenu = false;
-					return true;
-					
-				default:
-					Log.v(LOGTAG, "DEFAULT: " + (event.getAction() & MotionEvent.ACTION_MASK));
-					mEditMode = NONE;
-					
-					mImageEditor.doRealtimePreview = true;
-					mImageEditor.updateDisplayImage();
-					
-					mShowMenu = false;
-					return true;
-			}
+				return true;
+				
+			case MotionEvent.ACTION_CANCEL:
+				Log.v(LOGTAG,"ACTION_CANCEL");
+				
+				mImageEditor.doRealtimePreview = true;
+				mImageEditor.updateDisplayImage();
+				
+				mShowMenu = false;
+				return true;
+				
+			default:
+				Log.v(LOGTAG, "DEFAULT: " + (event.getAction() & MotionEvent.ACTION_MASK));
+		
+				
+				mImageEditor.doRealtimePreview = true;
+				mImageEditor.updateDisplayImage();
+				
+				mShowMenu = false;
+				return true;
 		}
-		return true;
+		
 	}
 
 	/*
