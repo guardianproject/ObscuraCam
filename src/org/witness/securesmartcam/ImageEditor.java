@@ -589,6 +589,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				mode = NONE;
 				handled = iRegion.onTouch(v, event);
 				currRegion.setSelected(false);
+				if (handled)
+					currRegion = null;
 			
 			break;
 			
@@ -1463,9 +1465,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 //		// Reset the start point
 		startPoint.set(0,0);
 		*/
-    	
-		// Get the current display to calculate ratios
-		setBitmap(imageBitmap, false);
+    	float scale = 1f;
+		
+		PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
+		matrix.postScale(scale, scale, midpoint.x, midpoint.y);
+		imageView.setImageMatrix(matrix);
 		putOnScreen();
 		
     }

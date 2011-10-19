@@ -296,7 +296,8 @@ public class ImageRegion implements OnActionItemClickListener
                 	float[] points = {event.getX(0), event.getY(0), event.getX(1), event.getY(1)};                	
                 	iMatrix.mapPoints(points);
                 	
-                	
+					mStartPoint = new PointF(points[0],points[1]);
+					
                 	RectF newBox = new RectF();
                 	newBox.left = Math.min(points[0],points[2]);
                 	newBox.top = Math.min(points[1],points[3]);
