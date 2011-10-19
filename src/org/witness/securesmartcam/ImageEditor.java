@@ -836,7 +836,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				matrix);
 
 		imageRegions.add(imageRegion);
-		//addImageRegionToLayout(imageRegion,showPopup);
+		putOnScreen();
 	}
 	
 	/*

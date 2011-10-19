@@ -97,7 +97,7 @@ public class ImageRegion {
 	 */
 	boolean mShowMenu = false;
 				
-	Matrix mMatrix;
+	Matrix mMatrix, iMatrix;
 	
 	public ImageRegion(
 			ImageEditor imageEditor, 
@@ -111,6 +111,8 @@ public class ImageRegion {
 		mImageEditor = imageEditor;
 
 		mMatrix = matrix;
+		iMatrix = new Matrix();
+    	mMatrix.invert(iMatrix);
 		
 		// Calculate the minMoveDistance using the screen density
 		//float scale = this.getResources().getDisplayMetrics().density;
@@ -248,7 +250,8 @@ public class ImageRegion {
 	public void updateMatrix ()
 	{
 		float[] mValues = new float[9];
-		mMatrix.getValues(mValues);
+		mMatrix.getValues(mValues);		
+    	mMatrix.invert(iMatrix);
 		scaleX = mValues[Matrix.MSCALE_X];
 		scaleY = mValues[Matrix.MSCALE_Y];
 		
@@ -358,16 +361,23 @@ public class ImageRegion {
 	                	newBox.right = Math.max(x1, x2);
 	                	newBox.bottom = Math.max(y1, y2);
 	                	
+	                	
+	                	
 	        			updateBounds(newBox.left, newBox.top, newBox.right, newBox.bottom);
 
 	                }
 	                else if (fingerCount == 1)
 	                {
 	                	
-						PointF movePoint = new PointF(event.getX(),event.getY());
+	                	float[] points = {event.getX(), event.getY()};
+	                	
+	                	iMatrix.mapPoints(points);
+	                	
+						PointF movePoint = new PointF(points[0],points[1]);
 						float bW = mBounds.width()/2f;
 						float bH = mBounds.height()/2f;
 	                	
+						
 	                	updateBounds(movePoint.x-bW, movePoint.y-bH, movePoint.x+bW,movePoint.y+bH);
 	                	
 		            	
