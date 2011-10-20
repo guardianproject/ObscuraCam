@@ -35,11 +35,12 @@ public class ImageRegion implements OnActionItemClickListener
 	
 	// Rect for this when unscaled
 	public RectF mBounds;
-	public RectF mTmpBounds;
+	//public RectF mTmpBounds;
 	
 	// Start point for touch events
 	PointF mStartPoint = null;
-
+	PointF mNonMappedStartPoint = null;
+	
 	// Our current mode
 	public static final int NORMAL_MODE = 0;
 	public static final int EDIT_MODE = 1;
@@ -81,9 +82,7 @@ public class ImageRegion implements OnActionItemClickListener
 	
 	RegionProcesser mRProc;
 	
-	private final static float MIN_WIDTH = 10f;
-	private final static float MIN_HEIGHT = 10f;
-	
+	private final static float MIN_MOVE = 20f;
 	
 	public RegionProcesser getRegionProcessor() {
 		return mRProc;
@@ -160,6 +159,13 @@ public class ImageRegion implements OnActionItemClickListener
         mRProc = new PixelizeObscure();
     }
 	
+	public void setMatrix (Matrix matrix)
+	{
+		mMatrix = matrix;
+		iMatrix = new Matrix();
+    	mMatrix.invert(iMatrix);
+	}
+	
 	public void inflatePopup(boolean showDelayed) {
 
 		if (mPopupMenu == null)
@@ -234,7 +240,7 @@ public class ImageRegion implements OnActionItemClickListener
 			
 	private void updateBounds(float left, float top, float right, float bottom) 
 	{
-		Log.i(LOGTAG, "updateBounds: " + left + "," + top + "," + right + "," + bottom);
+		//Log.i(LOGTAG, "updateBounds: " + left + "," + top + "," + right + "," + bottom);
 		mBounds.set(left, top, right, bottom);
 		
 		//updateLayout();
@@ -265,7 +271,7 @@ public class ImageRegion implements OnActionItemClickListener
 	{
 		
 		fingerCount = event.getPointerCount();
-		Log.v(LOGTAG,"onTouch: fingers=" + fingerCount);
+	//	Log.v(LOGTAG,"onTouch: fingers=" + fingerCount);
 		
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			
@@ -273,26 +279,31 @@ public class ImageRegion implements OnActionItemClickListener
 				
 				mImageEditor.doRealtimePreview = true;
 				mImageEditor.updateDisplayImage();
-				mTmpBounds = new RectF(mBounds);
+				//mTmpBounds = new RectF(mBounds);
 				
 				if (fingerCount == 1)
 				{
-					float[] points = {event.getX(), event.getY()};
-                	
-                	iMatrix.mapPoints(points);
-					mStartPoint = new PointF(points[0],points[1]);
-					Log.v(LOGTAG,"startPoint: " + mStartPoint.x + " " + mStartPoint.y);
+					//float[] points = {event.getX(), event.getY()};                	
+                	//iMatrix.mapPoints(points);
+					//mStartPoint = new PointF(points[0],points[1]);
+					mStartPoint = new PointF(event.getX(),event.getY());
+					//Log.v(LOGTAG,"startPoint: " + mStartPoint.x + " " + mStartPoint.y);
 				}
 				
 				moved = false;
 				
 				return false;
+			case MotionEvent.ACTION_POINTER_UP:
+
+				Log.v(LOGTAG, "second finger removed - pointer up!");
+
+				return moved;
 				
 			case MotionEvent.ACTION_UP:
 
 				mImageEditor.doRealtimePreview = true;
 				mImageEditor.updateDisplayImage();
-				mTmpBounds = null;
+				//mTmpBounds = null;
 
 				return moved;
 			
@@ -301,6 +312,7 @@ public class ImageRegion implements OnActionItemClickListener
 				
                 if (fingerCount > 1)
                 {
+                	
                 	float[] points = {event.getX(0), event.getY(0), event.getX(1), event.getY(1)};                	
                 	iMatrix.mapPoints(points);
                 	
@@ -312,37 +324,39 @@ public class ImageRegion implements OnActionItemClickListener
                 	newBox.right = Math.max(points[0],points[2]);
                 	newBox.bottom = Math.max(points[1],points[3]);
                 	
-                	if (newBox.width() < MIN_WIDTH)
-                		newBox.right = newBox.left + MIN_WIDTH;
-                	
-                	if (newBox.height() < MIN_HEIGHT)
-                		newBox.bottom = newBox.top + MIN_HEIGHT;
-                	
                 	moved = true;
                 	
-                	mTmpBounds = new RectF(newBox.left, newBox.top, newBox.right, newBox.bottom);                	                
-                	updateBounds(newBox.left, newBox.top, newBox.right, newBox.bottom);
+                	if (newBox.left != newBox.right && newBox.top != newBox.bottom)
+                	{
+                	                
+                		updateBounds(newBox.left, newBox.top, newBox.right, newBox.bottom);
+                	}
                 	
 
                 }
                 else if (fingerCount == 1)
                 {
                 	
-                	float[] points = {event.getX(), event.getY()};
                 	
-                	iMatrix.mapPoints(points);
-                	
-					PointF movePoint = new PointF(points[0],points[1]);
-				
-					float diffX = mStartPoint.x-movePoint.x;
-					float diffY = mStartPoint.y-movePoint.y;
-					
-					if (diffX > MIN_WIDTH || diffY > MIN_HEIGHT)
-					{
-						moved = true;
-						//updateBounds(movePoint.x-bW, movePoint.y-bH, movePoint.x+bW,movePoint.y+bH);
-						updateBounds(mTmpBounds.left-diffX,mTmpBounds.top-diffY,mTmpBounds.right-diffX,mTmpBounds.bottom-diffY);
-					}
+                	if (Math.abs(mStartPoint.x- event.getX()) > MIN_MOVE)
+                	{
+	                	moved = true;
+	                	
+	                	float[] points = {mStartPoint.x, mStartPoint.y, event.getX(), event.getY()};
+	                	
+	                	iMatrix.mapPoints(points);
+	                	
+	                	float diffX = points[0]-points[2];
+	                	float diffY = points[1]-points[3];
+	                	
+	                	updateBounds(mBounds.left-diffX,mBounds.top-diffY,mBounds.right-diffX,mBounds.bottom-diffY);
+	                	
+	                	mStartPoint = new PointF(event.getX(),event.getY());
+                	}
+                	else
+                	{
+                		moved = false;
+                	}
 	            	
                 }
 

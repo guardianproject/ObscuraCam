@@ -584,6 +584,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	{
 		boolean handled = false;
 		
+		currRegion.setMatrix(matrix);
+		
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
 				clearImageRegionsEditMode();
@@ -669,7 +671,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				doRealtimePreview = true;
 				updateDisplayImage();
 				
-				mode = NONE;
 				//debug(ObscuraApp.TAG,"mode=NONE");
 
 				break;
@@ -681,7 +682,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				doRealtimePreview = true;
 				updateDisplayImage();
 				
-				mode = NONE;
 				//Log.d(ObscuraApp.TAG, "mode=NONE");
 				break;
 				
@@ -916,6 +916,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
 			matrix.postScale(scale, scale, midpoint.x, midpoint.y);
 			imageView.setImageMatrix(matrix);
+			
 			putOnScreen();
 		} 
 		else if (v == btnNew)
