@@ -161,7 +161,6 @@ public class QuickAction extends PopupWindows {
 
 		Rect anchorRect 	= new Rect(location[0], location[1], location[0] + anchor.getWidth(), location[1] 
 		                	+ anchor.getHeight());
-
 		
 		int screenWidth 	= mWindowManager.getDefaultDisplay().getWidth();
 		int screenHeight	= mWindowManager.getDefaultDisplay().getHeight();
@@ -198,13 +197,66 @@ public class QuickAction extends PopupWindows {
 				l.height		= dyBottom;
 			}
 		}
-		
+	
 		showArrow(((onTop) ? R.id.arrow_down : R.id.arrow_up), anchorRect.centerX()-xPos);
 		
 		setAnimationStyle(screenWidth, anchorRect.centerX(), onTop);
 		
 		mWindow.showAtLocation(anchor, Gravity.NO_GRAVITY, xPos, yPos);
 	}
+	
+	public void show (View anchor, int xPos, int yPos) {
+		preShow();
+		
+		int[] location 		= new int[2];
+	
+		anchor.getLocationOnScreen(location);
+
+		//mRootView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+		
+		mRootView.measure(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+	
+		int rootHeight 		= mRootView.getMeasuredHeight();
+		int rootWidth		= mRootView.getMeasuredWidth();
+
+
+		Rect anchorRect 	= new Rect(location[0], location[1], location[0] + anchor.getWidth(), location[1] 
+		                	+ anchor.getHeight());
+		
+		int screenWidth 	= mWindowManager.getDefaultDisplay().getWidth();
+		int screenHeight	= mWindowManager.getDefaultDisplay().getHeight();
+	
+		
+		int dyTop			= anchorRect.top;
+		int dyBottom		= screenHeight - anchorRect.bottom;
+
+		boolean onTop		= (dyTop > dyBottom) ? true : false;
+
+		if (onTop) {
+			if (rootHeight > dyTop) {
+				
+				LayoutParams l 	= mScroller.getLayoutParams();
+				l.height		= dyTop - anchor.getHeight();
+			} else {
+				
+			}
+		} else {
+			
+			
+			if (rootHeight > dyBottom) { 
+				LayoutParams l 	= mScroller.getLayoutParams();
+				l.height		= dyBottom;
+			}
+		}
+	
+		showArrow(((onTop) ? R.id.arrow_down : R.id.arrow_up), anchorRect.centerX()-xPos);
+		
+		setAnimationStyle(screenWidth, anchorRect.centerX(), onTop);
+		
+		mWindow.showAtLocation(anchor, Gravity.NO_GRAVITY, xPos, yPos);
+	}
+	
+	
 	
 	/**
 	 * Set animation style
@@ -259,13 +311,13 @@ public class QuickAction extends PopupWindows {
 
         final int arrowWidth = mArrowUp.getMeasuredWidth();
 
-        showArrow.setVisibility(View.VISIBLE);
+        showArrow.setVisibility(View.GONE);
         
         ViewGroup.MarginLayoutParams param = (ViewGroup.MarginLayoutParams)showArrow.getLayoutParams();
        
         param.leftMargin = requestedX - arrowWidth / 2;
         
-        hideArrow.setVisibility(View.INVISIBLE);
+        hideArrow.setVisibility(View.GONE);
     }
 	
 	/**
