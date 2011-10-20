@@ -116,7 +116,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	float minMoveDistance; // = ViewConfiguration.get(this).getScaledTouchSlop();
 	
 	// zoom in and zoom out buttons
-	Button zoomIn, zoomOut;
+	Button zoomIn, zoomOut, btnSave, btnShare, btnPreview, btnNew;
 	
 	// ImageView for the original (scaled) image
 	ImageView imageView;
@@ -202,10 +202,18 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// Buttons for zooming
 		zoomIn = (Button) this.findViewById(R.id.ZoomIn);
 		zoomOut = (Button) this.findViewById(R.id.ZoomOut);
-
+		btnNew = (Button) this.findViewById(R.id.New);
+		btnSave = (Button) this.findViewById(R.id.Save);
+		btnShare = (Button) this.findViewById(R.id.Share);
+		btnPreview = (Button) this.findViewById(R.id.Preview);
+		
 		// this, ImageEditor will be the onClickListener for the buttons
 		zoomIn.setOnClickListener(this);
 		zoomOut.setOnClickListener(this);
+		btnNew.setOnClickListener(this);
+		btnSave.setOnClickListener(this);
+		btnShare.setOnClickListener(this);
+		btnPreview.setOnClickListener(this);
 
 		// Instantiate the vibrator
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -879,37 +887,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		return theRect;
 	}
 
-	/*
-	 * Add an ImageRegion to the layout
-	 *//*
-	public void addImageRegionToLayout(ImageRegion imageRegion, boolean showPopup) 
-	{
-		// Get Rectangle of Current Transformed Image
-		//RectF theRect = getScaleOfImage();
-		//imageRegion.updateScaledRect((int)theRect.width(), (int)theRect.height());
-		
-		
-		regionsView.addView(imageRegion);
-    	if (showPopup) {
-    		imageRegion.inflatePopup(true);
-    	}
-    }*/
-	
-	/*
-	 * Removes and adds all of the regions to the layout again 
-	 */
-	/*
-	public void redrawRegions() {
-		regionsView.removeAllViews();
-		
-		Iterator<ImageRegion> i = imageRegions.iterator();
-	    while (i.hasNext()) {
-	    	ImageRegion currentRegion = i.next();
-	    	currentRegion.updateMatrix();
-	    	//addImageRegionToLayout(currentRegion, false);
-	    }
-	}
-	*/
 	
 	/*
 	 * Handles normal onClicks for buttons registered to this.
@@ -941,14 +918,61 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			imageView.setImageMatrix(matrix);
 			putOnScreen();
 		} 
+		else if (v == btnNew)
+		{
+			newDefaultRegion();
+		}
+		else if (v == btnPreview)
+		{
+			showPreview();
+		}
+		else if (v == btnSave)
+		{
+			//Why does this not show?
+	    	mProgressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
+
+    		mHandler.postDelayed(new Runnable() {
+    			  @Override
+    			  public void run() {
+    			    // this will be done in the Pipeline Thread
+    	        		saveImage();
+    			  }
+    			},500);
+		}
+		else if (v == btnShare)
+		{
+			// Share Image
+      		shareImage();
+		}
+		else if (mode != DRAG && mode != ZOOM) 
+		{
+			float defaultSize = imageView.getWidth()/4;
+			float halfSize = defaultSize/2;
+			
+			RectF newBox = new RectF();
+			
+			newBox.left = startPoint.x - halfSize;
+			newBox.top = startPoint.y - halfSize;
+
+			newBox.right = startPoint.x + halfSize;
+			newBox.bottom = startPoint.y + halfSize;
+			
+			Matrix iMatrix = new Matrix();
+			matrix.invert(iMatrix);
+			iMatrix.mapRect(newBox);
+						
+			createImageRegion(newBox.left, newBox.top, newBox.right, newBox.bottom, true);
+		}
 		
 	}
+	
 	
 	// Long Clicks create new image regions
 	@Override
 	public boolean onLongClick (View v)
 	{
-		if (currRegion == null && mode != DRAG && mode != ZOOM) 
+		/*
+		if (mode != DRAG && mode != ZOOM) 
 		{
 			vibe.vibrate(50);
 
@@ -979,8 +1003,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			createImageRegion(newBox.left, newBox.top, newBox.right, newBox.bottom, true);
 			return true;
 		}
-		
-		return false;
+		*/
+		return true;
 	}
 	
 	/*
@@ -995,6 +1019,29 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         return true;
     }
 	
+	private void newDefaultRegion ()
+	{
+		// Set the Start point. 
+		startPoint.set(imageView.getWidth()/2, imageView.getHeight()/2);
+		
+		float defaultSize = imageView.getWidth()/4;
+		float halfSize = defaultSize/2;
+		
+		RectF newRegion = new RectF();
+		
+		newRegion.left = startPoint.x - halfSize;
+		newRegion.top = startPoint.y - halfSize;
+
+		newRegion.right =  startPoint.x + defaultSize;
+		newRegion.left =  startPoint.y + defaultSize;
+		
+		Matrix iMatrix = new Matrix();
+		matrix.invert(iMatrix);
+		iMatrix.mapRect(newRegion);
+		
+		createImageRegion(newRegion.left,newRegion.top,newRegion.right,newRegion.bottom, false);
+		
+	}
     /*
      * Normal menu item selected method.  Uses menu items defined in XML: res/menu/image_editor_menu.xml
      */
@@ -1004,20 +1051,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	switch (item.getItemId()) {
     	
     		case R.id.menu_new_region:
-    			// Set the Start point. 
-				startPoint.set(imageView.getWidth()/2, imageView.getHeight()/2);
-				
-				float defaultSize = imageView.getWidth()/4;
-				float halfSize = defaultSize/2;
-				float scaledStartX = startPoint.x - halfSize;
-				float scaledStartY = startPoint.y - halfSize;
-
-				float scaledEndX = scaledStartX + defaultSize;
-				float scaledEndY = scaledStartY + defaultSize;
-				
-				createImageRegion((int)scaledStartX, (int)scaledStartY, 
-						(int)scaledEndX, (int)scaledEndY, false);
-				
+    			
+    			newDefaultRegion();
 
     			return true;
     			
@@ -1205,6 +1240,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		    		obscuredPaint.setColor(Color.WHITE);
 		    	
 		    	obscuredPaint.setStyle(Style.STROKE);
+		    	obscuredPaint.setStrokeWidth(10f);
 		    	obscuredCanvas.drawRect(regionRect, obscuredPaint);
 	    	}
 		}
@@ -1465,9 +1501,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 //		// Reset the start point
 		startPoint.set(0,0);
 		*/
-    	float scale = 1f;
-		
+    	float scale = 1.2f;		
 		PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
+		matrix.postScale(scale, scale, midpoint.x, midpoint.y);
+		imageView.setImageMatrix(matrix);
+		putOnScreen();
+		
+		scale = 1f;		
+		midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
 		matrix.postScale(scale, scale, midpoint.x, midpoint.y);
 		imageView.setImageMatrix(matrix);
 		putOnScreen();

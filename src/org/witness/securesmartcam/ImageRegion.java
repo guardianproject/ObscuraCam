@@ -165,17 +165,25 @@ public class ImageRegion implements OnActionItemClickListener
 		if (mPopupMenu == null)
 			initPopup();
 		
+		
 		if (showDelayed) {
 			// We need layout to pass again, let's wait a second or two
 			new Handler() {
 				@Override
 				 public void handleMessage(Message msg) {
-					 mPopupMenu.show(mImageEditor.getImageView());
+
+					float[] points = {mBounds.centerX(), mBounds.centerY()};		
+					mMatrix.mapPoints(points);
+					mPopupMenu.show(mImageEditor.getImageView(), (int)points[0], (int)points[1]);
 			        }
 			}.sendMessageDelayed(new Message(), 500);
 		} else {			
-			mPopupMenu.show(mImageEditor.getImageView());
+
+			float[] points = {mBounds.centerX(), mBounds.centerY()};		
+			mMatrix.mapPoints(points);
+			mPopupMenu.show(mImageEditor.getImageView(), (int)points[0], (int)points[1]);
 		}
+		
 
 	}
 	
