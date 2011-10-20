@@ -13,6 +13,10 @@
 	</RelativeLayout>
 	 -->	
 	<LinearLayout android:id="@+id/LinearLayoutBottom" android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="fill_parent" android:gravity="bottom|right" android:layout_gravity="bottom|right">
+		<Button android:id="@+id/New" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/ic_menu_new_region"></Button>
+		<Button android:id="@+id/Preview" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/ic_menu_preview"></Button>
+		<Button android:id="@+id/Share" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/ic_menu_share"></Button>		
+		<Button android:id="@+id/Save" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/ic_menu_save"></Button>
 		<Button android:id="@+id/ZoomOut" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/zoom_out"></Button>
 		<Button android:id="@+id/ZoomIn" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/zoom_in"></Button>
 	</LinearLayout>
