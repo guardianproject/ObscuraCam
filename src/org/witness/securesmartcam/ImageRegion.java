@@ -82,7 +82,9 @@ public class ImageRegion implements OnActionItemClickListener
 	
 	RegionProcesser mRProc;
 	
-	private final static float MIN_MOVE = 20f;
+	private final static float MIN_MOVE = 5f;
+	
+	private int cornerMode = -1;
 	
 	public RegionProcesser getRegionProcessor() {
 		return mRProc;
@@ -90,6 +92,45 @@ public class ImageRegion implements OnActionItemClickListener
 
 	public void setRegionProcessor(RegionProcesser rProc) {
 		mRProc = rProc;
+	}
+	
+	public void setCornerMode (float x, float y)
+	{
+		float[] points = {x,y};        	
+    	iMatrix.mapPoints(points);
+    	
+    	float CORNER_MAX = 50f;
+    	
+    	if (Math.abs(mBounds.left-points[0])<CORNER_MAX
+    			&& Math.abs(mBounds.top-points[1])<CORNER_MAX
+    			)
+    	{
+    		cornerMode = 1;
+    		return;
+    	}
+    	else if (Math.abs(mBounds.left-points[0])<CORNER_MAX
+    			&& Math.abs(mBounds.bottom-points[1])<CORNER_MAX
+    			)
+    	{
+    		cornerMode = 2;
+			return;
+		}
+    	else if (Math.abs(mBounds.right-points[0])<CORNER_MAX
+    			&& Math.abs(mBounds.top-points[1])<CORNER_MAX
+    			)
+    	{
+    			cornerMode = 3;
+    			return;
+		}
+    	else if (Math.abs(mBounds.right-points[0])<CORNER_MAX
+        			&& Math.abs(mBounds.bottom-points[1])<CORNER_MAX
+        			)
+    	{
+    		cornerMode = 4;
+    		return;
+    	}
+    	
+    	cornerMode = -1;
 	}
 
 	
@@ -349,8 +390,17 @@ public class ImageRegion implements OnActionItemClickListener
 	                	float diffX = points[0]-points[2];
 	                	float diffY = points[1]-points[3];
 	                	
-	                	updateBounds(mBounds.left-diffX,mBounds.top-diffY,mBounds.right-diffX,mBounds.bottom-diffY);
-	                	
+	                	if (cornerMode == -1)
+	                		updateBounds(mBounds.left-diffX,mBounds.top-diffY,mBounds.right-diffX,mBounds.bottom-diffY);
+	                	else if (cornerMode == 1)
+	                		updateBounds(mBounds.left-diffX,mBounds.top-diffY,mBounds.right,mBounds.bottom);
+	                	else if (cornerMode == 2)
+	                		updateBounds(mBounds.left-diffX,mBounds.top,mBounds.right,mBounds.bottom-diffY);
+	                	else if (cornerMode == 3)
+	                		updateBounds(mBounds.left,mBounds.top-diffY,mBounds.right-diffX,mBounds.bottom);
+	                	else if (cornerMode == 4)
+	                		updateBounds(mBounds.left,mBounds.top,mBounds.right-diffX,mBounds.bottom-diffY);
+	                		
 	                	mStartPoint = new PointF(event.getX(),event.getY());
                 	}
                 	else

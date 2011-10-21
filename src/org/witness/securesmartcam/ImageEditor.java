@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
@@ -133,6 +134,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
     // Paint obscured
     Paint obscuredPaint;
+    
+    //bitmaps for corners
+    private final static float CORNER_SIZE = 26;
+    Bitmap bitmapCornerUL;
+    Bitmap bitmapCornerUR;
+    Bitmap bitmapCornerLL;
+    Bitmap bitmapCornerLR;
+    
+    
     
 	// Vector to hold ImageRegions 
 	Vector<ImageRegion> imageRegions = new Vector<ImageRegion>(); 
@@ -344,6 +354,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			
 			
 		}
+		
+		bitmapCornerUL = BitmapFactory.decodeResource(getResources(),
+                R.drawable.edit_region_corner_ul);
+		bitmapCornerUR = BitmapFactory.decodeResource(getResources(),
+                R.drawable.edit_region_corner_ur);
+		bitmapCornerLL = BitmapFactory.decodeResource(getResources(),
+                R.drawable.edit_region_corner_ll);
+		bitmapCornerLR = BitmapFactory.decodeResource(getResources(),
+                R.drawable.edit_region_corner_lr);
+		 
 	}
 	
 	private void setBitmap (Bitmap nBitmap, boolean autodetect)
@@ -571,6 +591,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			if (region.getBounds().contains(points[0],points[1]))
 			{
 				result = region;
+				
 				break;
 			}
 			
@@ -589,7 +610,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
 				clearImageRegionsEditMode();
-				currRegion.setSelected(true);			
+				currRegion.setSelected(true);	
+				
+				currRegion.setCornerMode(event.getX(),event.getY());
+				
 				mode = DRAG;
 				handled = iRegion.onTouch(v, event);
 
@@ -1243,6 +1267,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		    	obscuredPaint.setStyle(Style.STROKE);
 		    	obscuredPaint.setStrokeWidth(10f);
 		    	obscuredCanvas.drawRect(regionRect, obscuredPaint);
+		    	
+		    	if (currentRegion.isSelected())
+		    	{
+		    		obscuredCanvas.drawBitmap(bitmapCornerUL, regionRect.left-CORNER_SIZE, regionRect.top-CORNER_SIZE, obscuredPaint);
+		    		obscuredCanvas.drawBitmap(bitmapCornerLL, regionRect.left-CORNER_SIZE, regionRect.bottom-(CORNER_SIZE/2), obscuredPaint);
+		    		obscuredCanvas.drawBitmap(bitmapCornerUR, regionRect.right-(CORNER_SIZE/2), regionRect.top-CORNER_SIZE, obscuredPaint);
+		    		obscuredCanvas.drawBitmap(bitmapCornerLR, regionRect.right-(CORNER_SIZE/2), regionRect.bottom-(CORNER_SIZE/2), obscuredPaint);
+
+		    	}
+		    	
 	    	}
 		}
 
