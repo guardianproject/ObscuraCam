@@ -57,11 +57,12 @@ public class InformaEditor extends Activity implements OnClickListener {
 				Boolean.parseBoolean(_mProps.get("informedConsent"))
 				)
 		);
+		/*
 		informaOption.add(new InformaOption(
 				getResources().getString(R.string.informaOpt_autoFilter),
 				Boolean.parseBoolean(_mProps.get("persistObscureType"))
 				)
-		);
+		);*/
 		
 		otherInformaOptionsHolder.setAdapter(new InformaOptions(this,informaOption));
 		
@@ -75,7 +76,7 @@ public class InformaEditor extends Activity implements OnClickListener {
 			if(subjectNameHolder.getText().toString().compareTo("") != 0) {
 				_mProps.put("regionSubject", subjectNameHolder.getText().toString());
 				_mProps.put("informedConsent", Boolean.toString(informaOption.get(0).getSelected()));
-				_mProps.put("persistObscureType", Boolean.toString(informaOption.get(1).getSelected()));
+				//_mProps.put("persistObscureType", Boolean.toString(informaOption.get(1).getSelected()));
 				
 				// TODO: if(getIntent() == OBSCURA_CAM)
 				// must prevent intent hijacking!
