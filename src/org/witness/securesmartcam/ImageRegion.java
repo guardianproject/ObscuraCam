@@ -5,6 +5,7 @@ import net.londatiga.android.QuickAction;
 import net.londatiga.android.QuickAction.OnActionItemClickListener;
 
 import org.witness.securesmartcam.filters.BlurObscure;
+import org.witness.securesmartcam.filters.ConsentTagger;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
 import org.witness.securesmartcam.filters.MaskObscure;
 import org.witness.securesmartcam.filters.PaintSquareObscure;
@@ -16,8 +17,11 @@ import org.witness.sscphase1.R;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -25,9 +29,9 @@ import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
+import android.widget.PopupWindow.OnDismissListener;
 import android.widget.RelativeLayout;
 
-//public class ImageRegion extends FrameLayout implements OnTouchListener, OnActionItemClickListener {
 public class ImageRegion implements OnActionItemClickListener 
 {
 
@@ -59,7 +63,7 @@ public class ImageRegion implements OnActionItemClickListener
 	public static final int BG_PIXELATE = 2; // BlurObscure
 	public static final int MASK = 3; // MaskObscure	
 	//public static final int BLUR = 4; // PixelizeObscure
-	public static final int CONSENT = 5; // PixelizeObscure
+	public static final int CONSENT = 4; // PixelizeObscure
 	
 	boolean selected = false;
 	
@@ -70,6 +74,9 @@ public class ImageRegion implements OnActionItemClickListener
 
 	private final static String[] mFilterLabels = {"Redact","Pixelate","CrowdPixel","Mask","Identify"};
 	private final static int[] mFilterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_pixelate, R.drawable.ic_context_mask, R.drawable.ic_context_id};
+
+	public final Drawable unidentifiedBorder, identifiedBorder;
+	public Drawable imageRegionBorder;
 	
 	// The ImageEditor object that contains us
 	ImageEditor mImageEditor;
@@ -152,6 +159,9 @@ public class ImageRegion implements OnActionItemClickListener
 		
 		// Set the mImageEditor that this region belongs to to the one passed in
 		mImageEditor = imageEditor;
+		// set the borders for tags in Non-Edit mode
+		identifiedBorder = imageEditor.getResources().getDrawable(R.drawable.border_idtag);
+		unidentifiedBorder = imageEditor.getResources().getDrawable(R.drawable.border);
 
 		mMatrix = matrix;
 		iMatrix = new Matrix();
@@ -177,8 +187,14 @@ public class ImageRegion implements OnActionItemClickListener
 
         // Setting the onTouchListener for the moveRegion
         // Might also want to do this for the other views (corners)
+<<<<<<< HEAD
         mMoveRegion.setOnTouchListener(this);
                 
+=======
+        moveRegion.setOnTouchListener(this);
+        
+        imageRegionBorder = unidentifiedBorder;
+>>>>>>> informav1
         initPopup();
         
         // This doesn't work with the touch listener always returning true.  
@@ -197,8 +213,8 @@ public class ImageRegion implements OnActionItemClickListener
 		});*/
         
         //set default processor
-        mRProc = new PixelizeObscure();
-    }
+        this.setRegionProcessor(new PixelizeObscure());
+    }		
 	
 	public void setMatrix (Matrix matrix)
 	{
@@ -257,9 +273,9 @@ public class ImageRegion implements OnActionItemClickListener
 			aItem.setIcon(mImageEditor.getResources().getDrawable(mFilterIcons[i]));			
 			
 			mPopupMenu.addActionItem(aItem);
+
 		}
 		
-
 		aItem = new ActionItem();
 		aItem.setTitle("Delete Tag");
 		aItem.setIcon(mImageEditor.getResources().getDrawable(R.drawable.ic_context_delete));
@@ -269,13 +285,15 @@ public class ImageRegion implements OnActionItemClickListener
 		mPopupMenu.setOnActionItemClickListener(this);
 	}
 	
-	void setSelected(boolean selected) {
-		this.selected = selected;
-	}
 	
 	boolean isSelected ()
 	{
 		return selected;
+	}
+	
+	void setSelected (boolean _selected)
+	{
+		selected = _selected;
 	}
 			
 			
@@ -473,29 +491,43 @@ public class ImageRegion implements OnActionItemClickListener
 		
 		case ImageRegion.BG_PIXELATE:
 			Log.v(ObscuraApp.TAG,"obscureType: BGPIXELIZE");
-			mRProc = new CrowdPixelizeObscure();
+			setRegionProcessor(new CrowdPixelizeObscure());
 		break;
 		
 		case ImageRegion.MASK:
 			Log.v(ObscuraApp.TAG,"obscureType: ANON");
-			mRProc = new MaskObscure(mImageEditor.getApplicationContext(), mImageEditor.getPainter());
+			setRegionProcessor(new MaskObscure(mImageEditor.getApplicationContext(), mImageEditor.getPainter()));
+
 			break;
 			
 		case ImageRegion.REDACT:
 			Log.v(ObscuraApp.TAG,"obscureType: SOLID");
-			mRProc = new PaintSquareObscure();
+			setRegionProcessor(new PaintSquareObscure());
 			break;
 			
 		case ImageRegion.PIXELATE:
 			Log.v(ObscuraApp.TAG,"obscureType: PIXELIZE");
-			mRProc = new PixelizeObscure();
+			setRegionProcessor(new PixelizeObscure());
 			break;
+		case ImageRegion.CONSENT:
+			Log.v(ObscuraApp.TAG,"obscureType: CONSENTIFY!");
+			// If the region processor is already a consent tagger, the user wants to edit.
+			// so no need to change the region processor.
+			if(getRegionProcessor().getClass() != ConsentTagger.class)
+				setRegionProcessor(new ConsentTagger());
 			
+			mImageEditor.launchInforma(this);
+			break;
 		default:
 			Log.v(ObscuraApp.TAG,"obscureType: NONE/BLUR");
-			mRProc = new BlurObscure();
+			setRegionProcessor(new BlurObscure());
 			break;
-	}
+		}
+		
+		if(getRegionProcessor().getClass() == ConsentTagger.class)
+			imageRegionBorder = identifiedBorder;
+		else
+			imageRegionBorder = unidentifiedBorder;
 	}
 
 	

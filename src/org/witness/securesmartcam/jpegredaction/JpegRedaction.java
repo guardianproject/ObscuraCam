@@ -1,6 +1,8 @@
 package org.witness.securesmartcam.jpegredaction;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
@@ -15,6 +17,7 @@ public class JpegRedaction implements RegionProcesser {
 	
     private native void redactRegion(String src, String target, int left, int right, int top, int bottom, String method);
     private native void redactRegions(String src, String target, String regions);
+    Properties mProps;
 
     static {
         System.loadLibrary("JpegRedaction");
@@ -34,11 +37,15 @@ public class JpegRedaction implements RegionProcesser {
     {
     	setFiles (inFile, outFile);
     	setMethod (iMethod);
+    	mProps = new Properties();
+    	mProps.put("obfuscationType", this.getClass().getName());
     }
     
     public JpegRedaction (File inFile, File outFile)
     {
     	setFiles (inFile, outFile);
+    	mProps = new Properties();
+    	mProps.put("obfuscationType", this.getClass().getName());
     }
     
     public void setFiles (File inFile, File outFile)
@@ -69,7 +76,14 @@ public class JpegRedaction implements RegionProcesser {
 
 		 String strInFile = mInFile.getAbsolutePath();
 		 String strOutFile = mOutFile.getAbsolutePath();
-	     redactRegion(strInFile, strOutFile, (int)rect.left, (int)rect.right, (int)rect.top, (int)rect.bottom, mMethod);
+
+		 redactRegion(strInFile, strOutFile, (int)rect.left, (int)rect.right, (int)rect.top, (int)rect.bottom, mMethod);
+	     
+	     // return properties and data as a map
+	     mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
+	     mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
+		 mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
+
 		
 	}
 	
@@ -83,11 +97,11 @@ public class JpegRedaction implements RegionProcesser {
 	
 	public Properties getProperties()
 	{
-		return null;
+		return mProps;
 	}
 	
 	public void setProperties(Properties props)
 	{
-		
+		mProps = props;
 	}
 }

@@ -1,5 +1,7 @@
 package org.witness.securesmartcam.filters;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import android.graphics.Bitmap;
@@ -10,9 +12,12 @@ import android.graphics.RectF;
 public class TintObscure implements RegionProcesser {
 
 	Bitmap originalBmp;
+	Properties mProps;
 	
 	public TintObscure(Bitmap _originalBmp) {
 		originalBmp = _originalBmp;
+		mProps = new Properties();
+		mProps.put("obfuscationType", this.getClass().getName());
 	}
 	
 	private void tint(int deg, int picw, int pich, Bitmap mBitmap) {
@@ -52,20 +57,22 @@ public class TintObscure implements RegionProcesser {
 		   pix = null;
 		}
 
+	@Override
+	public void processRegion(RectF rect, Canvas canvas, Bitmap bitmap) {
+		// return properties and data as a map
+		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
+		mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
+		mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
+	}
 	
 	public Properties getProperties()
 	{
-		return null;
+		return mProps;
 	}
 	
 	public void setProperties(Properties props)
 	{
-		
+		mProps = props;
 	}
 
-	@Override
-	public void processRegion(RectF rect, Canvas canvas, Bitmap originalBmp) {
-		// TODO Auto-generated method stub
-		
-	}
 }

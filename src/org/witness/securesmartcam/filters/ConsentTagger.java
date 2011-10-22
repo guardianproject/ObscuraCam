@@ -13,15 +13,19 @@ public class ConsentTagger implements RegionProcesser
 	public ConsentTagger ()
 	{
 		mProps = new Properties ();
-		mProps.put("id", "");
-		mProps.put("consent", "false");
-		
+		mProps.put("regionSubject", "");
+		mProps.put("informedConsent", "false");
+		mProps.put("persistObscureType", "false");
+		mProps.put("obfuscationType", this.getClass().getName());		
 	}
 	
 	@Override
 	public void processRegion (RectF rect, Canvas canvas,  Bitmap bitmap) 
 	{
-		
+		// return properties and data as a map
+		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
+		mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
+		mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
 	}
 
 	public Properties getProperties()

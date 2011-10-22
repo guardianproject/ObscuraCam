@@ -7,9 +7,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
 import java.util.Vector;
 
+import org.witness.informa.InformaEditor;
+import org.witness.informa.utils.MetadataParser;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.MaskObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
@@ -82,6 +89,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public final static int SHARE_MENU_ITEM = 3;
 	public final static int NEW_REGION_MENU_ITEM = 4;
 	
+	// Constants for Informa
+	public final static int FROM_INFORMA = 100;
+	public final static String LOG = "[Image Editor ********************]";
+	
 	// Image Matrix
 	Matrix matrix = new Matrix();
 
@@ -146,6 +157,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
 	// Vector to hold ImageRegions 
 	Vector<ImageRegion> imageRegions = new Vector<ImageRegion>(); 
+	MetadataParser mp;
 		
 	// The original image dimensions (not scaled)
 	int originalImageWidth;
@@ -184,6 +196,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	   }
     	};
 
+	@SuppressWarnings("unused")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -1410,7 +1423,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	// Screen size
     	Bitmap obscuredBmp = null;
 
-
     	ContentValues cv = new ContentValues();
     	
     	// Add a date so it shows up in a reasonable place in the gallery - Should we do this??
@@ -1476,6 +1488,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				new String[] {pullPathFromUri(savedImageUri)},
 				new String[] {"image/jpeg"},
 				null);
+		
+		// package and insert exif data
+		mp = new MetadataParser(dateFormat.format(date), new File(pullPathFromUri(savedImageUri)), this);
+		Iterator<ImageRegion> i = imageRegions.iterator();
+	    while (i.hasNext()) {
+	    	mp.addRegion(i.next().getRegionProcessor().getProperties());
+	    }
     	
 		Toast t = Toast.makeText(this,"Image saved to Gallery", Toast.LENGTH_SHORT); 
 		t.show();
@@ -1483,6 +1502,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		mProgressDialog.cancel();
 		
 		handleDelete ();
+		mp.flushMetadata();
 		
 		
 		return true;
@@ -1548,6 +1568,33 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		imageView.setImageMatrix(matrix);
 		putOnScreen();
 		
+    }
+    
+    public void launchInforma(ImageRegion ir) {
+    	Intent informa = new Intent(this,InformaEditor.class);
+    	informa.putExtra("mProps", ir.getRegionProcessor().getProperties());
+    	informa.putExtra("irIndex", imageRegions.indexOf(ir));
+    	startActivityForResult(informa,FROM_INFORMA);
+    }
+    
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    	if(resultCode == Activity.RESULT_OK) {
+    		if(requestCode == FROM_INFORMA) {
+    			// replace corresponding image region
+    			@SuppressWarnings("unchecked")
+				HashMap<String, String> informaReturn = (HashMap<String, String>) data.getSerializableExtra("informaReturn");    			
+    			Properties mProp = imageRegions.get(data.getIntExtra("irIndex", 0)).getRegionProcessor().getProperties();
+    			
+    			// iterate through returned hashmap and place these new properties in it.
+    			for(Map.Entry<String, String> entry : informaReturn.entrySet()) {
+    				mProp.setProperty(entry.getKey(), entry.getValue());
+    			}
+    			
+    			imageRegions.get(data.getIntExtra("irIndex", 0)).getRegionProcessor().setProperties(mProp);
+    			    			
+    		}
+    	}
     }
 
 	@Override

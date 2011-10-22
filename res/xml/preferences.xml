@@ -30,6 +30,9 @@
 			android:defaultValue="true"
 			android:summary="Automatically Sync Images with Cloud Service"
 			android:key="AutoSubmitPref" />
-		<!-- <Preference android:title="Done" android:key="DoneButtonPref"></Preference> --> 
+		<!-- <Preference android:title="Done" android:key="DoneButtonPref"></Preference> -->
+		<CheckBoxPreference
+			android:key="VirginInformaUser"
+			android:defaultValue="true" />
 	</PreferenceCategory>
 </PreferenceScreen>

@@ -7,6 +7,8 @@ package org.witness.securesmartcam.filters;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import android.content.Context;
@@ -33,7 +35,7 @@ public class MaskObscure implements RegionProcesser {
 
 		mProps = new Properties ();
 		mProps.put("path", "mask.png");
-		
+		mProps.put("obfuscationType", this.getClass().getName());
 	}
 	
 	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitmap) {
@@ -49,6 +51,13 @@ public class MaskObscure implements RegionProcesser {
 		{
 			Log.e("anon",e.toString(),e);
 		}
+		
+		// return properties and data as a map
+		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
+		mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
+		mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));		
+			
+
 	}
 	
 	
@@ -62,12 +71,12 @@ public class MaskObscure implements RegionProcesser {
 	
 	public Properties getProperties()
 	{
-		return null;
+		return mProps;
 	}
 	
 	public void setProperties(Properties props)
 	{
-		
+		mProps = props;
 	}
 }
 
