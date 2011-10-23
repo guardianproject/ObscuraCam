@@ -18,7 +18,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 public class InformaEditor extends Activity implements OnClickListener {
-	ImageView imageRegionThumb;
+	//ImageView imageRegionThumb;
 	EditText subjectNameHolder;
 	Button informaSubmit;
 	ListView otherInformaOptionsHolder;
@@ -38,7 +38,7 @@ public class InformaEditor extends Activity implements OnClickListener {
 		
 		_mProps = (HashMap<String, String>) getIntent().getSerializableExtra("mProps");
 		
-		imageRegionThumb = (ImageView) findViewById(R.id.imageRegionThumb);
+		//imageRegionThumb = (ImageView) findViewById(R.id.imageRegionThumb);
 		subjectNameHolder = (EditText) findViewById(R.id.subjectNameHolder);
 
 		if(_mProps.get("regionSubject").compareTo("") != 0)

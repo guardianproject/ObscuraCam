@@ -473,11 +473,9 @@ public class ImageRegion implements OnActionItemClickListener
 		}
 		else
 		{
-        	if (mObscureType != pos)
-        	{
-        		mObscureType = pos;
-        		updateRegionProcessor(mObscureType);
-        	}
+        	mObscureType = pos;
+        	updateRegionProcessor(mObscureType);
+        	
         		
 		}
 
@@ -513,7 +511,7 @@ public class ImageRegion implements OnActionItemClickListener
 			Log.v(ObscuraApp.TAG,"obscureType: CONSENTIFY!");
 			// If the region processor is already a consent tagger, the user wants to edit.
 			// so no need to change the region processor.
-			if(getRegionProcessor().getClass() != ConsentTagger.class)
+			if(!(getRegionProcessor() instanceof ConsentTagger))
 				setRegionProcessor(new ConsentTagger());
 			
 			mImageEditor.launchInforma(this);

@@ -6,13 +6,15 @@
 	android:layout_height="fill_parent"
     android:weightSum="1.0">
 	<CheckBox
+	    	android:padding="3px"
+	
     	android:layout_width="wrap_content"
     	android:layout_height="wrap_content"
     	android:id="@+id/optionSelection" />
     <TextView 
-    	android:layout_width="0dip"
+    	android:layout_width="wrap_content"
     	android:layout_height="wrap_content"
-    	android:layout_weight="0.75"
+    	android:layout_weight="1"
     	android:id="@+id/optionText" />
   
     
