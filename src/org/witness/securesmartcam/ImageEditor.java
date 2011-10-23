@@ -583,7 +583,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	@Override
 	public boolean onTouch(View v, MotionEvent event) 
 	{
-		if (currRegion != null)			
+		if (currRegion != null && (mode == DRAG || currRegion.getBounds().contains(event.getX(), event.getY())))		
 			return onTouchRegion(v, event, currRegion);	
 		else
 			return onTouchImage(v,event);
