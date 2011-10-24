@@ -1370,7 +1370,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
             regionRect.right *= inSampleSize;
             regionRect.bottom *= inSampleSize;
             
-            // TODO: when do we call this?
 	    	om.processRegion(regionRect, obscuredCanvas, obscuredBmp);
 		
 	    }

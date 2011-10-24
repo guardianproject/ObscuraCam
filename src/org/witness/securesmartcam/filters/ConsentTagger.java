@@ -12,7 +12,7 @@ import android.util.Log;
 public class ConsentTagger implements RegionProcesser
 {
 	Properties mProps;
-	Bitmap mPreview;
+	private Bitmap mPreview;
 	
 	public ConsentTagger ()
 	{

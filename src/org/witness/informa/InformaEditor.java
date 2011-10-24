@@ -63,7 +63,6 @@ public class InformaEditor extends Activity implements OnClickListener {
 			matrix.postScale(80f/b.getWidth(), 80f/b.getHeight());			
 			Bitmap preview = Bitmap.createBitmap(b, 0, 0, b.getWidth(), b.getHeight(), matrix, true);
 			
-			
 			imageRegionThumb.setImageBitmap(preview);
 		}
 		
