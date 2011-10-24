@@ -4,10 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.witness.informa.InformaOptions.InformaOption;
+import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -22,6 +26,7 @@ public class InformaEditor extends Activity implements OnClickListener {
 	EditText subjectNameHolder;
 	Button informaSubmit;
 	ListView otherInformaOptionsHolder;
+	ImageView imageRegionThumb;
 	
 	HashMap<String, String> _mProps;
 	ArrayList<InformaOption> informaOption;
@@ -43,6 +48,13 @@ public class InformaEditor extends Activity implements OnClickListener {
 
 		if(_mProps.get("regionSubject").compareTo("") != 0)
 			subjectNameHolder.setText(_mProps.get("regionSubject"));
+		
+		if(getIntent().hasExtra("byteArray")) {
+			imageRegionThumb = (ImageView) findViewById(R.id.imageRegionThumb);
+			Bitmap preview = BitmapFactory.decodeByteArray(getIntent().getByteArrayExtra("byteArray"),0,getIntent().getByteArrayExtra("byteArray").length);
+			imageRegionThumb.setImageBitmap(preview);
+			Log.d(ObscuraApp.TAG, "bytes passed: " + getIntent().getByteArrayExtra("byteArray").length);
+		}
 		
 		informaSubmit = (Button) findViewById(R.id.informaSubmit);
 		informaSubmit.setOnClickListener(this);

@@ -46,4 +46,10 @@ public class SolidObscure implements RegionProcesser {
 	{
 		mProps = props;
 	}
+
+	@Override
+	public Bitmap getBitmap() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

@@ -13,6 +13,8 @@ public interface RegionProcesser {
 	
 	public Properties getProperties();
 	
+	public Bitmap getBitmap();
+	
 	public void setProperties(Properties props);
 	
 }

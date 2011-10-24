@@ -19,17 +19,18 @@
     	android:layout_height="0dip"
     	android:layout_weight="0.25"
     	android:weightSum="1.0">
-    	<!-- 
+    	
     	<ImageView 
     		android:layout_width="0dip"
     		android:layout_height="wrap_content"
     		android:layout_weight="0.25"
-    		android:id="@+id/imageRegionThumb" />
-    		 -->
+    		android:id="@+id/imageRegionThumb"
+    		android:src="@drawable/ic_context_id" />
+    		 
     	<EditText
     		android:layout_width="0dip"
     		android:layout_height="wrap_content"
-    		android:layout_weight="1"
+    		android:layout_weight="0.75"
     		android:id="@+id/subjectNameHolder"
     		android:hint="Subject's Name or Pseudonym" />
     </LinearLayout>

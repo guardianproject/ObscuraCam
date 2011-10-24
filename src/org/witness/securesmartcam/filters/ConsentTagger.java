@@ -2,13 +2,17 @@ package org.witness.securesmartcam.filters;
 
 import java.util.Properties;
 
+import org.witness.sscphase1.ObscuraApp;
+
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.RectF;
+import android.util.Log;
 
 public class ConsentTagger implements RegionProcesser
 {
 	Properties mProps;
+	Bitmap mPreview;
 	
 	public ConsentTagger ()
 	{
@@ -16,7 +20,7 @@ public class ConsentTagger implements RegionProcesser
 		mProps.put("regionSubject", "");
 		mProps.put("informedConsent", "false");
 		mProps.put("persistObscureType", "false");
-		mProps.put("obfuscationType", this.getClass().getName());		
+		mProps.put("obfuscationType", this.getClass().getName());	
 	}
 	
 	@Override
@@ -26,6 +30,13 @@ public class ConsentTagger implements RegionProcesser
 		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
 		mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
 		mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
+		mPreview = Bitmap.createBitmap(
+				bitmap, 
+				(int) rect.left, 
+				(int) rect.top,
+				(int) (Math.abs(rect.left - rect.right)), 
+				(int) (Math.abs(rect.top - rect.bottom))
+			);
 	}
 
 	public Properties getProperties()
@@ -36,5 +47,11 @@ public class ConsentTagger implements RegionProcesser
 	public void setProperties(Properties props)
 	{
 		mProps = props;
+	}
+
+	@Override
+	public Bitmap getBitmap() {
+		// TODO Auto-generated method stub
+		return mPreview;
 	}
 }

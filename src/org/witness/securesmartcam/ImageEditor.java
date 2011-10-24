@@ -1,10 +1,12 @@
 package org.witness.securesmartcam;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -1367,6 +1369,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
             regionRect.right *= inSampleSize;
             regionRect.bottom *= inSampleSize;
             
+            // TODO: when do we call this?
 	    	om.processRegion(regionRect, obscuredCanvas, obscuredBmp);
 		
 	    }
@@ -1597,6 +1600,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	Intent informa = new Intent(this,InformaEditor.class);
     	informa.putExtra("mProps", ir.getRegionProcessor().getProperties());
     	informa.putExtra("irIndex", imageRegions.indexOf(ir));
+    	
+    	if(ir.getRegionProcessor().getBitmap() != null) {
+    		Log.d(ObscuraApp.TAG,"image should be seen...");
+    		Bitmap b = ir.getRegionProcessor().getBitmap();
+    		ByteArrayOutputStream bs = new ByteArrayOutputStream();
+    		b.compress(Bitmap.CompressFormat.PNG, 50, bs);
+    		informa.putExtra("byteArray", bs.toByteArray());
+    	}
+    	
     	startActivityForResult(informa,FROM_INFORMA);
     }
     
