@@ -15,12 +15,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 
-public class PaintSquareObscure implements RegionProcesser {
+public class SolidObscure implements RegionProcesser {
 
 	Paint paint;
 	Properties mProps;
 	
-	public PaintSquareObscure() {
+	public SolidObscure() {
 		paint = new Paint();
         paint.setColor(Color.BLACK);
         

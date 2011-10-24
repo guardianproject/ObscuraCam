@@ -54,6 +54,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.provider.MediaStore;
+import android.provider.MediaStore.Images;
 import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.view.Display;
@@ -75,6 +76,7 @@ import android.widget.Toast;
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener, OnLongClickListener {
 
 
+	public final static String MIME_TYPE_JPEG = "image/jpeg";
 	
 	// Colors for region squares
 	
@@ -168,6 +170,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	// Original Image Uri
 	Uri originalImageUri;
+	
+	// sample sized used to downsize from native photo
+	int inSampleSize;
 	
 	// Saved Image Uri
 	Uri savedImageUri;
@@ -305,8 +310,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				Display currentDisplay = getWindowManager().getDefaultDisplay();
 				
 				// Ratios between the display and the image
-				int widthRatio = (int) Math.floor(bmpFactoryOptions.outWidth / (float) currentDisplay.getWidth());
-				int heightRatio = (int) Math.floor(bmpFactoryOptions.outHeight / (float) currentDisplay.getHeight());
+				double widthRatio =  Math.floor(bmpFactoryOptions.outWidth / currentDisplay.getWidth());
+				double heightRatio = Math.floor(bmpFactoryOptions.outHeight / currentDisplay.getHeight());
 
 				/*
 				debug(ObscuraApp.TAG,"Display Width: " + currentDisplay.getWidth());
@@ -324,12 +329,18 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				if (heightRatio > 1 && widthRatio > 1) {
 					if (heightRatio > widthRatio) {
 						// Height ratio is larger, scale according to it
-						bmpFactoryOptions.inSampleSize = heightRatio;
+						inSampleSize = (int)heightRatio;
 					} else {
 						// Width ratio is larger, scale according to it
-						bmpFactoryOptions.inSampleSize = widthRatio;
+						inSampleSize = (int)widthRatio;
 					}
 				}
+				else
+				{
+					inSampleSize = 1;
+				}
+				
+				bmpFactoryOptions.inSampleSize = inSampleSize;
 		
 				// Decode it for real
 				bmpFactoryOptions.inJustDecodeBounds = false;
@@ -426,7 +437,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	/*
 	 * Call this to delete the original image, will ask the user
 	 */
-	private void handleDelete() 
+	private void showDeleteOriginalDialog() 
 	{
 		final AlertDialog.Builder b = new AlertDialog.Builder(this);
 		b.setIcon(android.R.drawable.ic_dialog_alert);
@@ -1226,9 +1237,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     private void viewImage(Uri imgView) {
     	
     	Intent iView = new Intent(Intent.ACTION_VIEW);
-    	iView.setType("image/jpeg");
+    	iView.setType(MIME_TYPE_JPEG);
     	iView.putExtra(Intent.EXTRA_STREAM, imgView);
-    	iView.setDataAndType(imgView, "image/jpeg");
+    	iView.setDataAndType(imgView, MIME_TYPE_JPEG);
 
     	startActivity(Intent.createChooser(iView, "View Image"));    	
 	
@@ -1319,35 +1330,48 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * Goes through the regions that have been defined and creates a bitmap with them obscured.
      * This may introduce memory issues and therefore have to be done in a different manner.
      */
-    private File processNativeRes () throws Exception
+    private Uri processNativeRes (Uri sourceImage) throws Exception
     {
     	// Create the Uri - This can't be "private"
+    	/*
     	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory(), TMP_FILE_DIRECTORY);
     
     	if (!tmpFileDirectory.exists()) {
     		tmpFileDirectory.mkdirs();
+    	}*/
+
+    	File tmpFileDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES); 
+    	if (!tmpFileDirectory.exists()) {
+    		tmpFileDirectory.mkdirs();
     	}
-    	
     	File tmpInFile = new File(tmpFileDirectory,TMP_FILE_NAME);
-    	File tmpOutFile = new File(tmpFileDirectory,'2' + TMP_FILE_NAME);
-        
+    	
     	Uri tmpImageUri = Uri.fromFile(tmpInFile);
-		copy (originalImageUri, tmpImageUri);
-		
+		copy (sourceImage, tmpImageUri);
+	  	
+		JpegRedaction om = new JpegRedaction();	
+    	om.setFiles(tmpInFile, tmpInFile);
+	
 		// Iterate through the regions that have been created
     	Iterator<ImageRegion> i = imageRegions.iterator();
 	    while (i.hasNext()) 
 	    {
-	    	ImageRegion currentRegion = i.next();
 	    	
-	    	JpegRedaction om = new JpegRedaction(currentRegion.getRegionProcessor(), tmpInFile, tmpOutFile);	
-	    	om.processRegion(currentRegion.getBounds(), obscuredCanvas, obscuredBmp);
+	    	ImageRegion currentRegion = i.next();
+	  
+	    	
+	    	om.setMethod(currentRegion.getRegionProcessor());
+            RectF regionRect = new RectF(currentRegion.getBounds());
+            regionRect.left *= inSampleSize;
+            regionRect.top *= inSampleSize;
+            regionRect.right *= inSampleSize;
+            regionRect.bottom *= inSampleSize;
+            
+	    	om.processRegion(regionRect, obscuredCanvas, obscuredBmp);
 		
-		}
-	    
-	    tmpInFile.delete();
-	    
-	    return tmpOutFile;
+	    }
+	    	    
+	    return  Uri.fromFile(tmpInFile);
     }
     
     private void copy (Uri uriSrc, Uri uriTarget) throws IOException
@@ -1419,9 +1443,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      */
     private boolean saveImage() 
     {
-    	// Create the bitmap that will be saved
-    	// Screen size
-    	Bitmap obscuredBmp = null;
 
     	ContentValues cv = new ContentValues();
     	
@@ -1430,30 +1451,31 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	Date date = new Date();
 
 		// Which one?
-    	cv.put(Media.DATE_ADDED, dateFormat.format(date));
-    	cv.put(Media.DATE_TAKEN, dateFormat.format(date));
-    	cv.put(Media.DATE_MODIFIED, dateFormat.format(date));
-    	
+    	cv.put(Images.Media.DATE_ADDED, dateFormat.format(date));
+    	cv.put(Images.Media.DATE_TAKEN, dateFormat.format(date));
+    	cv.put(Images.Media.DATE_MODIFIED, dateFormat.format(date));
+    	cv.put(Images.Media.TITLE, dateFormat.format(date));
+    //    cv.put(Images.Media.BUCKET_ID, "ObscuraCam");
+    //    cv.put(Images.Media.DESCRIPTION, "ObscuraCam");
+    	//cv.put(Images.Media.CONTENT_TYPE, MIME_TYPE_JPEG);
+
     	// Uri is savedImageUri which is global
     	// Create the Uri, this should put it in the gallery
     	// New Each time
-    	
-
 		savedImageUri = getContentResolver().insert(
 				Media.EXTERNAL_CONTENT_URI, cv);
-    	
+		
+		if (savedImageUri == null)
+			return false;
+		
 		boolean nativeSuccess = false;
 		
     	if (canDoNative())
     	{
     		try {
-    			File savedNativeTmp = processNativeRes();
+    			Uri savedNativeTmp = processNativeRes(originalImageUri);
 
-    			debug(ObscuraApp.TAG,"saved native tmp file size: " + savedNativeTmp.length());
-    			
-    			copy(Uri.fromFile(savedNativeTmp), savedImageUri);
-    			
-    			savedNativeTmp.delete();
+    			copy(savedNativeTmp, savedImageUri);
     			
     			nativeSuccess = true;
     			
@@ -1482,27 +1504,28 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
     	}
 
-		// force mediascanner to update file
-		MediaScannerConnection.scanFile(
-				this,
-				new String[] {pullPathFromUri(savedImageUri)},
-				new String[] {"image/jpeg"},
-				null);
-		
 		// package and insert exif data
 		mp = new MetadataParser(dateFormat.format(date), new File(pullPathFromUri(savedImageUri)), this);
 		Iterator<ImageRegion> i = imageRegions.iterator();
 	    while (i.hasNext()) {
 	    	mp.addRegion(i.next().getRegionProcessor().getProperties());
 	    }
-    	
+
+		mp.flushMetadata();
+
+		// force mediascanner to update file
+		MediaScannerConnection.scanFile(
+				this,
+				new String[] {pullPathFromUri(savedImageUri)},
+				new String[] {MIME_TYPE_JPEG},
+				null);
+		
 		Toast t = Toast.makeText(this,"Image saved to Gallery", Toast.LENGTH_SHORT); 
 		t.show();
 
 		mProgressDialog.cancel();
 		
-		handleDelete ();
-		mp.flushMetadata();
+		showDeleteOriginalDialog ();
 		
 		
 		return true;

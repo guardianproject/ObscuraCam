@@ -8,7 +8,7 @@ import org.witness.securesmartcam.filters.BlurObscure;
 import org.witness.securesmartcam.filters.ConsentTagger;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
 import org.witness.securesmartcam.filters.MaskObscure;
-import org.witness.securesmartcam.filters.PaintSquareObscure;
+import org.witness.securesmartcam.filters.SolidObscure;
 import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
 import org.witness.sscphase1.ObscuraApp;
@@ -500,7 +500,7 @@ public class ImageRegion implements OnActionItemClickListener
 			
 		case ImageRegion.REDACT:
 			Log.v(ObscuraApp.TAG,"obscureType: SOLID");
-			setRegionProcessor(new PaintSquareObscure());
+			setRegionProcessor(new SolidObscure());
 			break;
 			
 		case ImageRegion.PIXELATE:

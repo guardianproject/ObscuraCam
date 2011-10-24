@@ -8,6 +8,7 @@ import java.util.Properties;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
 import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
+import org.witness.securesmartcam.filters.SolidObscure;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -25,7 +26,7 @@ public class JpegRedaction implements RegionProcesser {
 
     private File mInFile;
     private File mOutFile;
-    private String mMethod;
+    private String mMethod = null;
     
     private final static String METHOD_COPYSTRIP = "c";
     private final static String METHOD_SOLID = "s";
@@ -36,16 +37,23 @@ public class JpegRedaction implements RegionProcesser {
     public JpegRedaction (RegionProcesser iMethod, File inFile, File outFile)
     {
     	setFiles (inFile, outFile);
-    	setMethod (iMethod);
+    	
+    	if (iMethod != null)
+    		setMethod (iMethod);
+    	
     	mProps = new Properties();
     	mProps.put("obfuscationType", this.getClass().getName());
     }
     
+    public JpegRedaction ()
+    {
+    	this (null, null, null);
+    }
+    
+    
     public JpegRedaction (File inFile, File outFile)
     {
-    	setFiles (inFile, outFile);
-    	mProps = new Properties();
-    	mProps.put("obfuscationType", this.getClass().getName());
+    	this (null, inFile, outFile);
     }
     
     public void setFiles (File inFile, File outFile)
@@ -64,26 +72,27 @@ public class JpegRedaction implements RegionProcesser {
     	{
     		mMethod = METHOD_PIXELLATE;
     	}
-    	else
+    	else if (rProc instanceof SolidObscure)
     	{
-    		mMethod = METHOD_INVERSE_PIXELLATE;
+    		mMethod = METHOD_SOLID;
     	}
-    	    	
     }
     
 	@Override
 	public void processRegion(RectF rect, Canvas canvas, Bitmap bitmap) {
 
-		 String strInFile = mInFile.getAbsolutePath();
-		 String strOutFile = mOutFile.getAbsolutePath();
-
-		 redactRegion(strInFile, strOutFile, (int)rect.left, (int)rect.right, (int)rect.top, (int)rect.bottom, mMethod);
-	     
-	     // return properties and data as a map
-	     mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
-	     mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
-		 mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
-
+		if (mMethod != null)
+		{
+			 String strInFile = mInFile.getAbsolutePath();
+			 String strOutFile = mOutFile.getAbsolutePath();
+	
+			 redactRegion(strInFile, strOutFile, (int)rect.left, (int)rect.right, (int)rect.top, (int)rect.bottom, mMethod);
+		     
+		     // return properties and data as a map
+		     mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
+		     mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
+			 mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
+		}
 		
 	}
 	
