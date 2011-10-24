@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.witness.informa.InformaOptions.InformaOption;
+import org.witness.securesmartcam.ImageEditor;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -43,17 +45,26 @@ public class InformaEditor extends Activity implements OnClickListener {
 		
 		_mProps = (HashMap<String, String>) getIntent().getSerializableExtra("mProps");
 		
-		//imageRegionThumb = (ImageView) findViewById(R.id.imageRegionThumb);
 		subjectNameHolder = (EditText) findViewById(R.id.subjectNameHolder);
 
 		if(_mProps.get("regionSubject").compareTo("") != 0)
 			subjectNameHolder.setText(_mProps.get("regionSubject"));
-		
+				
 		if(getIntent().hasExtra("byteArray")) {
+			
 			imageRegionThumb = (ImageView) findViewById(R.id.imageRegionThumb);
-			Bitmap preview = BitmapFactory.decodeByteArray(getIntent().getByteArrayExtra("byteArray"),0,getIntent().getByteArrayExtra("byteArray").length);
+			Bitmap b = BitmapFactory.decodeByteArray(
+					getIntent().getByteArrayExtra("byteArray"),
+					0,
+					getIntent().getByteArrayExtra("byteArray").length
+				);
+			
+			Matrix matrix = new Matrix();
+			matrix.postScale(80f/b.getWidth(), 80f/b.getHeight());			
+			Bitmap preview = Bitmap.createBitmap(b, 0, 0, b.getWidth(), b.getHeight(), matrix, true);
+			
+			
 			imageRegionThumb.setImageBitmap(preview);
-			Log.d(ObscuraApp.TAG, "bytes passed: " + getIntent().getByteArrayExtra("byteArray").length);
 		}
 		
 		informaSubmit = (Button) findViewById(R.id.informaSubmit);

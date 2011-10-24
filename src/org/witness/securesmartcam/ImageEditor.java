@@ -20,6 +20,7 @@ import java.util.Vector;
 import org.witness.informa.InformaEditor;
 import org.witness.informa.utils.MetadataParser;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
+import org.witness.securesmartcam.filters.ConsentTagger;
 import org.witness.securesmartcam.filters.MaskObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
 import org.witness.securesmartcam.jpegredaction.JpegRedaction;
@@ -1601,8 +1602,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	informa.putExtra("mProps", ir.getRegionProcessor().getProperties());
     	informa.putExtra("irIndex", imageRegions.indexOf(ir));
     	
+    	ir.getRegionProcessor().processRegion(new RectF(ir.getBounds()), obscuredCanvas, obscuredBmp);    	
+    	
     	if(ir.getRegionProcessor().getBitmap() != null) {
-    		Log.d(ObscuraApp.TAG,"image should be seen...");
     		Bitmap b = ir.getRegionProcessor().getBitmap();
     		ByteArrayOutputStream bs = new ByteArrayOutputStream();
     		b.compress(Bitmap.CompressFormat.PNG, 50, bs);
