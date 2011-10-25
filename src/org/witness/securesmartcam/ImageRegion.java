@@ -90,6 +90,8 @@ public class ImageRegion implements OnActionItemClickListener
 	RegionProcesser mRProc;
 	
 	private final static float MIN_MOVE = 5f;
+
+	private final static float CORNER_MAX = 50f;
 	
 	private int cornerMode = -1;
 	
@@ -106,31 +108,33 @@ public class ImageRegion implements OnActionItemClickListener
 		float[] points = {x,y};        	
     	iMatrix.mapPoints(points);
     	
-    	float CORNER_MAX = 50f;
+    	float cSize = CORNER_MAX;
     	
-    	if (Math.abs(mBounds.left-points[0])<CORNER_MAX
-    			&& Math.abs(mBounds.top-points[1])<CORNER_MAX
+    	cSize = iMatrix.mapRadius(cSize);
+    	
+    	if (Math.abs(mBounds.left-points[0])<cSize
+    			&& Math.abs(mBounds.top-points[1])<cSize
     			)
     	{
     		cornerMode = 1;
     		return;
     	}
-    	else if (Math.abs(mBounds.left-points[0])<CORNER_MAX
-    			&& Math.abs(mBounds.bottom-points[1])<CORNER_MAX
+    	else if (Math.abs(mBounds.left-points[0])<cSize
+    			&& Math.abs(mBounds.bottom-points[1])<cSize
     			)
     	{
     		cornerMode = 2;
 			return;
 		}
-    	else if (Math.abs(mBounds.right-points[0])<CORNER_MAX
-    			&& Math.abs(mBounds.top-points[1])<CORNER_MAX
+    	else if (Math.abs(mBounds.right-points[0])<cSize
+    			&& Math.abs(mBounds.top-points[1])<cSize
     			)
     	{
     			cornerMode = 3;
     			return;
 		}
-    	else if (Math.abs(mBounds.right-points[0])<CORNER_MAX
-        			&& Math.abs(mBounds.bottom-points[1])<CORNER_MAX
+    	else if (Math.abs(mBounds.right-points[0])<cSize
+        			&& Math.abs(mBounds.bottom-points[1])<cSize
         			)
     	{
     		cornerMode = 4;

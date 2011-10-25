@@ -34,8 +34,8 @@ public class ConsentTagger implements RegionProcesser
 				bitmap, 
 				(int) rect.left, 
 				(int) rect.top,
-				(int) (Math.abs(rect.left - rect.right)), 
-				(int) (Math.abs(rect.top - rect.bottom))
+				(int) Math.min(bitmap.getWidth(),(Math.abs(rect.left - rect.right))), 
+				(int) Math.min(bitmap.getHeight(), (Math.abs(rect.top - rect.bottom)))
 			);
 	}
 

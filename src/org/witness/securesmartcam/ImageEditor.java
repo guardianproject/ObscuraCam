@@ -650,8 +650,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				mode = NONE;
 				handled = iRegion.onTouch(v, event);
 				currRegion.setSelected(false);
-				if (handled)
-					currRegion = null;
+				//if (handled)
+					//currRegion = null;
 			
 			break;
 			
@@ -674,16 +674,24 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			case MotionEvent.ACTION_DOWN:
 				// Single Finger down
 				mode = TAP;				
-				currRegion = findRegion(event);
+				ImageRegion newRegion = findRegion(event);
 				
-				if (currRegion != null)
+				if (newRegion != null)
 				{
+					currRegion = newRegion;
 					return onTouchRegion(v,  event, currRegion);
+				}
+				else if (currRegion == null)
+				{
+					
+					// 	Save the Start point. 
+					startPoint.set(event.getX(), event.getY());
 				}
 				else
 				{
-					// 	Save the Start point. 
-					startPoint.set(event.getX(), event.getY());
+					currRegion.setSelected(false);
+					currRegion = null;
+
 				}
 				
 				
@@ -897,6 +905,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		{
 			itRegions.next().setSelected(false);
 		}
+		
 	}
 	
 	/*
@@ -1295,12 +1304,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		    	obscuredPaint.setStrokeWidth(10f);
 		    	obscuredCanvas.drawRect(regionRect, obscuredPaint);
 		    	
+		    	float cSize = CORNER_SIZE;
+		    	
 		    	if (currentRegion.isSelected())
 		    	{
-		    		obscuredCanvas.drawBitmap(bitmapCornerUL, regionRect.left-CORNER_SIZE, regionRect.top-CORNER_SIZE, obscuredPaint);
-		    		obscuredCanvas.drawBitmap(bitmapCornerLL, regionRect.left-CORNER_SIZE, regionRect.bottom-(CORNER_SIZE/2), obscuredPaint);
-		    		obscuredCanvas.drawBitmap(bitmapCornerUR, regionRect.right-(CORNER_SIZE/2), regionRect.top-CORNER_SIZE, obscuredPaint);
-		    		obscuredCanvas.drawBitmap(bitmapCornerLR, regionRect.right-(CORNER_SIZE/2), regionRect.bottom-(CORNER_SIZE/2), obscuredPaint);
+		    		obscuredCanvas.drawBitmap(bitmapCornerUL, regionRect.left-cSize, regionRect.top-cSize, obscuredPaint);
+		    		obscuredCanvas.drawBitmap(bitmapCornerLL, regionRect.left-cSize, regionRect.bottom-(cSize/2), obscuredPaint);
+		    		obscuredCanvas.drawBitmap(bitmapCornerUR, regionRect.right-(cSize/2), regionRect.top-cSize, obscuredPaint);
+		    		obscuredCanvas.drawBitmap(bitmapCornerLR, regionRect.right-(cSize/2), regionRect.bottom-(cSize/2), obscuredPaint);
 
 		    	}
 		    	
