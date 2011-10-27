@@ -76,7 +76,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-public class ImageEditor extends Activity implements OnTouchListener, OnClickListener, OnLongClickListener {
+public class ImageEditor extends Activity implements OnTouchListener, OnClickListener {
 
 
 	public final static String MIME_TYPE_JPEG = "image/jpeg";
@@ -415,7 +415,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// Set the OnTouch and OnLongClick listeners to this (ImageEditor)
 		imageView.setOnTouchListener(this);
 		imageView.setOnClickListener(this);
-		imageView.setOnLongClickListener(this);
 		
 		
 		//PointF midpoint = new PointF((float)imageBitmap.getWidth()/2f, (float)imageBitmap.getHeight()/2f);
@@ -1026,48 +1025,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 		
 	}
-	
-	
-	// Long Clicks create new image regions
-	@Override
-	public boolean onLongClick (View v)
-	{
-		/*
-		if (mode != DRAG && mode != ZOOM) 
-		{
-			vibe.vibrate(50);
-
-			float defaultSize = imageView.getWidth()/4;
-			float halfSize = defaultSize/2;
-			
-			RectF newBox = new RectF();
-			
-			newBox.left = startPoint.x - halfSize;
-			newBox.top = startPoint.y - halfSize;
-
-			newBox.right = startPoint.x + halfSize;
-			newBox.bottom = startPoint.y + halfSize;
-			
-			float[] mValues = new float[9];
-			matrix.getValues(mValues);
-			float scaleX = mValues[Matrix.MSCALE_X];
-			float scaleY = mValues[Matrix.MSCALE_Y];
-			
-			float leftOffset = mValues[Matrix.MTRANS_X];
-			float topOffset = mValues[Matrix.MTRANS_Y];
-			
-			newBox.left = (newBox.left / scaleX) - leftOffset;
-			newBox.top = (newBox.top / scaleY) - topOffset;
-			newBox.right = (newBox.right / scaleX) - leftOffset;
-			newBox.bottom = (newBox.bottom / scaleY) - topOffset;
-
-			createImageRegion(newBox.left, newBox.top, newBox.right, newBox.bottom, true);
-			return true;
-		}
-		*/
-		return true;
-	}
-	
 	/*
 	 * Standard method for menu items.  Uses res/menu/image_editor_menu.xml
 	 */
