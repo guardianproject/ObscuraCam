@@ -67,6 +67,12 @@ public class ImageRegion implements OnActionItemClickListener
 	
 	boolean selected = false;
 	
+	public static final int CORNER_UPPER_LEFT = 1;
+	public static final int CORNER_LOWER_LEFT = 2;
+	public static final int CORNER_UPPER_RIGHT = 3;
+	public static final int CORNER_LOWER_RIGHT = 4;
+	public static final int CORNER_NONE = -1;
+
 	/* Add each ObscureMethod to this list and update the 
 	 * createObscuredBitmap method in ImageEditor
 	 */
@@ -116,32 +122,32 @@ public class ImageRegion implements OnActionItemClickListener
     			&& Math.abs(mBounds.top-points[1])<cSize
     			)
     	{
-    		cornerMode = 1;
+    		cornerMode = CORNER_UPPER_LEFT;
     		return;
     	}
     	else if (Math.abs(mBounds.left-points[0])<cSize
     			&& Math.abs(mBounds.bottom-points[1])<cSize
     			)
     	{
-    		cornerMode = 2;
+    		cornerMode = CORNER_LOWER_LEFT;
 			return;
 		}
     	else if (Math.abs(mBounds.right-points[0])<cSize
     			&& Math.abs(mBounds.top-points[1])<cSize
     			)
     	{
-    			cornerMode = 3;
+    			cornerMode = CORNER_UPPER_RIGHT;
     			return;
 		}
     	else if (Math.abs(mBounds.right-points[0])<cSize
         			&& Math.abs(mBounds.bottom-points[1])<cSize
         			)
     	{
-    		cornerMode = 4;
+    		cornerMode = CORNER_LOWER_RIGHT;
     		return;
     	}
     	
-    	cornerMode = -1;
+    	cornerMode = CORNER_NONE;
 	}
 
 	
@@ -412,17 +418,55 @@ public class ImageRegion implements OnActionItemClickListener
 	                	float diffX = points[0]-points[2];
 	                	float diffY = points[1]-points[3];
 	                	
-	                	if (cornerMode == -1)
-	                		updateBounds(mBounds.left-diffX,mBounds.top-diffY,mBounds.right-diffX,mBounds.bottom-diffY);
-	                	else if (cornerMode == 1)
-	                		updateBounds(mBounds.left-diffX,mBounds.top-diffY,mBounds.right,mBounds.bottom);
-	                	else if (cornerMode == 2)
-	                		updateBounds(mBounds.left-diffX,mBounds.top,mBounds.right,mBounds.bottom-diffY);
-	                	else if (cornerMode == 3)
-	                		updateBounds(mBounds.left,mBounds.top-diffY,mBounds.right-diffX,mBounds.bottom);
-	                	else if (cornerMode == 4)
-	                		updateBounds(mBounds.left,mBounds.top,mBounds.right-diffX,mBounds.bottom-diffY);
+	                	float left = 0, top = 0, right = 0, bottom = 0;
+	                	
+	                	if (cornerMode == CORNER_NONE)
+	                	{
 	                		
+	                		left = mBounds.left-diffX;
+	                		top = mBounds.top-diffY;
+	                		right = mBounds.right-diffX;
+	                		bottom = mBounds.bottom-diffY;
+	                	}
+	                	else if (cornerMode == CORNER_UPPER_LEFT)
+	                	{
+	                		left = mBounds.left-diffX;
+	                		top = mBounds.top-diffY;
+	                		right = mBounds.right;
+	                		bottom = mBounds.bottom;
+	                		
+	                	}
+	                	else if (cornerMode == CORNER_LOWER_LEFT)
+	                	{
+	                		left = mBounds.left-diffX;
+	                		top = mBounds.top;
+	                		right = mBounds.right;
+	                		bottom = mBounds.bottom-diffY;
+	                		
+	                	}
+	                	else if (cornerMode == CORNER_UPPER_RIGHT)
+	                	{
+	                		left = mBounds.left;
+	                		top = mBounds.top-diffY;
+	                		right = mBounds.right-diffX;
+	                		bottom = mBounds.bottom;
+	                	}
+	                	else if (cornerMode == CORNER_LOWER_RIGHT)
+	                	{
+	                		left = mBounds.left;
+	                		top = mBounds.top;
+	                		right = mBounds.right-diffX;
+	                		bottom = mBounds.bottom-diffY;
+	                	}
+	                	
+
+                		if ((left+CORNER_MAX) > right || (top+CORNER_MAX) > bottom)
+                			return false;
+                		
+	                	
+	                	//updateBounds(Math.min(left, right), Math.min(top,bottom), Math.max(left, right), Math.max(top, bottom));
+	                	updateBounds(left, top, right, bottom);
+	                	
 	                	mStartPoint = new PointF(event.getX(),event.getY());
                 	}
                 	else
