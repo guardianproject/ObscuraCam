@@ -1,6 +1,7 @@
 package org.witness.sscphase1;
 
 
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -8,12 +9,14 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import org.witness.securesmartcam.ImageEditor;
+import org.witness.sscphase1.Eula.OnEulaAgreedTo;
 import org.witness.sscphase1.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -29,7 +32,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
 
-public class ObscuraApp extends Activity implements OnClickListener {
+public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgreedTo {
 	    
 	public final static String TAG = "SSC";
 		
@@ -75,12 +78,22 @@ public class ObscuraApp extends Activity implements OnClickListener {
 
         setLayout();
         deleteTmpFile();
+        
+        Eula.show(this);
+
     }
     
     @Override
 	protected void onResume() {
 
 		super.onResume();
+		
+		 final SharedPreferences preferences = getSharedPreferences(Eula.PREFERENCES_EULA,
+	                Activity.MODE_PRIVATE);
+		  
+	        if (preferences.getBoolean(Eula.PREFERENCE_EULA_ACCEPTED, false)) {
+		
+	        }
 				
 	
 	}
@@ -290,5 +303,11 @@ public class ObscuraApp extends Activity implements OnClickListener {
         // Reset the layout to use the landscape config
         setLayout();
     }
+
+	@Override
+	public void onEulaAgreedTo() {
+		// TODO Auto-generated method stub
+		
+	}
     
 }
