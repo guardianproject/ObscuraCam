@@ -2,6 +2,9 @@
 1.2
 - fixed dialog display issue on image preview
 - changed "delete" dialog to yes/no
+- reimplemented region dragging, rendering
+- added new Identify option
+- added in native library redaction for full resolution
 
 1.1
 - improved code for taking and loading pictures from the gallery

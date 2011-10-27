@@ -15,6 +15,14 @@ extern "C" {
 JNIEXPORT void JNICALL Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactRegion
   (JNIEnv *, jobject, jstring, jstring, int, int, int, int, jstring);
 
+/*
+*JNIEXPORT void JNICALL Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_loadImage
+*  (JNIEnv *, jobject);
+*
+*JNIEXPORT void JNICALL Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_saveImage
+*  (JNIEnv *, jobject);
+*/
+
 JNIEXPORT void JNICALL Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactRegions
   (JNIEnv *, jobject, jstring, jstring, jstring);
 

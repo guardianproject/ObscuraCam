@@ -36,6 +36,7 @@ Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactRegion(JNIEnv 
     jpeg_decoder.DecodeImage(&redaction,NULL);
     __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","redacted");
     
+    
     jpeg_decoder.RemoveAllSensitive();
     
     jpeg_decoder.Save(strDestFilename);
@@ -51,6 +52,7 @@ Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactRegion(JNIEnv 
 
   __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","Finished");
 }
+
 
 JNIEXPORT void JNICALL
 Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactRegions(JNIEnv *env, jobject obj, jstring jstrSrcFilename, jstring jstrDestFilename, jstring jStrRedactionCmd) {
@@ -76,6 +78,8 @@ Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactRegions(JNIEnv
     
     jpeg_decoder.DecodeImage(&redaction,NULL);
     __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","redacted");
+    
+    jpeg_decoder.RemoveAllSensitive();
     
     jpeg_decoder.Save(strDestFilename);
     __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","saved");
