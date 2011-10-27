@@ -4,14 +4,9 @@
   android:layout_width="fill_parent"
   android:layout_height="fill_parent"
   android:id="@+id/frameRoot">
-	<ImageView android:id="@+id/ImageEditorImageView" android:scaleType="matrix" android:layout_width="fill_parent" android:layout_height="fill_parent"></ImageView>
-	<!-- <RelativeLayout
-		android:id="@+id/RegionButtonsLayout"
-		android:layout_width="fill_parent" 
-		android:layout_height="fill_parent">
-		
-	</RelativeLayout>
-	 -->	
+	<ImageView android:id="@+id/ImageEditorImageView" android:background="@drawable/gradient"
+  android:scaleType="matrix" android:layout_width="fill_parent" android:layout_height="fill_parent"></ImageView>
+	
 		<Button android:id="@+id/New" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/btn_new_region" android:layout_gravity="top|left"></Button>
 		<Button android:id="@+id/Preview" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/btn_preview" android:layout_gravity="top|right"></Button>
 		<Button android:id="@+id/Share" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/btn_share" android:layout_gravity="bottom|left"></Button>		
