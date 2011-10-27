@@ -1557,8 +1557,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     public void onConfigurationChanged(Configuration conf) 
     {
         super.onConfigurationChanged(conf);
-     
     
+        Thread thread = new Thread ()
+        {
+        	public void run ()
+        	{        
+        		mHandler.postDelayed(new Runnable () { public void run () { putOnScreen();}},100);        		
+        	}
+        };
+        
+        
+        thread.start();
     }    
     
     public void launchInforma(ImageRegion ir) {
