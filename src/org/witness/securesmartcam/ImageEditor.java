@@ -46,15 +46,18 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
+import android.graphics.PixelFormat;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Vibrator;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
@@ -198,12 +201,27 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     // Keep track of the orientation
     private int originalImageOrientation = ExifInterface.ORIENTATION_NORMAL;    
 
-    private Runnable mUpdateTimeTask = new Runnable() {
-    	   public void run() {
-    		   doAutoDetection();
-    	   }
-    	};
+   
 
+	 private class mAutoDetectTask extends AsyncTask<Integer, Integer, Long> {
+	     protected Long doInBackground(Integer... params) {
+	    	  return (long)doAutoDetection();	         
+	     }
+
+	     protected void onProgressUpdate(Integer... progress) {
+	       
+	     }
+
+	     protected void onPostExecute(Long result) {
+	     
+	    	mProgressDialog.dismiss();
+	    	 
+	 		Toast autodetectedToast = Toast.makeText(ImageEditor.this, result + " face(s) detected", Toast.LENGTH_SHORT);
+	 		autodetectedToast.show();
+	     }
+	 }
+    	
+    	
 	@SuppressWarnings("unused")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -262,7 +280,20 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			else if (getIntent().hasExtra("bitmap"))
 			{
 				Bitmap b = (Bitmap)getIntent().getExtras().get("bitmap");
-				setBitmap(b, true);
+				setBitmap(b);
+				
+				boolean autodetect = true;
+
+				if (autodetect)
+				{
+
+					mProgressDialog = ProgressDialog.show(this, "", "Detecting faces...", true, true);
+					
+					new mAutoDetectTask().execute(1);
+					
+					
+				}
+				
 				originalImageWidth = b.getWidth();
 				originalImageHeight = b.getHeight();
 				return;
@@ -316,16 +347,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				double widthRatio =  Math.floor(bmpFactoryOptions.outWidth / currentDisplay.getWidth());
 				double heightRatio = Math.floor(bmpFactoryOptions.outHeight / currentDisplay.getHeight());
 
-				/*
-				debug(ObscuraApp.TAG,"Display Width: " + currentDisplay.getWidth());
-				debug(ObscuraApp.TAG,"Display Height: " + currentDisplay.getHeight());
-				
-				debug(ObscuraApp.TAG,"Image Width: " + originalImageWidth);
-				debug(ObscuraApp.TAG,"Image Height: " + originalImageHeight);
-
-				debug(ObscuraApp.TAG, "HEIGHTRATIO:" + heightRatio);
-				debug(ObscuraApp.TAG, "WIDTHRATIO:" + widthRatio);
-				 */
 				
 				// If both of the ratios are greater than 1,
 				// one of the sides of the image is greater than the screen
@@ -372,7 +393,18 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						loadedBitmap = Bitmap.createBitmap(loadedBitmap,0,0,loadedBitmap.getWidth(),loadedBitmap.getHeight(),rotateMatrix,false);
 					}
 
-					setBitmap (loadedBitmap, true);
+					setBitmap (loadedBitmap);
+					
+					boolean autodetect = true;
+
+					if (autodetect)
+					{
+						// Do auto detect popup
+
+						mProgressDialog = ProgressDialog.show(this, "", "Detecting faces...", true, true);
+					
+						new mAutoDetectTask().execute(1);
+					}
 				}				
 			} catch (IOException e) {
 				Log.e(ObscuraApp.TAG, "error loading bitmap from Uri: " + e.getMessage(), e);
@@ -393,7 +425,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		 
 	}
 	
-	private void setBitmap (Bitmap nBitmap, boolean autodetect)
+	private void setBitmap (Bitmap nBitmap)
 	{
 		imageBitmap = nBitmap;
 		
@@ -421,20 +453,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		matrix.postScale(matrixScale, matrixScale);
 
 		// This doesn't completely center the image but it get's closer
-		int fudge = 42;
-		matrix.postTranslate((float)((float)currentDisplay.getWidth()-(float)imageBitmap.getWidth()*(float)matrixScale)/2f,(float)((float)currentDisplay.getHeight()-(float)imageBitmap.getHeight()*matrixScale)/2f-fudge);
+		//int fudge = 42;
+		matrix.postTranslate((float)((float)currentDisplay.getWidth()-(float)imageBitmap.getWidth()*(float)matrixScale)/2f,(float)((float)currentDisplay.getHeight()-(float)imageBitmap.getHeight()*matrixScale)/2f);
 		
 		imageView.setImageMatrix(matrix);
 		
 		
-		if (autodetect)
-		{
-		// Do auto detect popup
-
-		Toast autodetectedToast = Toast.makeText(this, "Detecting faces...", Toast.LENGTH_SHORT);
-		autodetectedToast.show();
-		mHandler.postDelayed(mUpdateTimeTask, 1000);
-		}
 	}
 	/*
 	 * Call this to delete the original image, will ask the user
@@ -535,7 +559,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			int _backgroundColor) {
 	 */
 	
-	private void doAutoDetection() {
+	private int doAutoDetection() {
 		// This should be called via a pop-up/alert mechanism
 		
 		RectF[] autodetectedRects = runFaceDetection();
@@ -563,11 +587,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					(autodetectedRectScaled.right+faceBuffer),
 					(autodetectedRectScaled.bottom+faceBuffer),
 					showPopup);
-		}	
-			
+		}	 				
 		
-		Toast autodetectedToast = Toast.makeText(this, "" + autodetectedRects.length + " faces detected", Toast.LENGTH_SHORT);
-		autodetectedToast.show();
+		return autodetectedRects.length;
 	}
 	
 	/*
@@ -789,15 +811,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							// Make sure that the matrix isn't bigger than max scale/zoom
 							float[] matrixValues = new float[9];
 							matrix.getValues(matrixValues);
-							/*
-							debug(ObscuraApp.TAG, "Total Scale: " + matrixValues[0]);
-							debug(ObscuraApp.TAG, "" + matrixValues[0] + " " + matrixValues[1]
-									+ " " + matrixValues[2] + " " + matrixValues[3]
-									+ " " + matrixValues[4] + " " + matrixValues[5]
-									+ " " + matrixValues[6] + " " + matrixValues[7]
-									+ " " + matrixValues[8]);
-							*/
-							// x = 1.5 * 1 + 0 * y + -120 * 1
 							
 							if (matrixValues[0] > MAX_SCALE) {
 								matrix.set(savedMatrix);
@@ -923,7 +936,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				matrix);
 
 		imageRegions.add(imageRegion);
-		putOnScreen();
+		
+		mHandler.post(new Runnable ()
+		{
+			public void run() {
+				putOnScreen();
+			}
+		});
 	}
 	
 	/*
@@ -1538,31 +1557,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     public void onConfigurationChanged(Configuration conf) 
     {
         super.onConfigurationChanged(conf);
-        
-        recenterImage();
-    }
+     
     
-    private void recenterImage ()
-    {
-    	/*
-        matrix.postTranslate(0,0);
-		imageView.setImageMatrix(matrix);
-//		// Reset the start point
-		startPoint.set(0,0);
-		*/
-    	float scale = 1.2f;		
-		PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
-		matrix.postScale(scale, scale, midpoint.x, midpoint.y);
-		imageView.setImageMatrix(matrix);
-		putOnScreen();
-		
-		scale = 1f;		
-		midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
-		matrix.postScale(scale, scale, midpoint.x, midpoint.y);
-		imageView.setImageMatrix(matrix);
-		putOnScreen();
-		
-    }
+    }    
     
     public void launchInforma(ImageRegion ir) {
     	Intent informa = new Intent(this,InformaEditor.class);
@@ -1620,6 +1617,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	public ImageView getImageView() {
 		return imageView;
+	}
+	
+	@Override
+	public void onAttachedToWindow() {
+	    super.onAttachedToWindow();
+	    Window window = getWindow();
+	    window.setFormat(PixelFormat.RGBA_8888);
+	    window.getDecorView().getBackground().setDither(true);
+
 	}
 
 }
