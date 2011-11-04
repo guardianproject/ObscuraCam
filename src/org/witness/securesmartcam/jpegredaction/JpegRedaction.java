@@ -5,17 +5,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.witness.securesmartcam.ImageRegion;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
-import org.witness.securesmartcam.filters.PaintSquareObscure;
 import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
+import org.witness.securesmartcam.filters.SolidObscure;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Rect;
-import android.os.Bundle;
+import android.graphics.RectF;
 
 public class JpegRedaction implements RegionProcesser {
 	
@@ -29,7 +26,7 @@ public class JpegRedaction implements RegionProcesser {
 
     private File mInFile;
     private File mOutFile;
-    private String mMethod;
+    private String mMethod = null;
     
     private final static String METHOD_COPYSTRIP = "c";
     private final static String METHOD_SOLID = "s";
@@ -40,13 +37,23 @@ public class JpegRedaction implements RegionProcesser {
     public JpegRedaction (RegionProcesser iMethod, File inFile, File outFile)
     {
     	setFiles (inFile, outFile);
-    	setMethod (iMethod);
+    	
+    	if (iMethod != null)
+    		setMethod (iMethod);
+    	
     	mProps = new Properties();
+    	mProps.put("obfuscationType", this.getClass().getName());
     }
+    
+    public JpegRedaction ()
+    {
+    	this (null, null, null);
+    }
+    
     
     public JpegRedaction (File inFile, File outFile)
     {
-    	setFiles (inFile, outFile);
+    	this (null, inFile, outFile);
     }
     
     public void setFiles (File inFile, File outFile)
@@ -65,24 +72,27 @@ public class JpegRedaction implements RegionProcesser {
     	{
     		mMethod = METHOD_PIXELLATE;
     	}
-    	else
+    	else if (rProc instanceof SolidObscure)
     	{
-    		mMethod = METHOD_INVERSE_PIXELLATE;
+    		mMethod = METHOD_SOLID;
     	}
-    	    	
     }
     
 	@Override
-	public void processRegion(Rect rect, Canvas canvas, Bitmap bitmap) {
+	public void processRegion(RectF rect, Canvas canvas, Bitmap bitmap) {
 
-		 String strInFile = mInFile.getAbsolutePath();
-		 String strOutFile = mOutFile.getAbsolutePath();
-	     redactRegion(strInFile, strOutFile, rect.left, rect.right, rect.top, rect.bottom, mMethod);
-	     
-	     // return properties and data as a map
-	     mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
-	     mProps.put("regionWidth", Integer.toString(Math.abs(rect.left - rect.right)));
-		 mProps.put("regionHeight", Integer.toString(Math.abs(rect.top - rect.bottom)));
+		if (mMethod != null)
+		{
+			 String strInFile = mInFile.getAbsolutePath();
+			 String strOutFile = mOutFile.getAbsolutePath();
+	
+			 redactRegion(strInFile, strOutFile, (int)rect.left, (int)rect.right, (int)rect.top, (int)rect.bottom, mMethod);
+		     
+		     // return properties and data as a map
+		     mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
+		     mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
+			 mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
+		}
 		
 	}
 	
@@ -102,5 +112,10 @@ public class JpegRedaction implements RegionProcesser {
 	public void setProperties(Properties props)
 	{
 		mProps = props;
+	}
+	@Override
+	public Bitmap getBitmap() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

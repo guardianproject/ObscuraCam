@@ -109,8 +109,8 @@ public class MetadataParser {
 								(subjectCount + 1) + ". " + _c.getString(R.string.mdHumanReadable_psudonym) + " " + 
 								region.getString("regionSubject") +
 								" (" + _c.getString(R.string.mdHumanReadable_coordinates) + " " + region.getString("initialCoordinates") + ".) " +
-								_c.getString(R.string.mdHumanReadable_consentGiven) + " " + region.getString("informedConsent") + ". " +
-								_c.getString(R.string.mdHumanReadable_persistObfuscation) + " " + region.getString("persistObscureType") + "."
+								_c.getString(R.string.mdHumanReadable_consentGiven) + " " + region.getString("informedConsent") + ". "
+								//_c.getString(R.string.mdHumanReadable_persistObfuscation) + " " + region.getString("persistObscureType") + "."
 						);
 					}
 					subjectCount++;

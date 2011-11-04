@@ -1,17 +1,23 @@
 package org.witness.informa.utils;
 
 import java.io.File;
+import java.util.List;
 import java.util.TimerTask;
 
+import org.json.JSONException;
 import org.witness.sscphase1.ObscuraApp;
 
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.telephony.TelephonyManager;
 import android.telephony.cdma.CdmaCellLocation;
@@ -40,33 +46,51 @@ public class SensorSucker extends Service {
 	
 	@Override
 	public void onCreate() {
-		_geo = new GeoSucker();
-		//_geo.run();
+		startLog();
 	}
 	
 	public void startLog() {
 		shouldLog = true;
+		
+		_geo = new GeoSucker();
+		_phone = new PhoneSucker();
+		_acc = new AccSucker();
 	}
 	
 	public void stopLog() {
 		shouldLog = false;
 	}
 	
-	public class GeoSucker extends SensorLogger {
+	public class GeoSucker extends SensorLogger implements LocationListener {
 		LocationManager lm;
 		Criteria criteria;
 		
 		GeoSucker() {
-			lm = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+			lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+			lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
+			lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+			
+			criteria = new Criteria();
+			criteria.setAccuracy(Criteria.NO_REQUIREMENT);
+			
 			mTask = new TimerTask() {
 
 				@Override
-				public void run() {
-					try {
+				public void run() throws NullPointerException {
+					if(shouldLog) {
 						double[] loc = updateLocation();
-						sendToBuffer(jPack("gpsCoords", loc));
-					} catch(NullPointerException e) {
-						// updatelocation was null?
+						try {
+							sendToBuffer(jPack("gpsCoords", "[" + loc[0] + "," + loc[1] + "]"));
+						} catch (JSONException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					} else {
+						if(isSensing) {
+							// turn off service if it's still on...
+							pauseLocationUpdates();
+							isSensing = false;
+						}
 					}
 				}
 			};
@@ -82,8 +106,28 @@ public class SensorSucker extends Service {
 			} catch(NullPointerException e) {
 				Log.d(ObscuraApp.TAG,e.toString());
 				return null;
+			} catch(IllegalArgumentException e) {
+				Log.d(ObscuraApp.TAG, e.toString());
+				return null;
 			}
 		}
+		
+		public void pauseLocationUpdates() {
+			lm.removeUpdates(this);
+			Log.d(ObscuraApp.TAG, "location manager calls disabled by service!");
+		}
+
+		@Override
+		public void onLocationChanged(Location location) {}
+
+		@Override
+		public void onProviderDisabled(String provider) {}
+
+		@Override
+		public void onProviderEnabled(String provider) {}
+
+		@Override
+		public void onStatusChanged(String provider, int status, Bundle extras) {}
 		
 		
 	}
@@ -93,19 +137,17 @@ public class SensorSucker extends Service {
 		
 		PhoneSucker() {
 			tm = (TelephonyManager) getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+			try {
+				sendToBuffer(jPack("deviceId", getIMEI()));
+			} catch (JSONException e) {}
+			
 			mTask = new TimerTask() {
 				
 				@Override
-				public void run() {
+				public void run() throws NullPointerException {
 					try {
-						String cellId = getCellId();
-						String deviceId = getIMEI();
-						
-						sendToBuffer(jPack("cellId", cellId));
-						sendToBuffer(jPack("deviceId", deviceId));
-					} catch(NullPointerException e) {
-						// geCellId or getIMEI was null?
-					}
+						sendToBuffer(jPack("cellId", getCellId()));
+					} catch (JSONException e) {}
 				}
 			};
 			
@@ -141,8 +183,27 @@ public class SensorSucker extends Service {
 	}
 
 	public class AccSucker extends SensorLogger{
+		SensorManager sm;
+		List<Sensor> availableSensors;
+		
 		AccSucker() {
+			sm = (SensorManager) getSystemService(SENSOR_SERVICE);
+			availableSensors = sm.getSensorList(Sensor.TYPE_ALL);
 			
+			mTask = new TimerTask() {
+				
+				@Override
+				public void run() {
+					if(shouldLog) {
+						// iterate through available sensors and get whatever data you can...
+						for(Sensor s : availableSensors) {
+	
+						}
+					}
+				}
+			};
+			
+			mTimer.schedule(mTask, 0, 30000L);
 		}
 	}
 }

@@ -12,6 +12,7 @@ import java.util.Properties;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.RectF;
 
 public class PixelizeObscure implements RegionProcesser {
 
@@ -24,23 +25,29 @@ public class PixelizeObscure implements RegionProcesser {
 	public PixelizeObscure ()
 	{
 		mProps = new Properties ();
-		mProps.put("size", "10");		
+		mProps.put("size", "10");
+		mProps.put("obfuscationType", this.getClass().getName());
 	}
 	
-	public void processRegion(Rect rect, Canvas canvas, Bitmap bitmap) {
+	public void processRegion(RectF rect, Canvas canvas, Bitmap bitmap) {
 	
 		originalBmp = bitmap;
 		
-		int pixelSize = (rect.right-rect.left)/PIXEL_BLOCK;
+		int pixelSize = (int)(rect.right-rect.left)/PIXEL_BLOCK;
 		
 		if (pixelSize <= 0) //1 is the smallest it can be
 			pixelSize = 1;
 		
-		pixelate(rect, pixelSize);		
+		pixelate(rect, pixelSize);
+		
+		// return properties and data as a map
+		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
+		mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
+		mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
 		
 	}
 	
-	private void pixelate(Rect rect, int pixelSize)
+	private void pixelate(RectF rect, int pixelSize)
 	{
 		
 		if (rect.left <= 0) {
@@ -61,8 +68,8 @@ public class PixelizeObscure implements RegionProcesser {
 		int wPixelSize = pixelSize;
 		int hPixelSize = pixelSize;
 		
-		for (int x = rect.left; x < rect.right; x+=pixelSize) {
-			for (int y = rect.top; y < rect.bottom; y+=pixelSize) {
+		for (int x = (int)rect.left; x < rect.right; x+=pixelSize) {
+			for (int y = (int)rect.top; y < rect.bottom; y+=pixelSize) {
 
 				wPixelSize = pixelSize;
 				hPixelSize = pixelSize;
@@ -76,12 +83,12 @@ public class PixelizeObscure implements RegionProcesser {
 					
 					if (x+pixelSize>rect.right)
 					{
-						wPixelSize = rect.right - x;
+						wPixelSize = (int)rect.right - x;
 					}
 					
 					if (y+pixelSize> rect.bottom)
 					{
-						hPixelSize = rect.bottom - y;
+						hPixelSize = (int)rect.bottom - y;
 					}
 					
 					originalBmp.setPixels(pixels, 0, pixelSize, x, y, wPixelSize, hPixelSize);
@@ -102,6 +109,12 @@ public class PixelizeObscure implements RegionProcesser {
 	public void setProperties(Properties props)
 	{
 		mProps = props;
+	}
+
+	@Override
+	public Bitmap getBitmap() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
 

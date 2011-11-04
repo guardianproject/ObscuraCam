@@ -11,9 +11,8 @@ import java.util.Properties;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Path;
-import android.graphics.Path.Direction;
 import android.graphics.Rect;
+import android.graphics.RectF;
 
 public class CrowdPixelizeObscure implements RegionProcesser {
 
@@ -24,9 +23,10 @@ public class CrowdPixelizeObscure implements RegionProcesser {
 	
 	public CrowdPixelizeObscure() {
 		mProps = new Properties();
+		mProps.put("obfuscationType", this.getClass().getName());
 	}
 	
-	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitmap) {
+	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitmap) {
 	
 		originalBmp = bitmap;
 		
@@ -39,12 +39,12 @@ public class CrowdPixelizeObscure implements RegionProcesser {
 		
 		// return properties and data as a map
 		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
-		mProps.put("regionWidth", Integer.toString(Math.abs(rect.left - rect.right)));
-		mProps.put("regionHeight", Integer.toString(Math.abs(rect.top - rect.bottom)));
+		mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
+		mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
 		
 	}
 	
-	private void pixelate(Rect rect, int pixelSize)
+	private void pixelate(RectF rect, int pixelSize)
 	{
 		if (rect.left <= 0) {
 			rect.left = 1;
@@ -97,6 +97,12 @@ public class CrowdPixelizeObscure implements RegionProcesser {
 	public void setProperties(Properties props)
 	{
 		mProps = props;
+	}
+
+	@Override
+	public Bitmap getBitmap() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
 

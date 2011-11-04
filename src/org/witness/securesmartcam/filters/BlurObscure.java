@@ -14,6 +14,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 
 public class BlurObscure implements RegionProcesser {
 
@@ -21,23 +22,24 @@ public class BlurObscure implements RegionProcesser {
 	Properties mProps;
 
 	private final static int BLUR_OFFSET = 10;
-	
+
 	public BlurObscure() {
 		mProps = new Properties ();
+		mProps.put("obfuscationType", this.getClass().getName());
 	}
 	
-	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitmap) {
-		//makeItBlur(rect);
+	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitmap) {
+
 		
 		Paint paint = new Paint();
 		paint.setColor(Color.WHITE);
 		paint.setAlpha(100);
-		canvas.drawCircle(rect.exactCenterX(), rect.exactCenterY(), rect.width()/2, paint);
+		canvas.drawCircle(rect.centerX(), rect.centerY(), rect.width()/2, paint);
 		
 		// return properties and data as a map
 		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
-		mProps.put("regionWidth", Integer.toString(Math.abs(rect.left - rect.right)));
-		mProps.put("regionHeight", Integer.toString(Math.abs(rect.top - rect.bottom)));
+		mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
+		mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
 		
 	}
 	
@@ -122,6 +124,12 @@ public class BlurObscure implements RegionProcesser {
 	public void setProperties(Properties props)
 	{
 		mProps = props;
+	}
+
+	@Override
+	public Bitmap getBitmap() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }

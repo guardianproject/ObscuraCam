@@ -7,6 +7,7 @@ import java.util.Properties;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.RectF;
 
 public class TintObscure implements RegionProcesser {
 
@@ -16,6 +17,7 @@ public class TintObscure implements RegionProcesser {
 	public TintObscure(Bitmap _originalBmp) {
 		originalBmp = _originalBmp;
 		mProps = new Properties();
+		mProps.put("obfuscationType", this.getClass().getName());
 	}
 	
 	private void tint(int deg, int picw, int pich, Bitmap mBitmap) {
@@ -56,11 +58,11 @@ public class TintObscure implements RegionProcesser {
 		}
 
 	@Override
-	public void processRegion(Rect rect, Canvas canvas, Bitmap bitmap) {
+	public void processRegion(RectF rect, Canvas canvas, Bitmap bitmap) {
 		// return properties and data as a map
 		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
-		mProps.put("regionWidth", Integer.toString(Math.abs(rect.left - rect.right)));
-		mProps.put("regionHeight", Integer.toString(Math.abs(rect.top - rect.bottom)));
+		mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
+		mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
 	}
 	
 	public Properties getProperties()
@@ -72,4 +74,11 @@ public class TintObscure implements RegionProcesser {
 	{
 		mProps = props;
 	}
+
+	@Override
+	public Bitmap getBitmap() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

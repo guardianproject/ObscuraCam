@@ -17,7 +17,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.Log;
 
 public class MaskObscure implements RegionProcesser {
@@ -35,10 +35,10 @@ public class MaskObscure implements RegionProcesser {
 
 		mProps = new Properties ();
 		mProps.put("path", "mask.png");
-		
+		mProps.put("obfuscationType", this.getClass().getName());
 	}
 	
-	public void processRegion(Rect rect, Canvas canvas,  Bitmap bitmap) {
+	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitmap) {
 	
 		_bitmap = bitmap;		
 		
@@ -54,8 +54,8 @@ public class MaskObscure implements RegionProcesser {
 		
 		// return properties and data as a map
 		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
-		mProps.put("regionWidth", Integer.toString(Math.abs(rect.left - rect.right)));
-		mProps.put("regionHeight", Integer.toString(Math.abs(rect.top - rect.bottom)));		
+		mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
+		mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));		
 			
 
 	}
@@ -77,6 +77,12 @@ public class MaskObscure implements RegionProcesser {
 	public void setProperties(Properties props)
 	{
 		mProps = props;
+	}
+
+	@Override
+	public Bitmap getBitmap() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
 

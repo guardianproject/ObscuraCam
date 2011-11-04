@@ -45,9 +45,7 @@ public class ObscuraApp extends Activity implements OnClickListener {
 
 	private Button choosePictureButton, takePictureButton;		
 	
-	private Uri uriImageResult = null;
-	
-	//private File fileImageTmp;
+	private Uri uriCameraImage = null;
 	
 	private ServiceConnection sc = new ServiceConnection() {
 		public void onServiceConnected(ComponentName cn, IBinder binder) {
@@ -95,10 +93,18 @@ public class ObscuraApp extends Activity implements OnClickListener {
 	protected void onResume() {
 
 		super.onResume();
-		//Intent startDCIMMonitor = new Intent(this,DCIMMonitor.class);
-        //bindService(startDCIMMonitor,sc,Context.BIND_AUTO_CREATE);	
+		Intent startSensorSucker = new Intent(this,SensorSucker.class);
+        bindService(startSensorSucker,sc,Context.BIND_AUTO_CREATE);	
 	
 	}
+    
+    @Override
+    protected void onPause() {
+    	super.onPause();
+    	mSensorSucker.stopLog();
+    	Log.d(TAG, "unbinding the service");
+    	unbindService(sc);
+    }
     
 	private void setLayout() {
         setContentView(R.layout.mainmenu);
@@ -135,35 +141,25 @@ public class ObscuraApp extends Activity implements OnClickListener {
 			String storageState = Environment.getExternalStorageState();
 	        if(storageState.equals(Environment.MEDIA_MOUNTED)) {
 
-	            //String path = Environment.getExternalStorageDirectory().getName() + File.separatorChar + "Android/data/" + ObscuraApp.this.getPackageName() + "/files/" + md5(upc) + ".jpg";
-	           
-	        	/*
-	        	File folderPhotos = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-	       
-	            fileImageTmp = new File(folderPhotos, CAMERA_TMP_FILE);
-	            try {
-	                if(fileImageTmp.exists() == false) {
-	                	fileImageTmp.getParentFile().mkdirs();
-	                	fileImageTmp.createNewFile();
-	                }
-
-	            } catch (IOException e) {
-	                Log.e(LOGTAG, "Could not create file.", e);
-	            }*/
-	            
 	          
 	            ContentValues values = new ContentValues();
 	          
 	            values.put(MediaStore.Images.Media.TITLE, CAMERA_TMP_FILE);
-	          
+	      
 	            values.put(MediaStore.Images.Media.DESCRIPTION,"ssctmp");
-	          
-	            //imageUri is the current activity attribute, define and save it for later usage (also in onSaveInstanceState)
-	          
-	            uriImageResult = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+	            File tmpFileDirectory = new File(Environment.getExternalStorageDirectory().getPath() + ImageEditor.TMP_FILE_DIRECTORY);
+	            if (!tmpFileDirectory.exists())
+	            	tmpFileDirectory.mkdirs();
+	            
+	            File tmpFile = new File(tmpFileDirectory,"cam" + ImageEditor.TMP_FILE_NAME);
+	        	
+	        	uriCameraImage = Uri.fromFile(tmpFile);
+	            //uriCameraImage = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
 
 	            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE );
-	            intent.putExtra( MediaStore.EXTRA_OUTPUT, uriImageResult);
+	            intent.putExtra( MediaStore.EXTRA_OUTPUT, uriCameraImage);
+	            
 	            startActivityForResult(intent, CAMERA_RESULT);
 	        }   else {
 	            new AlertDialog.Builder(ObscuraApp.this)
@@ -187,12 +183,12 @@ public class ObscuraApp extends Activity implements OnClickListener {
 			{
 				if (intent != null)
 				{
-					uriImageResult = intent.getData();
+					Uri uriGalleryImage = intent.getData();
 						
-					if (uriImageResult != null)
+					if (uriGalleryImage != null)
 					{
 						Intent passingIntent = new Intent(this,ImageEditor.class);
-						passingIntent.setData(uriImageResult);
+						passingIntent.setData(uriGalleryImage);
 						startActivityForResult(passingIntent,IMAGE_EDITOR);
 						
 					}
@@ -211,11 +207,12 @@ public class ObscuraApp extends Activity implements OnClickListener {
 			}
 			else if (requestCode == CAMERA_RESULT)
 			{
-			
-				if (uriImageResult != null)
+				//Uri uriCameraImage = intent.getData();
+				
+				if (uriCameraImage != null)
 				{
 					Intent passingIntent = new Intent(this,ImageEditor.class);
-					passingIntent.setData(uriImageResult);
+					passingIntent.setData(uriCameraImage);
 					startActivityForResult(passingIntent,IMAGE_EDITOR);
 				}
 				else

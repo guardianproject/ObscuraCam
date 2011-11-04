@@ -43,7 +43,7 @@
     <string name="mdHumanReadable_onDate">Image saved on:</string>
     <string name="mdHumanReadable_numTags">Number of edited regions in this image:</string>
     <string name="mdHumanReadable_consentIntro">Subjects contained in this image:</string>
-    <string name="mdHumanReadable_psudonym">Name/Psudonym:</string>
+    <string name="mdHumanReadable_psudonym">Name/Pseudonym:</string>
     <string name="mdHumanReadable_coordinates">Coordinates within this image:</string>
     <string name="mdHumanReadable_consentGiven">Informed consent given?</string>
     <string name="mdHumanReadable_persistObfuscation">Apply same obfuscation settings to this subject in every photo?</string>

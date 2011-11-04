@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,6 +22,9 @@ import org.witness.securesmartcam.filters.MaskObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
 import org.witness.securesmartcam.io.DCIMMonitor;
 import org.witness.securesmartcam.io.DCIMMonitor.LocalBinder;
+import org.witness.securesmartcam.filters.ConsentTagger;
+import org.witness.securesmartcam.filters.MaskObscure;
+import org.witness.securesmartcam.filters.RegionProcesser;
 import org.witness.securesmartcam.jpegredaction.JpegRedaction;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
@@ -36,6 +40,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
@@ -68,6 +73,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
+
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -180,9 +187,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	// Constant for temp filename
 	public final static String TMP_FILE_NAME = "tmp.jpg";
 	
-	public final static String TMP_FILE_DIRECTORY = "/Android/data/org.witness.sscphase1/files/";
-	DCIMMonitor mDCIMMonitor;
-	
+	public final static String TMP_FILE_DIRECTORY = "/Android/data/org.witness.sscphase1/files/";	
 	
 	//handles threaded events for the UI thread
     private Handler mHandler = new Handler();
@@ -1038,6 +1043,19 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			float defaultSize = imageView.getWidth()/4;
 			float halfSize = defaultSize/2;
 			
+			RectF newBox = new RectF();
+			
+			newBox.left = startPoint.x - halfSize;
+			newBox.top = startPoint.y - halfSize;
+
+			newBox.right = startPoint.x + halfSize;
+			newBox.bottom = startPoint.y + halfSize;
+			
+			float[] mValues = new float[9];
+			matrix.getValues(mValues);
+			float scaleX = mValues[Matrix.MSCALE_X];
+			float scaleY = mValues[Matrix.MSCALE_Y];
+						
 			RectF newBox = new RectF();
 			
 			newBox.left = startPoint.x - halfSize;

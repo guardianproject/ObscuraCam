@@ -4,7 +4,11 @@ import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.json.JSONException;
 import org.json.JSONObject;
+import org.witness.sscphase1.ObscuraApp;
+
+import android.util.Log;
 
 public class SensorLogger {
 	Timer mTimer;
@@ -13,15 +17,17 @@ public class SensorLogger {
 	
 	JSONObject mBuffer;
 	
-	boolean hasLog;
+	boolean hasLog, isSensing;
 	
 	SensorLogger() {
 		hasLog = false;
+		isSensing = true;
 		mTimer = new Timer();
 	}
 
 	public void sendToBuffer(JSONObject logItem) {
 		// append to buffer, and...
+		Log.d(ObscuraApp.TAG, logItem.toString());
 		
 		if(hasLog)
 			sendToLog(logItem);
@@ -44,9 +50,9 @@ public class SensorLogger {
 		return hasLog;
 	}
 	
-	public JSONObject jPack(String key, Object val) {
-		JSONObject item = null;
-		
+	public JSONObject jPack(String key, Object val) throws JSONException {
+		JSONObject item = new JSONObject();
+		item.put(key, val.toString());
 		return item;
 	}
 }

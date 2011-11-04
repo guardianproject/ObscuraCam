@@ -9,7 +9,7 @@
     <TextView 
     	android:layout_width="fill_parent"
     	android:layout_height="0dip"
-    	android:text="Informa"
+    	android:text="Identify"
     	android:textSize="30dp"
     	android:layout_weight="0.15" />
     <LinearLayout
@@ -19,11 +19,14 @@
     	android:layout_height="0dip"
     	android:layout_weight="0.25"
     	android:weightSum="1.0">
+    	
     	<ImageView 
     		android:layout_width="0dip"
     		android:layout_height="wrap_content"
     		android:layout_weight="0.25"
-    		android:id="@+id/imageRegionThumb" />
+    		android:id="@+id/imageRegionThumb"
+    		android:src="@drawable/ic_context_id" />
+    		 
     	<EditText
     		android:layout_width="0dip"
     		android:layout_height="wrap_content"

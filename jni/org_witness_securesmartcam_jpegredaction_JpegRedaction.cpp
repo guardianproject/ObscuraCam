@@ -36,6 +36,8 @@ Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactRegion(JNIEnv 
     jpeg_decoder.DecodeImage(&redaction,NULL);
     __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","redacted");
     
+    jpeg_decoder.RemoveAllSensitive();
+    
     jpeg_decoder.Save(strDestFilename);
     __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","saved");
 
