@@ -5,6 +5,7 @@ import java.util.Properties;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.RectF;
 
 public class ConsentTagger implements RegionProcesser
 {
@@ -26,6 +27,7 @@ public class ConsentTagger implements RegionProcesser
 		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
 		mProps.put("regionWidth", Integer.toString(Math.abs(rect.left - rect.right)));
 		mProps.put("regionHeight", Integer.toString(Math.abs(rect.top - rect.bottom)));
+		
 	}
 
 	public Properties getProperties()

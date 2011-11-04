@@ -1,5 +1,6 @@
 package org.witness.securesmartcam;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -10,20 +11,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
 import java.util.Vector;
 
 import org.witness.informa.InformaEditor;
 import org.witness.informa.utils.MetadataParser;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
-import org.witness.securesmartcam.filters.BlurObscure;
-import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
 import org.witness.securesmartcam.filters.MaskObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
-import org.witness.securesmartcam.filters.PaintSquareObscure;
-import org.witness.securesmartcam.filters.PixelizeObscure;
+import org.witness.securesmartcam.io.DCIMMonitor;
+import org.witness.securesmartcam.io.DCIMMonitor.LocalBinder;
 import org.witness.securesmartcam.jpegredaction.JpegRedaction;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
@@ -31,30 +28,35 @@ import org.witness.sscphase1.R;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Paint.Style;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Bitmap.CompressFormat;
 import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Vibrator;
 import android.provider.MediaStore;
+import android.provider.MediaStore.Images;
 import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.view.Display;
@@ -63,24 +65,25 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnLongClickListener;
-import android.view.Window;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener, OnLongClickListener {
 
 
+	public final static String MIME_TYPE_JPEG = "image/jpeg";
 	
 	// Colors for region squares
-	public final static int DRAW_COLOR = Color.argb(200, 0, 255, 0);// Green
-	public final static int DETECTED_COLOR = Color.argb(200, 0, 0, 255); // Blue
-	public final static int OBSCURED_COLOR = Color.argb(200, 255, 0, 0); // Red
-
+	
+	public final static int DRAW_COLOR = 0x00000000;
+	public final static int DETECTED_COLOR = 0x00000000;
+	public final static int OBSCURED_COLOR = 0x00000000;
+	
 	// Constants for the menu items, currently these are in an XML file (menu/image_editor_menu.xml, strings.xml)
 	public final static int ABOUT_MENU_ITEM = 0;
 	public final static int DELETE_ORIGINAL_MENU_ITEM = 1;
@@ -105,9 +108,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	static final int TAP = 3;
 	int mode = NONE;
 
-	// Default ImageRegion width and height
-	static final int DEFAULT_REGION_WIDTH = 160;
-	static final int DEFAULT_REGION_HEIGHT = 160;
 	
 	// Maximum zoom scale
 	static final float MAX_SCALE = 10f;
@@ -130,13 +130,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	float minMoveDistance; // = ViewConfiguration.get(this).getScaledTouchSlop();
 	
 	// zoom in and zoom out buttons
-	Button zoomIn, zoomOut;
+	Button zoomIn, zoomOut, btnSave, btnShare, btnPreview, btnNew;
 	
 	// ImageView for the original (scaled) image
 	ImageView imageView;
 	
-	// Layout that all of the ImageRegions will be in
-	RelativeLayout regionButtonsLayout;
 		
 	// Bitmap for the original image (scaled)
 	Bitmap imageBitmap;
@@ -149,6 +147,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
     // Paint obscured
     Paint obscuredPaint;
+    
+    //bitmaps for corners
+    private final static float CORNER_SIZE = 26;
+    Bitmap bitmapCornerUL;
+    Bitmap bitmapCornerUR;
+    Bitmap bitmapCornerLL;
+    Bitmap bitmapCornerLR;
+    
+    
     
 	// Vector to hold ImageRegions 
 	Vector<ImageRegion> imageRegions = new Vector<ImageRegion>(); 
@@ -164,13 +171,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	// Original Image Uri
 	Uri originalImageUri;
 	
+	// sample sized used to downsize from native photo
+	int inSampleSize;
+	
 	// Saved Image Uri
 	Uri savedImageUri;
 	
 	// Constant for temp filename
-	private final static String TMP_FILE_NAME = "tmp.jpg";
+	public final static String TMP_FILE_NAME = "tmp.jpg";
 	
-	private final static String TMP_FILE_DIRECTORY = "/Android/data/org.witness.sscphase1/files/";
+	public final static String TMP_FILE_DIRECTORY = "/Android/data/org.witness.sscphase1/files/";
+	DCIMMonitor mDCIMMonitor;
 	
 	
 	//handles threaded events for the UI thread
@@ -216,15 +227,22 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		// The ImageView that contains the image we are working with
 		imageView = (ImageView) findViewById(R.id.ImageEditorImageView);
-		
+
 		// Buttons for zooming
 		zoomIn = (Button) this.findViewById(R.id.ZoomIn);
 		zoomOut = (Button) this.findViewById(R.id.ZoomOut);
-
+		btnNew = (Button) this.findViewById(R.id.New);
+		btnSave = (Button) this.findViewById(R.id.Save);
+		btnShare = (Button) this.findViewById(R.id.Share);
+		btnPreview = (Button) this.findViewById(R.id.Preview);
+		
 		// this, ImageEditor will be the onClickListener for the buttons
 		zoomIn.setOnClickListener(this);
 		zoomOut.setOnClickListener(this);
-
+		btnNew.setOnClickListener(this);
+		btnSave.setOnClickListener(this);
+		btnShare.setOnClickListener(this);
+		btnPreview.setOnClickListener(this);
 
 		// Instantiate the vibrator
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -242,7 +260,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			else if (getIntent().hasExtra("bitmap"))
 			{
 				Bitmap b = (Bitmap)getIntent().getExtras().get("bitmap");
-				setBitmap(b);
+				setBitmap(b, true);
 				originalImageWidth = b.getWidth();
 				originalImageHeight = b.getHeight();
 				return;
@@ -251,7 +269,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 		
 		
-
 		// Load the image if it isn't null
 		if (originalImageUri != null) {
 			
@@ -260,13 +277,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			try {
 				ExifInterface ei = new ExifInterface(originalFilename);
 				originalImageOrientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-				Log.v(ObscuraApp.TAG,"Orientation: " + originalImageOrientation);
+				debug(ObscuraApp.TAG,"Orientation: " + originalImageOrientation);
 			} catch (IOException e1) {
-				Log.v(ObscuraApp.TAG,"Couldn't get Orientation");
+				debug(ObscuraApp.TAG,"Couldn't get Orientation");
 				e1.printStackTrace();
 			}
 
-			//Log.v(ObscuraApp.TAG,"loading uri: " + pullPathFromUri(originalImageUri));
+			//debug(ObscuraApp.TAG,"loading uri: " + pullPathFromUri(originalImageUri));
 
 			// Load up smaller image
 			try {
@@ -292,39 +309,47 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 				// Get the current display to calculate ratios
 				Display currentDisplay = getWindowManager().getDefaultDisplay();
-
-				Log.v(ObscuraApp.TAG,"Display Width: " + currentDisplay.getWidth());
-				Log.v(ObscuraApp.TAG,"Display Height: " + currentDisplay.getHeight());
-				
-				Log.v(ObscuraApp.TAG,"Image Width: " + originalImageWidth);
-				Log.v(ObscuraApp.TAG,"Image Height: " + originalImageHeight);
 				
 				// Ratios between the display and the image
-				int widthRatio = (int) Math.floor(bmpFactoryOptions.outWidth / (float) currentDisplay.getWidth());
-				int heightRatio = (int) Math.floor(bmpFactoryOptions.outHeight / (float) currentDisplay.getHeight());
+				double widthRatio =  Math.floor(bmpFactoryOptions.outWidth / currentDisplay.getWidth());
+				double heightRatio = Math.floor(bmpFactoryOptions.outHeight / currentDisplay.getHeight());
 
-				Log.v(ObscuraApp.TAG, "HEIGHTRATIO:" + heightRatio);
-				Log.v(ObscuraApp.TAG, "WIDTHRATIO:" + widthRatio);
-	
+				/*
+				debug(ObscuraApp.TAG,"Display Width: " + currentDisplay.getWidth());
+				debug(ObscuraApp.TAG,"Display Height: " + currentDisplay.getHeight());
+				
+				debug(ObscuraApp.TAG,"Image Width: " + originalImageWidth);
+				debug(ObscuraApp.TAG,"Image Height: " + originalImageHeight);
+
+				debug(ObscuraApp.TAG, "HEIGHTRATIO:" + heightRatio);
+				debug(ObscuraApp.TAG, "WIDTHRATIO:" + widthRatio);
+				 */
+				
 				// If both of the ratios are greater than 1,
 				// one of the sides of the image is greater than the screen
 				if (heightRatio > 1 && widthRatio > 1) {
 					if (heightRatio > widthRatio) {
 						// Height ratio is larger, scale according to it
-						bmpFactoryOptions.inSampleSize = heightRatio;
+						inSampleSize = (int)heightRatio;
 					} else {
 						// Width ratio is larger, scale according to it
-						bmpFactoryOptions.inSampleSize = widthRatio;
+						inSampleSize = (int)widthRatio;
 					}
 				}
+				else
+				{
+					inSampleSize = 1;
+				}
+				
+				bmpFactoryOptions.inSampleSize = inSampleSize;
 		
 				// Decode it for real
 				bmpFactoryOptions.inJustDecodeBounds = false;
 				loadedBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(originalImageUri), null, bmpFactoryOptions);
-				Log.v(ObscuraApp.TAG,"Was: " + loadedBitmap.getConfig());
+				debug(ObscuraApp.TAG,"Was: " + loadedBitmap.getConfig());
 
 				if (loadedBitmap == null) {
-					Log.v(ObscuraApp.TAG,"bmp is null");
+					debug(ObscuraApp.TAG,"bmp is null");
 				
 				}
 				else
@@ -332,20 +357,20 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					// Only dealing with 90 and 270 degree rotations, might need to check for others
 					if (originalImageOrientation == ExifInterface.ORIENTATION_ROTATE_90) 
 					{
-						Log.v(ObscuraApp.TAG,"Rotating Bitmap 90");
+						debug(ObscuraApp.TAG,"Rotating Bitmap 90");
 						Matrix rotateMatrix = new Matrix();
 						rotateMatrix.postRotate(90);
 						loadedBitmap = Bitmap.createBitmap(loadedBitmap,0,0,loadedBitmap.getWidth(),loadedBitmap.getHeight(),rotateMatrix,false);
 					}
 					else if (originalImageOrientation == ExifInterface.ORIENTATION_ROTATE_270) 
 					{
-						Log.v(ObscuraApp.TAG,"Rotating Bitmap 270");
+						debug(ObscuraApp.TAG,"Rotating Bitmap 270");
 						Matrix rotateMatrix = new Matrix();
 						rotateMatrix.postRotate(270);
 						loadedBitmap = Bitmap.createBitmap(loadedBitmap,0,0,loadedBitmap.getWidth(),loadedBitmap.getHeight(),rotateMatrix,false);
 					}
 
-					setBitmap (loadedBitmap);
+					setBitmap (loadedBitmap, true);
 				}				
 			} catch (IOException e) {
 				Log.e(ObscuraApp.TAG, "error loading bitmap from Uri: " + e.getMessage(), e);
@@ -354,10 +379,19 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			
 			
 		}
+		
+		bitmapCornerUL = BitmapFactory.decodeResource(getResources(),
+                R.drawable.edit_region_corner_ul);
+		bitmapCornerUR = BitmapFactory.decodeResource(getResources(),
+                R.drawable.edit_region_corner_ur);
+		bitmapCornerLL = BitmapFactory.decodeResource(getResources(),
+                R.drawable.edit_region_corner_ll);
+		bitmapCornerLR = BitmapFactory.decodeResource(getResources(),
+                R.drawable.edit_region_corner_lr);
+		 
 	}
 	
-	@SuppressWarnings("unused")
-	private void setBitmap (Bitmap nBitmap)
+	private void setBitmap (Bitmap nBitmap, boolean autodetect)
 	{
 		imageBitmap = nBitmap;
 		
@@ -375,8 +409,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		} 
 		
 		imageView.setImageBitmap(imageBitmap);
+
+		// Set the OnTouch and OnLongClick listeners to this (ImageEditor)
+		imageView.setOnTouchListener(this);
+		imageView.setOnClickListener(this);
+		imageView.setOnLongClickListener(this);
 		
-		PointF midpoint = new PointF((float)imageBitmap.getWidth()/2f, (float)imageBitmap.getHeight()/2f);
+		
+		//PointF midpoint = new PointF((float)imageBitmap.getWidth()/2f, (float)imageBitmap.getHeight()/2f);
 		matrix.postScale(matrixScale, matrixScale);
 
 		// This doesn't completely center the image but it get's closer
@@ -385,23 +425,20 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		imageView.setImageMatrix(matrix);
 		
-		// Set the OnTouch and OnLongClick listeners to this (ImageEditor)
-		imageView.setOnTouchListener(this);
-		imageView.setOnLongClickListener(this);
 		
-		// Layout for Image Regions
-		regionButtonsLayout = (RelativeLayout) this.findViewById(R.id.RegionButtonsLayout);
-		
+		if (autodetect)
+		{
 		// Do auto detect popup
 
 		Toast autodetectedToast = Toast.makeText(this, "Detecting faces...", Toast.LENGTH_SHORT);
 		autodetectedToast.show();
 		mHandler.postDelayed(mUpdateTimeTask, 1000);
+		}
 	}
 	/*
 	 * Call this to delete the original image, will ask the user
 	 */
-	private void handleDelete() 
+	private void showDeleteOriginalDialog() 
 	{
 		final AlertDialog.Builder b = new AlertDialog.Builder(this);
 		b.setIcon(android.R.drawable.ic_dialog_alert);
@@ -410,10 +447,20 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		b.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
 
-                // User clicked OK so go ahead and delete
-        		deleteOriginal();
-            	viewImage(savedImageUri);
-            	finish();
+            	try
+            	{
+	                // User clicked OK so go ahead and delete
+	        		deleteOriginal();
+	            	viewImage(savedImageUri);
+            	}
+            	catch (IOException e)
+            	{
+            		Log.e(ObscuraApp.TAG, "error saving", e);
+            	}
+            	finally
+            	{
+            		finish();
+            	}
             }
         });
 		b.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
@@ -428,13 +475,44 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	/*
 	 * Actual deletion of original
 	 */
-	private void deleteOriginal() {
+	private void deleteOriginal() throws IOException
+	{
 		
 		if (originalImageUri != null)
 		{
 			if (originalImageUri.getScheme().equals("file"))
 			{
-				new File(originalImageUri.toString()).delete();
+				String origFilePath = originalImageUri.getPath();
+				File fileOrig = new File(origFilePath);
+
+				String[] columnsToSelect = { MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA };
+				
+				/*
+				ExifInterface ei = new ExifInterface(origFilePath);
+				long dateTaken = new Date(ei.getAttribute(ExifInterface.TAG_DATETIME)).getTime();
+				*/
+				
+				Uri[] uriBases = {MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media.INTERNAL_CONTENT_URI};
+				
+				for (Uri uriBase : uriBases)
+				{
+					
+			    	Cursor imageCursor = getContentResolver().query(uriBase, columnsToSelect, MediaStore.Images.Media.DATA + " = ?",  new String[] {origFilePath}, null );
+					//Cursor imageCursor = getContentResolver().query(uriBase, columnsToSelect, MediaStore.Images.Media.DATE_TAKEN + " = ?",  new String[] {dateTaken+""}, null );
+					
+			        while (imageCursor.moveToNext())
+			        {
+			        
+				       long _id = imageCursor.getLong(imageCursor.getColumnIndex(MediaStore.Images.Media._ID));
+				    	   
+				       getContentResolver().delete(ContentUris.withAppendedId(uriBase, _id), null, null);
+				       
+			    	}
+				}
+				
+				if (fileOrig.exists())
+					fileOrig.delete();
+				
 			}
 			else
 			{
@@ -462,21 +540,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		RectF[] autodetectedRects = runFaceDetection();
 		for (int adr = 0; adr < autodetectedRects.length; adr++) {
 
-			Log.v(ObscuraApp.TAG,"AUTODETECTED imageView Width, Height: " + imageView.getWidth() + " " + imageView.getHeight());
-			Log.v(ObscuraApp.TAG,"UNSCALED RECT:" + autodetectedRects[adr].left + " " + autodetectedRects[adr].top + " " + autodetectedRects[adr].right + " " + autodetectedRects[adr].bottom);
+			//debug(ObscuraApp.TAG,"AUTODETECTED imageView Width, Height: " + imageView.getWidth() + " " + imageView.getHeight());
+			//debug(ObscuraApp.TAG,"UNSCALED RECT:" + autodetectedRects[adr].left + " " + autodetectedRects[adr].top + " " + autodetectedRects[adr].right + " " + autodetectedRects[adr].bottom);
 			
-			float scaledStartX = (float)autodetectedRects[adr].left * (float)imageView.getWidth()/(float)imageBitmap.getWidth();
-			float scaledStartY = (float)autodetectedRects[adr].top * (float)imageView.getHeight()/(float)imageBitmap.getHeight();
-			float scaledEndX = (float)autodetectedRects[adr].right * (float)imageView.getWidth()/(float)imageBitmap.getWidth();
-			float scaledEndY = (float)autodetectedRects[adr].bottom * (float)imageView.getHeight()/(float)imageBitmap.getHeight();
+			RectF autodetectedRectScaled = new RectF(autodetectedRects[adr].left, autodetectedRects[adr].top, autodetectedRects[adr].right, autodetectedRects[adr].bottom);
 			
-			RectF autodetectedRectScaled = new RectF(scaledStartX, scaledStartY, scaledEndX, scaledEndY);
-			Log.v(ObscuraApp.TAG,"SCALED RECT:" + autodetectedRectScaled.left + " " + autodetectedRectScaled.top + " " + autodetectedRectScaled.right + " " + autodetectedRectScaled.bottom);
+			//debug(ObscuraApp.TAG,"SCALED RECT:" + autodetectedRectScaled.left + " " + autodetectedRectScaled.top + " " + autodetectedRectScaled.right + " " + autodetectedRectScaled.bottom);
 
-			
 			// Probably need to map autodetectedRects to scaled rects
-			//matrix.mapRect(autodetectedRects[adr]);		
-			//Log.v(ObscuraApp.TAG,"MAPPED RECT:" + autodetectedRects[adr].left + " " + autodetectedRects[adr].top + " " + autodetectedRects[adr].right + " " + autodetectedRects[adr].bottom);
+		//debug(ObscuraApp.TAG,"MAPPED RECT:" + autodetectedRects[adr].left + " " + autodetectedRects[adr].top + " " + autodetectedRects[adr].right + " " + autodetectedRects[adr].bottom);
 			
 			float faceBuffer = (autodetectedRectScaled.right-autodetectedRectScaled.left)/5;
 			
@@ -485,30 +557,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				showPopup = true;
 			}
 			createImageRegion(
-					(int)(autodetectedRectScaled.left-faceBuffer),
-					(int)(autodetectedRectScaled.top-faceBuffer),
-					(int)(autodetectedRectScaled.right+faceBuffer),
-					(int)(autodetectedRectScaled.bottom+faceBuffer),
-					imageView.getWidth(),
-					imageView.getHeight(),
-					originalImageWidth, 
-					originalImageHeight, 
-					DETECTED_COLOR,
+					(autodetectedRectScaled.left-faceBuffer),
+					(autodetectedRectScaled.top-faceBuffer),
+					(autodetectedRectScaled.right+faceBuffer),
+					(autodetectedRectScaled.bottom+faceBuffer),
 					showPopup);
 		}	
-			/*
-			createImageRegion(
-					(int)autodetectedRects[adr].left,
-					(int)autodetectedRects[adr].top,
-					(int)autodetectedRects[adr].right,
-					(int)autodetectedRects[adr].bottom,
-					imageView.getWidth(),
-					imageView.getHeight(),
-					originalImageWidth, 
-					originalImageHeight, 
-					DETECTED_COLOR);
-		}
-		*/
+			
 		
 		Toast autodetectedToast = Toast.makeText(this, "" + autodetectedRects.length + " faces detected", Toast.LENGTH_SHORT);
 		autodetectedToast.show();
@@ -523,7 +578,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		try {
 			GoogleFaceDetection gfd = new GoogleFaceDetection(imageBitmap);
 			int numFaces = gfd.findFaces();
-	        Log.v(ObscuraApp.TAG,"Num Faces Found: " + numFaces); 
+	        debug(ObscuraApp.TAG,"Num Faces Found: " + numFaces); 
 	        possibleFaceRects = gfd.getFaces();
 		} catch(NullPointerException e) {
 			possibleFaceRects = null;
@@ -531,27 +586,112 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		return possibleFaceRects;				
 	}
 	
+
+	ImageRegion currRegion = null;
+	
 	/*
 	 * Handles touches on ImageView
 	 */
 	@Override
 	public boolean onTouch(View v, MotionEvent event) 
 	{
-		boolean handled = false;
+		if (currRegion != null && (mode == DRAG || currRegion.getBounds().contains(event.getX(), event.getY())))		
+			return onTouchRegion(v, event, currRegion);	
+		else
+			return onTouchImage(v,event);
+	}
 	
+	public ImageRegion findRegion (MotionEvent event)
+	{
+		ImageRegion result = null;
+		Matrix iMatrix = new Matrix();
+		matrix.invert(iMatrix);
+
+		float[] points = {event.getX(), event.getY()};        	
+    	iMatrix.mapPoints(points);
+    	
+		for (ImageRegion region : imageRegions)
+		{
+
+			if (region.getBounds().contains(points[0],points[1]))
+			{
+				result = region;
+				
+				break;
+			}
+			
+		}
+	
+		
+		return result;
+	}
+	
+	public boolean onTouchRegion (View v, MotionEvent event, ImageRegion iRegion)
+	{
+		boolean handled = false;
+		
+		currRegion.setMatrix(matrix);
+		
+		switch (event.getAction() & MotionEvent.ACTION_MASK) {
+			case MotionEvent.ACTION_DOWN:
+				clearImageRegionsEditMode();
+				currRegion.setSelected(true);	
+				
+				currRegion.setCornerMode(event.getX(),event.getY());
+				
+				mode = DRAG;
+				handled = iRegion.onTouch(v, event);
+
+			break;
+			
+			case MotionEvent.ACTION_UP:
+				mode = NONE;
+				handled = iRegion.onTouch(v, event);
+				currRegion.setSelected(false);
+				//if (handled)
+					//currRegion = null;
+			
+			break;
+			
+			default:
+				mode = DRAG;
+				handled = iRegion.onTouch(v, event);
+			
+		}
+		
+		return handled;
+		
+		
+	}
+	
+	public boolean onTouchImage(View v, MotionEvent event) 
+	{
+		boolean handled = false;
+		
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
 				// Single Finger down
-				mode = TAP;
+				mode = TAP;				
+				ImageRegion newRegion = findRegion(event);
 				
-				// Don't do realtime preview while touching screen
-				//doRealtimePreview = false;
-				//updateDisplayImage();
+				if (newRegion != null)
+				{
+					currRegion = newRegion;
+					return onTouchRegion(v,  event, currRegion);
+				}
+				else if (currRegion == null)
+				{
+					
+					// 	Save the Start point. 
+					startPoint.set(event.getX(), event.getY());
+				}
+				else
+				{
+					currRegion.setSelected(false);
+					currRegion = null;
 
-				// Save the Start point. 
-				startPoint.set(event.getX(), event.getY());
-						
-				clearImageRegionsEditMode();
+				}
+				
 				
 				break;
 				
@@ -588,8 +728,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				doRealtimePreview = true;
 				updateDisplayImage();
 				
-				mode = NONE;
-				//Log.v(ObscuraApp.TAG,"mode=NONE");
+				//debug(ObscuraApp.TAG,"mode=NONE");
 
 				break;
 				
@@ -600,7 +739,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				doRealtimePreview = true;
 				updateDisplayImage();
 				
-				mode = NONE;
 				//Log.d(ObscuraApp.TAG, "mode=NONE");
 				break;
 				
@@ -608,8 +746,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 				// Calculate distance moved
 				float distance = (float) (Math.sqrt(Math.abs(startPoint.x - event.getX()) + Math.abs(startPoint.y - event.getY())));
-				//Log.v(ObscuraApp.TAG,"Move Distance: " + distance);
-				//Log.v(ObscuraApp.TAG,"Min Distance: " + minMoveDistance);
+				//debug(ObscuraApp.TAG,"Move Distance: " + distance);
+				//debug(ObscuraApp.TAG,"Min Distance: " + minMoveDistance);
 				
 				// If greater than minMoveDistance, it is likely a drag or zoom
 				if (distance > minMoveDistance) {
@@ -623,7 +761,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						startPoint.set(event.getX(), event.getY());
 	
 						putOnScreen();
-						redrawRegions();
+						//redrawRegions();
 						
 						handled = true;
 	
@@ -651,8 +789,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							float[] matrixValues = new float[9];
 							matrix.getValues(matrixValues);
 							/*
-							Log.v(ObscuraApp.TAG, "Total Scale: " + matrixValues[0]);
-							Log.v(ObscuraApp.TAG, "" + matrixValues[0] + " " + matrixValues[1]
+							debug(ObscuraApp.TAG, "Total Scale: " + matrixValues[0]);
+							debug(ObscuraApp.TAG, "" + matrixValues[0] + " " + matrixValues[1]
 									+ " " + matrixValues[2] + " " + matrixValues[3]
 									+ " " + matrixValues[4] + " " + matrixValues[5]
 									+ " " + matrixValues[6] + " " + matrixValues[7]
@@ -666,7 +804,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							imageView.setImageMatrix(matrix);
 							
 							putOnScreen();
-							redrawRegions();
+							//redrawRegions();
 	
 							// Reset Start Finger Spacing
 							float esx = event.getX(0) - event.getX(1);
@@ -689,7 +827,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		return handled; // indicate event was handled
 	}
-	
+
+	/*
 	public void moveAndZoom (float x, float y, float scale)
 	{
 		matrix.postTranslate(x - startPoint.x, y - startPoint.y);
@@ -704,14 +843,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		putOnScreen();
 		redrawRegions();
 		
-	}
+	}*/
+	
 	/*
 	 * For live previews
 	 */	
 	public void updateDisplayImage()
 	{
 		if (doRealtimePreview) {
-			imageView.setImageBitmap(createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight()));
+			imageView.setImageBitmap(createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight(), true));
 		} else {
 			imageView.setImageBitmap(imageBitmap);
 		}
@@ -725,7 +865,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// Get Rectangle of Tranformed Image
 		RectF theRect = getScaleOfImage();
 		
-		Log.v(ObscuraApp.TAG,theRect.width() + " " + theRect.height());
+		debug(ObscuraApp.TAG,theRect.width() + " " + theRect.height());
 		
 		float deltaX = 0, deltaY = 0;
 		if (theRect.width() < imageView.getWidth()) {
@@ -744,11 +884,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			deltaY = imageView.getHeight() - theRect.bottom;
 		}
 		
-		Log.v(ObscuraApp.TAG,"Deltas:" + deltaX + " " + deltaY);
+		//debug(ObscuraApp.TAG,"Deltas:" + deltaX + " " + deltaY);
 		
 		matrix.postTranslate(deltaX,deltaY);
-		updateDisplayImage();
 		imageView.setImageMatrix(matrix);
+		updateDisplayImage();
+		
 	}
 	
 	/* 
@@ -760,35 +901,28 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		while (itRegions.hasNext())
 		{
-			itRegions.next().changeMode(ImageRegion.NORMAL_MODE);
+			itRegions.next().setSelected(false);
 		}
+		
 	}
 	
 	/*
 	 * Create new ImageRegion
 	 */
-	public void createImageRegion(int _scaledStartX, int _scaledStartY, 
-			int _scaledEndX, int _scaledEndY, 
-			int _scaledImageWidth, int _scaledImageHeight, 
-			int _imageWidth, int _imageHeight, 
-			int _backgroundColor, boolean showPopup) {
+	public void createImageRegion(float left, float top, float right, float bottom, boolean showPopup) {
 		
 		clearImageRegionsEditMode();
 		
 		ImageRegion imageRegion = new ImageRegion(
 				this, 
-				_scaledStartX, 
-				_scaledStartY, 
-				_scaledEndX, 
-				_scaledEndY, 
-				_scaledImageWidth, 
-				_scaledImageHeight, 
-				_imageWidth, 
-				_imageHeight, 
-				_backgroundColor);
-		
+				left, 
+				top, 
+				right, 
+				bottom,
+				matrix);
+
 		imageRegions.add(imageRegion);
-		addImageRegionToLayout(imageRegion,showPopup);
+		putOnScreen();
 	}
 	
 	/*
@@ -797,7 +931,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public void deleteRegion(ImageRegion ir)
 	{
 		imageRegions.remove(ir);
-		redrawRegions();
+		//redrawRegions();
 		updateDisplayImage();
 	}
 	
@@ -811,34 +945,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		return theRect;
 	}
 
-	/*
-	 * Add an ImageRegion to the layout
-	 */
-	public void addImageRegionToLayout(ImageRegion imageRegion, boolean showPopup) 
-	{
-		// Get Rectangle of Current Transformed Image
-		RectF theRect = getScaleOfImage();
-		Log.v(ObscuraApp.TAG,"New Width:" + theRect.width());
-		imageRegion.updateScaledRect((int)theRect.width(), (int)theRect.height());
-				
-    	regionButtonsLayout.addView(imageRegion);
-    	if (showPopup) {
-    		imageRegion.inflatePopup(true);
-    	}
-    }
-	
-	/*
-	 * Removes and adds all of the regions to the layout again 
-	 */
-	public void redrawRegions() {
-		regionButtonsLayout.removeAllViews();
-		
-		Iterator<ImageRegion> i = imageRegions.iterator();
-	    while (i.hasNext()) {
-	    	ImageRegion currentRegion = i.next();
-	    	addImageRegionToLayout(currentRegion, false);
-	    }
-	}
 	
 	/*
 	 * Handles normal onClicks for buttons registered to this.
@@ -846,7 +952,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 */
 	@Override
 	public void onClick(View v) {
-		if (v == zoomIn) 
+		
+		if (currRegion != null)
+		{
+			currRegion.inflatePopup(false);
+			currRegion = null;
+		}			
+		else if (v == zoomIn) 
 		{
 			float scale = 1.5f;
 			
@@ -854,7 +966,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			matrix.postScale(scale, scale, midpoint.x, midpoint.y);
 			imageView.setImageMatrix(matrix);
 			putOnScreen();
-			redrawRegions();
 		} 
 		else if (v == zoomOut) 
 		{
@@ -863,31 +974,96 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
 			matrix.postScale(scale, scale, midpoint.x, midpoint.y);
 			imageView.setImageMatrix(matrix);
+			
 			putOnScreen();
-			redrawRegions();
 		} 
+		else if (v == btnNew)
+		{
+			newDefaultRegion();
+		}
+		else if (v == btnPreview)
+		{
+			showPreview();
+		}
+		else if (v == btnSave)
+		{
+			//Why does this not show?
+	    	mProgressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
+
+    		mHandler.postDelayed(new Runnable() {
+    			  @Override
+    			  public void run() {
+    			    // this will be done in the Pipeline Thread
+    	        		saveImage();
+    			  }
+    			},500);
+		}
+		else if (v == btnShare)
+		{
+			// Share Image
+      		shareImage();
+		}
+		else if (mode != DRAG && mode != ZOOM) 
+		{
+			float defaultSize = imageView.getWidth()/4;
+			float halfSize = defaultSize/2;
+			
+			RectF newBox = new RectF();
+			
+			newBox.left = startPoint.x - halfSize;
+			newBox.top = startPoint.y - halfSize;
+
+			newBox.right = startPoint.x + halfSize;
+			newBox.bottom = startPoint.y + halfSize;
+			
+			Matrix iMatrix = new Matrix();
+			matrix.invert(iMatrix);
+			iMatrix.mapRect(newBox);
+						
+			createImageRegion(newBox.left, newBox.top, newBox.right, newBox.bottom, true);
+		}
+		
 	}
+	
 	
 	// Long Clicks create new image regions
 	@Override
 	public boolean onLongClick (View v)
 	{
-		if (mode != DRAG && mode != ZOOM) {
+		/*
+		if (mode != DRAG && mode != ZOOM) 
+		{
 			vibe.vibrate(50);
-			
-			float scaledStartX = (float)startPoint.x-DEFAULT_REGION_WIDTH/2 * (float)imageView.getWidth()/(float)imageBitmap.getWidth();
-			float scaledStartY = (float)startPoint.y-DEFAULT_REGION_HEIGHT/2 * (float)imageView.getHeight()/(float)imageBitmap.getHeight();
-			float scaledEndX = (float)startPoint.x+DEFAULT_REGION_WIDTH/2 * (float)imageView.getWidth()/(float)imageBitmap.getWidth();
-			float scaledEndY = (float)startPoint.y+DEFAULT_REGION_HEIGHT/2 * (float)imageView.getHeight()/(float)imageBitmap.getHeight();
 
-			createImageRegion((int)scaledStartX, (int)scaledStartY, 
-							(int)scaledEndX, (int)scaledEndY, 
-							imageView.getWidth(), imageView.getHeight(), 
-							originalImageWidth, originalImageHeight, DRAW_COLOR, false);
+			float defaultSize = imageView.getWidth()/4;
+			float halfSize = defaultSize/2;
+			
+			RectF newBox = new RectF();
+			
+			newBox.left = startPoint.x - halfSize;
+			newBox.top = startPoint.y - halfSize;
+
+			newBox.right = startPoint.x + halfSize;
+			newBox.bottom = startPoint.y + halfSize;
+			
+			float[] mValues = new float[9];
+			matrix.getValues(mValues);
+			float scaleX = mValues[Matrix.MSCALE_X];
+			float scaleY = mValues[Matrix.MSCALE_Y];
+			
+			float leftOffset = mValues[Matrix.MTRANS_X];
+			float topOffset = mValues[Matrix.MTRANS_Y];
+			
+			newBox.left = (newBox.left / scaleX) - leftOffset;
+			newBox.top = (newBox.top / scaleY) - topOffset;
+			newBox.right = (newBox.right / scaleX) - leftOffset;
+			newBox.bottom = (newBox.bottom / scaleY) - topOffset;
+
+			createImageRegion(newBox.left, newBox.top, newBox.right, newBox.bottom, true);
 			return true;
 		}
-		
-		return false;
+		*/
+		return true;
 	}
 	
 	/*
@@ -902,6 +1078,29 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         return true;
     }
 	
+	private void newDefaultRegion ()
+	{
+		// Set the Start point. 
+		startPoint.set(imageView.getWidth()/2, imageView.getHeight()/2);
+		
+		float defaultSize = imageView.getWidth()/4;
+		float halfSize = defaultSize/2;
+		
+		RectF newRegion = new RectF();
+		
+		newRegion.left = startPoint.x - halfSize;
+		newRegion.top = startPoint.y - halfSize;
+
+		newRegion.right =  startPoint.x + defaultSize;
+		newRegion.left =  startPoint.y + defaultSize;
+		
+		Matrix iMatrix = new Matrix();
+		matrix.invert(iMatrix);
+		iMatrix.mapRect(newRegion);
+		
+		createImageRegion(newRegion.left,newRegion.top,newRegion.right,newRegion.bottom, false);
+		
+	}
     /*
      * Normal menu item selected method.  Uses menu items defined in XML: res/menu/image_editor_menu.xml
      */
@@ -911,19 +1110,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	switch (item.getItemId()) {
     	
     		case R.id.menu_new_region:
-    			// Set the Start point. 
-				startPoint.set(imageView.getWidth()/2, imageView.getHeight()/2);
-				
-    			// Add new region at default location (center)
-    			createImageRegion((int)startPoint.x-DEFAULT_REGION_WIDTH/2, 
-    					(int)startPoint.y-DEFAULT_REGION_HEIGHT/2, 
-    					(int)startPoint.x+DEFAULT_REGION_WIDTH/2, 
-    					(int)startPoint.y+DEFAULT_REGION_HEIGHT/2, 
-    					imageView.getWidth(), 
-    					imageView.getHeight(), 
-    					originalImageWidth, 
-    					originalImageHeight, 
-    					DRAW_COLOR, false);
+    			
+    			newDefaultRegion();
 
     			return true;
     			
@@ -1057,14 +1245,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 * Uses saveTmpImage (overwriting what is already there) and uses the standard Android Share Intent
 	 */
     private void viewImage(Uri imgView) {
-    	
     	Intent iView = new Intent(Intent.ACTION_VIEW);
-    	iView.setType("image/jpeg");
+    	iView.setType(MIME_TYPE_JPEG);
     	iView.putExtra(Intent.EXTRA_STREAM, imgView);
-    	iView.setDataAndType(imgView, "image/jpeg");
-
+    	iView.setDataAndType(imgView, MIME_TYPE_JPEG);
     	startActivity(Intent.createChooser(iView, "View Image"));    	
-	
+    	
     }
     
     
@@ -1072,7 +1258,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * Goes through the regions that have been defined and creates a bitmap with them obscured.
      * This may introduce memory issues and therefore have to be done in a different manner.
      */
-    private Bitmap createObscuredBitmap(int width, int height) 
+    private Bitmap createObscuredBitmap(int width, int height, boolean showBorders) 
     {
     	if (imageBitmap == null)
     		return null;
@@ -1099,41 +1285,33 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    {
 	    	ImageRegion currentRegion = i.next();
 	    	RegionProcesser om = currentRegion.getRegionProcessor();
-	    	/*
-	    	RegionProcesser om;
-			switch (currentRegion.obscureType) {
-				case ImageRegion.BG_PIXELATE:
-					Log.v(ObscuraApp.TAG,"obscureType: BGPIXELIZE");
-					om = new CrowdPixelizeObscure();
-				break;
-				
-				case ImageRegion.MASK:
-					Log.v(ObscuraApp.TAG,"obscureType: ANON");
-					om = new MaskObscure(this.getApplicationContext(), obscuredPaint);
-					break;
-					
-				case ImageRegion.REDACT:
-					Log.v(ObscuraApp.TAG,"obscureType: SOLID");
-					om = new PaintSquareObscure();
-					break;
-					
-				case ImageRegion.PIXELATE:
-					Log.v(ObscuraApp.TAG,"obscureType: PIXELIZE");
-					om = new PixelizeObscure();
-					break;
-					
-				default:
-					Log.v(ObscuraApp.TAG,"obscureType: NONE/BLUR");
-					om = new BlurObscure();
-					break;
-			}*/
-			
-			// Get the Rect for the region and do the obscure
-            Rect rect = currentRegion.getAScaledRect(obscuredBmp.getWidth(),obscuredBmp.getHeight());
-           // Log.v(ObscuraApp.TAG,"unscaled rect: left:" + rect.left + " right:" + rect.right 
-            //		+ " top:" + rect.top + " bottom:" + rect.bottom);
-            			
-	    	om.processRegion(rect, obscuredCanvas, obscuredBmp);
+
+            RectF regionRect = new RectF(currentRegion.getBounds());
+	    	om.processRegion(regionRect, obscuredCanvas, obscuredBmp);
+
+	    	if (showBorders)
+	    	{
+		    	if (currentRegion.isSelected())
+		    		obscuredPaint.setColor(Color.GREEN);
+		    	else
+		    		obscuredPaint.setColor(Color.WHITE);
+		    	
+		    	obscuredPaint.setStyle(Style.STROKE);
+		    	obscuredPaint.setStrokeWidth(10f);
+		    	obscuredCanvas.drawRect(regionRect, obscuredPaint);
+		    	
+		    	float cSize = CORNER_SIZE;
+		    	
+		    	if (currentRegion.isSelected())
+		    	{
+		    		obscuredCanvas.drawBitmap(bitmapCornerUL, regionRect.left-cSize, regionRect.top-cSize, obscuredPaint);
+		    		obscuredCanvas.drawBitmap(bitmapCornerLL, regionRect.left-cSize, regionRect.bottom-(cSize/2), obscuredPaint);
+		    		obscuredCanvas.drawBitmap(bitmapCornerUR, regionRect.right-(cSize/2), regionRect.top-cSize, obscuredPaint);
+		    		obscuredCanvas.drawBitmap(bitmapCornerLR, regionRect.right-(cSize/2), regionRect.bottom-(cSize/2), obscuredPaint);
+
+		    	}
+		    	
+	    	}
 		}
 
 	    return obscuredBmp;
@@ -1162,32 +1340,48 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * Goes through the regions that have been defined and creates a bitmap with them obscured.
      * This may introduce memory issues and therefore have to be done in a different manner.
      */
-    private File processNativeRes () throws Exception
+    private Uri processNativeRes (Uri sourceImage) throws Exception
     {
     	// Create the Uri - This can't be "private"
+    	/*
     	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory(), TMP_FILE_DIRECTORY);
-    	File tmpFile = new File(tmpFileDirectory,TMP_FILE_NAME);
     
     	if (!tmpFileDirectory.exists()) {
     		tmpFileDirectory.mkdirs();
+    	}*/
+
+    	File tmpFileDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES); 
+    	if (!tmpFileDirectory.exists()) {
+    		tmpFileDirectory.mkdirs();
     	}
-    
-    	Uri tmpImageUri = Uri.fromFile(tmpFile);
-		copy (originalImageUri, tmpImageUri);
-		
+    	File tmpInFile = new File(tmpFileDirectory,TMP_FILE_NAME);
+    	
+    	Uri tmpImageUri = Uri.fromFile(tmpInFile);
+		copy (sourceImage, tmpImageUri);
+	  	
+		JpegRedaction om = new JpegRedaction();	
+    	om.setFiles(tmpInFile, tmpInFile);
+	
 		// Iterate through the regions that have been created
     	Iterator<ImageRegion> i = imageRegions.iterator();
 	    while (i.hasNext()) 
 	    {
-	    	ImageRegion currentRegion = i.next();
 	    	
-	    	JpegRedaction om = new JpegRedaction(currentRegion.getRegionProcessor(), tmpFile, tmpFile);	
-	    	om.processRegion(currentRegion.getRect(), obscuredCanvas, obscuredBmp);
+	    	ImageRegion currentRegion = i.next();
+	  
+	    	
+	    	om.setMethod(currentRegion.getRegionProcessor());
+            RectF regionRect = new RectF(currentRegion.getBounds());
+            regionRect.left *= inSampleSize;
+            regionRect.top *= inSampleSize;
+            regionRect.right *= inSampleSize;
+            regionRect.bottom *= inSampleSize;
+            
+	    	om.processRegion(regionRect, obscuredCanvas, obscuredBmp);
 		
-		}
-	    
-	    
-	    return tmpFile;
+	    }
+	    	    
+	    return  Uri.fromFile(tmpInFile);
     }
     
     private void copy (Uri uriSrc, Uri uriTarget) throws IOException
@@ -1226,26 +1420,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	// Perhaps this should be smaller than screen size??
     	int w = imageBitmap.getWidth();
     	int h = imageBitmap.getHeight();
-    	/* This isn't necessary
-    	if (imageBitmap.getWidth() > SHARE_SIZE_MAX_WIDTH_HEIGHT || imageBitmap.getHeight() > SHARE_SIZE_MAX_WIDTH_HEIGHT) {
-    		// Size it down proportionally
-    		float ratio = 1;
-    		if (imageBitmap.getWidth() > imageBitmap.getHeight()) {
-    			ratio = (float)SHARE_SIZE_MAX_WIDTH_HEIGHT/(float)imageBitmap.getWidth();
-    		} else {
-    			ratio = (float)SHARE_SIZE_MAX_WIDTH_HEIGHT/(float)imageBitmap.getHeight();
-    		}
-
-			w = (int) (ratio * imageBitmap.getWidth());
-			h = (int) (ratio * imageBitmap.getHeight());
-    	}
-    	*/
-    	Bitmap obscuredBmp = createObscuredBitmap(w,h);
+    	Bitmap obscuredBmp = createObscuredBitmap(w,h, false);
     	
     	// Create the Uri - This can't be "private"
     	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory().getPath() + TMP_FILE_DIRECTORY);
     	File tmpFile = new File(tmpFileDirectory,TMP_FILE_NAME);
-    	Log.v(ObscuraApp.TAG, tmpFile.getPath());
+    	debug(ObscuraApp.TAG, tmpFile.getPath());
     	
 		try {
 	    	if (!tmpFileDirectory.exists()) {
@@ -1273,9 +1453,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      */
     private boolean saveImage() 
     {
-    	// Create the bitmap that will be saved
-    	// Screen size
-    	Bitmap obscuredBmp = null;
 
     	ContentValues cv = new ContentValues();
     	
@@ -1284,30 +1461,31 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	Date date = new Date();
 
 		// Which one?
-    	cv.put(Media.DATE_ADDED, dateFormat.format(date));
-    	cv.put(Media.DATE_TAKEN, dateFormat.format(date));
-    	cv.put(Media.DATE_MODIFIED, dateFormat.format(date));
-    	
+    	cv.put(Images.Media.DATE_ADDED, dateFormat.format(date));
+    	cv.put(Images.Media.DATE_TAKEN, dateFormat.format(date));
+    	cv.put(Images.Media.DATE_MODIFIED, dateFormat.format(date));
+    	cv.put(Images.Media.TITLE, dateFormat.format(date));
+    //    cv.put(Images.Media.BUCKET_ID, "ObscuraCam");
+    //    cv.put(Images.Media.DESCRIPTION, "ObscuraCam");
+    	//cv.put(Images.Media.CONTENT_TYPE, MIME_TYPE_JPEG);
+
     	// Uri is savedImageUri which is global
     	// Create the Uri, this should put it in the gallery
     	// New Each time
-    	
-
 		savedImageUri = getContentResolver().insert(
 				Media.EXTERNAL_CONTENT_URI, cv);
-    	
+		
+		if (savedImageUri == null)
+			return false;
+		
 		boolean nativeSuccess = false;
 		
     	if (canDoNative())
     	{
     		try {
-    			File savedNativeTmp = processNativeRes();
+    			Uri savedNativeTmp = processNativeRes(originalImageUri);
 
-    			Log.v(ObscuraApp.TAG,"saved native tmp file size: " + savedNativeTmp.length());
-    			
-    			copy(Uri.fromFile(savedNativeTmp), savedImageUri);
-    			
-    			savedNativeTmp.delete();
+    			copy(savedNativeTmp, savedImageUri);
     			
     			nativeSuccess = true;
     			
@@ -1321,7 +1499,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	{
     		try {
     			
-    			obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight());
+    			obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight(), false);
     
     			OutputStream imageFileOS;
 			
@@ -1336,28 +1514,28 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
     	}
 
+		// package and insert exif data
+		mp = new MetadataParser(dateFormat.format(date), new File(pullPathFromUri(savedImageUri)), this);
+		Iterator<ImageRegion> i = imageRegions.iterator();
+	    while (i.hasNext()) {
+	    	mp.addRegion(i.next().getRegionProcessor().getProperties());
+	    }
+
+		mp.flushMetadata();
+
 		// force mediascanner to update file
 		MediaScannerConnection.scanFile(
 				this,
 				new String[] {pullPathFromUri(savedImageUri)},
-				new String[] {"image/jpeg"},
+				new String[] {MIME_TYPE_JPEG},
 				null);
 		
-		// package and insert exif data
-		mp = new MetadataParser(dateFormat.format(date), new File(pullPathFromUri(savedImageUri)), this);
-		Iterator<ImageRegion> i = imageRegions.iterator();
-	    while (i.hasNext()) 
-	    {
-	    	mp.addRegion(i.next().rProc.getProperties());
-	    }
-    	
 		Toast t = Toast.makeText(this,"Image saved to Gallery", Toast.LENGTH_SHORT); 
 		t.show();
 
 		mProgressDialog.cancel();
 		
-		handleDelete ();
-		mp.flushMetadata();
+		showDeleteOriginalDialog ();
 		
 		
 		return true;
@@ -1372,13 +1550,21 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * HNH 8/23/11
      */
     public String pullPathFromUri(Uri originalUri) {
-    	
+
     	String originalImageFilePath = null;
-    	String[] columnsToSelect = { MediaStore.Images.Media.DATA };
-    	Cursor imageCursor = getContentResolver().query(originalUri, columnsToSelect, null, null, null );
-    	if ( imageCursor != null && imageCursor.getCount() == 1 ) {
-	        imageCursor.moveToFirst();
-	        originalImageFilePath = imageCursor.getString(imageCursor.getColumnIndex(MediaStore.Images.Media.DATA));
+
+    	if (originalUri.getScheme() != null && originalUri.getScheme().equals("file"))
+    	{
+    		originalImageFilePath = originalUri.toString();
+    	}
+    	else
+    	{
+	    	String[] columnsToSelect = { MediaStore.Images.Media.DATA };
+	    	Cursor imageCursor = getContentResolver().query(originalUri, columnsToSelect, null, null, null );
+	    	if ( imageCursor != null && imageCursor.getCount() == 1 ) {
+		        imageCursor.moveToFirst();
+		        originalImageFilePath = imageCursor.getString(imageCursor.getColumnIndex(MediaStore.Images.Media.DATA));
+	    	}
     	}
 
     	return originalImageFilePath;
@@ -1397,21 +1583,40 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
     private void recenterImage ()
     {
+    	/*
         matrix.postTranslate(0,0);
 		imageView.setImageMatrix(matrix);
 //		// Reset the start point
 		startPoint.set(0,0);
-
+		*/
+    	float scale = 1.2f;		
+		PointF midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
+		matrix.postScale(scale, scale, midpoint.x, midpoint.y);
+		imageView.setImageMatrix(matrix);
 		putOnScreen();
-		redrawRegions();
 		
-        updateDisplayImage();
+		scale = 1f;		
+		midpoint = new PointF(imageView.getWidth()/2, imageView.getHeight()/2);
+		matrix.postScale(scale, scale, midpoint.x, midpoint.y);
+		imageView.setImageMatrix(matrix);
+		putOnScreen();
+		
     }
     
     public void launchInforma(ImageRegion ir) {
     	Intent informa = new Intent(this,InformaEditor.class);
-    	informa.putExtra("mProps", ir.rProc.getProperties());
+    	informa.putExtra("mProps", ir.getRegionProcessor().getProperties());
     	informa.putExtra("irIndex", imageRegions.indexOf(ir));
+    	
+    	ir.getRegionProcessor().processRegion(new RectF(ir.getBounds()), obscuredCanvas, obscuredBmp);    	
+    	
+    	if(ir.getRegionProcessor().getBitmap() != null) {
+    		Bitmap b = ir.getRegionProcessor().getBitmap();
+    		ByteArrayOutputStream bs = new ByteArrayOutputStream();
+    		b.compress(Bitmap.CompressFormat.PNG, 50, bs);
+    		informa.putExtra("byteArray", bs.toByteArray());
+    	}
+    	
     	startActivityForResult(informa,FROM_INFORMA);
     }
     
@@ -1422,14 +1627,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     			// replace corresponding image region
     			@SuppressWarnings("unchecked")
 				HashMap<String, String> informaReturn = (HashMap<String, String>) data.getSerializableExtra("informaReturn");    			
-    			Properties mProp = imageRegions.get(data.getIntExtra("irIndex", 0)).rProc.getProperties();
+    			Properties mProp = imageRegions.get(data.getIntExtra("irIndex", 0)).getRegionProcessor().getProperties();
     			
     			// iterate through returned hashmap and place these new properties in it.
     			for(Map.Entry<String, String> entry : informaReturn.entrySet()) {
     				mProp.setProperty(entry.getKey(), entry.getValue());
     			}
     			
-    			imageRegions.get(data.getIntExtra("irIndex", 0)).rProc.setProperties(mProp);
+    			imageRegions.get(data.getIntExtra("irIndex", 0)).getRegionProcessor().setProperties(mProp);
     			    			
     		}
     	}
@@ -1439,11 +1644,21 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	protected void onPostResume() {
 		super.onPostResume();
 		
-		
 	}
 	
 	public Paint getPainter ()
 	{
 		return obscuredPaint;
 	}
+	
+	private void debug (String tag, String message)
+	{
+		Log.d(tag, message);
+	}
+	
+
+	public ImageView getImageView() {
+		return imageView;
+	}
+
 }

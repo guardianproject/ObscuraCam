@@ -2,25 +2,25 @@ package org.witness.sscphase1;
 
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
 
+import org.witness.informa.utils.SensorSucker;
+import org.witness.informa.utils.SensorSucker.LocalBinder;
 import org.witness.securesmartcam.ImageEditor;
 import org.witness.sscphase1.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.IBinder;
 import android.provider.MediaStore;
-import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,13 +41,25 @@ public class ObscuraApp extends Activity implements OnClickListener {
 	
 	final static String CAMERA_TMP_FILE = "ssctmp.jpg";
 	
-	
+	SensorSucker mSensorSucker;
 
 	private Button choosePictureButton, takePictureButton;		
 	
 	private Uri uriImageResult = null;
 	
 	//private File fileImageTmp;
+	
+	private ServiceConnection sc = new ServiceConnection() {
+		public void onServiceConnected(ComponentName cn, IBinder binder) {
+			LocalBinder lb = (LocalBinder) binder;
+			mSensorSucker = lb.getService();
+		}
+
+		public void onServiceDisconnected(ComponentName cn) {
+			
+		}
+		
+	};
 	
 	@Override
 	protected void onDestroy() 
@@ -83,10 +95,11 @@ public class ObscuraApp extends Activity implements OnClickListener {
 	protected void onResume() {
 
 		super.onResume();
-				
+		//Intent startDCIMMonitor = new Intent(this,DCIMMonitor.class);
+        //bindService(startDCIMMonitor,sc,Context.BIND_AUTO_CREATE);	
 	
 	}
-
+    
 	private void setLayout() {
         setContentView(R.layout.mainmenu);
         
