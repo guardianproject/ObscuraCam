@@ -58,7 +58,7 @@ public class SensorSucker extends Service {
 		
 		GeoSucker() {
 			lm = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-			this.mTask = new TimerTask() {
+			mTask = new TimerTask() {
 
 				@Override
 				public void run() {
@@ -71,7 +71,7 @@ public class SensorSucker extends Service {
 				}
 			};
 			
-			this.mTimer.schedule(this.mTask, 0, 30000L);
+			mTimer.schedule(mTask, 0, 30000L);
 		}
 		
 		public double[] updateLocation() {
@@ -93,7 +93,7 @@ public class SensorSucker extends Service {
 		
 		PhoneSucker() {
 			tm = (TelephonyManager) getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
-			this.mTask = new TimerTask() {
+			mTask = new TimerTask() {
 				
 				@Override
 				public void run() {
@@ -109,7 +109,7 @@ public class SensorSucker extends Service {
 				}
 			};
 			
-			this.mTimer.schedule(this.mTask, 0, 30000L);
+			mTimer.schedule(mTask, 0, 30000L);
 		}
 		
 		public String getIMEI() {
