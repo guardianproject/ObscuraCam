@@ -8,21 +8,27 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.witness.sscphase1.ObscuraApp;
 
+import android.content.Context;
 import android.util.Log;
 
-public class SensorLogger {
+public class SensorLogger<E> {
 	Timer mTimer;
-	TimerTask mTask;
 	File mLog;
+	Context _c;
 	
 	JSONObject mBuffer;
 	
-	boolean hasLog, isSensing;
+	boolean hasLog;
+	public boolean isSensing;
 	
-	SensorLogger() {
+	protected SensorLogger(Context c) {
 		hasLog = false;
 		isSensing = true;
 		mTimer = new Timer();
+	}
+	
+	public Timer getTimer() {
+		return mTimer;
 	}
 
 	public void sendToBuffer(JSONObject logItem) {

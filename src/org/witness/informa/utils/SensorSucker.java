@@ -1,35 +1,36 @@
 package org.witness.informa.utils;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TimerTask;
-
-import org.json.JSONException;
+import org.witness.informa.utils.suckers.*;
 import org.witness.sscphase1.ObscuraApp;
 
 import android.app.Service;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
+import android.content.IntentFilter;
+
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.telephony.TelephonyManager;
-import android.telephony.cdma.CdmaCellLocation;
-import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 
+@SuppressWarnings("unused")
 public class SensorSucker extends Service {
-	GeoSucker _geo;
-	PhoneSucker _phone;
-	AccSucker _acc;
-		
+	SensorLogger<GeoSucker> _geo;
+	SensorLogger<PhoneSucker> _phone;
+	SensorLogger<AccelerometerSucker> _acc;
+	
+	private final BroadcastReceiver broadcaster = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context c, Intent i) {
+			if(i.getAction().equals(BluetoothDevice.ACTION_FOUND))
+				pushToSucker(_phone, i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE).toString());
+			else if(i.getAction().equals("to_GEOSUCKER"))
+				pushToSucker(_geo,"to_GEOSUCKER");
+		}
+	};
+
 	boolean shouldLog = false;
 
 	public class LocalBinder extends Binder {
@@ -47,220 +48,45 @@ public class SensorSucker extends Service {
 	
 	@Override
 	public void onCreate() {
+		registerReceiver(broadcaster, new IntentFilter(BluetoothDevice.ACTION_FOUND));
 		startLog();
+	}
+	
+	public void onDestroy() {
+		super.onDestroy();
+		unregisterReceiver(broadcaster);
 	}
 	
 	public void startLog() {
 		shouldLog = true;
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				_geo = new SensorLogger<GeoSucker>(getApplicationContext());
+			}
+		}).start();
+		sendBroadcast(new Intent().setAction("to_GEOSUCKER"));
 		
-		_geo = new GeoSucker();
-		_phone = new PhoneSucker();
-		_acc = new AccSucker();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				_phone = new SensorLogger<PhoneSucker>(getApplicationContext());
+			}
+		}).start();
+		
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				_acc = new SensorLogger<AccelerometerSucker>(getApplicationContext());
+			}
+		}).start();
 	}
 	
 	public void stopLog() {
 		shouldLog = false;
 	}
 	
-	public class GeoSucker extends SensorLogger implements LocationListener {
-		LocationManager lm;
-		Criteria criteria;
-		
-		GeoSucker() {
-			lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-			lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
-			lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-			
-			criteria = new Criteria();
-			criteria.setAccuracy(Criteria.NO_REQUIREMENT);
-			
-			mTask = new TimerTask() {
-
-				@Override
-				public void run() throws NullPointerException {
-					if(shouldLog) {
-						double[] loc = updateLocation();
-						try {
-							sendToBuffer(jPack("gpsCoords", "[" + loc[0] + "," + loc[1] + "]"));
-						} catch (JSONException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					} else {
-						if(isSensing) {
-							// turn off service if it's still on...
-							pauseLocationUpdates();
-							isSensing = false;
-						}
-					}
-				}
-			};
-			
-			mTimer.schedule(mTask, 0, 30000L);
-		}
-		
-		public double[] updateLocation() {
-			try {
-				String bestProvider = lm.getBestProvider(criteria, false);
-				Location l = lm.getLastKnownLocation(bestProvider);
-				return new double[] {l.getLatitude(),l.getLongitude()};
-			} catch(NullPointerException e) {
-				Log.d(ObscuraApp.TAG,e.toString());
-				return null;
-			} catch(IllegalArgumentException e) {
-				Log.d(ObscuraApp.TAG, e.toString());
-				return null;
-			}
-		}
-		
-		public void pauseLocationUpdates() {
-			lm.removeUpdates(this);
-			Log.d(ObscuraApp.TAG, "location manager calls disabled by service!");
-		}
-
-		@Override
-		public void onLocationChanged(Location location) {}
-
-		@Override
-		public void onProviderDisabled(String provider) {}
-
-		@Override
-		public void onProviderEnabled(String provider) {}
-
-		@Override
-		public void onStatusChanged(String provider, int status, Bundle extras) {}
-		
-		
-	}
-	
-	public class PhoneSucker extends SensorLogger {
-		TelephonyManager tm;
-		
-		PhoneSucker() {
-			tm = (TelephonyManager) getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
-			
-			// if bluetooth is off, turn it on... (be sure to turn off when finished)
-			
-			// if wifi is off, turn it on... (be sure to turn off when finished)
-			
-			try {
-				sendToBuffer(jPack("deviceId", getIMEI()));
-			} catch (JSONException e) {}
-			
-			mTask = new TimerTask() {
-				
-				@Override
-				public void run() throws NullPointerException {
-					try {
-						sendToBuffer(jPack("cellId", getCellId()));
-					} catch (JSONException e) {}
-				}
-			};
-			
-			mTimer.schedule(mTask, 0, 30000L);
-		}
-		
-		public String getIMEI() {
-			try {
-				return tm.getDeviceId();
-			} catch(NullPointerException e) {
-				Log.d(ObscuraApp.TAG,e.toString());
-				return null;
-			}
-		}
-		
-		public String getCellId() {	
-			try {
-				String out = "";
-				if (tm.getPhoneType() == TelephonyManager.PHONE_TYPE_GSM) {
-					final GsmCellLocation gLoc = (GsmCellLocation) tm.getCellLocation();
-					out = Integer.toString(gLoc.getCid());
-				} else if(tm.getPhoneType() == TelephonyManager.PHONE_TYPE_CDMA) {
-					final CdmaCellLocation cLoc = (CdmaCellLocation) tm.getCellLocation();
-					out = Integer.toString(cLoc.getBaseStationId());
-				}
-				return out;
-			} catch(NullPointerException e) {
-				Log.d(ObscuraApp.TAG,e.toString());
-				return null;
-			}
-		}
-		
-		public List<String> getBluetoothNeighbors() {
-			List<String> bt = new ArrayList<String>();
-			
-			return bt;
-		}
-		
-		public List<String> getWifiNetworks() {
-			List<String> wifi = new ArrayList<String>();
-			
-			return wifi;
-		}
-
-	}
-
-	public class AccSucker extends SensorLogger{
-		SensorManager sm;
-		List<Sensor> availableSensors;
-		boolean hasAccelerometer, hasGyroscope, hasLight, hasMagneticField;
-		
-		AccSucker() {
-			sm = (SensorManager) getSystemService(SENSOR_SERVICE);
-			availableSensors = sm.getSensorList(Sensor.TYPE_ALL);
-			
-			for(Sensor s : availableSensors) {
-				switch(s.getType()) {
-				case Sensor.TYPE_ACCELEROMETER:
-					hasAccelerometer = true;
-					break;
-				case Sensor.TYPE_GYROSCOPE:
-					hasGyroscope = true;
-					break;
-				case Sensor.TYPE_LIGHT:
-					hasLight = true;
-					break;
-				case Sensor.TYPE_MAGNETIC_FIELD:
-					hasMagneticField = true;
-					break;
-				}
-					
-			}
-			
-			mTask = new TimerTask() {
-				
-				@Override
-				public void run() {
-					if(shouldLog) {
-						if(hasAccelerometer)
-							readAccelerometer();
-						if(hasGyroscope)
-							readGyroscope();
-						if(hasLight)
-							readLight();
-						if(hasMagneticField)
-							readMagField();
-					}
-				}
-			};
-			
-			mTimer.schedule(mTask, 0, 30000L);
-		}
-		
-		private void readAccelerometer() {
-			
-		}
-		
-		private void readGyroscope() {
-			
-		}
-		
-		private void readLight() {
-			
-		}
-		
-		private void readMagField() {
-			
-		}
+	public void pushToSucker(SensorLogger<?> sucker, String payload) {
+		Log.d(ObscuraApp.TAG, "PUSHED TO: " + sucker.getClass().getName());
 	}
 }
