@@ -185,10 +185,31 @@ public class SensorSucker extends Service {
 	public class AccSucker extends SensorLogger{
 		SensorManager sm;
 		List<Sensor> availableSensors;
+		boolean hasAccelerometer, hasGyroscope, hasLight, hasMagneticField;
 		
 		AccSucker() {
 			sm = (SensorManager) getSystemService(SENSOR_SERVICE);
 			availableSensors = sm.getSensorList(Sensor.TYPE_ALL);
+			
+			for(Sensor s : availableSensors) {
+				switch(s.getType()) {
+				case Sensor.TYPE_ACCELEROMETER:
+					hasAccelerometer = true;
+					break;
+				case Sensor.TYPE_GYROSCOPE:
+					hasGyroscope = true;
+					break;
+				case Sensor.TYPE_LIGHT:
+					hasLight = true;
+					break;
+				case Sensor.TYPE_MAGNETIC_FIELD:
+					hasMagneticField = true;
+					break;
+			
+					
+				}
+					
+			}
 			
 			mTask = new TimerTask() {
 				
@@ -196,9 +217,7 @@ public class SensorSucker extends Service {
 				public void run() {
 					if(shouldLog) {
 						// iterate through available sensors and get whatever data you can...
-						for(Sensor s : availableSensors) {
-	
-						}
+						
 					}
 				}
 			};
