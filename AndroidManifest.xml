@@ -31,6 +31,7 @@
         </activity>
         <activity android:name="org.witness.securesmartcam.ImagePreview" android:label="@string/image_preview" android:configChanges="orientation|keyboardHidden" />
     	<activity android:name="org.witness.informa.InformaEditor" android:theme="@style/Theme.CustomDialog" />
+    	<activity android:name="org.witness.informa.InformaViewer" android:configChanges="orientation|keyboardHidden" />
     	<service android:enabled="true" android:name="org.witness.securesmartcam.io.DCIMMonitor" />
     	<service android:enabled="true" android:name="org.witness.informa.utils.SensorSucker" />
     </application>

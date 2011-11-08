@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:orientation="vertical">
+	<ImageView
+		android:id="@+id/imageViewer" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content" />
+	<ScrollView
+		android:id="@+id/paramViewer"
+		android:layout_width="fill_parent"
+		android:layout_height="300px" />
+	<ImageButton 
+		android:id="@+id/toggleParamViewer"
+		android:layout_width="75px"
+		android:layout_height="75px" />
+</LinearLayout>

@@ -1,6 +1,7 @@
 package org.witness.informa.utils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.TimerTask;
 
@@ -137,6 +138,11 @@ public class SensorSucker extends Service {
 		
 		PhoneSucker() {
 			tm = (TelephonyManager) getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
+			
+			// if bluetooth is off, turn it on... (be sure to turn off when finished)
+			
+			// if wifi is off, turn it on... (be sure to turn off when finished)
+			
 			try {
 				sendToBuffer(jPack("deviceId", getIMEI()));
 			} catch (JSONException e) {}
@@ -178,6 +184,18 @@ public class SensorSucker extends Service {
 				Log.d(ObscuraApp.TAG,e.toString());
 				return null;
 			}
+		}
+		
+		public List<String> getBluetoothNeighbors() {
+			List<String> bt = new ArrayList<String>();
+			
+			return bt;
+		}
+		
+		public List<String> getWifiNetworks() {
+			List<String> wifi = new ArrayList<String>();
+			
+			return wifi;
 		}
 
 	}

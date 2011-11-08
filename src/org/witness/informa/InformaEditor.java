@@ -3,7 +3,8 @@ package org.witness.informa;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.witness.informa.InformaOptions.InformaOption;
+import org.witness.informa.utils.InformaOptions;
+import org.witness.informa.utils.InformaOptions.InformaOption;
 import org.witness.securesmartcam.ImageEditor;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
