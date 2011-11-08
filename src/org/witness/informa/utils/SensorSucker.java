@@ -205,8 +205,6 @@ public class SensorSucker extends Service {
 				case Sensor.TYPE_MAGNETIC_FIELD:
 					hasMagneticField = true;
 					break;
-			
-					
 				}
 					
 			}
@@ -216,13 +214,35 @@ public class SensorSucker extends Service {
 				@Override
 				public void run() {
 					if(shouldLog) {
-						// iterate through available sensors and get whatever data you can...
-						
+						if(hasAccelerometer)
+							readAccelerometer();
+						if(hasGyroscope)
+							readGyroscope();
+						if(hasLight)
+							readLight();
+						if(hasMagneticField)
+							readMagField();
 					}
 				}
 			};
 			
 			mTimer.schedule(mTask, 0, 30000L);
+		}
+		
+		private void readAccelerometer() {
+			
+		}
+		
+		private void readGyroscope() {
+			
+		}
+		
+		private void readLight() {
+			
+		}
+		
+		private void readMagField() {
+			
 		}
 	}
 }

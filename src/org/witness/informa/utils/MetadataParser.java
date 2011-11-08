@@ -168,7 +168,5 @@ public class MetadataParser {
 					_consent.put(key, regionData.get(key));
 			}
 		}
-	}
-	
-		
+	}	
 }
