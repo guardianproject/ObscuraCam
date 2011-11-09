@@ -1,5 +1,10 @@
 package org.witness.informa.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.witness.informa.utils.suckers.*;
 import org.witness.sscphase1.ObscuraApp;
 
@@ -21,15 +26,7 @@ public class SensorSucker extends Service {
 	SensorLogger<PhoneSucker> _phone;
 	SensorLogger<AccelerometerSucker> _acc;
 	
-	private final BroadcastReceiver broadcaster = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context c, Intent i) {
-			if(i.getAction().equals(BluetoothDevice.ACTION_FOUND))
-				pushToSucker(_phone, i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE).toString());
-			else if(i.getAction().equals("to_GEOSUCKER"))
-				pushToSucker(_geo,"to_GEOSUCKER");
-		}
-	};
+	List<BroadcastReceiver> br = new ArrayList<BroadcastReceiver>();
 
 	boolean shouldLog = false;
 
@@ -46,47 +43,67 @@ public class SensorSucker extends Service {
 		return binder;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void onCreate() {
-		registerReceiver(broadcaster, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+		
+		br.add(new Broadcaster(new IntentFilter("to_GEOSUCKER")));
+		br.add(new Broadcaster(new IntentFilter(BluetoothDevice.ACTION_FOUND)));
+		
+		for(BroadcastReceiver b : br)
+			registerReceiver(b, ((Broadcaster) b)._filter);
+		
+				
+		_geo = new GeoSucker(getApplicationContext());
+		_phone = new PhoneSucker(getApplicationContext());
+		_acc = new AccelerometerSucker(getApplicationContext());
+		
 		startLog();
 	}
 	
 	public void onDestroy() {
 		super.onDestroy();
-		unregisterReceiver(broadcaster);
+		
+		for(BroadcastReceiver b : br)
+			unregisterReceiver(b);
 	}
+	
 	
 	public void startLog() {
 		shouldLog = true;
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				_geo = new SensorLogger<GeoSucker>(getApplicationContext());
-			}
-		}).start();
-		sendBroadcast(new Intent().setAction("to_GEOSUCKER"));
-		
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				_phone = new SensorLogger<PhoneSucker>(getApplicationContext());
-			}
-		}).start();
-		
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				_acc = new SensorLogger<AccelerometerSucker>(getApplicationContext());
-			}
-		}).start();
 	}
 	
 	public void stopLog() {
 		shouldLog = false;
 	}
 	
-	public void pushToSucker(SensorLogger<?> sucker, String payload) {
-		Log.d(ObscuraApp.TAG, "PUSHED TO: " + sucker.getClass().getName());
+	public void pushToSucker(SensorLogger<?> sucker, JSONObject payload) throws JSONException {
+		if(sucker.getClass().equals(PhoneSucker.class))
+			_phone.sendToBuffer(payload);
+	}
+	
+	public class Broadcaster extends BroadcastReceiver {
+		IntentFilter _filter;
+		
+		public Broadcaster(IntentFilter filter) {
+			_filter = filter;
+		}
+
+		@Override
+		public void onReceive(Context c, Intent i) {
+			try {
+				JSONObject d = new JSONObject();
+				
+				if(BluetoothDevice.ACTION_FOUND.equals(i.getAction())) {
+					BluetoothDevice device = i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+					
+					d.put("btNeighborDeviceName", device.getName());
+					d.put("btNeighborDeviceAddress", device.getAddress());
+					
+					pushToSucker(_phone, d);
+				}
+			} catch(JSONException e) {}
+		}
+			
 	}
 }

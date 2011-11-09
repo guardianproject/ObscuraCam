@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.TimerTask;
 
 import org.json.JSONException;
-import org.json.JSONObject;
-
 import org.witness.informa.utils.SensorLogger;
 import org.witness.sscphase1.ObscuraApp;
 
@@ -23,14 +21,11 @@ import android.util.Log;
 public class GeoSucker extends SensorLogger implements LocationListener {
 	LocationManager lm;
 	Criteria criteria;
-	boolean shouldLog;
-	private TimerTask mTask;
 	
-	GeoSucker(Context c) {
+	public GeoSucker(Context c) {
 		super(c);
-		
-		shouldLog = true;
-		
+		Log.d(ObscuraApp.TAG,"! HELLO GEO SUCKER!");
+				
 		lm = (LocationManager) c.getSystemService(Context.LOCATION_SERVICE);
 		lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
 		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
@@ -38,26 +33,20 @@ public class GeoSucker extends SensorLogger implements LocationListener {
 		criteria = new Criteria();
 		criteria.setAccuracy(Criteria.NO_REQUIREMENT);
 		
-		mTask = new TimerTask() {
+		setTask(new TimerTask() {
 
 			@Override
 			public void run() throws NullPointerException {
-				if(shouldLog) {
-					double[] loc = updateLocation();
-					try {
-						sendToBuffer(jPack("gpsCoords", "[" + loc[0] + "," + loc[1] + "]"));
-					} catch (JSONException e) {}
-				} else {
-					if(isSensing) {
-						// turn off service if it's still on...
-						pauseLocationUpdates();
-						isSensing = false;
-					}
+				double[] loc = updateLocation();
+				try {
+					sendToBuffer(jPack("gpsCoords", "[" + loc[0] + "," + loc[1] + "]"));
+				} catch (JSONException e) {
+					Log.d(ObscuraApp.TAG,e.toString());
 				}
 			}
-		};
+		});
 		
-		getTimer().schedule(mTask, 0, 30000L);
+		getTimer().schedule(getTask(), 0, 30000L);
 	}
 	
 	public double[] updateLocation() {
@@ -74,7 +63,7 @@ public class GeoSucker extends SensorLogger implements LocationListener {
 		}
 	}
 	
-	public void pauseLocationUpdates() {
+	public void stopUpdates() {
 		lm.removeUpdates(this);
 		Log.d(ObscuraApp.TAG, "location manager calls disabled by service!");
 	}

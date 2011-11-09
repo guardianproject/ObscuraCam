@@ -1,6 +1,7 @@
 package org.witness.informa.utils;
 
 import java.io.File;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -11,49 +12,48 @@ import org.witness.sscphase1.ObscuraApp;
 import android.content.Context;
 import android.util.Log;
 
-public class SensorLogger<E> {
-	Timer mTimer;
-	File mLog;
-	Context _c;
+public class SensorLogger<T> {
+	private T _sucker;
 	
+	Timer mTimer = new Timer();
+	TimerTask mTask;
+	
+	File mLog;
 	JSONObject mBuffer;
 	
-	boolean hasLog;
-	public boolean isSensing;
+	public static Context _c;
 	
-	protected SensorLogger(Context c) {
-		hasLog = false;
-		isSensing = true;
-		mTimer = new Timer();
+	public SensorLogger(Context c) {
+		_c = c;
 	}
 	
+	public T getSucker() {
+		return _sucker;
+	}
+
 	public Timer getTimer() {
 		return mTimer;
 	}
+	
+	public TimerTask getTask() {
+		return mTask;
+	}
+	
+	public void setTask(TimerTask task) {
+		mTask = task;
+	}
 
-	public void sendToBuffer(JSONObject logItem) {
-		// append to buffer, and...
-		Log.d(ObscuraApp.TAG, logItem.toString());
+	public void sendToBuffer(JSONObject logItem) throws JSONException {
+		// TODO: append to buffer, and...
+		logItem.put("ts", new Date().getTime());
 		
-		if(hasLog)
-			sendToLog(logItem);
+		// TODO: if we're logging, send to a log
+		Log.d(ObscuraApp.TAG, logItem.toString());
 		
 	}
 	
 	public void sendToLog(JSONObject logItem) {
 		
-	}
-
-	public boolean startLog(File log) {
-		mLog = log;
-		hasLog = true;
-		return hasLog;
-	}
-
-	
-	public boolean stopLog() {
-		hasLog = false;
-		return hasLog;
 	}
 	
 	public JSONObject jPack(String key, Object val) throws JSONException {

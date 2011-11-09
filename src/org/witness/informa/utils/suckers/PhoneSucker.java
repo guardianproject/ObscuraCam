@@ -9,6 +9,7 @@ import org.witness.informa.utils.SensorLogger;
 import org.witness.sscphase1.ObscuraApp;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.telephony.TelephonyManager;
 import android.telephony.cdma.CdmaCellLocation;
@@ -19,25 +20,37 @@ import android.util.Log;
 public class PhoneSucker extends SensorLogger {
 	TelephonyManager tm;
 	BluetoothAdapter ba;
-	private TimerTask mTask;
 	
-	PhoneSucker(Context c) {
+	boolean hasBluetooth = false;
+	
+	public PhoneSucker(Context c) {
 		super(c);
+		
+		Log.d(ObscuraApp.TAG,"! HELLO PHONE SUCKER!");
+		
 		tm = (TelephonyManager) c.getSystemService(Context.TELEPHONY_SERVICE);
 		ba = BluetoothAdapter.getDefaultAdapter();
 		
+		if(ba != null)
+			hasBluetooth = true;
+		else
+			Log.d(ObscuraApp.TAG,"no bt?");
+		
 		// if bluetooth is off, turn it on... (be sure to turn off when finished)
-		if(!ba.isEnabled())
+		if(!ba.isEnabled() && hasBluetooth)
 			ba.enable();
 		
-		// if wifi is off, turn it on... (be sure to turn off when finished)
+		// TODO: if wifi is off, turn it on... (be sure to turn off when finished)
 		
 		try {
 			sendToBuffer(jPack("deviceId", getIMEI()));
 			sendToBuffer(jPack("bluetoothAddress", ba.getAddress()));
+			sendToBuffer(jPack("bluetoothName", ba.getName()));
+			
 		} catch (JSONException e) {}
+		catch(NullPointerException e) {}
 		
-		mTask = new TimerTask() {
+		setTask(new TimerTask() {
 			
 			@Override
 			public void run() throws NullPointerException {
@@ -49,13 +62,14 @@ public class PhoneSucker extends SensorLogger {
 						ba.startDiscovery();
 					
 					
-					ba.cancelDiscovery();
+					
+					//ba.cancelDiscovery();
 					
 				} catch (JSONException e) {}
 			}
-		};
+		});
 		
-		getTimer().schedule(mTask, 0, 30000L);
+		getTimer().schedule(getTask(), 0, 30000L);
 	}
 	
 	public String getIMEI() {
@@ -84,16 +98,17 @@ public class PhoneSucker extends SensorLogger {
 		}
 	}
 	
-	public List<String> getBluetoothNeighbors() {
-		List<String> bt = new ArrayList<String>();
-		
-		return bt;
-	}
-	
 	public List<String> getWifiNetworks() {
 		List<String> wifi = new ArrayList<String>();
 		
 		return wifi;
+	}
+	
+	public void stopUpdates() {
+		if(ba.isDiscovering()) {
+			ba.cancelDiscovery();
+			ba.disable();
+		}
 	}
 
 }
