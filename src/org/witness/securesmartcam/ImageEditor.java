@@ -16,6 +16,8 @@ import java.util.Properties;
 import java.util.Vector;
 
 import org.witness.informa.InformaEditor;
+import org.witness.informa.InformaViewer;
+import org.witness.informa.io.ImageWriter;
 import org.witness.informa.utils.MetadataParser;
 import org.witness.informa.utils.SensorSucker;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
@@ -212,7 +214,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-				
 
         String versNum = "";
         
@@ -277,7 +278,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		// Load the image if it isn't null
 		if (originalImageUri != null) {
+			// Create a log
 			
+			
+			String logPath = Long.toString(new Date().getTime());
+			
+			sendBroadcast(new Intent()
+			.setAction(ObscuraApp.CENTER_CAPTURE)
+			.putExtra(ObscuraApp.CENTER_CAPTURE, logPath)
+			.putExtra("log", logPath + "_LOG"));
+			
+			Log.d(ObscuraApp.TAG, "SUPPOSED TO LOG HERE: " + logPath);
 			// Get the orientation
 			String originalFilename = pullPathFromUri(originalImageUri);			
 			try {
@@ -444,7 +455,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	/*
 	 * Call this to delete the original image, will ask the user
 	 */
-	private void showDeleteOriginalDialog() 
+	private void showDeleteOriginalDialog(final String informaUri) 
 	{
 		final AlertDialog.Builder b = new AlertDialog.Builder(this);
 		b.setIcon(android.R.drawable.ic_dialog_alert);
@@ -457,7 +468,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
             	{
 	                // User clicked OK so go ahead and delete
 	        		deleteOriginal();
-	            	viewImage(savedImageUri);
+	            	viewImage(informaUri);
             	}
             	catch (IOException e)
             	{
@@ -472,7 +483,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		b.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
 
-            	viewImage(savedImageUri);
+            	viewImage(informaUri);
             }
         });
 		b.show();
@@ -1263,6 +1274,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 * When the user selects the Share menu item
 	 * Uses saveTmpImage (overwriting what is already there) and uses the standard Android Share Intent
 	 */
+    
+    /*
     private void viewImage(Uri imgView) {
     	Intent iView = new Intent(Intent.ACTION_VIEW);
     	iView.setType(MIME_TYPE_JPEG);
@@ -1270,6 +1283,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	iView.setDataAndType(imgView, MIME_TYPE_JPEG);
     	startActivity(Intent.createChooser(iView, "View Image"));    	
     	
+    }
+    */
+    
+    private void viewImage(String informaUri) {
+    	Intent informaViewer = new Intent(this, InformaViewer.class);
+    	informaViewer.putExtra("passedimage", informaUri.toString());
+    	startActivity(informaViewer);
     }
     
     
@@ -1533,14 +1553,18 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
     	}
 
-		// package and insert exif data
+    	/* package informa data
+    	 * for now, save a copy of the image as ".informa"
+    	 * 
+    	 */
+    	
 		mp = new MetadataParser(dateFormat.format(date), new File(pullPathFromUri(savedImageUri)), this);
 		Iterator<ImageRegion> i = imageRegions.iterator();
 	    while (i.hasNext()) {
 	    	mp.addRegion(i.next().getRegionProcessor().getProperties());
 	    }
 
-		mp.flushMetadata();
+		ImageWriter iw = new ImageWriter(pullPathFromUri(savedImageUri), mp.flushMetadata().getMachineReadableValue());
 
 		// force mediascanner to update file
 		MediaScannerConnection.scanFile(
@@ -1549,15 +1573,25 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				new String[] {MIME_TYPE_JPEG},
 				null);
 		
+		MediaScannerConnection.scanFile(
+				this,
+				new String[] {iw.getNewPath()},
+				new String[] {MIME_TYPE_JPEG},
+				null);
+		
 		Toast t = Toast.makeText(this,"Image saved to Gallery", Toast.LENGTH_SHORT); 
 		t.show();
 
 		mProgressDialog.cancel();
 		
-		showDeleteOriginalDialog ();
+		showDeleteOriginalDialog(iw.getNewPath());
 		
 		Log.d(ObscuraApp.TAG," i should shut down the suckers...");
-		sendBroadcast(new Intent().setAction(ObscuraApp.STOP_SUCKING));
+		sendBroadcast(new Intent()
+			.setAction(ObscuraApp.STOP_SUCKING)
+			.putExtra("newImagePath", iw.getNewPath())
+			.putExtra("regionData", mp.flushMetadata().getMachineReadableValue().toString())
+		);
 		
 		return true;
     }

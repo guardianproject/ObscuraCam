@@ -1,6 +1,8 @@
 package org.witness.informa.utils;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -28,6 +30,8 @@ public class SensorLogger<T> {
 	
 	public SensorLogger(Context c) {
 		_c = c;
+		mBuffer = new JSONArray();
+		isRunning = true;
 	}
 	
 	public T getSucker() {
@@ -36,6 +40,10 @@ public class SensorLogger<T> {
 	
 	public void setSucker(T sucker) {
 		_sucker = sucker;
+	}
+	
+	public JSONArray getLog() {
+		return mBuffer;
 	}
 
 	public Timer getTimer() {
@@ -62,14 +70,17 @@ public class SensorLogger<T> {
 
 	public void sendToBuffer(JSONObject logItem) throws JSONException {
 		// TODO: append to buffer, and...
+		if(mBuffer.length() > 60) {
+			mBuffer = null;
+			mBuffer = new JSONArray();
+			Log.d(ObscuraApp.TAG, "LOG CLEARED");
+		}
+		
 		logItem.put("ts", new Date().getTime());
+		mBuffer.put(logItem);
 		
 		// TODO: if we're logging, send to a log
 		Log.d(ObscuraApp.TAG, logItem.toString());
-		
-	}
-	
-	public void sendToLog(JSONObject logItem) {
 		
 	}
 	

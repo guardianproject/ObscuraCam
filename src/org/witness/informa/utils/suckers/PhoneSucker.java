@@ -61,16 +61,12 @@ public class PhoneSucker extends SensorLogger {
 						if(!ba.isDiscovering())
 							ba.startDiscovery();
 						
-						
-						
-						//ba.cancelDiscovery();
-						
 					} catch (JSONException e) {}
 				}
 			}
 		});
 		
-		getTimer().schedule(getTask(), 0, 30000L);
+		getTimer().schedule(getTask(), 0, 10000L);
 	}
 	
 	public String getIMEI() {

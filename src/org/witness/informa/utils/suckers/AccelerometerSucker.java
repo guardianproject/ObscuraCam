@@ -22,6 +22,7 @@ public class AccelerometerSucker extends SensorLogger implements SensorEventList
 	SensorManager sm;
 	List<Sensor> availableSensors;
 	boolean hasAccelerometer, hasOrientation, hasLight, hasMagneticField;
+	JSONObject currentAccelerometer, currentLight, currentMagField;
 			
 	@SuppressWarnings("unchecked")
 	public AccelerometerSucker(Context c) {
@@ -30,6 +31,8 @@ public class AccelerometerSucker extends SensorLogger implements SensorEventList
 		
 		sm = (SensorManager) c.getSystemService(Context.SENSOR_SERVICE);
 		availableSensors = sm.getSensorList(Sensor.TYPE_ALL);
+		
+		currentAccelerometer = currentLight = currentMagField = new JSONObject();
 		
 		for(Sensor s : availableSensors) {
 			switch(s.getType()) {
@@ -54,22 +57,24 @@ public class AccelerometerSucker extends SensorLogger implements SensorEventList
 			
 			@Override
 			public void run() {
-				if(hasAccelerometer)
-					readAccelerometer();
-				if(hasLight)
-					readLight();
-				if(hasMagneticField)
-					readMagField();
-				if(hasOrientation)
-					readOrientation();
+				try {
+					if(hasAccelerometer)
+						readAccelerometer();
+					if(hasLight)
+						readLight();
+					if(hasMagneticField)
+						readMagField();
+					if(hasOrientation)
+						readOrientation();
+				} catch(JSONException e){}
 			}
 		});
 		
-		getTimer().schedule(getTask(), 0, 30000L);
+		getTimer().schedule(getTask(), 0, 10000L);
 	}
 	
-	private void readAccelerometer() {
-		
+	private void readAccelerometer() throws JSONException {
+		sendToBuffer(currentAccelerometer);
 	}
 	
 	private void readOrientation() {
@@ -80,8 +85,8 @@ public class AccelerometerSucker extends SensorLogger implements SensorEventList
 		
 	}
 	
-	private void readMagField() {
-		
+	private void readMagField() throws JSONException {
+		sendToBuffer(currentMagField);
 	}
 
 	@Override
@@ -100,19 +105,19 @@ public class AccelerometerSucker extends SensorLogger implements SensorEventList
 						sVals.put("acc_x", acc[0]);
 						sVals.put("acc_y", acc[1]);
 						sVals.put("acc_z", acc[2]);
+						currentAccelerometer = sVals;
 						break;
 					case Sensor.TYPE_MAGNETIC_FIELD:
 						float[] geoMag = event.values.clone();
 						sVals.put("azimuth", geoMag[0]);
 						sVals.put("pitch", geoMag[1]);
 						sVals.put("roll", geoMag[2]);
+						currentMagField = sVals;
 						break;
 					case Sensor.TYPE_LIGHT:
 						sVals.put("lightMeter", event.values[0]);
 						break;
 					}
-					
-					sendToBuffer(sVals);
 				} catch(JSONException e) {}
 			}
 		}

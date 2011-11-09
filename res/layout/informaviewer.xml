@@ -8,10 +8,6 @@
 		android:id="@+id/imageViewer" 
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content" />
-	<ScrollView
-		android:id="@+id/paramViewer"
-		android:layout_width="fill_parent"
-		android:layout_height="300px" />
 	<ImageButton 
 		android:id="@+id/toggleParamViewer"
 		android:layout_width="75px"

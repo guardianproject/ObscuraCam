@@ -33,6 +33,7 @@ public class ObscuraApp extends Activity implements OnClickListener {
 	    
 	public final static String TAG = "SSC";
 	public final static String STOP_SUCKING = "stopSensors";
+	public static final String CENTER_CAPTURE = "centerCapture";
 		
 	final static int CAMERA_RESULT = 0;
 	final static int GALLERY_RESULT = 1;
@@ -41,6 +42,7 @@ public class ObscuraApp extends Activity implements OnClickListener {
 	final static int ABOUT = 0;
 	
 	final static String CAMERA_TMP_FILE = "ssctmp.jpg";
+	
 	
 	SensorSucker mSensorSucker;
 

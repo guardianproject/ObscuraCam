@@ -41,12 +41,14 @@ public class GeoSucker extends SensorLogger implements LocationListener {
 						sendToBuffer(jPack("gpsCoords", "[" + loc[0] + "," + loc[1] + "]"));
 					} catch (JSONException e) {
 						Log.d(ObscuraApp.TAG,e.toString());
+					} catch(NullPointerException e) {
+						Log.d(ObscuraApp.TAG, e.toString());
 					}
 				}
 			}
 		});
 		
-		getTimer().schedule(getTask(), 0, 30000L);
+		getTimer().schedule(getTask(), 0, 10000L);
 	}
 	
 	public double[] updateLocation() {
