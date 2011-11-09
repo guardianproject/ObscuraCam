@@ -47,7 +47,7 @@ public class SensorSucker extends Service {
 	@Override
 	public void onCreate() {
 		
-		br.add(new Broadcaster(new IntentFilter("to_GEOSUCKER")));
+		br.add(new Broadcaster(new IntentFilter(ObscuraApp.STOP_SUCKING)));
 		br.add(new Broadcaster(new IntentFilter(BluetoothDevice.ACTION_FOUND)));
 		
 		for(BroadcastReceiver b : br)
@@ -58,7 +58,6 @@ public class SensorSucker extends Service {
 		_phone = new PhoneSucker(getApplicationContext());
 		_acc = new AccelerometerSucker(getApplicationContext());
 		
-		startLog();
 	}
 	
 	public void onDestroy() {
@@ -68,13 +67,13 @@ public class SensorSucker extends Service {
 			unregisterReceiver(b);
 	}
 	
-	
-	public void startLog() {
-		shouldLog = true;
-	}
-	
-	public void stopLog() {
-		shouldLog = false;
+	public void stopSucking() {
+		_geo.getSucker().stopUpdates();
+		_phone.getSucker().stopUpdates();
+		_acc.getSucker().stopUpdates();
+		
+		Log.d(ObscuraApp.TAG, "the suckers have all been stopped.");
+		stopSelf();
 	}
 	
 	public void pushToSucker(SensorLogger<?> sucker, JSONObject payload) throws JSONException {
@@ -91,18 +90,24 @@ public class SensorSucker extends Service {
 
 		@Override
 		public void onReceive(Context c, Intent i) {
-			try {
-				JSONObject d = new JSONObject();
-				
-				if(BluetoothDevice.ACTION_FOUND.equals(i.getAction())) {
-					BluetoothDevice device = i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+			Log.d(ObscuraApp.TAG, "!!!!!! A BROADCAST!?");
+			if(ObscuraApp.STOP_SUCKING.equals(i.getAction())) {
+				Log.d(ObscuraApp.TAG, "!!!!!! i have been ordered to stop");
+				stopSucking();
+			} else {
+				try {
+					JSONObject d = new JSONObject();
 					
-					d.put("btNeighborDeviceName", device.getName());
-					d.put("btNeighborDeviceAddress", device.getAddress());
-					
-					pushToSucker(_phone, d);
-				}
-			} catch(JSONException e) {}
+					if(BluetoothDevice.ACTION_FOUND.equals(i.getAction())) {
+						BluetoothDevice device = i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+						
+						d.put("btNeighborDeviceName", device.getName());
+						d.put("btNeighborDeviceAddress", device.getAddress());
+						
+						pushToSucker(_phone, d);
+					}
+				} catch(JSONException e) {}
+			}
 		}
 			
 	}

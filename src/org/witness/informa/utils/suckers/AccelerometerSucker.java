@@ -11,7 +11,6 @@ import org.witness.sscphase1.ObscuraApp;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import android.hardware.SensorListener;
 import android.hardware.SensorManager;
 import android.content.Context;
 
@@ -24,10 +23,10 @@ public class AccelerometerSucker extends SensorLogger implements SensorEventList
 	List<Sensor> availableSensors;
 	boolean hasAccelerometer, hasOrientation, hasLight, hasMagneticField;
 			
+	@SuppressWarnings("unchecked")
 	public AccelerometerSucker(Context c) {
 		super(c);
-		
-		Log.d(ObscuraApp.TAG,"! HELLO ACC SUCKER!");
+		setSucker(this);
 		
 		sm = (SensorManager) c.getSystemService(Context.SENSOR_SERVICE);
 		availableSensors = sm.getSensorList(Sensor.TYPE_ALL);
@@ -91,34 +90,37 @@ public class AccelerometerSucker extends SensorLogger implements SensorEventList
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		synchronized(this) {
-			JSONObject sVals = new JSONObject();
-			
-			
-			try {				
-				switch(event.sensor.getType()) {
-				case Sensor.TYPE_ACCELEROMETER:
-					float[] acc = event.values.clone();
-					sVals.put("acc_x", acc[0]);
-					sVals.put("acc_y", acc[1]);
-					sVals.put("acc_z", acc[2]);
-					break;
-				case Sensor.TYPE_MAGNETIC_FIELD:
-					float[] geoMag = event.values.clone();
-					sVals.put("azimuth", geoMag[0]);
-					sVals.put("pitch", geoMag[1]);
-					sVals.put("roll", geoMag[2]);
-					break;
-				case Sensor.TYPE_LIGHT:
-					sVals.put("lightMeter", event.values[0]);
-					break;
-				}
+			if(getIsRunning()) {
+				JSONObject sVals = new JSONObject();
 				
-				//sendToBuffer(sVals);
-			} catch(JSONException e) {}
+				try {				
+					switch(event.sensor.getType()) {
+					case Sensor.TYPE_ACCELEROMETER:
+						float[] acc = event.values.clone();
+						sVals.put("acc_x", acc[0]);
+						sVals.put("acc_y", acc[1]);
+						sVals.put("acc_z", acc[2]);
+						break;
+					case Sensor.TYPE_MAGNETIC_FIELD:
+						float[] geoMag = event.values.clone();
+						sVals.put("azimuth", geoMag[0]);
+						sVals.put("pitch", geoMag[1]);
+						sVals.put("roll", geoMag[2]);
+						break;
+					case Sensor.TYPE_LIGHT:
+						sVals.put("lightMeter", event.values[0]);
+						break;
+					}
+					
+					sendToBuffer(sVals);
+				} catch(JSONException e) {}
+			}
 		}
 	}
 	
 	public void stopUpdates() {
+		setIsRunning(false);
 		sm.unregisterListener(this);
+		Log.d(ObscuraApp.TAG, "shutting down AccelerometerSucker...");
 	}
 }

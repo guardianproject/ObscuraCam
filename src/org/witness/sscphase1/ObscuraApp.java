@@ -32,6 +32,7 @@ import android.widget.Toast;
 public class ObscuraApp extends Activity implements OnClickListener {
 	    
 	public final static String TAG = "SSC";
+	public final static String STOP_SUCKING = "stopSensors";
 		
 	final static int CAMERA_RESULT = 0;
 	final static int GALLERY_RESULT = 1;
@@ -94,16 +95,13 @@ public class ObscuraApp extends Activity implements OnClickListener {
 
 		super.onResume();
 		Intent startSensorSucker = new Intent(this,SensorSucker.class);
-        bindService(startSensorSucker,sc,Context.BIND_AUTO_CREATE);	
+        bindService(startSensorSucker,sc,Context.BIND_AUTO_CREATE);
 	
 	}
     
     @Override
     protected void onPause() {
-    	super.onPause();
-    	mSensorSucker.stopLog();
-    	Log.d(TAG, "unbinding the service");
-    	unbindService(sc);
+    	super.onPause();    	
     }
     
 	private void setLayout() {

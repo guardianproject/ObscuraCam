@@ -9,7 +9,6 @@ import org.witness.informa.utils.SensorLogger;
 import org.witness.sscphase1.ObscuraApp;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.telephony.TelephonyManager;
 import android.telephony.cdma.CdmaCellLocation;
@@ -23,11 +22,11 @@ public class PhoneSucker extends SensorLogger {
 	
 	boolean hasBluetooth = false;
 	
+	@SuppressWarnings("unchecked")
 	public PhoneSucker(Context c) {
 		super(c);
-		
-		Log.d(ObscuraApp.TAG,"! HELLO PHONE SUCKER!");
-		
+		setSucker(this);
+				
 		tm = (TelephonyManager) c.getSystemService(Context.TELEPHONY_SERVICE);
 		ba = BluetoothAdapter.getDefaultAdapter();
 		
@@ -54,18 +53,20 @@ public class PhoneSucker extends SensorLogger {
 			
 			@Override
 			public void run() throws NullPointerException {
-				try {
-					sendToBuffer(jPack("cellId", getCellId()));
-					
-					// find other bluetooth devices around
-					if(!ba.isDiscovering())
-						ba.startDiscovery();
-					
-					
-					
-					//ba.cancelDiscovery();
-					
-				} catch (JSONException e) {}
+				if(getIsRunning()) {
+					try {
+						sendToBuffer(jPack("cellId", getCellId()));
+						
+						// find other bluetooth devices around
+						if(!ba.isDiscovering())
+							ba.startDiscovery();
+						
+						
+						
+						//ba.cancelDiscovery();
+						
+					} catch (JSONException e) {}
+				}
 			}
 		});
 		
@@ -105,10 +106,13 @@ public class PhoneSucker extends SensorLogger {
 	}
 	
 	public void stopUpdates() {
+		setIsRunning(false);
 		if(ba.isDiscovering()) {
 			ba.cancelDiscovery();
 			ba.disable();
 		}
+		
+		Log.d(ObscuraApp.TAG, "shutting down PhoneSucker...");
 	}
 
 }

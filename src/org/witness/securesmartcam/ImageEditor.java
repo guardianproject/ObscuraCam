@@ -17,6 +17,7 @@ import java.util.Vector;
 
 import org.witness.informa.InformaEditor;
 import org.witness.informa.utils.MetadataParser;
+import org.witness.informa.utils.SensorSucker;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.MaskObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
@@ -1555,6 +1556,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		showDeleteOriginalDialog ();
 		
+		Log.d(ObscuraApp.TAG," i should shut down the suckers...");
+		sendBroadcast(new Intent().setAction(ObscuraApp.STOP_SUCKING));
 		
 		return true;
     }

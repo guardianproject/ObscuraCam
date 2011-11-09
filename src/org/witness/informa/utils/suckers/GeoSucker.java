@@ -1,8 +1,5 @@
 package org.witness.informa.utils.suckers;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.TimerTask;
 
 import org.json.JSONException;
@@ -22,10 +19,11 @@ public class GeoSucker extends SensorLogger implements LocationListener {
 	LocationManager lm;
 	Criteria criteria;
 	
+	@SuppressWarnings("unchecked")
 	public GeoSucker(Context c) {
 		super(c);
-		Log.d(ObscuraApp.TAG,"! HELLO GEO SUCKER!");
-				
+		setSucker(this);
+		
 		lm = (LocationManager) c.getSystemService(Context.LOCATION_SERVICE);
 		lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
 		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
@@ -37,11 +35,13 @@ public class GeoSucker extends SensorLogger implements LocationListener {
 
 			@Override
 			public void run() throws NullPointerException {
-				double[] loc = updateLocation();
-				try {
-					sendToBuffer(jPack("gpsCoords", "[" + loc[0] + "," + loc[1] + "]"));
-				} catch (JSONException e) {
-					Log.d(ObscuraApp.TAG,e.toString());
+				if(getIsRunning()) {
+					double[] loc = updateLocation();
+					try {
+						sendToBuffer(jPack("gpsCoords", "[" + loc[0] + "," + loc[1] + "]"));
+					} catch (JSONException e) {
+						Log.d(ObscuraApp.TAG,e.toString());
+					}
 				}
 			}
 		});
@@ -64,8 +64,9 @@ public class GeoSucker extends SensorLogger implements LocationListener {
 	}
 	
 	public void stopUpdates() {
+		setIsRunning(false);
 		lm.removeUpdates(this);
-		Log.d(ObscuraApp.TAG, "location manager calls disabled by service!");
+		Log.d(ObscuraApp.TAG, "shutting down GeoSucker...");
 	}
 
 	@Override

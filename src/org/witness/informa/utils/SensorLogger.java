@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.witness.sscphase1.ObscuraApp;
@@ -19,7 +20,9 @@ public class SensorLogger<T> {
 	TimerTask mTask;
 	
 	File mLog;
-	JSONObject mBuffer;
+	JSONArray mBuffer;
+	
+	boolean isRunning;
 	
 	public static Context _c;
 	
@@ -29,6 +32,10 @@ public class SensorLogger<T> {
 	
 	public T getSucker() {
 		return _sucker;
+	}
+	
+	public void setSucker(T sucker) {
+		_sucker = sucker;
 	}
 
 	public Timer getTimer() {
@@ -41,6 +48,16 @@ public class SensorLogger<T> {
 	
 	public void setTask(TimerTask task) {
 		mTask = task;
+	}
+	
+	public void setIsRunning(boolean b) {
+		isRunning = b;
+		if(!b)
+			mTimer.cancel();
+	}
+	
+	public boolean getIsRunning() {
+		return isRunning;
 	}
 
 	public void sendToBuffer(JSONObject logItem) throws JSONException {
