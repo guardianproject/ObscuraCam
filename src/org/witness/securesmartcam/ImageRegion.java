@@ -489,6 +489,7 @@ public class ImageRegion implements OnActionItemClickListener
 	
 	private void updateRegionProcessor (int obscureType)
 	{
+		
 		switch (obscureType) {
 		
 		case ImageRegion.BG_PIXELATE:
@@ -525,6 +526,8 @@ public class ImageRegion implements OnActionItemClickListener
 			setRegionProcessor(new BlurObscure());
 			break;
 		}
+		
+		mImageEditor.associateImageRegionData(this);
 		
 		if(getRegionProcessor().getClass() == ConsentTagger.class)
 			imageRegionBorder = identifiedBorder;

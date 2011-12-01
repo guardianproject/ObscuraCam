@@ -1,6 +1,8 @@
 package org.witness.informa.utils;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -8,13 +10,14 @@ import java.util.TimerTask;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.witness.informa.utils.suckers.GeoSucker;
 import org.witness.sscphase1.ObscuraApp;
 
 import android.content.Context;
 import android.util.Log;
 
 public class SensorLogger<T> {
-	private T _sucker;
+	public T _sucker;
 	
 	Timer mTimer = new Timer();
 	TimerTask mTask;
@@ -65,6 +68,21 @@ public class SensorLogger<T> {
 	public boolean getIsRunning() {
 		return isRunning;
 	}
+	
+	// LOL reflection...
+	public JSONObject returnCurrent() throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+		JSONObject current = new JSONObject();
+		
+		if(_sucker.getClass().getDeclaredMethod("forceReturn", null) != null) {
+			Method fr = _sucker.getClass().getDeclaredMethod("forceReturn", null);
+			current = (JSONObject) fr.invoke(_sucker, null);
+		} else {
+			current = null;
+		}
+		
+		return current;
+		
+	}
 
 	public void sendToBuffer(JSONObject logItem) throws JSONException {
 		// TODO: append to buffer, and...
@@ -75,10 +93,7 @@ public class SensorLogger<T> {
 		}
 		
 		logItem.put("ts", new Date().getTime());
-		mBuffer.put(logItem);
-		
-		Log.d(ObscuraApp.TAG, logItem.toString());
-		
+		mBuffer.put(logItem);		
 	}
 	
 	public JSONObject jPack(String key, Object val) throws JSONException {

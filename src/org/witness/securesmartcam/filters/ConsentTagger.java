@@ -1,5 +1,6 @@
 package org.witness.securesmartcam.filters;
 
+import java.util.Date;
 import java.util.Properties;
 
 import org.witness.sscphase1.ObscuraApp;
@@ -22,7 +23,9 @@ public class ConsentTagger implements RegionProcesser
 		mProps.put("regionSubject", "");
 		mProps.put("informedConsent", "false");
 		mProps.put("persistObscureType", "false");
-		mProps.put("obfuscationType", this.getClass().getName());	
+		mProps.put("obfuscationType", this.getClass().getName());
+		
+		mProps.put("timestampOnGeneration", new Date().getTime());
 	}
 	
 	@Override

@@ -1,5 +1,6 @@
 package org.witness.securesmartcam.filters;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -18,6 +19,8 @@ public class TintObscure implements RegionProcesser {
 		originalBmp = _originalBmp;
 		mProps = new Properties();
 		mProps.put("obfuscationType", this.getClass().getName());
+		
+		mProps.put("timestampOnGeneration", new Date().getTime());
 	}
 	
 	private void tint(int deg, int picw, int pich, Bitmap mBitmap) {

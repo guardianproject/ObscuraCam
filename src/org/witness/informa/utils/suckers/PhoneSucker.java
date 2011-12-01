@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.TimerTask;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.witness.informa.utils.SensorLogger;
 import org.witness.sscphase1.ObscuraApp;
 
@@ -90,7 +91,6 @@ public class PhoneSucker extends SensorLogger {
 			}
 			return out;
 		} catch(NullPointerException e) {
-			Log.d(ObscuraApp.TAG,e.toString());
 			return null;
 		}
 	}
@@ -99,6 +99,14 @@ public class PhoneSucker extends SensorLogger {
 		List<String> wifi = new ArrayList<String>();
 		
 		return wifi;
+	}
+	
+	public JSONObject forceReturn() {
+		try {
+			return jPack("cellId", getCellId());
+		} catch(JSONException e) {
+			return null;
+		}
 	}
 	
 	public void stopUpdates() {

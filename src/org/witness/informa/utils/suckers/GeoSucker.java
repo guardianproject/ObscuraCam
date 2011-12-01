@@ -3,6 +3,7 @@ package org.witness.informa.utils.suckers;
 import java.util.TimerTask;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.witness.informa.utils.SensorLogger;
 import org.witness.sscphase1.ObscuraApp;
 
@@ -51,7 +52,16 @@ public class GeoSucker extends SensorLogger implements LocationListener {
 		getTimer().schedule(getTask(), 0, 10000L);
 	}
 	
-	public double[] updateLocation() {
+	public JSONObject forceReturn() {
+		double[] loc = updateLocation();
+		try {
+			return jPack("gpsCoords", "[" + loc[0] + "," + loc[1] + "]");
+		} catch(JSONException e){
+			return null;
+		}
+	}
+	
+	private double[] updateLocation() {
 		try {
 			String bestProvider = lm.getBestProvider(criteria, false);
 			Location l = lm.getLastKnownLocation(bestProvider);

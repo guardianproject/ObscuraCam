@@ -152,7 +152,8 @@ public class MetadataParser {
 				"obfuscationType",
 				"initialCoordinates",
 				"regionWidth",
-				"regionHeight"
+				"regionHeight",
+				"timestampOnGeneration"
 		};
 		
 		public ImageRegion(Properties regionData) {

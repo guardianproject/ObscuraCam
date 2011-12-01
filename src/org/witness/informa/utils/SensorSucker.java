@@ -3,13 +3,17 @@ package org.witness.informa.utils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.witness.informa.utils.suckers.*;
 import org.witness.sscphase1.ObscuraApp;
 
@@ -33,7 +37,7 @@ public class SensorSucker extends Service {
 
 	String _centerTS;
 	File mLog;
-	JSONArray imageData;
+	JSONArray imageData, storedRegionData, imageRegions;
 	
 	List<BroadcastReceiver> br = new ArrayList<BroadcastReceiver>();
 
@@ -57,6 +61,8 @@ public class SensorSucker extends Service {
 		br.add(new Broadcaster(new IntentFilter(ObscuraApp.STOP_SUCKING)));
 		br.add(new Broadcaster(new IntentFilter(BluetoothDevice.ACTION_FOUND)));
 		br.add(new Broadcaster(new IntentFilter(ObscuraApp.CENTER_CAPTURE)));
+		br.add(new Broadcaster(new IntentFilter(ObscuraApp.SET_CURRENT)));
+		br.add(new Broadcaster(new IntentFilter(ObscuraApp.SEAL_LOG)));
 		
 		for(BroadcastReceiver b : br)
 			registerReceiver(b, ((Broadcaster) b)._filter);
@@ -66,7 +72,7 @@ public class SensorSucker extends Service {
 		_phone = new PhoneSucker(getApplicationContext());
 		_acc = new AccelerometerSucker(getApplicationContext());
 		
-		imageData = new JSONArray();
+		imageData = storedRegionData = imageRegions = new JSONArray();
 		
 	}
 	
@@ -108,7 +114,38 @@ public class SensorSucker extends Service {
 		@Override
 		public void onReceive(Context c, Intent i) {
 			if(ObscuraApp.STOP_SUCKING.equals(i.getAction())) {
-
+				stopSucking();
+			} else if(ObscuraApp.SEAL_LOG.equals(i.getAction())) {
+				try {
+					JSONObject regionDataPackage = (JSONObject) new JSONTokener(i.getStringExtra("regionData")).nextValue();
+					JSONArray regionData = regionDataPackage.getJSONArray("imageRegions");
+					for(int x=0;x< regionData.length(); x++) {
+						// associate the timestamp with the stored values here
+						JSONObject imageRegion = (JSONObject) regionData.get(x);
+						long timestampToMatch = Long.parseLong(imageRegion.getString("timestampOnGeneration"));
+						
+						// grep storedRegionData for matching TS and attendant values
+						for(int y=0;y< storedRegionData.length(); y++) {
+							JSONObject rd = (JSONObject) storedRegionData.get(y);
+							if(rd.getLong("timestamp") == timestampToMatch) {
+								JSONObject geo = rd.getJSONObject("geo");
+								JSONObject phone = rd.getJSONObject("phone");
+								
+								Map<String, Object> locationOnGeneration = new HashMap<String, Object>();
+								locationOnGeneration.put("gpsCoords", geo.getString("gpsCoords"));
+								locationOnGeneration.put("cellId", phone.getString("cellId"));
+								
+								JSONObject locOnGen = (JSONObject) new JSONTokener(locationOnGeneration.toString()).nextValue();
+								
+								imageRegion.put("locationOnGeneration", locOnGen);
+							}
+								
+						}
+					}
+					// TODO: WHAT TO DO WITH THE DATA?
+				} catch (JSONException e) {}
+					
+				/*
 				String imgName = new File(i.getStringExtra("newImagePath")).getName();
 				String newLogName = 
 						"/mnt/sdcard/DCIM/Camera/informa/" + 
@@ -120,6 +157,7 @@ public class SensorSucker extends Service {
 					FileWriter fw = new FileWriter(newLogName);
 					
 					JSONObject regionData = new JSONObject();
+					
 					regionData.put("regionData", i.getStringExtra("regionData"));
 					imageData.put(regionData);
 					
@@ -129,13 +167,11 @@ public class SensorSucker extends Service {
 				catch (IOException e) {
 					e.printStackTrace();
 				}
-				
-				stopSucking();
+				*/
 			} else {
 				try {
-					JSONObject d = new JSONObject();
-					
 					if(BluetoothDevice.ACTION_FOUND.equals(i.getAction())) {
+						JSONObject d = new JSONObject();
 						BluetoothDevice device = i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 						
 						d.put("btNeighborDeviceName", device.getName());
@@ -156,8 +192,21 @@ public class SensorSucker extends Service {
 						if((_acc.getLog() != null && _acc.getLog().length() > 0)) {
 							imageData = appendToArray(imageData, _acc.getLog());
 						}
+					} else if(ObscuraApp.SET_CURRENT.equals(i.getAction())) {
+						JSONObject imageRegionInit = new JSONObject();
+						imageRegionInit.put("timestamp", i.getLongExtra("timestampToMatch", 0L));
+						imageRegionInit.put("geo", _geo.returnCurrent());
+						imageRegionInit.put("phone", _phone.returnCurrent());
+						
+						storedRegionData.put(imageRegionInit);
+						Log.d(ObscuraApp.TAG, "init image region with: " + imageRegionInit.toString());
 					}
-				} catch(JSONException e) {}
+				} catch(JSONException e) {} 
+				catch (SecurityException e) {}
+				catch (IllegalArgumentException e) {}
+				catch (NoSuchMethodException e) {}
+				catch (IllegalAccessException e) {}
+				catch (InvocationTargetException e) {}
 			}
 		}
 			

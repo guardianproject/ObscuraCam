@@ -5,6 +5,7 @@
 package org.witness.securesmartcam.filters;
 
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -26,6 +27,8 @@ public class SolidObscure implements RegionProcesser {
         
         mProps = new Properties();
         mProps.put("obfuscationType", this.getClass().getName());
+        
+        mProps.put("timestampOnGeneration", new Date().getTime());
 	}
  	
 	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitma) {

@@ -34,6 +34,8 @@ public class ObscuraApp extends Activity implements OnClickListener {
 	public final static String TAG = "SSC";
 	public final static String STOP_SUCKING = "stopSensors";
 	public static final String CENTER_CAPTURE = "centerCapture";
+	public static final String SET_CURRENT = "setCurrent";
+	public final static String SEAL_LOG = "sealLog";
 		
 	final static int CAMERA_RESULT = 0;
 	final static int GALLERY_RESULT = 1;
@@ -42,7 +44,6 @@ public class ObscuraApp extends Activity implements OnClickListener {
 	final static int ABOUT = 0;
 	
 	final static String CAMERA_TMP_FILE = "ssctmp.jpg";
-	
 	
 	SensorSucker mSensorSucker;
 
@@ -56,10 +57,7 @@ public class ObscuraApp extends Activity implements OnClickListener {
 			mSensorSucker = lb.getService();
 		}
 
-		public void onServiceDisconnected(ComponentName cn) {
-			
-		}
-		
+		public void onServiceDisconnected(ComponentName cn) {}
 	};
 	
 	@Override
@@ -82,8 +80,6 @@ public class ObscuraApp extends Activity implements OnClickListener {
 			tmpFile.delete();
 	}
 
-
-					
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
