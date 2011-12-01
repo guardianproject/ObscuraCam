@@ -1,8 +1,6 @@
 package org.witness.informa.utils;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -79,7 +77,6 @@ public class SensorLogger<T> {
 		logItem.put("ts", new Date().getTime());
 		mBuffer.put(logItem);
 		
-		// TODO: if we're logging, send to a log
 		Log.d(ObscuraApp.TAG, logItem.toString());
 		
 	}
