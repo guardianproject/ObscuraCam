@@ -1,0 +1,120 @@
+{
+	"sourceObject": {
+		"intent": {
+			"ownership": {
+				"key": "PGPKEY-OF-OWNER",
+				"ownershipType": 25,
+				"bluetoothAddress": "00:22:33:44:55:66"
+			},
+			"securityLevel": 1
+		},
+		"geneaology": {
+			"localMediaPath": "/path/to/source/image/on/device",
+			"dateCreated": 12345689,
+			"dateAcquired": 123455689,
+			"intendedDestination": "PUBLIC-KEY-OF-SPONSORING-ORGANIZATION"
+		},
+		"data": {
+			"imageHash": "HASH-OF-ENTIRE-IMAGE-DATA",
+			"timestamps": {
+				"timestampOnMediaCapture": 12334456,
+				"timestampReportedInExifData": 123455678,
+				"timestampOnMediaSave": 123546678
+			},
+			"sourceType": 101,
+			"device": {
+				"key": "RSA-512-Hash-of-device",
+				"IMEI": "IMEIOfDevice"
+			},
+			"locations": {
+				"locationOnMediaCapture": {
+					"latitude": -73.32345,
+					"longitude": 41.1344026,
+					"cellId": 129510,
+					"accelerometer": {
+						"x": 2.44,
+						"y": 4.32,
+						"z": -0.034
+					}
+				},
+				"locationOnMediaSave": {
+					"latitude": -73.32345,
+					"longitude": 41.1344026,
+					"cellId": 129510
+				}
+			},
+			"corroboration": [
+				{
+					"btNeighboringDevice": {
+						"deviceName": "A Neighboring BT-enabled Device",
+						"address": "00:22:33:44:55:66"
+					}
+				},
+				{
+					"btNeighboringDevice": {
+						"deviceName": "Another Neighboring BT-enabled Device",
+						"address": "00:22:33:44:55:66"
+					}
+				}
+			],
+			"imageRegions": [
+				{
+					"timestampOnGeneration": 1234354657,
+					"locationOnGeneration": {
+						"latitude": -73.32345,
+						"longitude": 41.1344026,
+						"cellId": 129510
+					},
+					"obfuscationType": "org.witness.securesmartcam.filters.PixelizeObscure",
+					"regionDimensions": [320,320],
+					"regionCoordinates": [176,367],
+					"unredactedHash": "HASH-OF-IMAGE-REGION-DATA",
+					"processedHash": "HASH-OF-IMAGE-REGION-DATA-AFTER-PROCESSING"
+				},
+				{
+					"timestampOnGeneration": 1234354657,
+					"locationOnGeneration": {
+						"latitude": -73.32345,
+						"longitude": 41.1344026,
+						"cellId": 129510
+					},
+					"obfuscationType": "org.witness.securesmartcam.filters.ConsentTagger",
+					"regionDimensions": [320,320],
+					"regionCoordinates": [176,367],
+					"unredactedHash": "HASH-OF-IMAGE-REGION-DATA",
+					"processedHash": "HASH-OF-IMAGE-REGION-DATA-AFTER-PROCESSING",
+					"subject": {
+						"subjectName": "Pseudonym of subject or description",
+						"informedConsentGiven": true,
+						"consentGivent": [
+							101,
+							102,
+							103
+						]
+					}
+				},
+				{
+					"timestampOnGeneration": 1234354657,
+					"locationOnGeneration": {
+						"latitude": -73.32345,
+						"longitude": 41.1344026,
+						"cellId": 129510
+					},
+					"obfuscationType": "org.witness.securesmartcam.filters.ConsentTagger",
+					"regionDimensions": [320,320],
+					"regionCoordinates": [176,367],
+					"unredactedHash": "HASH-OF-IMAGE-REGION-DATA",
+					"processedHash": "HASH-OF-IMAGE-REGION-DATA-AFTER-PROCESSING",
+					"subject": {
+						"subjectName": "Pseudonym of subject or description",
+						"informedConsentGiven": true,
+						"consentGivent": [
+							101,
+							103
+						]
+					}
+				}
+			]
+		}
+	}
+}
