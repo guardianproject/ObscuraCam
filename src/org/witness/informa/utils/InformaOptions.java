@@ -1,4 +1,4 @@
-package org.witness.informa;
+package org.witness.informa.utils;
 
 import java.util.ArrayList;
 

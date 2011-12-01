@@ -52,13 +52,14 @@ public class MetadataParser {
 	
 	public ImageDescription flushMetadata() {
 		ImageDescription imageDescription = new ImageDescription(_geneaology, _intent, _imageRegions);
-		addInformaExifData(imageDescription.getHumanReadableValue());
+		// We will do this another way...
+		//addInformaExifData(imageDescription.getHumanReadableValue());
 		return imageDescription;
 	}
 	
 	public void addInformaExifData(String exifData) {
 		ExifModifier em = new ExifModifier(_image.getPath());
-		em.addMakernotes(exifData);
+		em.addHash(exifData);
 		em.zipExifData();
 	}
 	
