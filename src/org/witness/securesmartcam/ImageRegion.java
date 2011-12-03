@@ -1,9 +1,17 @@
 package org.witness.securesmartcam;
 
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
+
 import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
 import net.londatiga.android.QuickAction.OnActionItemClickListener;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.witness.securesmartcam.filters.BlurObscure;
 import org.witness.securesmartcam.filters.ConsentTagger;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
@@ -101,6 +109,18 @@ public class ImageRegion implements OnActionItemClickListener
 
 	public void setRegionProcessor(RegionProcesser rProc) {
 		mRProc = rProc;
+	}
+	
+	public JSONObject getRepresentation() throws JSONException {
+		JSONObject representation = new JSONObject();
+		Enumeration e = mRProc.getProperties().propertyNames();
+		
+		while(e.hasMoreElements()) {
+			String prop = (String) e.nextElement();
+			representation.put(prop, mRProc.getProperties().get(prop));
+		}
+		
+		return representation;
 	}
 	
 	public void setCornerMode (float x, float y)

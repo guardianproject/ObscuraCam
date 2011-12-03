@@ -81,7 +81,6 @@ public class SensorLogger<T> {
 		}
 		
 		return current;
-		
 	}
 
 	public void sendToBuffer(JSONObject logItem) throws JSONException {

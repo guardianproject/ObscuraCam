@@ -17,8 +17,10 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.witness.informa.InformaEditor;
-import org.witness.informa.utils.MetadataParser;
 import org.witness.informa.utils.SensorLogger;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.ConsentTagger;
@@ -166,7 +168,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
 	// Vector to hold ImageRegions 
 	Vector<ImageRegion> imageRegions = new Vector<ImageRegion>(); 
-	MetadataParser mp;
 
 	// The original image dimensions (not scaled)
 	int originalImageWidth;
@@ -962,7 +963,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public void associateImageRegionData(ImageRegion ir) {
 		sendBroadcast(new Intent()
 			.setAction(ObscuraApp.SET_CURRENT)
-			.putExtra("timestampToMatch", (Long) ir.mRProc.getProperties().get("timestampOnGeneration")));
+			.putExtra("timestampToMatch", (Long) ir.mRProc.getProperties().get("timestampOnGeneration"))
+			.putExtra("captureEvent", ObscuraApp.CAPTURE_EVENTS.RegionGenerated));
 	}
 	
 	/*
@@ -1454,6 +1456,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	// Add a date so it shows up in a reasonable place in the gallery - Should we do this??
     	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
     	Date date = new Date();
+    	
+		sendBroadcast(new Intent()
+			.setAction(ObscuraApp.SET_CURRENT)
+			.putExtra("timestampToMatch", date.getTime())
+			.putExtra("captureEvent", ObscuraApp.CAPTURE_EVENTS.MediaSaved));
 
 		// Which one?
     	cv.put(Images.Media.DATE_ADDED, dateFormat.format(date));
@@ -1509,15 +1516,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
     	}
 
-		// package and insert exif data
-		mp = new MetadataParser(dateFormat.format(date), new File(pullPathFromUri(savedImageUri)), this);
-		Iterator<ImageRegion> i = imageRegions.iterator();
-	    while (i.hasNext()) {
-	    	mp.addRegion(i.next().getRegionProcessor().getProperties());
-	    }
-
-		mp.flushMetadata();
-
 		// force mediascanner to update file
 		MediaScannerConnection.scanFile(
 				this,
@@ -1532,15 +1530,22 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		showDeleteOriginalDialog ();
 		
+		// send all data to informa...
+		JSONArray irRepresentation = new JSONArray();
+		Iterator<ImageRegion> i = imageRegions.iterator();
+		while(i.hasNext())
+			try {
+				irRepresentation.put(i.next().getRepresentation());
+			} catch (JSONException e) {}
+				
 		sendBroadcast(new Intent()
 			.setAction(ObscuraApp.SEAL_LOG)
 			.putExtra("newImagePath", pullPathFromUri(savedImageUri))
-			.putExtra("regionData", mp.flushMetadata().getMachineReadableValue().toString()));
+			.putExtra("regionData", irRepresentation.toString()));
 		
-		Log.d(ObscuraApp.TAG," i should shut down the suckers...");
+		// shut down the service
 		sendBroadcast(new Intent()
 			.setAction(ObscuraApp.STOP_SUCKING));
-
 
 		return true;
     }

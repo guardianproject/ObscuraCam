@@ -2,6 +2,7 @@ package org.witness.sscphase1;
 
 
 import java.io.File;
+import java.util.Date;
 
 import org.witness.informa.utils.SensorSucker;
 import org.witness.informa.utils.SensorSucker.LocalBinder;
@@ -36,6 +37,19 @@ public class ObscuraApp extends Activity implements OnClickListener {
 	public static final String CENTER_CAPTURE = "centerCapture";
 	public static final String SET_CURRENT = "setCurrent";
 	public final static String SEAL_LOG = "sealLog";
+	
+	public final static class CAPTURE_EVENTS {
+		public static final int MediaCaptured = 5;
+		public static final int MediaSaved = 6;
+		public static final int RegionGenerated = 7;
+		public static final int ExifReported = 8;
+	};
+	
+	public final static class LOCATION_TYPES {
+		public static final int LocationOnMediaCaptured = 9;
+		public static final int LocationOnMediaSaved = 10;
+		public static final int LocationOnGeneration = 11;
+	}
 		
 	final static int CAMERA_RESULT = 0;
 	final static int GALLERY_RESULT = 1;
@@ -204,9 +218,13 @@ public class ObscuraApp extends Activity implements OnClickListener {
 			else if (requestCode == CAMERA_RESULT)
 			{
 				//Uri uriCameraImage = intent.getData();
-				
 				if (uriCameraImage != null)
 				{
+					sendBroadcast(new Intent()
+						.setAction(ObscuraApp.SET_CURRENT)
+						.putExtra("timestampToMatch", new Date().getTime())
+						.putExtra("captureEvent", ObscuraApp.CAPTURE_EVENTS.MediaCaptured));
+					
 					Intent passingIntent = new Intent(this,ImageEditor.class);
 					passingIntent.setData(uriCameraImage);
 					startActivityForResult(passingIntent,IMAGE_EDITOR);

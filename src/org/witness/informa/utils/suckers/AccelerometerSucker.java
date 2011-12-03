@@ -41,7 +41,6 @@ public class AccelerometerSucker extends SensorLogger implements SensorEventList
 				sm.registerListener(this, s, SensorManager.SENSOR_DELAY_NORMAL);
 				break;
 			case Sensor.TYPE_LIGHT:
-				Log.d(ObscuraApp.TAG,"AND THE LIGHT METER, TOO");
 				sm.registerListener(this, s, SensorManager.SENSOR_DELAY_NORMAL);
 				hasLight = true;
 				break;
@@ -62,8 +61,6 @@ public class AccelerometerSucker extends SensorLogger implements SensorEventList
 						readAccelerometer();
 					if(hasLight)
 						readLight();
-					if(hasMagneticField)
-						readMagField();
 					if(hasOrientation)
 						readOrientation();
 				} catch(JSONException e){}
@@ -77,16 +74,24 @@ public class AccelerometerSucker extends SensorLogger implements SensorEventList
 		sendToBuffer(currentAccelerometer);
 	}
 	
-	private void readOrientation() {
-		
-	}
-	
-	private void readLight() {
-		
-	}
-	
-	private void readMagField() throws JSONException {
+	private void readOrientation() throws JSONException {
 		sendToBuffer(currentMagField);
+	}
+	
+	private void readLight() throws JSONException {
+		sendToBuffer(currentLight);
+	}
+	
+	public JSONObject forceReturn() {
+		try {
+			JSONObject fr = new JSONObject();
+			fr.put("acc", currentAccelerometer);
+			fr.put("orientation", currentMagField);
+			fr.put("light", currentLight);
+			return fr;
+		} catch(JSONException e) {
+			return null;
+		}
 	}
 
 	@Override
@@ -116,6 +121,7 @@ public class AccelerometerSucker extends SensorLogger implements SensorEventList
 						break;
 					case Sensor.TYPE_LIGHT:
 						sVals.put("lightMeter", event.values[0]);
+						currentLight = sVals;
 						break;
 					}
 				} catch(JSONException e) {}

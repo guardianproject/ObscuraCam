@@ -41,15 +41,6 @@ public class PhoneSucker extends SensorLogger {
 			ba.enable();
 		
 		// TODO: if wifi is off, turn it on... (be sure to turn off when finished)
-		
-		try {
-			sendToBuffer(jPack("deviceId", getIMEI()));
-			sendToBuffer(jPack("bluetoothAddress", ba.getAddress()));
-			sendToBuffer(jPack("bluetoothName", ba.getName()));
-			
-		} catch (JSONException e) {}
-		catch(NullPointerException e) {}
-		
 		setTask(new TimerTask() {
 			
 			@Override
@@ -103,10 +94,19 @@ public class PhoneSucker extends SensorLogger {
 	
 	public JSONObject forceReturn() {
 		try {
-			return jPack("cellId", getCellId());
-		} catch(JSONException e) {
+			JSONObject fr = new JSONObject();
+			fr.put("deviceIMEI", getIMEI());
+			fr.put("deviceBTAddress", ba.getAddress());
+			fr.put("deviceBTName", ba.getName());
+		
+			return fr;
+		} catch (JSONException e) {
 			return null;
 		}
+		catch(NullPointerException e) {
+			return null;
+		}
+		
 	}
 	
 	public void stopUpdates() {
