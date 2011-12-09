@@ -20,27 +20,40 @@ public class BlurObscure implements RegionProcesser {
 
 	Bitmap originalBmp;
 	Properties mProps;
-
+	Paint mPaint;
+	
 	private final static int BLUR_OFFSET = 10;
 
-	public BlurObscure() {
+	public BlurObscure(Paint paint) {
 		mProps = new Properties ();
 		mProps.put("obfuscationType", this.getClass().getName());
+		mPaint = paint;
 	}
 	
 	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitmap) {
 
+		Bitmap bRect = applyGaussianBlur(bitmap, rect);
 		
-		Paint paint = new Paint();
-		paint.setColor(Color.WHITE);
-		paint.setAlpha(100);
-		canvas.drawCircle(rect.centerX(), rect.centerY(), rect.width()/2, paint);
+		canvas.drawBitmap(bRect, (int)rect.left, (int)rect.top, mPaint);
 		
 		// return properties and data as a map
 		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
 		mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
 		mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
 		
+	}
+	
+	public static Bitmap applyGaussianBlur(Bitmap src, RectF rect) {
+		double[][] GaussianBlurConfig = new double[][] {
+			{ 1, 2, 1 },
+			{ 2, 4, 2 },
+			{ 1, 2, 1 }
+		};
+		ConvolutionMatrix convMatrix = new ConvolutionMatrix(3);
+		convMatrix.applyConfig(GaussianBlurConfig);
+		convMatrix.Factor = 16;
+		convMatrix.Offset = 0;
+		return ConvolutionMatrix.computeConvolution3x3(src, convMatrix, (int)rect.left,(int)rect.right,(int)rect.top,(int)rect.bottom);
 	}
 	
 	/*

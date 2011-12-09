@@ -5,20 +5,23 @@
 package org.witness.securesmartcam.filters;
 
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.graphics.RectF;
 
-public class CrowdPixelizeObscure implements RegionProcesser {
+public class CrowdBlurObscure implements RegionProcesser {
 
 	Bitmap originalBmp;
 	Properties mProps;
 	
 	public static int PIXEL_BLOCK = 50;
 	
-	public CrowdPixelizeObscure() {
+	public CrowdBlurObscure() {
 		mProps = new Properties();
 		mProps.put("obfuscationType", this.getClass().getName());
 	}
