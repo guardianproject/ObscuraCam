@@ -47,7 +47,7 @@ Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactRegion(JNIEnv 
     
 
   } catch (const char *error) {
-    __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","ERROR");
+    __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION ERROR",error);
   }
 
   __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","Finished");
@@ -56,7 +56,9 @@ Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactRegion(JNIEnv 
 
 JNIEXPORT void JNICALL
 Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactRegions(JNIEnv *env, jobject obj, jstring jstrSrcFilename, jstring jstrDestFilename, jstring jStrRedactionCmd) {
-  __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","Running");
+  
+  __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","redactRegions()");
+  
   try {
 
     jpeg_redaction::Jpeg jpeg_decoder;
@@ -68,9 +70,11 @@ Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactRegions(JNIEnv
     strDestFilename = (env)->GetStringUTFChars(jstrDestFilename , NULL);
     strRedactionCmd = (env)->GetStringUTFChars(jStrRedactionCmd , NULL);
     
+    __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","Loading...");
+    __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION",strSrcFilename);
     jpeg_decoder.LoadFromFile(strSrcFilename, true);
     __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","Loaded");
-    __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION",strSrcFilename);
+    
     
     jpeg_redaction::Redaction redaction;
     redaction.AddRegions(strRedactionCmd);
@@ -84,12 +88,13 @@ Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactRegions(JNIEnv
     jpeg_decoder.Save(strDestFilename);
     __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","saved");
 
+	(env)->ReleaseStringUTFChars(jStrRedactionCmd , strRedactionCmd); // release jstring
 	(env)->ReleaseStringUTFChars(jstrSrcFilename , strSrcFilename); // release jstring
 	(env)->ReleaseStringUTFChars(jstrDestFilename , strDestFilename); // release jstring
     
 
   } catch (const char *error) {
-    __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","ERROR");
+    __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION ERROR",error);    
   }
 
   __android_log_write(ANDROID_LOG_ERROR,"JPEGREDACTION","Finished");
