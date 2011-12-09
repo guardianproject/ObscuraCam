@@ -109,6 +109,7 @@ public class ImageRegion implements OnActionItemClickListener
 
 	public void setRegionProcessor(RegionProcesser rProc) {
 		mRProc = rProc;
+		mImageEditor.associateImageRegionData(this);
 	}
 	
 	public JSONObject getRepresentation() throws JSONException {
@@ -546,8 +547,6 @@ public class ImageRegion implements OnActionItemClickListener
 			setRegionProcessor(new BlurObscure());
 			break;
 		}
-		
-		mImageEditor.associateImageRegionData(this);
 		
 		if(getRegionProcessor().getClass() == ConsentTagger.class)
 			imageRegionBorder = identifiedBorder;

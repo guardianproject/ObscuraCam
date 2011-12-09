@@ -988,11 +988,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		if (currRegion != null)
 		{
 			currRegion.inflatePopup(false);
-			
-			// TODO: delete this once i no longer need it: show current region's properties:
-			Properties p = currRegion.getRegionProcessor().getProperties();
-			Log.d(ObscuraApp.TAG, "IMAGE REGION PROPS: " + p.toString());
-			
 			currRegion = null;
 		}			
 		else if (v == zoomIn) 

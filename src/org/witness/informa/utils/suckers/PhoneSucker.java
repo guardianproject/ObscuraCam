@@ -98,6 +98,7 @@ public class PhoneSucker extends SensorLogger {
 			fr.put("deviceIMEI", getIMEI());
 			fr.put("deviceBTAddress", ba.getAddress());
 			fr.put("deviceBTName", ba.getName());
+			fr.put("cellId", getCellId());
 		
 			return fr;
 		} catch (JSONException e) {

@@ -115,7 +115,7 @@ public class SensorSucker extends Service {
 		capturedEvents.put(captureEventData);
 	}
 	
-	private void sealLog(String imageRegionData, String localMediaPath) throws JSONException {
+	private void sealLog(String imageRegionData, String localMediaPath) throws Exception {
 		imageData.put("localMediaPath", localMediaPath);
 		imageData.put("sourceType", 101);
 		
