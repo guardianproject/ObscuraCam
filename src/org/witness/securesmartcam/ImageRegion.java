@@ -62,8 +62,8 @@ public class ImageRegion implements OnActionItemClickListener
 	public static final int PIXELATE = 1; // PixelizeObscure
 	public static final int BG_PIXELATE = 2; // BlurObscure
 	public static final int MASK = 3; // MaskObscure	
-	//public static final int BLUR = 4; // PixelizeObscure
 	public static final int CONSENT = 4; // PixelizeObscure
+	public static final int BLUR = 5; // PixelizeObscure
 	
 	boolean selected = false;
 	
@@ -78,6 +78,7 @@ public class ImageRegion implements OnActionItemClickListener
 	 */
 	int mObscureType = PIXELATE;
 
+	//the other of these strings and resources determines the order in the popup menu
 	private final static String[] mFilterLabels = {"Redact","Pixelate","CrowdPixel","Mask","Identify"};
 	private final static int[] mFilterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_pixelate, R.drawable.ic_context_mask, R.drawable.ic_context_id};
 
@@ -564,9 +565,9 @@ public class ImageRegion implements OnActionItemClickListener
 			
 			mImageEditor.launchInforma(this);
 			break;
-		default:
+		case ImageRegion.BLUR:
 			Log.v(ObscuraApp.TAG,"obscureType: NONE/BLUR");
-			setRegionProcessor(new BlurObscure());
+			setRegionProcessor(new BlurObscure(mImageEditor.getPainter()));
 			break;
 		}
 		
