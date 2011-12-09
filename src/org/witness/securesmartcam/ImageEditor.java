@@ -2,12 +2,16 @@ package org.witness.securesmartcam;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -43,6 +47,8 @@ import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
@@ -164,7 +170,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
     
 	// Vector to hold ImageRegions 
-	Vector<ImageRegion> imageRegions = new Vector<ImageRegion>(); 
+	ArrayList<ImageRegion> imageRegions = new ArrayList<ImageRegion>(); 
 	MetadataParser mp;
 		
 	// The original image dimensions (not scaled)
@@ -201,7 +207,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     // Keep track of the orientation
     private int originalImageOrientation = ExifInterface.ORIENTATION_NORMAL;    
 
-   
+    // for saving images
+    private final static String EXPORT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
 	 private class mAutoDetectTask extends AsyncTask<Integer, Integer, Long> {
 	     protected Long doInBackground(Integer... params) {
@@ -306,9 +313,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		if (originalImageUri != null) {
 			
 			// Get the orientation
-			String originalFilename = pullPathFromUri(originalImageUri);			
+			File originalFilename = pullPathFromUri(originalImageUri);			
 			try {
-				ExifInterface ei = new ExifInterface(originalFilename);
+				ExifInterface ei = new ExifInterface(originalFilename.getAbsolutePath());
 				originalImageOrientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
 				debug(ObscuraApp.TAG,"Orientation: " + originalImageOrientation);
 			} catch (IOException e1) {
@@ -577,16 +584,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			
 			float faceBuffer = (autodetectedRectScaled.right-autodetectedRectScaled.left)/5;
 			
-			boolean showPopup = false;
+			boolean isLast = false;
 			if (adr == autodetectedRects.length - 1) {
-				showPopup = true;
+				isLast = true;
 			}
 			createImageRegion(
 					(autodetectedRectScaled.left-faceBuffer),
 					(autodetectedRectScaled.top-faceBuffer),
 					(autodetectedRectScaled.right+faceBuffer),
 					(autodetectedRectScaled.bottom+faceBuffer),
-					showPopup);
+					isLast,
+					isLast);
 		}	 				
 		
 		return autodetectedRects.length;
@@ -599,7 +607,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		RectF[] possibleFaceRects;
 		
 		try {
-			GoogleFaceDetection gfd = new GoogleFaceDetection(imageBitmap);
+			Bitmap bProc = toGrayscale(imageBitmap);
+			GoogleFaceDetection gfd = new GoogleFaceDetection(bProc);
 			int numFaces = gfd.findFaces();
 	        debug(ObscuraApp.TAG,"Num Faces Found: " + numFaces); 
 	        possibleFaceRects = gfd.getFaces();
@@ -609,6 +618,72 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		return possibleFaceRects;				
 	}
 	
+	public Bitmap toGrayscale(Bitmap bmpOriginal)
+	{        
+	    int width, height;
+	    height = bmpOriginal.getHeight();
+	    width = bmpOriginal.getWidth();    
+
+	    Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+	    Canvas c = new Canvas(bmpGrayscale);
+	    Paint paint = new Paint();
+	    ColorMatrix cm = new ColorMatrix();
+	    cm.setSaturation(0);
+	    
+	    ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+	    
+	    paint.setColorFilter(f);
+	 
+	    c.drawBitmap(bmpOriginal, 0, 0, paint);
+	    
+	    
+	    
+	    return bmpGrayscale;
+	}
+	
+	public static Bitmap createContrast(Bitmap src, double value) {
+		// image size
+		int width = src.getWidth();
+		int height = src.getHeight();
+		// create output bitmap
+		Bitmap bmOut = Bitmap.createBitmap(width, height, src.getConfig());
+		// color information
+		int A, R, G, B;
+		int pixel;
+		// get contrast value
+		double contrast = Math.pow((100 + value) / 100, 2);
+
+		// scan through all pixels
+		for(int x = 0; x < width; ++x) {
+			for(int y = 0; y < height; ++y) {
+				// get pixel color
+				pixel = src.getPixel(x, y);
+				A = Color.alpha(pixel);
+				// apply filter contrast for every channel R, G, B
+				R = Color.red(pixel);
+				R = (int)(((((R / 255.0) - 0.5) * contrast) + 0.5) * 255.0);
+				if(R < 0) { R = 0; }
+				else if(R > 255) { R = 255; }
+
+				G = Color.red(pixel);
+				G = (int)(((((G / 255.0) - 0.5) * contrast) + 0.5) * 255.0);
+				if(G < 0) { G = 0; }
+				else if(G > 255) { G = 255; }
+
+				B = Color.red(pixel);
+				B = (int)(((((B / 255.0) - 0.5) * contrast) + 0.5) * 255.0);
+				if(B < 0) { B = 0; }
+				else if(B > 255) { B = 255; }
+
+				// set new pixel color to output bitmap
+				bmOut.setPixel(x, y, Color.argb(A, R, G, B));
+			}
+		}
+
+		// return final image
+		return bmOut;
+	}
+
 
 	ImageRegion currRegion = null;
 	
@@ -923,7 +998,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	/*
 	 * Create new ImageRegion
 	 */
-	public void createImageRegion(float left, float top, float right, float bottom, boolean showPopup) {
+	public void createImageRegion(float left, float top, float right, float bottom, boolean showPopup, boolean updateNow) {
 		
 		clearImageRegionsEditMode();
 		
@@ -937,12 +1012,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		imageRegions.add(imageRegion);
 		
-		mHandler.post(new Runnable ()
+		if (updateNow)
 		{
-			public void run() {
-				putOnScreen();
-			}
-		});
+			mHandler.post(new Runnable ()
+			{
+				public void run() {
+					putOnScreen();
+				}
+			});
+		}
 	}
 	
 	/*
@@ -1040,7 +1118,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			matrix.invert(iMatrix);
 			iMatrix.mapRect(newBox);
 						
-			createImageRegion(newBox.left, newBox.top, newBox.right, newBox.bottom, true);
+			createImageRegion(newBox.left, newBox.top, newBox.right, newBox.bottom, true, true);
 		}
 		
 	}
@@ -1076,7 +1154,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		matrix.invert(iMatrix);
 		iMatrix.mapRect(newRegion);
 		
-		createImageRegion(newRegion.left,newRegion.top,newRegion.right,newRegion.bottom, false);
+		createImageRegion(newRegion.left,newRegion.top,newRegion.right,newRegion.bottom, false, true);
 		
 	}
     /*
@@ -1322,46 +1400,36 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      */
     private Uri processNativeRes (Uri sourceImage) throws Exception
     {
-    	// Create the Uri - This can't be "private"
-    	/*
-    	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory(), TMP_FILE_DIRECTORY);
-    
-    	if (!tmpFileDirectory.exists()) {
-    		tmpFileDirectory.mkdirs();
-    	}*/
 
     	File tmpFileDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES); 
     	if (!tmpFileDirectory.exists()) {
     		tmpFileDirectory.mkdirs();
     	}
-    	File tmpInFile = new File(tmpFileDirectory,TMP_FILE_NAME);
     	
-    	Uri tmpImageUri = Uri.fromFile(tmpInFile);
-		copy (sourceImage, tmpImageUri);
+    	File fileSrc = pullPathFromUri(sourceImage);
+    	File fileTarget = new File(tmpFileDirectory,TMP_FILE_NAME);
+    	
+		//copy (sourceImage, tmpInFile);
 	  	
 		JpegRedaction om = new JpegRedaction();	
-    	om.setFiles(tmpInFile, tmpInFile);
-	
-		// Iterate through the regions that have been created
-    	Iterator<ImageRegion> i = imageRegions.iterator();
-	    while (i.hasNext()) 
-	    {
-	    	
-	    	ImageRegion currentRegion = i.next();
-	  
-	    	
-	    	om.setMethod(currentRegion.getRegionProcessor());
-            RectF regionRect = new RectF(currentRegion.getBounds());
-            regionRect.left *= inSampleSize;
-            regionRect.top *= inSampleSize;
-            regionRect.right *= inSampleSize;
-            regionRect.bottom *= inSampleSize;
-            
-	    	om.processRegion(regionRect, obscuredCanvas, obscuredBmp);
+    	om.setFiles(fileSrc, fileTarget);
+    	om.processRegions(imageRegions, inSampleSize, obscuredCanvas);
+    	
+	    if (!fileTarget.exists())
+	    	throw new Exception("native proc failed");
+	    
+	    return  Uri.fromFile(fileTarget);
+    }
+    
+    private void copy (Uri uriSrc, File fileTarget) throws IOException
+    {
+    	InputStream is = getContentResolver().openInputStream(uriSrc);
 		
-	    }
-	    	    
-	    return  Uri.fromFile(tmpInFile);
+		OutputStream os = new FileOutputStream (fileTarget);
+			
+		copyStreams (is, os);
+
+    	
     }
     
     private void copy (Uri uriSrc, Uri uriTarget) throws IOException
@@ -1371,19 +1439,45 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		OutputStream os = getContentResolver().openOutputStream(uriTarget);
 			
-		byte buffer[] = new byte[4096];
-		int i;
-		
-		while ((i = is.read(buffer))!=-1)
-		{
-			os.write(buffer, 0, i);
-		}
-		
-		os.close();
-		is.close();
+		copyStreams (is, os);
 
     	
     }
+    
+    private static void copyStreams(InputStream input, OutputStream output) throws IOException {
+        // if both are file streams, use channel IO
+        if ((output instanceof FileOutputStream) && (input instanceof FileInputStream)) {
+          try {
+            FileChannel target = ((FileOutputStream) output).getChannel();
+            FileChannel source = ((FileInputStream) input).getChannel();
+
+            source.transferTo(0, Integer.MAX_VALUE, target);
+
+            source.close();
+            target.close();
+
+            return;
+          } catch (Exception e) { /* failover to byte stream version */
+          }
+        }
+
+        byte[] buf = new byte[8192];
+        while (true) {
+          int length = input.read(buf);
+          if (length < 0)
+            break;
+          output.write(buf, 0, length);
+        }
+
+        try {
+          input.close();
+        } catch (IOException ignore) {
+        }
+        try {
+          output.close();
+        } catch (IOException ignore) {
+        }
+      }
     /*
      * Save a temporary image for sharing only
      */
@@ -1437,14 +1531,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	ContentValues cv = new ContentValues();
     	
     	// Add a date so it shows up in a reasonable place in the gallery - Should we do this??
-    	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
+    	SimpleDateFormat dateFormat = new SimpleDateFormat(EXPORT_DATE_FORMAT); 
     	Date date = new Date();
+    	String dateString = dateFormat.format(date);
 
 		// Which one?
-    	cv.put(Images.Media.DATE_ADDED, dateFormat.format(date));
-    	cv.put(Images.Media.DATE_TAKEN, dateFormat.format(date));
-    	cv.put(Images.Media.DATE_MODIFIED, dateFormat.format(date));
-    	cv.put(Images.Media.TITLE, dateFormat.format(date));
+    	cv.put(Images.Media.DATE_ADDED, dateString);
+    	cv.put(Images.Media.DATE_TAKEN, dateString);
+    	cv.put(Images.Media.DATE_MODIFIED, dateString);
+    	cv.put(Images.Media.TITLE, dateString);
     //    cv.put(Images.Media.BUCKET_ID, "ObscuraCam");
     //    cv.put(Images.Media.DESCRIPTION, "ObscuraCam");
     	//cv.put(Images.Media.CONTENT_TYPE, MIME_TYPE_JPEG);
@@ -1495,7 +1590,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	}
 
 		// package and insert exif data
-		mp = new MetadataParser(dateFormat.format(date), new File(pullPathFromUri(savedImageUri)), this);
+		mp = new MetadataParser(dateFormat.format(date), pullPathFromUri(savedImageUri), this);
 		Iterator<ImageRegion> i = imageRegions.iterator();
 	    while (i.hasNext()) {
 	    	mp.addRegion(i.next().getRegionProcessor().getProperties());
@@ -1506,7 +1601,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// force mediascanner to update file
 		MediaScannerConnection.scanFile(
 				this,
-				new String[] {pullPathFromUri(savedImageUri)},
+				new String[] {pullPathFromUri(savedImageUri).getAbsolutePath()},
 				new String[] {MIME_TYPE_JPEG},
 				null);
 		
@@ -1529,7 +1624,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * Yep, uncommenting it back out so we can use the original path to refresh media scanner
      * HNH 8/23/11
      */
-    public String pullPathFromUri(Uri originalUri) {
+    public File pullPathFromUri(Uri originalUri) {
 
     	String originalImageFilePath = null;
 
@@ -1547,8 +1642,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	}
     	}
 
-    	return originalImageFilePath;
+    	return new File(originalImageFilePath);
     }
+    
+
+    
 
     /*
      * Handling screen configuration changes ourselves, we don't want the activity to restart on rotation
