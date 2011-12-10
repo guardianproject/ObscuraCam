@@ -16,8 +16,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.witness.sscphase1.ObscuraApp;
 
-import flexjson.JSONSerializer;
-
 import android.database.Cursor;
 import android.provider.BaseColumns;
 import android.util.Log;
@@ -42,6 +40,38 @@ public class Informa {
 	private static final String UNREDACTED = "unredacted";
 	private static final String REDACTED = "redacted";
 	private static final String PSEUDONYM = "pseudonym";
+	
+	private class InformaZipper extends JSONObject {
+		Field[] fields;
+		
+		public InformaZipper() {
+			fields = this.getClass().getDeclaredFields();
+			
+		}
+		
+		public JSONObject zip() throws IllegalArgumentException, IllegalAccessException, JSONException {
+			for(Field f : fields) {
+				f.setAccessible(true);
+				Object value = f.get(this);
+				
+				if(!(value instanceof Informa)) {
+					if(value instanceof InformaZipper)
+						this.put(f.getName(), ((InformaZipper) value).zip());
+					else if(value instanceof Set) {
+						Iterator i = ((Set<?>) value).iterator();
+						JSONArray j = new JSONArray();
+						while(i.hasNext()) {
+							j.put(((InformaZipper) i.next()).zip());
+							
+						}
+						this.put(f.getName(), j);
+					} else
+						this.put(f.getName(), value);
+				}
+			}
+			return this;
+		}
+	}
 	
 	private class InformaDatabaseHelper extends SQLiteOpenHelper {
 		private static final String DATABASE_NAME = "informa.db";
@@ -76,7 +106,7 @@ public class Informa {
 		public abstract String[] build();
 	}
 	
-	public class Intent {
+	public class Intent extends InformaZipper {
 		Owner owner;
 		String intendedDestination;
 		int securityLevel;
@@ -88,7 +118,7 @@ public class Informa {
 		}
 	}
 	
-	public class Geneaology {
+	public class Geneaology extends InformaZipper {
 		String localMediaPath;
 		long dateCreated, dateAcquired;
 		
@@ -98,7 +128,7 @@ public class Informa {
 		}
 	}
 	
-	public class Data {
+	public class Data extends InformaZipper {
 		int sourceType;
 		String imageHash;
 		Device device;
@@ -119,7 +149,7 @@ public class Informa {
 		}
 	}
 	
-	public class Location {
+	public class Location extends InformaZipper {
 		int locationType;
 		JSONObject locationData;
 		
@@ -129,18 +159,17 @@ public class Informa {
 		}
 	}
 	
-	public class CaptureTimestamp {
+	public class CaptureTimestamp extends InformaZipper {
 		int timestampType;
 		long timestamp;
 		
 		public CaptureTimestamp(int timestampType, long timestamp) {
 			this.timestampType = timestampType;
 			this.timestamp = timestamp;
-			
 		}
 	}
 	
-	public class Owner {
+	public class Owner extends InformaZipper {
 		String ownerKey;
 		int ownershipType;
 		
@@ -158,7 +187,7 @@ public class Informa {
 		}
 	}
 	
-	public class Device {
+	public class Device extends InformaZipper {
 		String deviceKey, imei;
 		Corroboration bluetoothInformation;
 		
@@ -179,7 +208,7 @@ public class Informa {
 		}
 	}
 	
-	public class Subject {
+	public class Subject extends InformaZipper {
 		String subjectName;
 		boolean informedConsentGiven;
 		int[] consentGiven;
@@ -191,7 +220,7 @@ public class Informa {
 		}
 	}
 	
-	public class Corroboration {
+	public class Corroboration extends InformaZipper {
 		String deviceBTAddress, deviceBTName;
 		int selfOrNeighbor;	// -1 is self, 1 is neighbor
 		
@@ -202,7 +231,7 @@ public class Informa {
 		}
 	}
 	
-	public class ImageRegion {
+	public class ImageRegion extends InformaZipper {
 		CaptureTimestamp captureTimestamp;
 		Location location;
 		
@@ -242,6 +271,8 @@ public class Informa {
 			
 			this.unredactedHash = this.processedHash = "blah-blah";
 			// TODO: use jpegRedaction and APG to get unredactedHash and processedHash
+			
+			
 		}
 	}
 	
@@ -324,85 +355,14 @@ public class Informa {
 		
 	}
 	
-	public Object get(Object obj) {
-		List<Class<?>> primativeClasses = Arrays.asList(new Class<?>[] {
-				int.class,
-				int[].class,
-				String.class,
-				String[].class,
-				float.class,
-				float[].class,
-				long.class,
-				long[].class,
-				boolean.class,
-				boolean[].class,
-				Double.class,
-				Double[].class				
-		});
-		
-		JSONObject o = new JSONObject();
-		Class<?> c = obj.getClass();
-		Field[] fields = c.getDeclaredFields();
-		
-		for(Field f : fields) {
-			f.setAccessible(true);
-			
-			try {
-				Object value = f.get(obj);
-				if(!primativeClasses.contains(f.getType())) {
-					if(f.getType().equals(Set.class)) {
-						Iterator i = ((Set) value).iterator();
-						JSONArray j = new JSONArray();
-						while(i.hasNext()) {
-							Object set = i.next();
-							j.put(get(set));
-						}
-						o.put(f.getName(), j);	
-					} else if(!f.getType().equals(Informa.class)) {						
-						Object b = get(value);
-						if(b != null) {
-							o.put(f.getName(), b);
-						}
-						
-					}
-				} else {
-					o.put(f.getName(), value);
-				}
-			} catch (IllegalArgumentException e) {
-				Log.d(ObscuraApp.TAG, e.getMessage());
-			} catch (IllegalAccessException e) {
-				Log.d(ObscuraApp.TAG, e.getMessage());
-			} catch (SecurityException e) {
-				Log.d(ObscuraApp.TAG, e.getMessage());
-			} catch (JSONException e) {
-				Log.d(ObscuraApp.TAG, e.getMessage());
-			} catch (NullPointerException e) {
-				Log.d(ObscuraApp.TAG, e.getMessage());
-				try {
-					o.put(f.getName(), "null");
-				} catch (JSONException g) {
-					Log.d(ObscuraApp.TAG, g.getMessage());
-				}
-			}
-		}
-		
-		return o;
-	}
-	
-	
-	public JSONObject renderAsJson() throws JSONException {
+	public JSONObject renderAsJson() throws JSONException, IllegalArgumentException, IllegalAccessException {
 		JSONObject sourceObject = new JSONObject();
-		sourceObject.put("intent", (JSONObject) get(intent));
-		sourceObject.put("geneaology", (JSONObject) get(geneaology));
-		sourceObject.put("data", (JSONObject) get(data));
-		
+		sourceObject.put("intent", intent.zip());
+		sourceObject.put("geneaology", geneaology.zip());
+		sourceObject.put("data", data.zip());
 		Log.d(ObscuraApp.TAG, "INFORMA READOUT ****************\n" + sourceObject.toString());
 		
 		return sourceObject;
-	}
-	
-	public String serializeObject(Object o) {
-		return new JSONSerializer().serialize(o);
 	}
 	
 	public long renderToDatabase() throws Exception {		
