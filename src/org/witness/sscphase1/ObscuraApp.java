@@ -4,6 +4,7 @@ package org.witness.sscphase1;
 import java.io.File;
 import java.util.Date;
 
+import org.witness.informa.InformaPreferences;
 import org.witness.informa.utils.SensorSucker;
 import org.witness.informa.utils.SensorSucker.LocalBinder;
 import org.witness.securesmartcam.ImageEditor;
@@ -16,11 +17,13 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
@@ -34,7 +37,6 @@ public class ObscuraApp extends Activity implements OnClickListener {
 	    
 	public final static String TAG = "SSC";
 	public final static String STOP_SUCKING = "stopSensors";
-	public static final String CENTER_CAPTURE = "centerCapture";
 	public static final String SET_CURRENT = "setCurrent";
 	public final static String SEAL_LOG = "sealLog";
 	
@@ -74,6 +76,8 @@ public class ObscuraApp extends Activity implements OnClickListener {
 		public void onServiceDisconnected(ComponentName cn) {}
 	};
 	
+	private SharedPreferences _sp;
+	
 	@Override
 	protected void onDestroy() 
 	{
@@ -100,6 +104,13 @@ public class ObscuraApp extends Activity implements OnClickListener {
 
         setLayout();
         deleteTmpFile();
+        
+        _sp = PreferenceManager.getDefaultSharedPreferences(this);
+        if(
+        	_sp.getString("informaPref_dbpw", "").compareTo("") == 0 ||
+        	_sp.getString("informaPref_destKeys", "").compareTo("") == 0
+        )
+        	startActivity(new Intent(this, InformaPreferences.class));	
     }
     
     @Override

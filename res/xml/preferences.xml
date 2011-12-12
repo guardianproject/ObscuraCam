@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/informaPref_label">
+        <EditTextPreference 
+            android:key="informaPref_dbpw"
+            android:title="@string/informaPref_dbpw"
+            android:summary="@string/informaPref_dbpw_sum"
+            android:defaultValue="" />
+        <EditTextPreference
+            android:key="informaPref_destKeys"
+            android:title="@string/informaPref_destKeys"
+            android:summary="@string/informaPref_destKeys_sum"
+            android:defaultValue="" />
+    </PreferenceCategory>
+    
+    
+    <!--  OLDER THINGS THAT MIGHT GET PUT BACK...
 	<PreferenceCategory android:title="Preferences">
 		<CheckBoxPreference 
 			android:title="Show Splash Screen"
@@ -30,9 +45,7 @@
 			android:defaultValue="true"
 			android:summary="Automatically Sync Images with Cloud Service"
 			android:key="AutoSubmitPref" />
-		<!-- <Preference android:title="Done" android:key="DoneButtonPref"></Preference> -->
-		<CheckBoxPreference
-			android:key="VirginInformaUser"
-			android:defaultValue="true" />
 	</PreferenceCategory>
+	-->
+		<!-- <Preference android:title="Done" android:key="DoneButtonPref"></Preference> -->
 </PreferenceScreen>

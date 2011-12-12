@@ -60,7 +60,6 @@ public class SensorSucker extends Service {
 		
 		br.add(new Broadcaster(new IntentFilter(ObscuraApp.STOP_SUCKING)));
 		br.add(new Broadcaster(new IntentFilter(BluetoothDevice.ACTION_FOUND)));
-		br.add(new Broadcaster(new IntentFilter(ObscuraApp.CENTER_CAPTURE)));
 		br.add(new Broadcaster(new IntentFilter(ObscuraApp.SET_CURRENT)));
 		br.add(new Broadcaster(new IntentFilter(ObscuraApp.SEAL_LOG)));
 		

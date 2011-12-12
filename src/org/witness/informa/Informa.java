@@ -14,6 +14,8 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.witness.securesmartcam.io.ObscuraDatabaseHelper;
+import org.witness.securesmartcam.io.ObscuraDatabaseHelper.TABLES;
 import org.witness.sscphase1.ObscuraApp;
 
 import android.database.Cursor;
@@ -29,14 +31,12 @@ public class Informa {
 	public Geneaology geneaology;
 	public Data data;
 	
-	private InformaDatabaseHelper idh;
 	private SQLiteDatabase db;
 	private String pw = "lalala123"; // we will fix this later...
 	private Context _c;
 	
-	private static final String INFORMA_IMAGES = "informaImages";
-	private static final String INFORMA_CONTACTS = "informaContacts";
-	private static final String IRDB = "irdb";
+	private ObscuraDatabaseHelper odh;
+	
 	private static final String UNREDACTED = "unredacted";
 	private static final String REDACTED = "redacted";
 	private static final String PSEUDONYM = "pseudonym";
@@ -60,10 +60,8 @@ public class Informa {
 					else if(value instanceof Set) {
 						Iterator i = ((Set<?>) value).iterator();
 						JSONArray j = new JSONArray();
-						while(i.hasNext()) {
+						while(i.hasNext())
 							j.put(((InformaZipper) i.next()).zip());
-							
-						}
 						this.put(f.getName(), j);
 					} else
 						this.put(f.getName(), value);
@@ -71,39 +69,6 @@ public class Informa {
 			}
 			return this;
 		}
-	}
-	
-	private class InformaDatabaseHelper extends SQLiteOpenHelper {
-		private static final String DATABASE_NAME = "informa.db";
-		private static final int DATABASE_VERSION = 1;
-		
-		public InformaDatabaseHelper(Context c) {
-			super(c, DATABASE_NAME, null, DATABASE_VERSION);
-		}
-
-		@Override
-		public void onCreate(SQLiteDatabase db) {
-			for(String query : QueryBuilders.INIT.build())
-				db.execSQL(query);
-		}
-		
-		@Override
-		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
-	}
-	
-	public enum QueryBuilders {
-		INIT() {
-			@Override
-			public String[] build() {
-				return new String[] {
-					"CREATE TABLE " + INFORMA_IMAGES + " (" + BaseColumns._ID + " integer primary key autoincrement, informa blob not null)",
-					"CREATE TABLE " + INFORMA_CONTACTS + " (" + BaseColumns._ID + " integer primary key autoincrement, pseudonym text not null)",
-					"CREATE TABLE " + IRDB + " (" + BaseColumns._ID + " integer primary key autoincrement, unredacted blob not null, redacted blob not null)"
-				};
-			}
-		};
-		
-		public abstract String[] build();
 	}
 	
 	public class Intent extends InformaZipper {
@@ -277,15 +242,34 @@ public class Informa {
 	}
 	
 	public Informa(Context c, JSONObject imageData, JSONArray regionData, JSONArray capturedEvents) throws Exception {
-		_c = c;
-		//idh = new InformaDatabaseHelper(_c);
-		
-		//SQLiteDatabase.loadLibs(_c);
-		//db = idh.getWritableDatabase(pw);
-		
 		init(imageData, regionData, capturedEvents);
-		renderAsJson();
-		//renderToDatabase();
+		JSONObject informa = renderAsJson();
+		
+		_c = c;
+		odh = new ObscuraDatabaseHelper(_c);
+		SQLiteDatabase.loadLibs(_c);
+		db = odh.getWritableDatabase(pw);
+		
+		// push blob to informa_images
+		odh.setTable(TABLES.INFORMA_IMAGES);
+		ContentValues cv = new ContentValues();
+		cv.put("informa", informa.toString());
+		db.insert(odh.getTable(), null, cv);
+		
+		// push subjects to informa_subjects
+		odh.setTable(TABLES.INFORMA_CONTACTS);
+		
+		
+		// close DB connection
+		db.close();
+		odh.close();
+		
+		// TODO: insert blob into jpeg via jpegredaction library
+		
+		// TODO: save to obscura database
+		
+		// TODO: encrypt to destination and save
+		
 	}
 	
 	private void init(JSONObject imageData, JSONArray regionData, JSONArray capturedEvents) throws JSONException {
@@ -344,7 +328,6 @@ public class Informa {
 						locationOnGeneration.put("cellId", phone.getString("cellId"));
 						
 						imageRegion.put("locationOnGeneration", locationOnGeneration);
-						Log.d(ObscuraApp.TAG, "region: " + imageRegion.toString());			
 						data.imageRegions.add(new ImageRegion(imageRegion));			
 					}
 				}
@@ -361,16 +344,6 @@ public class Informa {
 		sourceObject.put("geneaology", geneaology.zip());
 		sourceObject.put("data", data.zip());
 		Log.d(ObscuraApp.TAG, "INFORMA READOUT ****************\n" + sourceObject.toString());
-		
 		return sourceObject;
-	}
-	
-	public long renderToDatabase() throws Exception {		
-		ContentValues cv = new ContentValues();
-		cv.put("hash", "yx0-xys");
-		cv.put("content", this.renderAsJson().toString());
-		cv.put("ts", this.geneaology.dateCreated);
-		
-		return db.insert(INFORMA_IMAGES, null, cv);
 	}
 }

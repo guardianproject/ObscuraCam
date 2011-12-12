@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World</string>
     <string name="app_name">ObscuraCam</string>
     <string name="app_name_label">Obscura Cam</string>
     <string name="image_preview">ObscuraCam Image Preview</string>
@@ -77,4 +76,18 @@
 	
 	<string name="yes">Yes</string>
 	<string name="no">No</string>
+	
+	<string name="ok">OK</string>	
+	<string name="save">Save</string>
+
+	<string name="informaPref_label">Informa Preferences</string>
+	<string name="informaPref_dbpw">Database Password</string>
+	<string name="informaPref_dbpw_sum">Set your password to your encrypted media database:</string>
+	<string name="informaPref_destKeys">Trusted Destinations</string>
+	<string name="informaPref_destKeys_sum">Add/Edit trusted destinations for your encrypted media:</string>
+	<string name="informaPref_destKeys_add">Add new trusted destination</string>
+	<string name="informaPref_destKeys_notfound">Could not find APG key with this email address.</string>
+	<string name="informaPrefs_newkey_label">New Trusted Destination</string>
+	<string name="informaPrefs_keyalias">Destination Name:</string>
+	<string name="informaPrefs_keyemail">Destination Email:</string>
 </resources>
