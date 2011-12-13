@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#000000"
+    android:weightSum="1.0" >
+    <TextView
+        android:text="Choose a Trusted Destination"
+        android:layout_width="fill_parent"
+        android:layout_height="0dip"
+        android:textSize="24dp"
+    	android:layout_weight="0.1" />
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="0dip"
+        android:layout_weight="0.8">
+    	<ListView
+    	    android:layout_width="fill_parent"
+    	    android:layout_height="wrap_content"
+    	    android:id="@+id/keyChooser" />    
+    </ScrollView>
+    <Button
+        android:layout_width="fill_parent"
+        android:layout_height="0dip"
+        android:layout_weight="0.1"
+        android:id="@+id/keyChooser_ok"
+        android:text="@string/ok" />
+</LinearLayout>

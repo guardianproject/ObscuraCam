@@ -1,5 +1,7 @@
 package org.witness.securesmartcam;
 
+import info.guardianproject.database.sqlcipher.SQLiteDatabase;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,9 +10,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -21,11 +25,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.witness.informa.InformaEditor;
+import org.witness.informa.InformaKeyChooser;
+import org.witness.informa.utils.InformaDestKeysList.DestKeyManager;
 import org.witness.informa.utils.SensorLogger;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.ConsentTagger;
 import org.witness.securesmartcam.filters.MaskObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
+import org.witness.securesmartcam.io.ObscuraDatabaseHelper;
+import org.witness.securesmartcam.io.ObscuraDatabaseHelper.TABLES;
 import org.witness.securesmartcam.jpegredaction.JpegRedaction;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
@@ -38,6 +46,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -62,11 +71,13 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
 import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.view.Display;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -79,6 +90,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -102,6 +114,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	// Constants for Informa
 	public final static int FROM_INFORMA = 100;
+	public final static int FROM_KEY_CHOOSER = 101;
 	public final static String LOG = "[Image Editor ********************]";
 
 	// Image Matrix
@@ -203,6 +216,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     // Keep track of the orientation
     private int originalImageOrientation = ExifInterface.ORIENTATION_NORMAL;    
 
+    ObscuraDatabaseHelper odh;
+    SQLiteDatabase db;
    
 
 	 private class mAutoDetectTask extends AsyncTask<Integer, Integer, Long> {
@@ -1510,6 +1525,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			}
 
     	}
+    	
+    	
 
 		// force mediascanner to update file
 		MediaScannerConnection.scanFile(
@@ -1522,26 +1539,43 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		t.show();
 
 		mProgressDialog.cancel();
-
-		showDeleteOriginalDialog ();
 		
-		// send all data to informa...
-		JSONArray irRepresentation = new JSONArray();
-		Iterator<ImageRegion> i = imageRegions.iterator();
-		while(i.hasNext())
-			try {
-				irRepresentation.put(i.next().getRepresentation());
-			} catch (JSONException e) {}
+
+		// Open secure databse
+		SharedPreferences _sp = PreferenceManager.getDefaultSharedPreferences(this);
+		SQLiteDatabase.loadLibs(this);
+    	odh = new ObscuraDatabaseHelper(this);
+    	db = odh.getWritableDatabase(_sp.getString("informaPref_dbpw", ""));
+    	
+		// get available keys
+		if(_sp.getString("informaPref_destKeys", "").compareTo("") != 0) {
+			odh.setTable(db, TABLES.INFORMA_PREFERENCES);
+			
+			Cursor c = db.query(odh.getTable(), null, null, null, null, null, null);
+			if(c != null && c.getCount() > 0) {
+				c.moveToFirst();
+				String destKeys = c.getString(1);
+				c.close();
+				db.close();
+				odh.close();
 				
-		sendBroadcast(new Intent()
-			.setAction(ObscuraApp.SEAL_LOG)
-			.putExtra("newImagePath", pullPathFromUri(savedImageUri))
-			.putExtra("regionData", irRepresentation.toString()));
+				startActivityForResult(new Intent(
+						this, InformaKeyChooser.class)
+						.putExtra("destKeys", destKeys
+					), FROM_KEY_CHOOSER);
+			}
+			return true;
+		}
+		
+		showDeleteOriginalDialog();
+		
+		// TODO: save image to db as well...
+		
+		db.close();
+		odh.close();
 		
 		// shut down the service
-		sendBroadcast(new Intent()
-			.setAction(ObscuraApp.STOP_SUCKING));
-
+		sendBroadcast(new Intent().setAction(ObscuraApp.STOP_SUCKING));
 		return true;
     }
     
@@ -1627,6 +1661,37 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     			
     			imageRegions.get(data.getIntExtra("irIndex", 0)).getRegionProcessor().setProperties(mProp);
     			    			
+    		} else if(requestCode == FROM_KEY_CHOOSER) {
+    			// send all data to informa...
+    			long[] encryptTo = new long[] {};
+    			
+    			if(data.hasExtra("selectedKeys"))
+    				encryptTo = data.getLongArrayExtra("selectedKeys");
+    			
+    			JSONArray irRepresentation = new JSONArray();
+    			Iterator<ImageRegion> i = imageRegions.iterator();
+    			while(i.hasNext())
+    				try {
+    					irRepresentation.put(i.next().getRepresentation());
+    				} catch (JSONException e) {}
+    			
+    			
+    			
+    			// TODO: save image to db as well...
+    			
+    			db.close();
+    			odh.close();
+    			
+    			// shut down the service
+    			sendBroadcast(new Intent().setAction(ObscuraApp.STOP_SUCKING));
+    			
+    			sendBroadcast(new Intent()
+    				.setAction(ObscuraApp.SEAL_LOG)
+    				.putExtra("newImagePath", pullPathFromUri(savedImageUri))
+    				.putExtra("regionData", irRepresentation.toString())
+    				.putExtra("encryptTo", encryptTo));
+    			
+    			showDeleteOriginalDialog();
     		}
     	}
     }

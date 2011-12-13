@@ -210,7 +210,6 @@ public class InformaPreferences extends Activity implements OnClickListener {
 		
 		ad = b.create();
 		ad.show();
-		
 	}
 	
 	

@@ -9,6 +9,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageButton;
@@ -47,29 +48,16 @@ public class InformaDestKeysList extends BaseAdapter {
 		view = li.inflate(R.layout.informa_destkeys, null);
 		
 		TextView label = (TextView) view.findViewById(R.id.destKey_label);
-		ImageButton edit = (ImageButton) view.findViewById(R.id.destKey_edit);
-		edit.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				// Change name
-				
-			}
-			
-		});
-		
-		ImageButton delete = (ImageButton) view.findViewById(R.id.destKey_delete);
-		delete.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				
-				
-			}
-			
-		});
-		
 		label.setText(keys.get(item).alias);
+		label.setOnLongClickListener(new OnLongClickListener() {
+
+			@Override
+			public boolean onLongClick(View v) {
+				
+				return false;
+			}
+			
+		});
 		
 		return view;
 	}

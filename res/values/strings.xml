@@ -79,6 +79,8 @@
 	
 	<string name="ok">OK</string>	
 	<string name="save">Save</string>
+	<string name="signWithInforma">Encrypt this image to a trusted destination below:</string>
+	<string name="doNotEncrypt">Do Not Encrypt</string>
 
 	<string name="informaPref_label">Informa Preferences</string>
 	<string name="informaPref_dbpw">Database Password</string>

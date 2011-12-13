@@ -114,13 +114,14 @@ public class SensorSucker extends Service {
 		capturedEvents.put(captureEventData);
 	}
 	
-	private void sealLog(String imageRegionData, String localMediaPath) throws Exception {
+	private void sealLog(String imageRegionData, String localMediaPath, long[] encryptTo) throws Exception {
 		imageData.put("localMediaPath", localMediaPath);
 		imageData.put("sourceType", 101);
 		
 		imageRegions = (JSONArray) new JSONTokener(imageRegionData).nextValue();
 		
 		Informa informa = new Informa(imageData, imageRegions, capturedEvents);
+		Log.d(ObscuraApp.TAG, "also we are encypting to " + encryptTo.toString() + " (length: " + encryptTo.length + ")");
 	}
 	
 	public class Broadcaster extends BroadcastReceiver {
@@ -145,7 +146,7 @@ public class SensorSucker extends Service {
 				} else if(BluetoothDevice.ACTION_FOUND.equals(i.getAction())) {
 					handleBluetooth((BluetoothDevice) i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
 				} else if(ObscuraApp.SEAL_LOG.equals(i.getAction())) {
-					sealLog(i.getStringExtra("regionData"), i.getStringExtra("newImagePath"));
+					sealLog(i.getStringExtra("regionData"), i.getStringExtra("newImagePath"), i.getLongArrayExtra("encryptTo"));
 				} else if(ObscuraApp.SET_CURRENT.equals(i.getAction())) {
 					captureEventData(
 							i.getLongExtra("timestampToMatch", 0L),
