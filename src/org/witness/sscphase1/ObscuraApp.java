@@ -52,12 +52,18 @@ public class ObscuraApp extends Activity implements OnClickListener {
 		public static final int LocationOnMediaSaved = 10;
 		public static final int LocationOnGeneration = 11;
 	}
+	
+	public final static class SECURITY_LEVELS {
+		public static final int UnencryptedSharable = 100;
+		public static final int UnencryptedNotSharable = 101;
+	}
 		
 	final static int CAMERA_RESULT = 0;
 	final static int GALLERY_RESULT = 1;
 	final static int IMAGE_EDITOR = 2;
 	
 	final static int ABOUT = 0;
+	final static int TO_PREFS = 1;
 	
 	final static String CAMERA_TMP_FILE = "ssctmp.jpg";
 	
@@ -304,9 +310,12 @@ public class ObscuraApp extends Activity implements OnClickListener {
     public boolean onCreateOptionsMenu(Menu menu) {
 		
 		String aboutString = "About ObscuraCam";
+		String prefsString = "Informa Preferences";
 		
     	MenuItem aboutMenuItem = menu.add(Menu.NONE, ABOUT, Menu.NONE, aboutString);
     	aboutMenuItem.setIcon(R.drawable.ic_menu_about);
+    	
+    	MenuItem prefsMenuItem = menu.add(Menu.NONE, TO_PREFS, Menu.NONE, prefsString);
     	
     	
     	return true;
@@ -317,7 +326,9 @@ public class ObscuraApp extends Activity implements OnClickListener {
         	case ABOUT:
         		displayAbout();
         		return true;
-        		
+        	case TO_PREFS:
+        		startActivity(new Intent(this, InformaPreferences.class));
+        		return true;
         	default:
         		
         		return false;

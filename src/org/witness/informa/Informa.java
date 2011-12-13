@@ -1,10 +1,6 @@
 package org.witness.informa;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -14,33 +10,15 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.witness.securesmartcam.io.ObscuraDatabaseHelper;
-import org.witness.securesmartcam.io.ObscuraDatabaseHelper.TABLES;
 import org.witness.sscphase1.ObscuraApp;
 
-import android.database.Cursor;
-import android.provider.BaseColumns;
 import android.util.Log;
-import android.content.ContentValues;
-import android.content.Context;
-import info.guardianproject.database.sqlcipher.SQLiteDatabase;
-import info.guardianproject.database.sqlcipher.SQLiteOpenHelper;
 
 public class Informa {
 	public Intent intent;
 	public Geneaology geneaology;
 	public Data data;
-	
-	private SQLiteDatabase db;
-	private String pw = "lalala123"; // we will fix this later...
-	private Context _c;
-	
-	private ObscuraDatabaseHelper odh;
-	
-	private static final String UNREDACTED = "unredacted";
-	private static final String REDACTED = "redacted";
-	private static final String PSEUDONYM = "pseudonym";
-	
+		
 	private class InformaZipper extends JSONObject {
 		Field[] fields;
 		
@@ -241,28 +219,9 @@ public class Informa {
 		}
 	}
 	
-	public Informa(Context c, JSONObject imageData, JSONArray regionData, JSONArray capturedEvents) throws Exception {
+	public Informa(JSONObject imageData, JSONArray regionData, JSONArray capturedEvents) throws Exception {
 		init(imageData, regionData, capturedEvents);
 		JSONObject informa = renderAsJson();
-		
-		_c = c;
-		odh = new ObscuraDatabaseHelper(_c);
-		SQLiteDatabase.loadLibs(_c);
-		db = odh.getWritableDatabase(pw);
-		
-		// push blob to informa_images
-		odh.setTable(TABLES.INFORMA_IMAGES);
-		ContentValues cv = new ContentValues();
-		cv.put("informa", informa.toString());
-		db.insert(odh.getTable(), null, cv);
-		
-		// push subjects to informa_subjects
-		odh.setTable(TABLES.INFORMA_CONTACTS);
-		
-		
-		// close DB connection
-		db.close();
-		odh.close();
 		
 		// TODO: insert blob into jpeg via jpegredaction library
 		

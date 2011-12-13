@@ -1,9 +1,14 @@
 package org.witness.securesmartcam.io;
 
+import org.witness.sscphase1.ObscuraApp;
+
 import android.content.Context;
+import android.database.Cursor;
 import android.provider.BaseColumns;
+import android.util.Log;
 import info.guardianproject.database.sqlcipher.SQLiteDatabase;
 import info.guardianproject.database.sqlcipher.SQLiteDatabase.CursorFactory;
+import info.guardianproject.database.sqlcipher.SQLiteException;
 import info.guardianproject.database.sqlcipher.SQLiteOpenHelper;
 
 public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
@@ -17,7 +22,7 @@ public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
 		public static final String INFORMA_PREFERENCES = "informaPreferences";
 	};
 	
-	private String TABLE;
+	public static String TABLE;
 	
 	public enum QueryBuilders {
 		INIT_INFORMA() {
@@ -25,7 +30,12 @@ public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
 			public String[] build() {
 				return new String[] {
 					"CREATE TABLE " + TABLES.INFORMA_IMAGES + " (" + BaseColumns._ID + " integer primary key autoincrement, informa blob not null)",
-					"CREATE TABLE " + TABLES.INFORMA_CONTACTS + " (" + BaseColumns._ID + " integer primary key autoincrement, pseudonym text not null)"
+					"CREATE TABLE " + TABLES.INFORMA_CONTACTS + " (" + BaseColumns._ID + " integer primary key autoincrement, pseudonym text not null)",
+					"CREATE TABLE " + TABLES.INFORMA_PREFERENCES + "(" + BaseColumns._ID + " " +
+							"integer primary key autoincrement, " +
+							"destinationKeys blob not null, " + 
+							"defaultSecurityLevel integer not null" +
+							")"
 				};
 			}
 		},
@@ -38,18 +48,16 @@ public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
 				};
 			}
 		},
-		INIT_PREFS() {
+		CHECK_IF() {
 			@Override
 			public String[] build() {
 				return new String[] {
-					"CREATE TABLE " + TABLES.INFORMA_PREFERENCES + "(" + BaseColumns._ID + " " +
-					"integer primary key autoincrement, " +
-					"destinationKeys blob not null, " + 
-					"defaultSecurityLevel integer not null" +
-					")"	
+					"SELECT DISTINCT tbl_name FROM sqlite_master WHERE tbl_name= '" + TABLE + "'" 
 				};
 			}
 		};
+		
+		
 		
 		
 		public abstract String[] build();
@@ -61,10 +69,7 @@ public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
 	}
 
 	@Override
-	public void onCreate(SQLiteDatabase db) {
-		
-		
-	}
+	public void onCreate(SQLiteDatabase db) {}
 	
 	private void passwordMunger(String password) {
 		// TODO: takes the password and encrypts it using a shallow method, 
@@ -72,8 +77,27 @@ public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
 		
 	}
 	
-	public void setTable(String whichTable) {
+	public boolean setTable(SQLiteDatabase db, String whichTable) {
 		TABLE = whichTable;
+		
+		Cursor c = db.rawQuery(QueryBuilders.CHECK_IF.build()[0], null);
+		if(c != null && c.getCount() > 0) {
+			c.close();
+			return true;
+		} else {
+			c.close();
+			String[] queries = null;
+			if(
+				getTable().compareTo(TABLES.INFORMA_CONTACTS) == 0 ||
+				getTable().compareTo(TABLES.INFORMA_IMAGES) == 0 ||
+				getTable().compareTo(TABLES.INFORMA_PREFERENCES) == 0
+			)
+				queries = QueryBuilders.INIT_INFORMA.build();
+		
+			for(String q : queries)
+				db.execSQL(q);
+		}
+		return false;
 	}
 	
 	public String getTable() {

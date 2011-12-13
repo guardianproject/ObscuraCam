@@ -1,5 +1,7 @@
 package org.witness.informa;
 
+import info.guardianproject.database.sqlcipher.SQLiteDatabase;
+
 import java.util.ArrayList;
 
 import org.json.JSONArray;
@@ -9,15 +11,19 @@ import org.witness.informa.utils.InformaDestKeysList;
 import org.witness.informa.utils.InformaDestKeysList.DestKeyManager;
 import org.witness.informa.utils.secure.Apg;
 import org.witness.securesmartcam.io.ObscuraDatabaseHelper;
+import org.witness.securesmartcam.io.ObscuraDatabaseHelper.TABLES;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.BaseColumns;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,11 +44,13 @@ public class InformaPreferences extends Activity implements OnClickListener {
 	
 	Button ok, informaPref_destKeys_add;
 	EditText pwd;
-	boolean canSave = false;
+	boolean canSave;
+	int hasEntries;
 	AlertDialog ad;
 	
 	Apg apg;
 	ObscuraDatabaseHelper odh;
+	SQLiteDatabase db;
 	
 	public static final String LOG = "[InformaPrefs **********************]";
 	
@@ -52,6 +60,11 @@ public class InformaPreferences extends Activity implements OnClickListener {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
 		setContentView(R.layout.informapreferences);
+		
+		canSave = false;
+		hasEntries = 0;
+		
+		SQLiteDatabase.loadLibs(this);
 		
 		ok = (Button) findViewById(R.id.informaPref_OK);
 		ok.setOnClickListener(this);
@@ -72,22 +85,34 @@ public class InformaPreferences extends Activity implements OnClickListener {
 		} else {
 			odh = new ObscuraDatabaseHelper(this);
 			
-			if(_sp.getString("informaPref_dbpw", "").compareTo("") == 0) {
-				// we do not have a password.  we cannot do a thing yet.
-				
-			} else {
+			if(_sp.getString("informaPref_dbpw", "").compareTo("") != 0) {
 				canSave = true;
-				odh.getWritableDatabase(_sp.getString("informaPref_dbpw", ""));
+				pwd.setText(_sp.getString("informaPref_dbpw", ""));
+				db = odh.getWritableDatabase(_sp.getString("informaPref_dbpw", ""));
 			}
 			
 			if(_sp.getString("informaPref_destKeys", "").compareTo("") == 0) {
 				keyObj = new JSONArray();
-				// user has no destination keys... launch apg to select some
 			} else {
 				if(canSave) {
-				// load keys from database
+					odh.setTable(db, TABLES.INFORMA_PREFERENCES);
+					Cursor c = db.query(odh.getTable(), null, null, null, null, null, null);
+					if(c != null && c.getCount() > 0) {
+						c.moveToFirst();
+						_ed.putInt("informaPref_defaultSecurityLevel", c.getInt(2)).commit();
+						try {
+							JSONObject jo = new JSONObject(c.getString(1));
+							keyObj = jo.getJSONArray("destKeys");
+														
+							for(int x = 0;x< keyObj.length(); x++) {
+								JSONObject k = keyObj.getJSONObject(x);
+								keys.add(new DestKeyManager(k.getString("alias"), k.getString("email"), Long.parseLong(k.getString("key"))));
+							}
+							hasEntries = c.getCount();
+						} catch (JSONException e) {}
+					}
+					c.close();
 				} else {
-					// we have never seen the database before
 					keyObj = new JSONArray();
 				}
 			}
@@ -105,8 +130,38 @@ public class InformaPreferences extends Activity implements OnClickListener {
 			keyArray.put(key);
 		
 		destKeys.put("destKeys", keyArray);
-		// TODO: LOG TO DATABASE
-		Log.d(ObscuraApp.TAG, destKeys.toString());
+		
+		// LOG TO DATABASE
+		if(!canSave) {
+			if(pwd.getText().toString().length() < 1) {
+				Toast.makeText(
+					this,
+					getString(R.string.informaPref_dbpw_notfound), 
+					Toast.LENGTH_LONG)
+					.show();
+				return;
+			} else {
+				canSave = true;
+				_ed.putString("informaPref_dbpw", pwd.getText().toString()).commit();
+				db = odh.getWritableDatabase(_sp.getString("informaPref_dbpw", ""));
+			}
+			
+		}
+		
+		odh.setTable(db, TABLES.INFORMA_PREFERENCES);
+		
+		ContentValues cv = new ContentValues();
+		cv.put("destinationKeys", destKeys.toString());
+		cv.put("defaultSecurityLevel", _sp.getInt("informaPref_defaultSecurityLevel", ObscuraApp.SECURITY_LEVELS.UnencryptedSharable));
+		
+		if(hasEntries == 0)
+			db.insert(odh.getTable(), null, cv);
+		else
+			db.update(odh.getTable(), cv, BaseColumns._ID + "=?", new String[] { "1" });
+		
+		_ed.putString("informaPref_destKeys", "saved " + System.currentTimeMillis()).commit();
+
+		this.finish();
 	}
 	
 	public void chooseNewDestinationKey() {
@@ -158,15 +213,12 @@ public class InformaPreferences extends Activity implements OnClickListener {
 		
 	}
 	
+	
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		
-		if(
-			requestCode == Apg.SELECT_PUBLIC_KEYS
-		) {
-			Log.d(ObscuraApp.TAG, "got public key!\n" + data.toString());
-		}
+	protected void onPause() {		
+		db.close();
+		odh.close();
+		super.onPause();
 	}
 
 	@Override

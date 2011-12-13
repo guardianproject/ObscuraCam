@@ -120,7 +120,7 @@ public class SensorSucker extends Service {
 		
 		imageRegions = (JSONArray) new JSONTokener(imageRegionData).nextValue();
 		
-		Informa informa = new Informa(getApplicationContext(), imageData, imageRegions, capturedEvents);
+		Informa informa = new Informa(imageData, imageRegions, capturedEvents);
 	}
 	
 	public class Broadcaster extends BroadcastReceiver {

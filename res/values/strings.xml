@@ -83,6 +83,7 @@
 	<string name="informaPref_label">Informa Preferences</string>
 	<string name="informaPref_dbpw">Database Password</string>
 	<string name="informaPref_dbpw_sum">Set your password to your encrypted media database:</string>
+	<string name="informaPref_dbpw_notfound">You haven\'t set a password for the database yet.</string>
 	<string name="informaPref_destKeys">Trusted Destinations</string>
 	<string name="informaPref_destKeys_sum">Add/Edit trusted destinations for your encrypted media:</string>
 	<string name="informaPref_destKeys_add">Add new trusted destination</string>
