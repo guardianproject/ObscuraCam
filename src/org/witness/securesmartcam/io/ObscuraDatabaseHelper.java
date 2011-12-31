@@ -19,6 +19,7 @@ public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
 		public static final String INFORMA_IMAGES = "informaImages";
 		public static final String INFORMA_CONTACTS = "informaContacts";
 		public static final String OBSCURA = "obscura";
+		public static final String OBSCURA_BITS = "obscuraBits";
 		public static final String INFORMA_PREFERENCES = "informaPreferences";
 	};
 	
@@ -43,8 +44,8 @@ public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
 			@Override
 			public String[] build() {
 				return new String[] {
-					// TODO: i don't know how we construct this table yet...
-					"CREATE TABLE " + TABLES.OBSCURA + " (" + BaseColumns._ID + ""	
+					"CREATE TABLE " + TABLES.OBSCURA + " (" + BaseColumns._ID + " integer primary key autoincrement, imageHash text not null, containmentArray blob not null, metadata blob not null)",
+					"CREATE TABLE " + TABLES.OBSCURA_BITS + " (" + BaseColumns._ID + " integer primary key autoincrement, hash text not null, data blob not null)"
 				};
 			}
 		},
@@ -56,9 +57,6 @@ public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
 				};
 			}
 		};
-		
-		
-		
 		
 		public abstract String[] build();
 	}
@@ -93,6 +91,11 @@ public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
 				getTable().compareTo(TABLES.INFORMA_PREFERENCES) == 0
 			)
 				queries = QueryBuilders.INIT_INFORMA.build();
+			else if(
+				getTable().compareTo(TABLES.OBSCURA) == 0 ||
+				getTable().compareTo(TABLES.OBSCURA_BITS) == 0
+			)
+				queries = QueryBuilders.INIT_OBSCURA.build();
 		
 			for(String q : queries)
 				db.execSQL(q);

@@ -120,8 +120,7 @@ public class SensorSucker extends Service {
 		
 		imageRegions = (JSONArray) new JSONTokener(imageRegionData).nextValue();
 		
-		Informa informa = new Informa(imageData, imageRegions, capturedEvents);
-		Log.d(ObscuraApp.TAG, "also we are encypting to " + encryptTo.toString() + " (length: " + encryptTo.length + ")");
+		Informa informa = new Informa(getApplicationContext(), imageData, imageRegions, capturedEvents, encryptTo);
 	}
 	
 	public class Broadcaster extends BroadcastReceiver {
