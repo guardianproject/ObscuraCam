@@ -117,7 +117,7 @@ public class SensorSucker extends Service {
 	private void sealLog(String imageRegionData, String localMediaPath, long[] encryptTo) throws Exception {
 		imageData.put("localMediaPath", localMediaPath);
 		imageData.put("sourceType", 101);
-		
+				
 		imageRegions = (JSONArray) new JSONTokener(imageRegionData).nextValue();
 		
 		Informa informa = new Informa(getApplicationContext(), imageData, imageRegions, capturedEvents, encryptTo);
@@ -151,54 +151,11 @@ public class SensorSucker extends Service {
 							i.getLongExtra("timestampToMatch", 0L),
 							i.getIntExtra("eventType", ObscuraApp.CAPTURE_EVENTS.RegionGenerated)
 					);
+					
 				}
 			} catch (Exception e) {
 				Log.d(ObscuraApp.TAG, "************************** broadcast error: " + e);
 			}
-			
-			/*
-				try {
-					if(BluetoothDevice.ACTION_FOUND.equals(i.getAction())) {
-						JSONObject d = new JSONObject();
-						BluetoothDevice device = i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-						
-						d.put("btNeighborDeviceName", device.getName());
-						d.put("btNeighborDeviceAddress", device.getAddress());
-						
-						pushToSucker(_phone, d);
-					} else if(ObscuraApp.SEAL_LOG.equals(i.getAction())) {
-						sealLog(i.getStringExtra("regionData"));
-					} else if(ObscuraApp.CENTER_CAPTURE.equals(i.getAction())) {
-						_centerTS = i.getStringExtra(ObscuraApp.CENTER_CAPTURE);
-												
-						if((_geo.getLog() != null && _geo.getLog().length() > 0)) {
-							imageData = appendToArray(imageData, _geo.getLog());
-						}
-						
-						if((_phone.getLog() != null && _phone.getLog().length() > 0)) {
-							imageData = appendToArray(imageData, _phone.getLog());
-						}
-						
-						if((_acc.getLog() != null && _acc.getLog().length() > 0)) {
-							imageData = appendToArray(imageData, _acc.getLog());
-						}
-					} else if(ObscuraApp.SET_CURRENT.equals(i.getAction())) {
-						JSONObject imageRegionInit = new JSONObject();
-						imageRegionInit.put("timestamp", i.getLongExtra("timestampToMatch", 0L));
-						imageRegionInit.put("geo", _geo.returnCurrent());
-						imageRegionInit.put("phone", _phone.returnCurrent());
-						
-						storedRegionData.put(imageRegionInit);
-						Log.d(ObscuraApp.TAG, "init image region with: " + imageRegionInit.toString());
-					}
-				} catch(JSONException e) {} 
-				catch (SecurityException e) {}
-				catch (IllegalArgumentException e) {}
-				catch (NoSuchMethodException e) {}
-				catch (IllegalAccessException e) {}
-				catch (InvocationTargetException e) {}
-			}
-			*/
 		}
 			
 	}

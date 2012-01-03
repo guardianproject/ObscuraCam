@@ -10,7 +10,7 @@ extern "C" {
  * Method:	parseit
  * Signature:	()V
  */
-JNIEXPORT void JNICALL Java_org_witness_informa_utils_JpegParser_generateNewJpeg
+JNIEXPORT int JNICALL Java_org_witness_informa_utils_JpegParser_generateNewJpeg
 	(JNIEnv *, jobject, jstring, jstring, jstring, jint);
 
 

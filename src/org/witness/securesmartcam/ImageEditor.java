@@ -27,6 +27,7 @@ import org.json.JSONObject;
 import org.witness.informa.InformaEditor;
 import org.witness.informa.InformaKeyChooser;
 import org.witness.informa.utils.InformaDestKeysList.DestKeyManager;
+import org.witness.informa.utils.secure.Apg;
 import org.witness.informa.utils.SensorLogger;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.ConsentTagger;
@@ -1568,9 +1569,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 		
 		showDeleteOriginalDialog();
-		
-		// TODO: save image to db as well...
-		
+				
 		db.close();
 		odh.close();
 		
@@ -1674,10 +1673,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     				try {
     					irRepresentation.put(i.next().getRepresentation());
     				} catch (JSONException e) {}
-    			
-    			
-    			
-    			// TODO: save image to db as well...
     			
     			db.close();
     			odh.close();

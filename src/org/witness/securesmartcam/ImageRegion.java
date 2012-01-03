@@ -1,5 +1,10 @@
 package org.witness.securesmartcam;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import java.security.NoSuchAlgorithmException;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -12,6 +17,7 @@ import net.londatiga.android.QuickAction.OnActionItemClickListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.witness.informa.utils.secure.MediaHasher;
 import org.witness.securesmartcam.filters.BlurObscure;
 import org.witness.securesmartcam.filters.ConsentTagger;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
@@ -22,6 +28,7 @@ import org.witness.securesmartcam.filters.RegionProcesser;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
 
+import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -30,6 +37,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -120,6 +128,25 @@ public class ImageRegion implements OnActionItemClickListener
 			String prop = (String) e.nextElement();
 			representation.put(prop, mRProc.getProperties().get(prop));
 		}
+		
+		// appends original bitmap bytes as Base64-encoded string
+		if(mRProc.getBitmap() != null) {
+			
+    		ByteArrayOutputStream bs = new ByteArrayOutputStream();
+    		Bitmap b = mRProc.getBitmap();
+    		
+    		b.compress(Bitmap.CompressFormat.PNG, 50, bs);
+    		byte[] unredactedBytes = bs.toByteArray();
+    		
+    		Log.d(ObscuraApp.TAG, "got bitmap!\n" + bs.size());
+			//representation.put("unredacted", Base64.encodeToString(unredactedBytes, Base64.DEFAULT));
+    		try {
+				representation.put("unredacted", MediaHasher.hash(unredactedBytes, "MD5"));
+				
+			} catch (NoSuchAlgorithmException n) {}
+    		catch (IOException n) {}
+		} else
+			Log.d(ObscuraApp.TAG, "there is no bitmap here");
 		
 		return representation;
 	}
@@ -452,6 +479,9 @@ public class ImageRegion implements OnActionItemClickListener
                 	}
 	            	
                 }
+                
+                if(moved)
+                	this.mRProc.updateBitmap();
 
 				mImageEditor.updateDisplayImage();
 					

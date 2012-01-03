@@ -1,5 +1,6 @@
 package org.witness.informa.utils.secure;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -14,6 +15,11 @@ public class MediaHasher
 	public static String hash (File file, String hashFunction)  throws IOException, NoSuchAlgorithmException
 	{
 		return hash (new FileInputStream(file), hashFunction);
+	}
+	
+	public static String hash (byte[] bytes, String hashFunction) throws NoSuchAlgorithmException, IOException
+	{
+		return hash (new ByteArrayInputStream(bytes), hashFunction);
 	}
 	
 	public static String hash (InputStream is, String hashFunction) throws IOException, NoSuchAlgorithmException

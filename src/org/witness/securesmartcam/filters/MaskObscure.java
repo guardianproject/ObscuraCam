@@ -12,6 +12,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.witness.sscphase1.ObscuraApp;
+
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -23,7 +25,8 @@ import android.util.Log;
 
 public class MaskObscure implements RegionProcesser {
 
-	Bitmap _bitmap;
+	Bitmap _bitmap, unredactedBmp;
+	boolean unredactedBmpSet;
 	Paint _painter;
 	Context _context;
 	
@@ -39,11 +42,25 @@ public class MaskObscure implements RegionProcesser {
 		mProps.put("obfuscationType", this.getClass().getName());
 		
 		mProps.put("timestampOnGeneration", new Date().getTime());
+		unredactedBmpSet = false;
 	}
 	
 	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitmap) {
 	
-		_bitmap = bitmap;		
+		_bitmap = bitmap;
+		
+		if(!unredactedBmpSet) {
+			unredactedBmp = Bitmap.createBitmap(
+					bitmap, 
+					(int) rect.left, 
+					(int) rect.top,
+					(int) Math.min(bitmap.getWidth(),(Math.abs(rect.left - rect.right))), 
+					(int) Math.min(bitmap.getHeight(), (Math.abs(rect.top - rect.bottom)))
+				);
+			unredactedBmpSet = true;
+			Log.d(ObscuraApp.TAG, "this is where the bitmap is set.");
+		} else
+			Log.d(ObscuraApp.TAG, "nope, original bmp already set.");
 		
 		try
 		{
@@ -84,8 +101,13 @@ public class MaskObscure implements RegionProcesser {
 
 	@Override
 	public Bitmap getBitmap() {
-		// TODO Auto-generated method stub
-		return null;
+		return unredactedBmp;
+	}
+
+	@Override
+	public void updateBitmap() {
+		unredactedBmpSet = false;
+		
 	}
 }
 

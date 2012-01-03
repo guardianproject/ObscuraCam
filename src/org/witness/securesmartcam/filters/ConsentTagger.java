@@ -15,7 +15,8 @@ import android.util.Log;
 public class ConsentTagger implements RegionProcesser
 {
 	Properties mProps;
-	private Bitmap mPreview;
+	private Bitmap mPreview, unredactedBmp;
+	boolean unredactedBmpSet;
 	
 	public ConsentTagger ()
 	{
@@ -37,6 +38,7 @@ public class ConsentTagger implements RegionProcesser
 		mProps.put("regionHeight", Integer.toString((int) Math.abs(rect.top - rect.bottom)));		
 		mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
 		mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
+		
 		mPreview = Bitmap.createBitmap(
 				bitmap, 
 				(int) rect.left, 
@@ -54,6 +56,10 @@ public class ConsentTagger implements RegionProcesser
 	public void setProperties(Properties props)
 	{
 		mProps = props;
+	}
+	
+	public void updateBitmap() {
+		unredactedBmpSet = false;
 	}
 
 	@Override

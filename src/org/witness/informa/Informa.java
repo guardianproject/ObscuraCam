@@ -29,10 +29,12 @@ import org.json.JSONObject;
 import org.witness.informa.utils.JpegParser;
 import org.witness.informa.utils.secure.Apg;
 import org.witness.informa.utils.secure.MediaHasher;
+import org.witness.securesmartcam.ImageEditor;
 import org.witness.securesmartcam.io.ObscuraDatabaseHelper;
 import org.witness.securesmartcam.io.ObscuraDatabaseHelper.TABLES;
 import org.witness.sscphase1.ObscuraApp;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -209,7 +211,7 @@ public class Informa {
 		CaptureTimestamp captureTimestamp;
 		Location location;
 		
-		public String obfuscationType;
+		public String obfuscationType, unredactedRegion;
 		JSONObject regionDimensions, regionCoordinates;
 		
 		Subject subject;
@@ -222,6 +224,11 @@ public class Informa {
 					ObscuraApp.LOCATION_TYPES.LocationOnGeneration, ir.getJSONObject("locationOnGeneration"));
 			this.obfuscationType = ir.getString("obfuscationType");
 			
+			if(ir.has("unredacted"))
+				this.unredactedRegion = ir.getString("unredacted");
+			else
+				this.unredactedRegion = null;
+			
 			this.regionDimensions = new JSONObject();
 			this.regionDimensions.put("width", Float.parseFloat(ir.getString("regionWidth")));
 			this.regionDimensions.put("height", Float.parseFloat(ir.getString("regionHeight")));
@@ -231,7 +238,6 @@ public class Informa {
 			this.regionCoordinates = new JSONObject();
 			this.regionCoordinates.put("top", Float.parseFloat(rCoords[0]));
 			this.regionCoordinates.put("left", Float.parseFloat(rCoords[1]));
-			
 			
 			if(ir.has("regionSubject")) {
 				this.subject = new Subject(
@@ -250,12 +256,18 @@ public class Informa {
 		// initialize the jpegRedaction lib, the db and apg
 		SQLiteDatabase.loadLibs(c);
 		SharedPreferences _sp = PreferenceManager.getDefaultSharedPreferences(c);
+		
 		apg = Apg.getInstance();
 		
+		// look up intended destinations, and send this as a stringified JSONArray
+		JSONArray encArray = new JSONArray();
 		
+		for(int x=0;x<encryptTo.length; x++) {
+			String destEmail = apg.getUserId(c, encryptTo[x]); 
+			encArray.put(destEmail.substring(destEmail.indexOf("<") + 1, destEmail.indexOf(">")));
+		}
 		
-		
-		image = init(imageData, regionData, capturedEvents);
+		image = init(imageData, regionData, capturedEvents, encArray.toString());
 		if(image != null) {
 			odh = new ObscuraDatabaseHelper(c);
 			db = odh.getWritableDatabase(_sp.getString("informaPref_dbpw", ""));
@@ -264,18 +276,28 @@ public class Informa {
 			String imageHash = MediaHasher.hash(image, "MD5");	
 			data.imageHash = imageHash;
 			
-			JSONObject informaMetadata = renderAsJson();
-			JpegParser jpegParser = new JpegParser(image.getAbsolutePath(), informaMetadata);
+			JpegParser jpegParser = new JpegParser(image.getAbsolutePath(), renderAsJson());
 			
+			try {
+				String informaImage = jpegParser.getInformaFileName();
+				
+				// encrypt saved version on SDCard
+				File returnedImage = new File(informaImage);
+				parcelizeImage(returnedImage, jpegParser.getInformaMetadata());
+				
+				// delete image on the SDCard
+				
+				// encrypt new image to intended destination
+				
+				
+			} catch(NullPointerException e) {
+				Log.d(ObscuraApp.TAG, "sorry, the image is non-existent");
+			}
 			
-			//GZIPOutputStream gzip = parcelizeImage(image, imageHash, informaMetadata);
-			
-			
-			// encrypt saved version on SDCard
 		}
 	}
 	
-	private GZIPOutputStream parcelizeImage(File img, String imageHash, JSONObject metadata) throws IOException, NoSuchAlgorithmException {
+	private long parcelizeImage(File img, JSONObject metadata) throws IOException, NoSuchAlgorithmException {
 		// takes the output (from JpegRedaction ultimately, but any jpeg will do)
 		InputStream is = new FileInputStream(img);		
 		final int BLOB_MAX = 1048576;
@@ -320,36 +342,21 @@ public class Informa {
 		// insert list of hashes into obscura db
 		odh.setTable(db, TABLES.OBSCURA);
 		ContentValues cv = new ContentValues();
-		cv.put("imageHash", imageHash);
+		cv.put("imageHash", data.imageHash);
 		cv.put("containmentArray", containmentArray.toString());
 		cv.put("metadata", metadata.toString());
-		db.insert(odh.getTable(), null, cv);
 		
+		long success = db.insert(odh.getTable(), null, cv);
 		db.close();
 		odh.close();
 		
-		String zipName = imageHash + "_" + System.currentTimeMillis() + ".zip";
-		
-		// create an input stream from the file
-		ZipInputStream fZis = new ZipInputStream(is);
-		
-		// create an input stream from the jsonobj (as .json?)
-		byte[] mBytes = metadata.toString().getBytes();
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		
-		
-		
-		
-		
-		GZIPOutputStream gzip = new GZIPOutputStream(new FileOutputStream(imageHash + "_" + System.currentTimeMillis() + ".zip"));
-		
-		is.close();
-		return gzip;
+		return success;
 		
 	}
 	
-	private File init(JSONObject imageData, JSONArray regionData, JSONArray capturedEvents) throws JSONException {
+	private File init(JSONObject imageData, JSONArray regionData, JSONArray capturedEvents, String encryptTo) throws JSONException {
 		intent = new Intent();
+		intent.intendedDestination = encryptTo;
 		geneaology = new Geneaology(
 				imageData.getString("localMediaPath"),
 				new Date().getTime());
@@ -357,7 +364,6 @@ public class Informa {
 				imageData.getInt("sourceType"),
 				new Device((JSONObject) ((JSONObject) capturedEvents.get(0)).get("phone")));
 		
-
 		//geneaology.dateCreated = capturedEvents.getLong(2);
 		Log.d(ObscuraApp.TAG, "unifying region data...");
 		// associate the timestamp with the stored values here

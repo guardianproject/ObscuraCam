@@ -22,7 +22,7 @@
 #include <jni.h>
 #include "org_witness_informa_utils_JpegParser.h"
 
-JNIEXPORT void JNICALL
+JNIEXPORT int JNICALL
 Java_org_witness_informa_utils_JpegParser_generateNewJpeg(JNIEnv *env, jobject obj, jstring jstrSrcFilename, jstring jstrMetadata, jstring jstrNewFilename, jint jintMetadataLength) {
 	__android_log_write(ANDROID_LOG_VERBOSE, "JPEG_PARSER", "Generating new jpeg");
 	try {
@@ -62,8 +62,14 @@ Java_org_witness_informa_utils_JpegParser_generateNewJpeg(JNIEnv *env, jobject o
 		bool success = doubleCheck.LoadFromFile(strNewFilename.c_str(), true);
 		if(!success) {
 			__android_log_write(ANDROID_LOG_ERROR, "JPEG_PARSER", "doublecheck failed.");
-			exit(1);
+			
+			(env)->ReleaseStringUTFChars(jstrSrcFilename , strSrcFilename); // release jstring
+			(env)->ReleaseStringUTFChars(jstrMetadata , mdChar); // release jstring
+			
+			return 1;
 		}
+		
+		return 0;
 		
 		
 		

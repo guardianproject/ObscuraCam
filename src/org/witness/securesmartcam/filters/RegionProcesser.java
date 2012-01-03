@@ -17,4 +17,6 @@ public interface RegionProcesser {
 	
 	public void setProperties(Properties props);
 	
+	public void updateBitmap();
+	
 }

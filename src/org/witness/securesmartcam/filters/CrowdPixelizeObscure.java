@@ -10,14 +10,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.witness.sscphase1.ObscuraApp;
+
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.util.Log;
 
 public class CrowdPixelizeObscure implements RegionProcesser {
 
-	Bitmap originalBmp;
+	Bitmap originalBmp, unredactedBmp;
+	boolean unredactedBmpSet;
 	Properties mProps;
 	
 	public static int PIXEL_BLOCK = 50;
@@ -27,11 +31,19 @@ public class CrowdPixelizeObscure implements RegionProcesser {
 		mProps.put("obfuscationType", this.getClass().getName());
 		
 		mProps.put("timestampOnGeneration", new Date().getTime());
+		unredactedBmpSet = false;
 	}
 	
 	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitmap) {
 	
 		originalBmp = bitmap;
+		
+		if(!unredactedBmpSet) {
+			unredactedBmp = bitmap;
+			unredactedBmpSet = true;
+			Log.d(ObscuraApp.TAG, "this is where the bitmap is set.");
+		} else
+			Log.d(ObscuraApp.TAG, "nope, original bmp already set.");
 		
 		int pixelSize = originalBmp.getWidth()/PIXEL_BLOCK;
 		
@@ -104,8 +116,14 @@ public class CrowdPixelizeObscure implements RegionProcesser {
 
 	@Override
 	public Bitmap getBitmap() {
-		// TODO Auto-generated method stub
+		// TODO: this one will be a bit more complex...
 		return null;
+	}
+
+	@Override
+	public void updateBitmap() {
+		unredactedBmpSet = false;
+		
 	}
 }
 
