@@ -21,6 +21,7 @@ public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
 		public static final String OBSCURA = "obscura";
 		public static final String OBSCURA_BITS = "obscuraBits";
 		public static final String INFORMA_PREFERENCES = "informaPreferences";
+		public static final String IMAGE_REGIONS = "imageRegions";
 	};
 	
 	public static String TABLE;
@@ -36,7 +37,8 @@ public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
 							"integer primary key autoincrement, " +
 							"destinationKeys blob not null, " + 
 							"defaultSecurityLevel integer not null" +
-							")"
+							")",
+					"CREATE TABLE " + TABLES.IMAGE_REGIONS + " (" + BaseColumns._ID + " integer primary key autoincrement, regionKey text not null, regionData blob not null)"
 				};
 			}
 		},
@@ -88,7 +90,8 @@ public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
 			if(
 				getTable().compareTo(TABLES.INFORMA_CONTACTS) == 0 ||
 				getTable().compareTo(TABLES.INFORMA_IMAGES) == 0 ||
-				getTable().compareTo(TABLES.INFORMA_PREFERENCES) == 0
+				getTable().compareTo(TABLES.INFORMA_PREFERENCES) == 0 ||
+				getTable().compareTo(TABLES.IMAGE_REGIONS) == 0
 			)
 				queries = QueryBuilders.INIT_INFORMA.build();
 			else if(

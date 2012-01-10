@@ -1526,8 +1526,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			}
 
     	}
-    	
-    	
 
 		// force mediascanner to update file
 		MediaScannerConnection.scanFile(
@@ -1557,9 +1555,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				c.moveToFirst();
 				String destKeys = c.getString(1);
 				c.close();
-				db.close();
-				odh.close();
-				
+
 				startActivityForResult(new Intent(
 						this, InformaKeyChooser.class)
 						.putExtra("destKeys", destKeys
@@ -1569,13 +1565,22 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 		
 		showDeleteOriginalDialog();
-				
-		db.close();
-		odh.close();
+		
 		
 		// shut down the service
 		sendBroadcast(new Intent().setAction(ObscuraApp.STOP_SUCKING));
+		
+		db.close();
+		odh.close();
 		return true;
+    }
+    
+    public ObscuraDatabaseHelper getOdh() {
+    	return odh;
+    }
+    
+    public SQLiteDatabase getDb() {
+    	return db;
     }
     
     // Queries the contentResolver to pull out the path for the actual file.
@@ -1677,14 +1682,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     			db.close();
     			odh.close();
     			
-    			// shut down the service
-    			sendBroadcast(new Intent().setAction(ObscuraApp.STOP_SUCKING));
     			
+    			
+    			// send to informa for processing
     			sendBroadcast(new Intent()
     				.setAction(ObscuraApp.SEAL_LOG)
     				.putExtra("newImagePath", pullPathFromUri(savedImageUri))
     				.putExtra("regionData", irRepresentation.toString())
     				.putExtra("encryptTo", encryptTo));
+    			
+    			// shut down the suckers
+    			sendBroadcast(new Intent().setAction(ObscuraApp.STOP_SUCKING));
     			
     			showDeleteOriginalDialog();
     		}

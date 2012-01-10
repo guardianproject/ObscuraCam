@@ -1,5 +1,7 @@
 package org.witness.securesmartcam;
 
+import info.guardianproject.database.sqlcipher.SQLiteDatabase;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -25,9 +27,12 @@ import org.witness.securesmartcam.filters.MaskObscure;
 import org.witness.securesmartcam.filters.SolidObscure;
 import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
+import org.witness.securesmartcam.io.ObscuraDatabaseHelper;
+import org.witness.securesmartcam.io.ObscuraDatabaseHelper.TABLES;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
 
+import android.content.ContentValues;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.PointF;
@@ -124,6 +129,10 @@ public class ImageRegion implements OnActionItemClickListener
 		JSONObject representation = new JSONObject();
 		Enumeration e = mRProc.getProperties().propertyNames();
 		
+		ObscuraDatabaseHelper odh = mImageEditor.getOdh();
+		SQLiteDatabase db = mImageEditor.getDb();
+		odh.setTable(db, TABLES.IMAGE_REGIONS);
+		
 		while(e.hasMoreElements()) {
 			String prop = (String) e.nextElement();
 			representation.put(prop, mRProc.getProperties().get(prop));
@@ -139,12 +148,15 @@ public class ImageRegion implements OnActionItemClickListener
     		byte[] unredactedBytes = bs.toByteArray();
     		
     		Log.d(ObscuraApp.TAG, "got bitmap!\n" + bs.size());
-			//representation.put("unredacted", Base64.encodeToString(unredactedBytes, Base64.DEFAULT));
-    		try {
-				representation.put("unredacted", MediaHasher.hash(unredactedBytes, "MD5"));
-				
-			} catch (NoSuchAlgorithmException n) {}
-    		catch (IOException n) {}
+    		
+    		// save base64 encoded string to database with timestamp as key
+    		ContentValues cv = new ContentValues();
+			cv.put("regionKey", (String) mRProc.getProperties().get("timestampOnGeneration"));
+			cv.put("regionData", Base64.encodeToString(unredactedBytes, Base64.DEFAULT));
+			db.insert(odh.getTable(), null, cv);
+			
+			representation.put("unredacted", (String) mRProc.getProperties().get("timestampOnGeneration"));
+    		
 		} else
 			Log.d(ObscuraApp.TAG, "there is no bitmap here");
 		
