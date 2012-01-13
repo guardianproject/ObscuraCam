@@ -3,14 +3,9 @@ package org.witness.sscphase1;
 
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
 
 import org.witness.securesmartcam.ImageEditor;
 import org.witness.sscphase1.Eula.OnEulaAgreedTo;
-import org.witness.sscphase1.R;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -18,12 +13,10 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.provider.MediaStore.Images.Media;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;

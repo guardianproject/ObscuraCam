@@ -112,6 +112,8 @@ public class JpegRedaction implements RegionProcesser {
 		 
 		 //l,r,t,b[:method];
 		 StringBuffer sbRegions = new StringBuffer();
+		 int rWidth = (int)( canvas.getWidth()*inSampleSize);
+		 int rHeight = (int)(canvas.getHeight()*inSampleSize);
 		 
 		for (ImageRegion currentRegion : iRegions)
 	    {
@@ -124,9 +126,9 @@ public class JpegRedaction implements RegionProcesser {
             rect.bottom *= inSampleSize;
 
 			 int left = Math.max(0, (int)rect.left);
-			 int right = Math.min(canvas.getWidth(),(int)rect.right);
+			 int right = Math.min(rWidth,(int)rect.right);
 			 int top = Math.max(0, (int)rect.top);
-			 int bottom = Math.min(canvas.getHeight(), (int)rect.bottom);
+			 int bottom = Math.min(rHeight, (int)rect.bottom);
             
             sbRegions.append(left);
             sbRegions.append(',');
@@ -159,7 +161,7 @@ public class JpegRedaction implements RegionProcesser {
 	    
 	    }
 
-		Log.d("jpegredaction:size", canvas.getWidth() + "x" + canvas.getHeight());
+		Log.d("jpegredaction:size", rWidth + "x" + rHeight);
 		Log.d("jpegredaction:regions", sbRegions.toString());
 		
 	    redactRegions(strInFile, strOutFile, sbRegions.toString());

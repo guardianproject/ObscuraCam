@@ -1406,19 +1406,26 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     		tmpFileDirectory.mkdirs();
     	}
     	
-    	File fileSrc = pullPathFromUri(sourceImage);
+    	
+    	File tmpInFile = new File(tmpFileDirectory,'i' + TMP_FILE_NAME);
     	File fileTarget = new File(tmpFileDirectory,TMP_FILE_NAME);
     	
-		//copy (sourceImage, tmpInFile);
+    	if (tmpInFile.exists())
+    		tmpInFile.delete();
+    	
+    	if (fileTarget.exists())
+    		fileTarget.delete();
+    	
+    	copy (sourceImage, tmpInFile);
 	  	
 		JpegRedaction om = new JpegRedaction();	
-    	om.setFiles(fileSrc, fileTarget);
+    	om.setFiles(tmpInFile, fileTarget);
     	om.processRegions(imageRegions, inSampleSize, obscuredCanvas);
     	
 	    if (!fileTarget.exists())
 	    	throw new Exception("native proc failed");
 	    
-	    return  Uri.fromFile(fileTarget);
+	    return Uri.fromFile(fileTarget);
     }
     
     private void copy (Uri uriSrc, File fileTarget) throws IOException
