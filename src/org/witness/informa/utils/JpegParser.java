@@ -17,6 +17,8 @@ public class JpegParser {
 	public JpegParser(String filename, JSONObject metadata) {
 		_metadata = metadata;
 		informaImage = filename.split(".jpg")[0] + "_informa.jpg";
+		
+		// TODO: unpack and feed unredacted regions to JPEGRedaction lib
 		success = generateNewJpeg(filename, _metadata.toString(), informaImage, _metadata.toString().length());
 		
 	}

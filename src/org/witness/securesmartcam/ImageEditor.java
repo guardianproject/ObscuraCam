@@ -494,7 +494,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
             	{
 	                // User clicked OK so go ahead and delete
 	        		deleteOriginal();
-	            	viewImage(savedImageUri);
+	            	//viewImage(savedImageUri);
             	}
             	catch (IOException e)
             	{
@@ -509,7 +509,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		b.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
 
-            	viewImage(savedImageUri);
+            	//viewImage(savedImageUri);
             }
         });
 		b.show();

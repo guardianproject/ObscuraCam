@@ -6,18 +6,7 @@
 
 #include "jpeg.h"
 #include "redaction.h"
-#include "bit_shifts.h"
-#include "byte_swapping.h"
-#include "debug_flag.h"
-#include "iptc.h"
-#include "jpeg_decoder.h"
-#include "jpeg_dht.h"
-#include "jpeg_marker.h"
-#include "makernote.h"
 #include "obscura_metadata.h"
-#include "photoshop_3block.h"
-#include "tiff_ifd.h"
-#include "tiff_tag.h"
 
 #include <jni.h>
 #include "org_witness_informa_utils_JpegParser.h"
@@ -25,11 +14,16 @@
 JNIEXPORT int JNICALL
 Java_org_witness_informa_utils_JpegParser_generateNewJpeg(JNIEnv *env, jobject obj, jstring jstrSrcFilename, jstring jstrMetadata, jstring jstrNewFilename, jint jintMetadataLength) {
 	__android_log_write(ANDROID_LOG_VERBOSE, "JPEG_PARSER", "Generating new jpeg");
+	
+	jpeg_redaction::Jpeg newJpeg, doubleCheck;
+	const char* strSrcFilename;
+	const char* mdChar;
+	std::string strNewFilename;
+	
+	std::vector<jpeg_redaction::JpegStrip> strips_;
+	
 	try {
-		jpeg_redaction::Jpeg newJpeg, doubleCheck;
-		const char* strSrcFilename;
-		const char* mdChar;
-		std::string strNewFilename;
+		
 
 		strSrcFilename = (env)->GetStringUTFChars(jstrSrcFilename, NULL);
 		mdChar = (env)->GetStringUTFChars(jstrMetadata, NULL);
@@ -59,6 +53,10 @@ Java_org_witness_informa_utils_JpegParser_generateNewJpeg(JNIEnv *env, jobject o
 		
 		// double-check
 		__android_log_write(ANDROID_LOG_DEBUG, "JPEG_PARSER", "double check:");
+		
+		
+		
+		
 		bool success = doubleCheck.LoadFromFile(strNewFilename.c_str(), true);
 		if(!success) {
 			__android_log_write(ANDROID_LOG_ERROR, "JPEG_PARSER", "doublecheck failed.");

@@ -285,9 +285,13 @@ public class Informa {
 				File returnedImage = new File(informaImage);
 				parcelizeImage(returnedImage, jpegParser.getInformaMetadata());
 				
-				// delete image on the SDCard
-				
 				// encrypt new image to intended destination
+				
+				apg.setEncryptionKeys(encryptTo);
+				//apg.encryptFile(activity, returnedImage);
+
+				// delete image on the SDCard?
+				
 				
 				
 			} catch(NullPointerException e) {

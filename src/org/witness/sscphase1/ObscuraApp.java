@@ -111,21 +111,23 @@ public class ObscuraApp extends Activity implements OnClickListener {
         setLayout();
         deleteTmpFile();
         
+        
         _sp = PreferenceManager.getDefaultSharedPreferences(this);
         if(
         	_sp.getString("informaPref_dbpw", "").compareTo("") == 0 ||
         	_sp.getString("informaPref_destKeys", "").compareTo("") == 0
         )
         	startActivity(new Intent(this, InformaPreferences.class));	
+        
     }
     
     @Override
 	protected void onResume() {
-
+    	/*
 		super.onResume();
 		Intent startSensorSucker = new Intent(this,SensorSucker.class);
         bindService(startSensorSucker,sc,Context.BIND_AUTO_CREATE);
-	
+		*/
 	}
     
     @Override

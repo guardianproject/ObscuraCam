@@ -36,6 +36,7 @@
     	<activity android:name="org.witness.informa.InformaEditor" android:theme="@style/Theme.CustomDialog" />
     	<activity android:name="org.witness.informa.InformaPreferences" android:theme="@style/Theme.CustomDialog" />
     	<activity android:name="org.witness.informa.InformaKeyChooser" android:theme="@style/Theme.CustomDialog" />
+    	<activity android:name="org.witness.informa.InformaConfirm" android:theme="@style/Theme.CustomDialog" />
     	<service android:enabled="true" android:name="org.witness.informa.utils.SensorSucker" />
     </application>
     <uses-sdk android:minSdkVersion="8"/>
