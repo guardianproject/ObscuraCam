@@ -150,12 +150,19 @@ public class ImageRegion implements OnActionItemClickListener
     		Log.d(ObscuraApp.TAG, "got bitmap!\n" + bs.size());
     		
     		// save base64 encoded string to database with timestamp as key
+    		String tog;
+    		try {
+    			tog = (String) mRProc.getProperties().get("timestampOnGeneration");
+    		} catch(ClassCastException c) {
+    			tog = ((Long) mRProc.getProperties().get("timestampOnGeneration")).toString();
+    		}
+    		
     		ContentValues cv = new ContentValues();
-			cv.put("regionKey", (String) mRProc.getProperties().get("timestampOnGeneration"));
+			cv.put("regionKey", tog);
 			cv.put("regionData", Base64.encodeToString(unredactedBytes, Base64.DEFAULT));
 			db.insert(odh.getTable(), null, cv);
 			
-			representation.put("unredacted", (String) mRProc.getProperties().get("timestampOnGeneration"));
+			representation.put("unredacted", tog);
     		
 		} else
 			Log.d(ObscuraApp.TAG, "there is no bitmap here");

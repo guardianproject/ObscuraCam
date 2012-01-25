@@ -214,9 +214,11 @@ public class InformaPreferences extends Activity implements OnClickListener {
 	
 	
 	@Override
-	protected void onPause() {		
-		db.close();
-		odh.close();
+	protected void onPause() {	
+		if(canSave) {
+			db.close();
+			odh.close();
+		}
 		super.onPause();
 	}
 

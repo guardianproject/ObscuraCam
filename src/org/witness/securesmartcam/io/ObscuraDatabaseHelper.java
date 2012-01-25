@@ -71,12 +71,6 @@ public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {}
 	
-	private void passwordMunger(String password) {
-		// TODO: takes the password and encrypts it using a shallow method, 
-		// in order to prevent pw from being stored in plaintext in preferences...
-		
-	}
-	
 	public boolean setTable(SQLiteDatabase db, String whichTable) {
 		TABLE = whichTable;
 		

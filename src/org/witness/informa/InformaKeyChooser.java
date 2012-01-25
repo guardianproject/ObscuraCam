@@ -52,7 +52,10 @@ public class InformaKeyChooser extends Activity implements OnClickListener {
 	@Override
 	public void onClick(View v) {
 		if(v == keyChooser_ok) {
-			getIntent().putExtra("selectedKeys", keyChooserAdapter.getSelectedKeys());
+			long[] selectedKeys = keyChooserAdapter.getSelectedKeys();
+			if(selectedKeys.length > 0)
+				getIntent().putExtra("selectedKeys", selectedKeys);
+			
 			setResult(Activity.RESULT_OK, getIntent());
 			finish();
 		}

@@ -530,11 +530,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 				String[] columnsToSelect = { MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA };
 
-				/*
-				ExifInterface ei = new ExifInterface(origFilePath);
-				long dateTaken = new Date(ei.getAttribute(ExifInterface.TAG_DATETIME)).getTime();
-				*/
-
 				Uri[] uriBases = {MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media.INTERNAL_CONTENT_URI};
 
 				for (Uri uriBase : uriBases)
@@ -1539,7 +1534,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		mProgressDialog.cancel();
 		
-
 		// Open secure databse
 		SharedPreferences _sp = PreferenceManager.getDefaultSharedPreferences(this);
 		SQLiteDatabase.loadLibs(this);
@@ -1561,17 +1555,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						.putExtra("destKeys", destKeys
 					), FROM_KEY_CHOOSER);
 			}
-			return true;
 		}
 		
-		showDeleteOriginalDialog();
-		
-		
-		// shut down the service
-		sendBroadcast(new Intent().setAction(ObscuraApp.STOP_SUCKING));
-		
-		db.close();
-		odh.close();
 		return true;
     }
     
@@ -1682,7 +1667,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     			db.close();
     			odh.close();
     			
-    			
+    			try {
+					deleteOriginal();
+				} catch (IOException e) {
+					Log.e(ObscuraApp.TAG, "there is a problem deleting the original:\n[URI] " + originalImageUri.getPath());
+				}
     			
     			// send to informa for processing
     			sendBroadcast(new Intent()
@@ -1693,8 +1682,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     			
     			// shut down the suckers
     			sendBroadcast(new Intent().setAction(ObscuraApp.STOP_SUCKING));
-    			
-    			showDeleteOriginalDialog();
+    			finish();
     		}
     	}
     }
