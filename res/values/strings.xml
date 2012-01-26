@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">ObscuraCam</string>
-    <string name="app_name_label">Obscura Cam</string>
-    <string name="image_preview">ObscuraCam Image Preview</string>
-	<string name="SplashTextViewString">ObscuraCam</string>
+    <string name="app_name">InformaCam</string>
+    <string name="app_name_label">InformaCam</string>
+    <string name="image_preview">InformaCam Image Preview</string>
+	<string name="SplashTextViewString">InformaCam</string>
 	<string name="CreditsTextViewString">Powered by the Guardian Project and Witness</string>
 	<string name="WalkThroughSkipButton">Skip</string>
 	<string name="WalkThroughContinueButton">Continue</string>
@@ -14,12 +14,8 @@
  	<string name="menu_image_prefs">Image Prefs</string>
     <string name="menu_save">Save</string>
     <string name="menu_share">Share</string>
-    <string name="menu_send_hash">Send Hash</string>
     <string name="menu_prefs">Preferences</string>
-    <string name="imgprefs_h1">Preferences for this image</string>
-    <string name="imgprefs_undo">Undo</string>
-    <string name="imgprefs_save">Save Preferences</string>
-    <string name="imgprefs_panic">P A N I C !</string>
+    <string name="menu_about">About InformaCam</string>
     <string name="imgprefs_eraseexif">Erase All Exif Data</string>
     
     <string name="idtaggerh1">Identify</string>
@@ -63,7 +59,6 @@
     <string name="attachment_encryption_unsupported">Warning: attachments are NOT signed or encrypted yet.</string>
     <string name="send_aborted">Send aborted.</string>
     <string name="menu_delete_original">Delete Original</string>
-    <string name="menu_about">About</string>
     <string name="menu_preview">Preview</string>
     
     <string name="loading_image">Loading photo...</string>
@@ -77,20 +72,16 @@
 	<string name="yes">Yes</string>
 	<string name="no">No</string>
 	
-	<string name="ok">OK</string>	
-	<string name="save">Save</string>
-	<string name="signWithInforma">Encrypt this image to a trusted destination below:</string>
-	<string name="doNotEncrypt">Do Not Encrypt</string>
-
-	<string name="informaPref_label">Informa Preferences</string>
-	<string name="informaPref_dbpw">Database Password</string>
-	<string name="informaPref_dbpw_sum">Set your password to your encrypted media database:</string>
-	<string name="informaPref_dbpw_notfound">You haven\'t set a password for the database yet.</string>
-	<string name="informaPref_destKeys">Trusted Destinations</string>
-	<string name="informaPref_destKeys_sum">Add/Edit trusted destinations for your encrypted media:</string>
-	<string name="informaPref_destKeys_add">Add new trusted destination</string>
-	<string name="informaPref_destKeys_notfound">Could not find APG key with this email address.</string>
-	<string name="informaPrefs_newkey_label">New Trusted Destination</string>
-	<string name="informaPrefs_keyalias">Destination Name:</string>
-	<string name="informaPrefs_keyemail">Destination Email:</string>
+	<!--  EULA related -->
+    <string name="eula_title">You agree to:</string>
+    <string name="eula_accept">Accept</string>
+    <string name="eula_refuse">Refuse</string>
+    
+    <!--  INFORMA PREFERENCES -->
+    <string name="ip_title">Informa Preferences</string>
+    <string name="ip_login_title">Log in</string>
+    <string name="ip_enter_pw">Please enter your InformaCam database password to continue:</string>
+    
+    <!--  WIZARD related -->
+    <string name="wizard_main_title">Setup Wizard</string>
 </resources>
