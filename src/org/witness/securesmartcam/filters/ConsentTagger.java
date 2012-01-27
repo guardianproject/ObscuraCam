@@ -3,14 +3,9 @@ package org.witness.securesmartcam.filters;
 import java.util.Date;
 import java.util.Properties;
 
-import org.witness.sscphase1.ObscuraApp;
-
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.RectF;
-import android.util.Log;
 
 public class ConsentTagger implements RegionProcesser
 {

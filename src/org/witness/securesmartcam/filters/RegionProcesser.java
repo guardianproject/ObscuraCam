@@ -1,6 +1,5 @@
 package org.witness.securesmartcam.filters;
 
-import java.util.Map;
 import java.util.Properties;
 
 import android.graphics.Bitmap;
@@ -16,7 +15,5 @@ public interface RegionProcesser {
 	public Bitmap getBitmap();
 	
 	public void setProperties(Properties props);
-	
-	public void updateBitmap();
 	
 }

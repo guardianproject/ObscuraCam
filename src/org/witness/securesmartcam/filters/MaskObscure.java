@@ -8,8 +8,6 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 import org.witness.sscphase1.ObscuraApp;
@@ -104,11 +102,6 @@ public class MaskObscure implements RegionProcesser {
 		return unredactedBmp;
 	}
 
-	@Override
-	public void updateBitmap() {
-		unredactedBmpSet = false;
-		
-	}
 }
 
 

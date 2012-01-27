@@ -15,7 +15,6 @@ class InformaSettings {
 	public static final String DB_PASSWORD_CACHE_TIMEOUT = "informa.PasswordCacheTimeout";
 	public static final String HAS_TRUSTED_ENDPOINTS = "informa.HasTrustedEndpoints";
 	
-	
 	private static final String TAG = "*************** INFORMA PREFERENCES ***********\n";
 	
 	static interface OnSettingsSeen {
@@ -24,7 +23,6 @@ class InformaSettings {
 	
 	static boolean show(final Activity activity) {
 		SharedPreferences preferences = activity.getPreferences(Activity.MODE_PRIVATE);
-		SharedPreferences.Editor _ed = preferences.edit();
 		
 		if(!preferences.getBoolean(SETTINGS_VIEWED, false)) {
 			Log.d(TAG, "virgin user, EULA accepted. launching wizard");
@@ -36,6 +34,7 @@ class InformaSettings {
 			return false;
 		} else if(!preferences.getBoolean(HAS_DB_PASSWORD, false)) {
 			Log.d(TAG, "user\'s password expired.  must log in again.");
+			SharedPreferences.Editor _ed = preferences.edit();
 			final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 			builder.setCancelable(false);
 			builder.setTitle(R.string.ip_login_title);

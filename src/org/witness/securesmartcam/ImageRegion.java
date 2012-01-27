@@ -1,57 +1,28 @@
 package org.witness.securesmartcam;
 
-import info.guardianproject.database.sqlcipher.SQLiteDatabase;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-
-import java.security.NoSuchAlgorithmException;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.Set;
-
 import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
 import net.londatiga.android.QuickAction.OnActionItemClickListener;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.witness.informa.utils.secure.MediaHasher;
 import org.witness.securesmartcam.filters.BlurObscure;
 import org.witness.securesmartcam.filters.ConsentTagger;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
 import org.witness.securesmartcam.filters.MaskObscure;
-import org.witness.securesmartcam.filters.SolidObscure;
 import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
-import org.witness.securesmartcam.io.ObscuraDatabaseHelper;
-import org.witness.securesmartcam.io.ObscuraDatabaseHelper.TABLES;
+import org.witness.securesmartcam.filters.SolidObscure;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
 
-import android.content.ContentValues;
-import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.util.Base64;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
 import android.view.View;
-import android.view.View.OnTouchListener;
-import android.widget.FrameLayout;
-import android.widget.PopupWindow.OnDismissListener;
-import android.widget.RelativeLayout;
 
 public class ImageRegion implements OnActionItemClickListener 
 {
@@ -122,53 +93,9 @@ public class ImageRegion implements OnActionItemClickListener
 
 	public void setRegionProcessor(RegionProcesser rProc) {
 		mRProc = rProc;
-		mImageEditor.associateImageRegionData(this);
 	}
 	
-	public JSONObject getRepresentation() throws JSONException {
-		JSONObject representation = new JSONObject();
-		Enumeration e = mRProc.getProperties().propertyNames();
-		
-		ObscuraDatabaseHelper odh = mImageEditor.getOdh();
-		SQLiteDatabase db = mImageEditor.getDb();
-		odh.setTable(db, TABLES.IMAGE_REGIONS);
-		
-		while(e.hasMoreElements()) {
-			String prop = (String) e.nextElement();
-			representation.put(prop, mRProc.getProperties().get(prop));
-		}
-		
-		// appends original bitmap bytes as Base64-encoded string
-		if(mRProc.getBitmap() != null) {
-			
-    		ByteArrayOutputStream bs = new ByteArrayOutputStream();
-    		Bitmap b = mRProc.getBitmap();
-    		
-    		b.compress(Bitmap.CompressFormat.PNG, 50, bs);
-    		byte[] unredactedBytes = bs.toByteArray();
-    		
-    		Log.d(ObscuraApp.TAG, "got bitmap!\n" + bs.size());
-    		
-    		// save base64 encoded string to database with timestamp as key
-    		String tog;
-    		try {
-    			tog = (String) mRProc.getProperties().get("timestampOnGeneration");
-    		} catch(ClassCastException c) {
-    			tog = ((Long) mRProc.getProperties().get("timestampOnGeneration")).toString();
-    		}
-    		
-    		ContentValues cv = new ContentValues();
-			cv.put("regionKey", tog);
-			cv.put("regionData", Base64.encodeToString(unredactedBytes, Base64.DEFAULT));
-			db.insert(odh.getTable(), null, cv);
-			
-			representation.put("unredacted", tog);
-    		
-		} else
-			Log.d(ObscuraApp.TAG, "there is no bitmap here");
-		
-		return representation;
-	}
+	
 	
 	public void setCornerMode (float x, float y)
 	{
@@ -498,9 +425,6 @@ public class ImageRegion implements OnActionItemClickListener
                 	}
 	            	
                 }
-                
-                if(moved)
-                	this.mRProc.updateBitmap();
 
 				mImageEditor.updateDisplayImage();
 					

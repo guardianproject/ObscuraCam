@@ -2,11 +2,9 @@ package org.witness.securesmartcam.detect;
 
 import android.graphics.Bitmap;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.media.FaceDetector;
 import android.media.FaceDetector.Face;
-import android.util.Log;
 
 public class GoogleFaceDetection implements FaceDetection {
 

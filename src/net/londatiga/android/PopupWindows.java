@@ -1,16 +1,14 @@
 package net.londatiga.android;
 
+import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.View.OnTouchListener;
-
+import android.view.WindowManager;
 import android.widget.PopupWindow;
-import android.content.Context;
 
 /**
  * Custom popup window.

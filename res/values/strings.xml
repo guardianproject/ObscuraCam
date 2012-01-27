@@ -17,6 +17,10 @@
     <string name="menu_prefs">Preferences</string>
     <string name="menu_about">About InformaCam</string>
     <string name="imgprefs_eraseexif">Erase All Exif Data</string>
+    <string name="ok">OK</string>
+    <string name="save">Save</string>
+    <string name="back">Back</string>
+    <string name="next">Next</string>
     
     <string name="idtaggerh1">Identify</string>
     <string name="idtaggerh12">Consentify</string>
@@ -81,6 +85,17 @@
     <string name="ip_title">Informa Preferences</string>
     <string name="ip_login_title">Log in</string>
     <string name="ip_enter_pw">Please enter your InformaCam database password to continue:</string>
+    <string name="informaPref_label">Informa Preferences</string>
+	<string name="informaPref_dbpw">Database Password</string>
+	<string name="informaPref_dbpw_sum">Set your password to your encrypted media database:</string>
+	<string name="informaPref_dbpw_notfound">You haven\'t set a password for the database yet.</string>
+	<string name="informaPref_destKeys">Trusted Destinations</string>
+	<string name="informaPref_destKeys_sum">Add/Edit trusted destinations for your encrypted media:</string>
+	<string name="informaPref_destKeys_add">Add new trusted destination</string>
+	<string name="informaPref_destKeys_notfound">Could not find APG key with this email address.</string>
+	<string name="informaPrefs_newkey_label">New Trusted Destination</string>
+	<string name="informaPrefs_keyalias">Destination Name:</string>
+	<string name="informaPrefs_keyemail">Destination Email:</string>
     
     <!--  WIZARD related -->
     <string name="wizard_main_title">Setup Wizard</string>

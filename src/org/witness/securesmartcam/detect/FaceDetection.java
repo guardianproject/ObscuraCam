@@ -1,7 +1,6 @@
 package org.witness.securesmartcam.detect;
 
 import android.graphics.Bitmap;
-import android.graphics.Rect;
 import android.graphics.RectF;
 
 public interface FaceDetection {

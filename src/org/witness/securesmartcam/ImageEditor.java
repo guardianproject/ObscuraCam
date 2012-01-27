@@ -1,6 +1,5 @@
 package org.witness.securesmartcam;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -8,7 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -16,14 +14,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
-import java.util.Vector;
 
-import org.witness.informa.InformaEditor;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
-import org.witness.securesmartcam.filters.ConsentTagger;
 import org.witness.securesmartcam.filters.MaskObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
 import org.witness.securesmartcam.jpegredaction.JpegRedaction;
@@ -39,7 +32,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
@@ -53,7 +45,6 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.PixelFormat;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
@@ -62,7 +53,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Vibrator;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
@@ -75,13 +65,10 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener {
@@ -1665,20 +1652,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }    
     
     public void launchInforma(ImageRegion ir) {
-    	Intent informa = new Intent(this,InformaEditor.class);
-    	informa.putExtra("mProps", ir.getRegionProcessor().getProperties());
-    	informa.putExtra("irIndex", imageRegions.indexOf(ir));
     	
     	ir.getRegionProcessor().processRegion(new RectF(ir.getBounds()), obscuredCanvas, obscuredBmp);    	
     	
-    	if(ir.getRegionProcessor().getBitmap() != null) {
-    		Bitmap b = ir.getRegionProcessor().getBitmap();
-    		ByteArrayOutputStream bs = new ByteArrayOutputStream();
-    		b.compress(Bitmap.CompressFormat.PNG, 50, bs);
-    		informa.putExtra("byteArray", bs.toByteArray());
-    	}
-    	
-    	startActivityForResult(informa,FROM_INFORMA);
     }
     
     @Override

@@ -1,15 +1,10 @@
 package org.witness.securesmartcam.io;
 
-import org.witness.sscphase1.ObscuraApp;
-
+import info.guardianproject.database.sqlcipher.SQLiteDatabase;
+import info.guardianproject.database.sqlcipher.SQLiteOpenHelper;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.BaseColumns;
-import android.util.Log;
-import info.guardianproject.database.sqlcipher.SQLiteDatabase;
-import info.guardianproject.database.sqlcipher.SQLiteDatabase.CursorFactory;
-import info.guardianproject.database.sqlcipher.SQLiteException;
-import info.guardianproject.database.sqlcipher.SQLiteOpenHelper;
 
 public class ObscuraDatabaseHelper extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "obscura.db";

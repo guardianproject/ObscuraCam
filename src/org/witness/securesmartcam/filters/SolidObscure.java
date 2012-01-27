@@ -6,8 +6,6 @@ package org.witness.securesmartcam.filters;
 
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 import org.witness.sscphase1.ObscuraApp;
