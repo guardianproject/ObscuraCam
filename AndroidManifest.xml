@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.witness.sscphase1"
-      android:versionCode="24"
-      android:versionName="1.2-RC3"
+      android:versionCode="25"
+      android:versionName="1.2-FINAL"
       android:installLocation="auto">
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher_ssc" android:debuggable="false">
-        <activity android:label="@string/app_name_label" android:name=".ObscuraApp" android:theme="@android:style/Theme.Black.NoTitleBar" android:configChanges="orientation|keyboardHidden">
+        <activity android:label="@string/app_name_label" android:name=".ObscuraApp"
+             android:theme="@android:style/Theme.Black.NoTitleBar" android:configChanges="orientation|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
