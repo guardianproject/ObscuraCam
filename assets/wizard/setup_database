@@ -1,0 +1,7 @@
+A secure, encrypted database will be created to store your images and contacts.
+
+Choose a password to lock your database:
+{$ value=db_pw type=input callback=saveDBPW}
+
+Now, tell us how long your database password should be saved by the app.  If you choose "always," you must manually log out of the app (through the main menu.)
+{$ value=db_pw_cache type=select values=["Always", "Until after I save an image", "15 minutes", "30 minutes", "1 hour", "2 hours"] callback=setDBWPCache} 

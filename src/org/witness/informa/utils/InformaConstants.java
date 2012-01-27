@@ -1,6 +1,7 @@
 package org.witness.informa.utils;
 
 public class InformaConstants {
+	public final static String TAG = "************ INFORMA ***********";
 	public final static int FROM_INFORMA_WIZARD = 3;
 
 	public final static class INFORMA_SERVICE {

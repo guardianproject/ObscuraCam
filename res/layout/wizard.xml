@@ -8,6 +8,7 @@
         android:layout_width="fill_parent"
         android:layout_height="0dip"
         android:layout_weight="0.05"
+        android:background="#ffffff"
         android:id="@+id/wizard_progress"
         android:orientation="horizontal" />
     <TextView
@@ -19,7 +20,19 @@
    	    android:layout_width="fill_parent"
    	    android:layout_height="0dip"
    	    android:layout_weight="0.75"
-   	    android:id="@+id/wizard_sv" />
+   	    android:id="@+id/wizard_sv">
+   	    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+   	        android:layout_width="fill_parent"
+   	        android:layout_height="fill_parent"
+   	        android:id="@+id/wizard_holder"
+   	        android:weightSum="1.0"
+   	        android:orientation="vertical">
+   	        <TextView
+   	            android:layout_width="fill_parent"
+   	            android:layout_height="wrap_content"
+   	            android:id="@+id/wizard_frame_title" />
+   	   </LinearLayout>
+   	</ScrollView>
    	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    	    android:layout_width="fill_parent"
    	    android:layout_height="0dip"
