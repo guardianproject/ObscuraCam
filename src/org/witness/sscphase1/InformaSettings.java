@@ -28,7 +28,7 @@ class InformaSettings {
 			Log.d(TAG, "virgin user, EULA accepted. launching wizard");
 			if(activity instanceof OnSettingsSeen) {
 				Intent intent = new Intent(activity, Wizard.class);
-				activity.startActivityForResult(intent, InformaConstants.FROM_INFORMA_WIZARD);
+				activity.startActivity(intent);
 			}
 			
 			return false;

@@ -16,29 +16,31 @@
     	android:layout_height="0dip"
     	android:layout_weight="0.1"
     	android:text="@string/wizard_main_title" />
-   	<ScrollView
-   	    android:layout_width="fill_parent"
-   	    android:layout_height="0dip"
-   	    android:layout_weight="0.75"
-   	    android:id="@+id/wizard_sv">
-   	    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-   	        android:layout_width="fill_parent"
-   	        android:layout_height="fill_parent"
-   	        android:id="@+id/wizard_holder"
-   	        android:weightSum="1.0"
-   	        android:orientation="vertical">
-   	        <TextView
-   	            android:layout_width="fill_parent"
-   	            android:layout_height="wrap_content"
-   	            android:id="@+id/wizard_frame_title" />
-   	   </LinearLayout>
-   	</ScrollView>
+  	    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  	        android:layout_width="fill_parent"
+  	        android:layout_height="fill_parent"
+  	        android:id="@+id/wizard_holder"
+  	        android:weightSum="1.0"
+  	        android:orientation="vertical">
+  	        <TextView
+  	            android:layout_width="fill_parent"
+  	            android:layout_height="wrap_content"
+  	            android:id="@+id/wizard_frame_title" />
+  	   </LinearLayout>
    	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    	    android:layout_width="fill_parent"
    	    android:layout_height="0dip"
    	    android:layout_weight="0.1"
    	    android:orientation="horizontal"
-   	    android:weightSum="1.0">
+   	    android:weightSum="1.0"
+   	    android:id="@+id/wizard_navigation_holder">
+
+   	    <Button
+   	        android:id="@+id/wizard_done"
+   	        android:layout_width="fill_parent"
+   	        android:layout_height="fill_parent"
+   	        android:text="@string/done"
+   	        android:visibility="gone" />
    	    <Button
    	        android:layout_width="0dip"
    	        android:layout_height="fill_parent"

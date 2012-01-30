@@ -12,11 +12,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.witness.informa.utils.InformaConstants;
+import org.witness.sscphase1.utils.Selections;
+import org.witness.sscphase1.utils.SelectionsAdapter;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
@@ -24,24 +27,30 @@ import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnKeyListener;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.LinearLayout.LayoutParams;
+import android.widget.Toast;
 
 public class Wizard extends Activity implements OnClickListener {
 	int current;
-	
-	BroadcastReceiver br;
-	
-	LinearLayout progress, holder;
+		
+	LinearLayout progress, holder, navigation_holder;
 	TextView frameTitle;
-	Button wizard_next, wizard_back;
+	Button wizard_next, wizard_back, wizard_done;
+	
+	boolean listenForInput = false;
 	
 	WizardForm wizardForm;
 	
@@ -54,27 +63,45 @@ public class Wizard extends Activity implements OnClickListener {
 		wizardForm = new WizardForm(this);
 		
 		frameTitle = (TextView) findViewById(R.id.wizard_frame_title);
+		progress = (LinearLayout) findViewById(R.id.wizard_progress);
+		holder = (LinearLayout) findViewById(R.id.wizard_holder);
+		navigation_holder = (LinearLayout) findViewById(R.id.wizard_navigation_holder);
 		
+		wizard_done = (Button) findViewById(R.id.wizard_done);
+		wizard_back = (Button) findViewById(R.id.wizard_back);
 		wizard_next = (Button) findViewById(R.id.wizard_next);
+		
 		if(current < wizardForm.frames.length() - 1)
 			wizard_next.setOnClickListener(this);
 		else {
-			//TODO: destroy back/next, replace with done.
-			wizard_next.setAlpha(0.3f);
-			wizard_next.setClickable(false);
+			wizard_next.setVisibility(View.GONE);
+			wizard_back.setVisibility(View.GONE);
+			
+			wizard_done.setVisibility(View.VISIBLE);
+			wizard_done.setOnClickListener(this);
 		}
 		
-		wizard_back = (Button) findViewById(R.id.wizard_back);
 		if(current > 0)
 			wizard_back.setOnClickListener(this);
 		else {
-			wizard_back.setAlpha(0.3f);
-			wizard_back.setClickable(false);
+			setMandatory(wizard_back);
 		}
 		
 		
-		progress = (LinearLayout) findViewById(R.id.wizard_progress);
-		holder = (LinearLayout) findViewById(R.id.wizard_holder);
+	}
+	
+	public void setMandatory(View v) {
+		((Button) v).setAlpha(0.3f);
+		((Button) v).setClickable(false);
+	}
+	
+	public void enableAction(View v) {
+		((Button) v).setAlpha(1.0f);
+		((Button) v).setClickable(true);
+	}
+	
+	public void makeToast(String msg) {
+		Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
 	}
 	
 	public void initFrame() throws JSONException {
@@ -116,6 +143,13 @@ public class Wizard extends Activity implements OnClickListener {
 		wizardForm.setFrame(current);
 		frameTitle.setText(wizardForm.getTitle());
 		
+		int w = getWindowManager().getDefaultDisplay().getWidth();
+		int h = getWindowManager().getDefaultDisplay().getHeight();
+		Log.d(InformaConstants.TAG, "w = " + w + "/h = " + h);
+		
+		//LayoutParams lp = new LinearLayout.LayoutParams(
+			
+		//holder.setLayoutParams(lp);
 		ArrayList<View> views = wizardForm.getContent();
 		for(View v : views)
 			holder.addView(v);
@@ -123,6 +157,19 @@ public class Wizard extends Activity implements OnClickListener {
 	
 	private void setUserPGP() {
 		Log.d(InformaConstants.TAG, "getting the user PGP key...");
+	}
+	
+	private void saveDBPW(String pw) {
+		Log.d(InformaConstants.TAG, "saving user password as " + pw + "...");
+	}
+	
+	private void setDBWPCache(int cacheSelection) {
+		Log.d(InformaConstants.TAG, "saving cache as " + cacheSelection + "...");
+	}
+	
+	private String[] getAPGContacts() {
+		Log.d(InformaConstants.TAG, "getting APG Contacts...");
+		return new String[] {"here are","sample contacts","from APG..."};
 	}
 	
 	private class WizardForm extends JSONObject {
@@ -205,14 +252,29 @@ public class Wizard extends Activity implements OnClickListener {
 			}
 		}
 		
+		private String[] parseArguments(String args) {
+			String[] a = null;
+			if(args != null) {
+				a = args.split(",");
+			}
+			return a;
+		}
+		
 		public ArrayList<View> getContent() throws JSONException {
 			ArrayList<View> views = new ArrayList<View>();
 			String content = currentFrame.getString(frameContent);
 			
 			for(final String s : content.split("\n")) {
 				if(s.contains("{$")) {
-					String type = findKey(s, "type");
+					final String type = findKey(s, "type");
 					final String callback = findKey(s, "callback");
+					final boolean isMandatory = Boolean.parseBoolean(findKey(s, "mandatory"));
+					
+					Log.d(InformaConstants.TAG, "mandatory: " + isMandatory);
+					Log.d(InformaConstants.TAG, "callback: " + callback);
+					
+					if(isMandatory)
+						Wizard.this.setMandatory(wizard_next);
 					
 					if(type.compareTo("button") == 0) {
 						Button button = new Button(_c);
@@ -223,7 +285,8 @@ public class Wizard extends Activity implements OnClickListener {
 							public void onClick(View v) {
 								if(callback != null)
 									try {
-										doCallback(callback, null);
+										String[] args = parseArguments(findKey(s, "args"));
+										doCallback(callback, args);
 									} catch (IllegalAccessException e) {
 										Log.d(InformaConstants.TAG, e.toString());
 									} catch (NoSuchMethodException e) {
@@ -238,24 +301,87 @@ public class Wizard extends Activity implements OnClickListener {
 						
 					} else if(type.compareTo("input") == 0) {
 						EditText edittext = new EditText(_c);
-						views.add(edittext);
-					} else if(type.compareTo("password") == 0) {
-						EditText edittext = new EditText(_c);
-						edittext.setInputType(InputType.TYPE_NUMBER_VARIATION_PASSWORD);
-						edittext.setOnFocusChangeListener(new TextView.OnFocusChangeListener() {
+						
+						edittext.addOnLayoutChangeListener(new TextView.OnLayoutChangeListener() {
 
 							@Override
-							public void onFocusChange(View v, boolean hasFocus) {
-								Log.d(InformaConstants.TAG, "FOCUS CHANGED!");
+							public void onLayoutChange(View v, int left,
+									int top, int right, int bottom,
+									int oldLeft, int oldTop, int oldRight,
+									int oldBottom) {
+								// TODO Auto-generated method stub
 								
 							}
 							
 						});
 						views.add(edittext);
-					} else if(type.compareTo("select_one") == 0) {
+					} else if(type.compareTo("password") == 0) {
+						EditText edittext = new EditText(_c);
+						edittext.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
+						edittext.setTransformationMethod(new PasswordTransformationMethod());
 						
-					} else if(type.compareTo("select_multi") == 0) {
+						edittext.addOnLayoutChangeListener(new TextView.OnLayoutChangeListener() {
+
+							@Override
+							public void onLayoutChange(View v, int left,
+									int top, int right, int bottom,
+									int oldLeft, int oldTop, int oldRight,
+									int oldBottom) {
+								
+								String pw = ((EditText) v).getText().toString();
+								if(pw.length() == 0) {}
+								else if(pw.length() < 6 && pw.length() > 0)
+									Wizard.this.makeToast(_c.getResources().getString(R.string.wizard_error_password_too_short));
+								else {
+									Wizard.this.enableAction(wizard_next);
+									if(callback != null) {
+										String[] args = new String[] {pw};
+										
+										try {
+											doCallback(callback, args);
+										} catch (IllegalAccessException e) {
+											Log.d(InformaConstants.TAG, e.toString());
+										} catch (NoSuchMethodException e) {
+											Log.d(InformaConstants.TAG, e.toString());
+										} catch (InvocationTargetException e) {
+											Log.d(InformaConstants.TAG, e.toString());
+										}
+									}
+								}
+								
+							}
+							
+						});
 						
+						views.add(edittext);
+					} else if(type.compareTo("select_one") == 0 || type.compareTo("select_multi") == 0) {
+						
+						ArrayList<Selections> selections = new ArrayList<Selections>();
+						ListView lv = new ListView(_c);
+						
+						for(String option : findKey(s, "values").split(",")) {
+							if(Character.toString(option.charAt(0)).compareTo("#") == 0) {
+								// populate from callback
+								try {
+									
+									for(String res : (String[]) doCallback(option.substring(1), null)) {
+										selections.add(new Selections(res, false));
+									}
+									
+								} catch (IllegalAccessException e) {
+									Log.d(InformaConstants.TAG, e.toString());
+								} catch (NoSuchMethodException e) {
+									Log.d(InformaConstants.TAG, e.toString());
+								} catch (InvocationTargetException e) {
+									Log.d(InformaConstants.TAG, e.toString());
+								}
+							} else 
+								selections.add(new Selections(option, false));
+						}
+						
+						lv.setAdapter(new SelectionsAdapter(_c, selections, type));
+						
+						views.add(lv);
 					}
 				} else {
 					TextView tv = new TextView(_c);
@@ -267,10 +393,20 @@ public class Wizard extends Activity implements OnClickListener {
 			return views;
 		}
 		
-		private void doCallback(String callback, String[] args) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-			Method method = Wizard.this.getClass().getDeclaredMethod(callback, null);
+		private Object doCallback(String callback, Object[] args) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+			Method method;
+			if(args != null) {
+				Class<?>[] paramTypes = new Class[args.length];
+				
+				for(int p=0; p<paramTypes.length; p++)
+					paramTypes[p] = args[p].getClass();
+				
+				method = Wizard.this.getClass().getDeclaredMethod(callback, paramTypes);
+			} else
+				method = Wizard.this.getClass().getDeclaredMethod(callback, null);
+			
 			method.setAccessible(true);
-			method.invoke(Wizard.this, args);
+			return method.invoke(Wizard.this, args);			
 		}
 		
 		public String getTitle() throws JSONException {
@@ -327,8 +463,15 @@ public class Wizard extends Activity implements OnClickListener {
 				startActivity(i);
 				finish();
 			}
+		} else if(v == wizard_done) {
+			Intent i = new Intent(this, ObscuraApp.class);
+			startActivity(i);
+			finish();
 		}
 		
 	}
+	
+	@Override
+	public void onBackPressed() {}
 
 }

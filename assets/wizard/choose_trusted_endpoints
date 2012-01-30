@@ -1,0 +1,5 @@
+Choose from the list below of trusted endpoints from your APG contacts:
+
+{$ value=trusted_endpoints; type=select_multi; values=#getAPGContacts; callback=setTrustedEndpoints;}
+
+Later on, whenever you need to add a contact not listed here, import their keys using APG, then register them to the app through the preferences. 

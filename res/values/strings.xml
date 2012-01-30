@@ -21,6 +21,7 @@
     <string name="save">Save</string>
     <string name="back">Back</string>
     <string name="next">Next</string>
+    <string name="done">Done</string>
     
     <string name="idtaggerh1">Identify</string>
     <string name="idtaggerh12">Consentify</string>
@@ -99,4 +100,5 @@
     
     <!--  WIZARD related -->
     <string name="wizard_main_title">Setup Wizard</string>
+    <string name="wizard_error_password_too_short">Please choose a password of 6 or more characters.</string>
 </resources>

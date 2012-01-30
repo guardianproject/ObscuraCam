@@ -1,2 +1,2 @@
 Now, tell us how long you should stay logged in to the app.  If you choose "always," you must manually log out of the app (through the main menu.)
-{$ value=db_pw_cache; type=select_one; values=[Always, Until after I save an image, 15 minutes, 30 minutes, 1 hour, 2 hours]; callback=setDBWPCache;} 
+{$ value=db_pw_cache; type=select_one; values=Always,Until after I save an image,Until I close the app; callback=setDBWPCache;} 
