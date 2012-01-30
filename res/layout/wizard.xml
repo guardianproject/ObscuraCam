@@ -7,7 +7,7 @@
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
         android:layout_height="0dip"
-        android:layout_weight="0.05"
+        android:layout_weight="0.1"
         android:background="#ffffff"
         android:id="@+id/wizard_progress"
         android:orientation="horizontal" />
@@ -16,17 +16,18 @@
     	android:layout_height="0dip"
     	android:layout_weight="0.1"
     	android:text="@string/wizard_main_title" />
-  	    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  	    android:layout_width="fill_parent"
+  	    android:layout_height="0dip"
+  	    android:layout_weight="0.7"
+  	    android:id="@+id/wizard_holder"
+  	    android:weightSum="1.0"
+  	    android:orientation="vertical">
+  	    <TextView
   	        android:layout_width="fill_parent"
-  	        android:layout_height="fill_parent"
-  	        android:id="@+id/wizard_holder"
-  	        android:weightSum="1.0"
-  	        android:orientation="vertical">
-  	        <TextView
-  	            android:layout_width="fill_parent"
-  	            android:layout_height="wrap_content"
-  	            android:id="@+id/wizard_frame_title" />
-  	   </LinearLayout>
+  	        android:layout_height="wrap_content"
+            android:id="@+id/wizard_frame_title" />
+  	</LinearLayout>
    	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    	    android:layout_width="fill_parent"
    	    android:layout_height="0dip"

@@ -145,11 +145,7 @@ public class Wizard extends Activity implements OnClickListener {
 		
 		int w = getWindowManager().getDefaultDisplay().getWidth();
 		int h = getWindowManager().getDefaultDisplay().getHeight();
-		Log.d(InformaConstants.TAG, "w = " + w + "/h = " + h);
-		
-		//LayoutParams lp = new LinearLayout.LayoutParams(
-			
-		//holder.setLayoutParams(lp);
+
 		ArrayList<View> views = wizardForm.getContent();
 		for(View v : views)
 			holder.addView(v);
@@ -157,6 +153,7 @@ public class Wizard extends Activity implements OnClickListener {
 	
 	private void setUserPGP() {
 		Log.d(InformaConstants.TAG, "getting the user PGP key...");
+		enableAction(wizard_next);
 	}
 	
 	private void saveDBPW(String pw) {
@@ -234,7 +231,6 @@ public class Wizard extends Activity implements OnClickListener {
 		}
 		
 		public void setFrame(int which) throws JSONException {
-			Log.d(InformaConstants.TAG, order.toString());
 			for(int f=0; f<frames.length(); f++) {
 				JSONObject frame = frames.getJSONObject(f);
 				if(frame.getString(frameKey).compareTo(order.getString(which)) == 0)
