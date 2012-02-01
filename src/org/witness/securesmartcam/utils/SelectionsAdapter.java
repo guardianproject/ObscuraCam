@@ -1,4 +1,4 @@
-package org.witness.sscphase1.utils;
+package org.witness.securesmartcam.utils;
 
 import java.util.ArrayList;
 

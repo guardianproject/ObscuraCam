@@ -7,13 +7,13 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 
-public class ConsentTagger implements RegionProcesser
+public class InformaTagger implements RegionProcesser
 {
 	Properties mProps;
 	private Bitmap mPreview, unredactedBmp;
 	boolean unredactedBmpSet;
 	
-	public ConsentTagger ()
+	public InformaTagger ()
 	{
 		mProps = new Properties ();
 		mProps.put("regionSubject", "");

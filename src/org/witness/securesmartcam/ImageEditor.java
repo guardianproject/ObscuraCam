@@ -16,11 +16,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
+import org.witness.informa.utils.InformaConstants;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
-import org.witness.securesmartcam.filters.MaskObscure;
+import org.witness.securesmartcam.filters.InformaTagger;
 import org.witness.securesmartcam.filters.RegionProcesser;
 import org.witness.securesmartcam.jpegredaction.JpegRedaction;
-import org.witness.sscphase1.ObscuraApp;
+import org.witness.securesmartcam.utils.ObscuraConstants;
 import org.witness.sscphase1.R;
 
 import android.app.Activity;
@@ -72,27 +73,6 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener {
-
-
-	public final static String MIME_TYPE_JPEG = "image/jpeg";
-	
-	// Colors for region squares
-	
-	public final static int DRAW_COLOR = 0x00000000;
-	public final static int DETECTED_COLOR = 0x00000000;
-	public final static int OBSCURED_COLOR = 0x00000000;
-	
-	// Constants for the menu items, currently these are in an XML file (menu/image_editor_menu.xml, strings.xml)
-	public final static int ABOUT_MENU_ITEM = 0;
-	public final static int DELETE_ORIGINAL_MENU_ITEM = 1;
-	public final static int SAVE_MENU_ITEM = 2;
-	public final static int SHARE_MENU_ITEM = 3;
-	public final static int NEW_REGION_MENU_ITEM = 4;
-	
-	// Constants for Informa
-	public final static int FROM_INFORMA = 100;
-	public final static String LOG = "[Image Editor ********************]";
-	
 	// Image Matrix
 	Matrix matrix = new Matrix();
 
@@ -100,18 +80,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	Matrix savedMatrix = new Matrix();
 		
 	// We can be in one of these 3 states
-	static final int NONE = 0;
-	static final int DRAG = 1;
-	static final int ZOOM = 2;
-	static final int TAP = 3;
-	int mode = NONE;
-
-	
-	// Maximum zoom scale
-	static final float MAX_SCALE = 10f;
-	
-	// Constant for autodetection dialog
-	static final int DIALOG_DO_AUTODETECTION = 0;
+	int mode = ObscuraConstants.NONE;
 	
 	// For Zooming
 	float startFingerSpacing = 0f;
@@ -302,9 +271,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			try {
 				ExifInterface ei = new ExifInterface(originalFilename.getAbsolutePath());
 				originalImageOrientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-				debug(ObscuraApp.TAG,"Orientation: " + originalImageOrientation);
+				debug(ObscuraConstants.TAG,"Orientation: " + originalImageOrientation);
 			} catch (IOException e1) {
-				debug(ObscuraApp.TAG,"Couldn't get Orientation");
+				debug(ObscuraConstants.TAG,"Couldn't get Orientation");
 				e1.printStackTrace();
 			}
 
@@ -361,10 +330,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Decode it for real
 				bmpFactoryOptions.inJustDecodeBounds = false;
 				loadedBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(originalImageUri), null, bmpFactoryOptions);
-				debug(ObscuraApp.TAG,"Was: " + loadedBitmap.getConfig());
+				debug(ObscuraConstants.TAG,"Was: " + loadedBitmap.getConfig());
 
 				if (loadedBitmap == null) {
-					debug(ObscuraApp.TAG,"bmp is null");
+					debug(ObscuraConstants.TAG,"bmp is null");
 				
 				}
 				else
@@ -372,14 +341,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					// Only dealing with 90 and 270 degree rotations, might need to check for others
 					if (originalImageOrientation == ExifInterface.ORIENTATION_ROTATE_90) 
 					{
-						debug(ObscuraApp.TAG,"Rotating Bitmap 90");
+						debug(ObscuraConstants.TAG,"Rotating Bitmap 90");
 						Matrix rotateMatrix = new Matrix();
 						rotateMatrix.postRotate(90);
 						loadedBitmap = Bitmap.createBitmap(loadedBitmap,0,0,loadedBitmap.getWidth(),loadedBitmap.getHeight(),rotateMatrix,false);
 					}
 					else if (originalImageOrientation == ExifInterface.ORIENTATION_ROTATE_270) 
 					{
-						debug(ObscuraApp.TAG,"Rotating Bitmap 270");
+						debug(ObscuraConstants.TAG,"Rotating Bitmap 270");
 						Matrix rotateMatrix = new Matrix();
 						rotateMatrix.postRotate(270);
 						loadedBitmap = Bitmap.createBitmap(loadedBitmap,0,0,loadedBitmap.getWidth(),loadedBitmap.getHeight(),rotateMatrix,false);
@@ -399,7 +368,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					}
 				}				
 			} catch (IOException e) {
-				Log.e(ObscuraApp.TAG, "error loading bitmap from Uri: " + e.getMessage(), e);
+				Log.e(ObscuraConstants.TAG, "error loading bitmap from Uri: " + e.getMessage(), e);
 			}
 			
 			
@@ -472,7 +441,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
             	}
             	catch (IOException e)
             	{
-            		Log.e(ObscuraApp.TAG, "error saving", e);
+            		Log.e(ObscuraConstants.TAG, "error saving", e);
             	}
             	finally
             	{
@@ -595,7 +564,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			Bitmap bProc = toGrayscale(imageBitmap);
 			GoogleFaceDetection gfd = new GoogleFaceDetection(bProc);
 			int numFaces = gfd.findFaces();
-	        debug(ObscuraApp.TAG,"Num Faces Found: " + numFaces); 
+	        debug(ObscuraConstants.TAG,"Num Faces Found: " + numFaces); 
 	        possibleFaceRects = gfd.getFaces();
 		} catch(NullPointerException e) {
 			possibleFaceRects = null;
@@ -678,7 +647,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	@Override
 	public boolean onTouch(View v, MotionEvent event) 
 	{
-		if (currRegion != null && (mode == DRAG || currRegion.getBounds().contains(event.getX(), event.getY())))		
+		if (currRegion != null && (mode == ObscuraConstants.DRAG || currRegion.getBounds().contains(event.getX(), event.getY())))		
 			return onTouchRegion(v, event, currRegion);	
 		else
 			return onTouchImage(v,event);
@@ -722,13 +691,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 				currRegion.setCornerMode(event.getX(),event.getY());
 				
-				mode = DRAG;
+				mode = ObscuraConstants.DRAG;
 				handled = iRegion.onTouch(v, event);
 
 			break;
 			
 			case MotionEvent.ACTION_UP:
-				mode = NONE;
+				mode = ObscuraConstants.NONE;
 				handled = iRegion.onTouch(v, event);
 				currRegion.setSelected(false);
 				//if (handled)
@@ -737,7 +706,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			break;
 			
 			default:
-				mode = DRAG;
+				mode = ObscuraConstants.DRAG;
 				handled = iRegion.onTouch(v, event);
 			
 		}
@@ -754,7 +723,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
 				// Single Finger down
-				mode = TAP;				
+				mode = ObscuraConstants.TAP;				
 				ImageRegion newRegion = findRegion(event);
 				
 				if (newRegion != null)
@@ -797,7 +766,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				float ysum = event.getY(0) + event.getY(1);
 				startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
 				
-				mode = ZOOM;
+				mode = ObscuraConstants.ZOOM;
 				//Log.d(ObscuraApp.TAG, "mode=ZOOM");
 				
 				clearImageRegionsEditMode();
@@ -835,8 +804,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// If greater than minMoveDistance, it is likely a drag or zoom
 				if (distance > minMoveDistance) {
 				
-					if (mode == TAP || mode == DRAG) {
-						mode = DRAG;
+					if (mode == ObscuraConstants.TAP || mode == ObscuraConstants.DRAG) {
+						mode = ObscuraConstants.DRAG;
 						
 						matrix.postTranslate(event.getX() - startPoint.x, event.getY() - startPoint.y);
 						imageView.setImageMatrix(matrix);
@@ -848,7 +817,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						
 						handled = true;
 	
-					} else if (mode == ZOOM) {
+					} else if (mode == ObscuraConstants.ZOOM) {
 						
 						// Save the current matrix so that if zoom goes to big, we can revert
 						savedMatrix.set(matrix);
@@ -872,7 +841,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 							float[] matrixValues = new float[9];
 							matrix.getValues(matrixValues);
 							
-							if (matrixValues[0] > MAX_SCALE) {
+							if (matrixValues[0] > ObscuraConstants.MAX_SCALE) {
 								matrix.set(savedMatrix);
 							}
 							imageView.setImageMatrix(matrix);
@@ -939,7 +908,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// Get Rectangle of Tranformed Image
 		RectF theRect = getScaleOfImage();
 		
-		debug(ObscuraApp.TAG,theRect.width() + " " + theRect.height());
+		debug(ObscuraConstants.TAG,theRect.width() + " " + theRect.height());
 		
 		float deltaX = 0, deltaY = 0;
 		if (theRect.width() < imageView.getWidth()) {
@@ -1086,7 +1055,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			// Share Image
       		shareImage();
 		}
-		else if (mode != DRAG && mode != ZOOM) 
+		else if (mode != ObscuraConstants.DRAG && mode != ObscuraConstants.ZOOM) 
 		{
 			float defaultSize = imageView.getWidth()/4;
 			float halfSize = defaultSize/2;
@@ -1288,9 +1257,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     private void viewImage(Uri imgView) {
     	
     	Intent iView = new Intent(Intent.ACTION_VIEW);
-    	iView.setType(MIME_TYPE_JPEG);
+    	iView.setType(ObscuraConstants.MIME_TYPE_JPEG);
     	iView.putExtra(Intent.EXTRA_STREAM, imgView);
-    	iView.setDataAndType(imgView, MIME_TYPE_JPEG);
+    	iView.setDataAndType(imgView, ObscuraConstants.MIME_TYPE_JPEG);
 
     	startActivity(Intent.createChooser(iView, "View Image"));    	
 	
@@ -1371,8 +1340,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    while (i.hasNext()) 
 	    {
 	    	ImageRegion iRegion = i.next();
-	    	if (iRegion.getRegionProcessor() instanceof MaskObscure)
-	    		return false;
 	    }
 	    
 	    return true;
@@ -1491,7 +1458,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	// Create the Uri - This can't be "private"
     	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory().getPath() + TMP_FILE_DIRECTORY);
     	File tmpFile = new File(tmpFileDirectory,TMP_FILE_NAME);
-    	debug(ObscuraApp.TAG, tmpFile.getPath());
+    	debug(ObscuraConstants.TAG, tmpFile.getPath());
     	
 		try {
 	    	if (!tmpFileDirectory.exists()) {
@@ -1557,7 +1524,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     			nativeSuccess = true;
     			
     		} catch (Exception e) {
-    			Log.e(ObscuraApp.TAG, "error doing native redact",e);
+    			Log.e(ObscuraConstants.TAG, "error doing native redact",e);
     		}
     	}
     	
@@ -1575,7 +1542,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
 				
 			} catch (Exception e) {
-				Log.e(ObscuraApp.TAG, "error doing redact",e);
+				Log.e(ObscuraConstants.TAG, "error doing redact",e);
 				return false;
 			}
 
@@ -1585,7 +1552,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		MediaScannerConnection.scanFile(
 				this,
 				new String[] {pullPathFromUri(savedImageUri).getAbsolutePath()},
-				new String[] {MIME_TYPE_JPEG},
+				new String[] {ObscuraConstants.MIME_TYPE_JPEG},
 				null);
 		
 		Toast t = Toast.makeText(this,"Image saved to Gallery", Toast.LENGTH_SHORT); 
@@ -1660,7 +1627,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
     	if(resultCode == Activity.RESULT_OK) {
-    		if(requestCode == FROM_INFORMA) {
+    		if(requestCode == InformaConstants.FROM_INFORMA_TAGGER) {
     			// replace corresponding image region
     			@SuppressWarnings("unchecked")
 				HashMap<String, String> informaReturn = (HashMap<String, String>) data.getSerializableExtra("informaReturn");    			

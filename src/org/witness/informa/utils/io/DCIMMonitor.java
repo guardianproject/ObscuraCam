@@ -1,8 +1,9 @@
-package org.witness.securesmartcam.io;
+package org.witness.informa.utils.io;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.witness.securesmartcam.utils.ObscuraConstants;
 import org.witness.sscphase1.ObscuraApp;
 
 import android.app.Service;
@@ -32,7 +33,7 @@ public class DCIMMonitor extends Service {
 	
 	@Override
 	public void onCreate() {
-		Log.d(ObscuraApp.TAG,"DCIM Monitor is on and observing path: " + mPath);
+		Log.d(ObscuraConstants.TAG,"DCIM Monitor is on and observing path: " + mPath);
 		
 		mDCIMObserver = new DCIMObserver(mPath);
 		mDCIMObserver.startWatching();
@@ -42,7 +43,7 @@ public class DCIMMonitor extends Service {
 
 			@Override
 			public void run() {
-				Log.d(ObscuraApp.TAG,"********************* DCIM Monitor continues to observe ********************");
+				Log.d(ObscuraConstants.TAG,"DCIM Monitor continues to observe");
 			}
 			
 		};
@@ -63,7 +64,7 @@ public class DCIMMonitor extends Service {
 	
 	@Override
 	public void onDestroy() {
-		Log.d(ObscuraApp.TAG,"DCIM Monitor has been destroyed");
+		Log.d(ObscuraConstants.TAG,"DCIM Monitor has been destroyed");
 		shouldRun = false;
 		mDCIMObserver.stopWatching();
 	}
@@ -86,7 +87,7 @@ public class DCIMMonitor extends Service {
 		@Override
 		public void onEvent(int event, String path) {
 			if(path == null) {
-				Log.d(ObscuraApp.TAG,"************************* path is null?");
+				Log.d(ObscuraConstants.TAG,"path is null?");
 				return;
 			}
 			
@@ -112,7 +113,7 @@ public class DCIMMonitor extends Service {
 			if((FileObserver.DELETE & event) != 0)
 				e = "file deleted";
 			
-			Log.d(ObscuraApp.TAG, "**************************** event: " + e + " on path: " + path);
+			Log.d(ObscuraConstants.TAG, "**************************** event: " + e + " on path: " + path);
 			
 		}
 

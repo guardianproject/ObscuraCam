@@ -4,15 +4,14 @@ import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
 import net.londatiga.android.QuickAction.OnActionItemClickListener;
 
-import org.witness.securesmartcam.filters.BlurObscure;
-import org.witness.securesmartcam.filters.ConsentTagger;
+import org.witness.securesmartcam.filters.InformaTagger;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
-import org.witness.securesmartcam.filters.MaskObscure;
 import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
 import org.witness.securesmartcam.filters.SolidObscure;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
+import org.witness.securesmartcam.utils.ObscuraConstants;
 
 import android.graphics.Matrix;
 import android.graphics.PointF;
@@ -63,9 +62,6 @@ public class ImageRegion implements OnActionItemClickListener
 	 * createObscuredBitmap method in ImageEditor
 	 */
 	int mObscureType = PIXELATE;
-
-	private final static String[] mFilterLabels = {"Redact","Pixelate","CrowdPixel","Mask","Identify"};
-	private final static int[] mFilterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_pixelate, R.drawable.ic_context_mask, R.drawable.ic_context_id};
 
 	public final Drawable unidentifiedBorder, identifiedBorder;
 	public Drawable imageRegionBorder;
@@ -172,43 +168,6 @@ public class ImageRegion implements OnActionItemClickListener
 		
 		mBounds = new RectF(left, top, right, bottom);	
 		
-				
-		// Inflate Layout
-		// imageregioninner is a FrameLayout
-		/*
-		LayoutInflater inflater = LayoutInflater.from(mImageEditor);        
-		inflater.inflate(R.layout.imageregioninner, this, true);
-		setBackgroundDrawable(mImageEditor.getResources().getDrawable(R.drawable.border));
-		updateMatrix();
-
-        mMoveRegion = (View)findViewById(R.id.MoveRegion);
-
-        // Setting the onTouchListener for the moveRegion
-        // Might also want to do this for the other views (corners)
-<<<<<<< HEAD
-        mMoveRegion.setOnTouchListener(this);
-                
-=======
-        moveRegion.setOnTouchListener(this);
-        
-        imageRegionBorder = unidentifiedBorder;
->>>>>>> informav1
-        initPopup();
-        
-        // This doesn't work with the touch listener always returning true.  
-        // In some cases touch listener returns false and this gets triggered
-       
-        mMoveRegion.setOnClickListener(new OnClickListener (){
-
-			// @Override
-			public void onClick(View v)
-			{
-				Log.v(LOGTAG,"onClick");
-				
-				inflatePopup(false);
-			}
-			
-		});*/
         
         //set default processor
         this.setRegionProcessor(new PixelizeObscure());
@@ -251,24 +210,16 @@ public class ImageRegion implements OnActionItemClickListener
 	private void initPopup ()
 	{
 		mPopupMenu = new QuickAction(mImageEditor);
-		
-		/*
-		editAction = new ActionItem();
-		editAction.setTitle("Edit Tag");
-		editAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_edit));
-		
-		qa.addActionItem(editAction);
-		*/
 
 		ActionItem aItem;
 		
-		for (int i = 0; i < mFilterLabels.length; i++)
+		for (int i = 0; i < ObscuraConstants.mFilterLabels.length; i++)
 		{
 		
 			aItem = new ActionItem();
-			aItem.setTitle(mFilterLabels[i]);
+			aItem.setTitle(ObscuraConstants.mFilterLabels[i]);
 			
-			aItem.setIcon(mImageEditor.getResources().getDrawable(mFilterIcons[i]));			
+			aItem.setIcon(mImageEditor.getResources().getDrawable(ObscuraConstants.mFilterIcons[i]));			
 			
 			mPopupMenu.addActionItem(aItem);
 
@@ -465,7 +416,7 @@ public class ImageRegion implements OnActionItemClickListener
 	@Override
 	public void onItemClick(int pos) {
 		
-		if (pos == mFilterLabels.length) //meaing after the last one
+		if (pos == ObscuraConstants.mFilterLabels.length) //meaing after the last one
 		{
         	mImageEditor.deleteRegion(ImageRegion.this);
 		}
@@ -473,7 +424,6 @@ public class ImageRegion implements OnActionItemClickListener
 		{
         	mObscureType = pos;
         	updateRegionProcessor(mObscureType);
-        	
         		
 		}
 
@@ -487,41 +437,35 @@ public class ImageRegion implements OnActionItemClickListener
 		switch (obscureType) {
 		
 		case ImageRegion.BG_PIXELATE:
-			Log.v(ObscuraApp.TAG,"obscureType: BGPIXELIZE");
+			Log.v(ObscuraConstants.TAG,"obscureType: BGPIXELIZE");
 			setRegionProcessor(new CrowdPixelizeObscure());
 		break;
-		
-		case ImageRegion.MASK:
-			Log.v(ObscuraApp.TAG,"obscureType: ANON");
-			setRegionProcessor(new MaskObscure(mImageEditor.getApplicationContext(), mImageEditor.getPainter()));
-
-			break;
 			
 		case ImageRegion.REDACT:
-			Log.v(ObscuraApp.TAG,"obscureType: SOLID");
+			Log.v(ObscuraConstants.TAG,"obscureType: SOLID");
 			setRegionProcessor(new SolidObscure());
 			break;
 			
 		case ImageRegion.PIXELATE:
-			Log.v(ObscuraApp.TAG,"obscureType: PIXELIZE");
+			Log.v(ObscuraConstants.TAG,"obscureType: PIXELIZE");
 			setRegionProcessor(new PixelizeObscure());
 			break;
 		case ImageRegion.CONSENT:
-			Log.v(ObscuraApp.TAG,"obscureType: CONSENTIFY!");
+			Log.v(ObscuraConstants.TAG,"obscureType: CONSENTIFY!");
 			// If the region processor is already a consent tagger, the user wants to edit.
 			// so no need to change the region processor.
-			if(!(getRegionProcessor() instanceof ConsentTagger))
-				setRegionProcessor(new ConsentTagger());
+			if(!(getRegionProcessor() instanceof InformaTagger))
+				setRegionProcessor(new InformaTagger());
 			
 			mImageEditor.launchInforma(this);
 			break;
 		default:
-			Log.v(ObscuraApp.TAG,"obscureType: NONE/BLUR");
-			setRegionProcessor(new BlurObscure());
+			Log.v(ObscuraConstants.TAG,"obscureType: NONE/PIXELIZE");
+			setRegionProcessor(new PixelizeObscure());
 			break;
 		}
 		
-		if(getRegionProcessor().getClass() == ConsentTagger.class)
+		if(getRegionProcessor().getClass() == InformaTagger.class)
 			imageRegionBorder = identifiedBorder;
 		else
 			imageRegionBorder = unidentifiedBorder;

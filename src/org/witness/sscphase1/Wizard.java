@@ -13,10 +13,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.witness.informa.utils.InformaConstants;
+import org.witness.informa.utils.io.DatabaseHelper;
 import org.witness.informa.utils.secure.Apg;
-import org.witness.securesmartcam.io.DatabaseHelper;
-import org.witness.sscphase1.utils.Selections;
-import org.witness.sscphase1.utils.SelectionsAdapter;
+import org.witness.securesmartcam.utils.Selections;
+import org.witness.securesmartcam.utils.SelectionsAdapter;
 
 import android.app.Activity;
 import android.content.ContentValues;

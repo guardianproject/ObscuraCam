@@ -1,4 +1,4 @@
-package org.witness.securesmartcam.io;
+package org.witness.informa.utils.io;
 
 import org.witness.informa.utils.InformaConstants.Tables;
 

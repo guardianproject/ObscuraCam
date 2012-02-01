@@ -8,7 +8,7 @@ package org.witness.securesmartcam.filters;
 import java.util.Date;
 import java.util.Properties;
 
-import org.witness.sscphase1.ObscuraApp;
+import org.witness.securesmartcam.utils.ObscuraConstants;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -47,9 +47,9 @@ public class SolidObscure implements RegionProcesser {
 					(int) Math.min(bitmap.getHeight(), (Math.abs(rect.top - rect.bottom)))
 				);
 			unredactedBmpSet = true;
-			Log.d(ObscuraApp.TAG, "this is where the bitmap is set.");
+			Log.d(ObscuraConstants.TAG, "this is where the bitmap is set.");
 		} else
-			Log.d(ObscuraApp.TAG, "nope, original bmp already set.");
+			Log.d(ObscuraConstants.TAG, "nope, original bmp already set.");
 		
 		canvas.drawRect(rect, paint);
 		// return properties and data as a map

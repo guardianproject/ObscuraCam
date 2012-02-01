@@ -3,19 +3,26 @@ package org.witness.sscphase1;
 import java.io.File;
 
 import org.witness.informa.utils.InformaConstants;
+import org.witness.informa.utils.SensorSucker;
+import org.witness.informa.utils.SensorSucker.LocalBinder;
 import org.witness.securesmartcam.ImageEditor;
 import org.witness.sscphase1.Eula.OnEulaAgreedTo;
 import org.witness.sscphase1.InformaSettings.OnSettingsSeen;
+import org.witness.securesmartcam.utils.ObscuraConstants;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.IBinder;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
@@ -26,21 +33,11 @@ import android.widget.Button;
 import android.widget.Toast;
 
 public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgreedTo, OnSettingsSeen {
-	    
-	public final static String TAG = "************************* SSC";
-		
-	final static int CAMERA_RESULT = 0;
-	final static int GALLERY_RESULT = 1;
-	final static int IMAGE_EDITOR = 2;
-	
-	final static int ABOUT = 0;
-	final static int PREFS = 1;
-	
-	final static String CAMERA_TMP_FILE = "ssctmp.jpg";
-
 	private Button choosePictureButton, takePictureButton;		
 	
 	private Uri uriCameraImage = null;
+	
+	SensorSucker informaService;
 		
 	@Override
 	protected void onDestroy() 
@@ -57,7 +54,7 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 		if (fileDir == null || !fileDir.exists())
 			fileDir = getFilesDir();
 		
-		File tmpFile = new File(fileDir,CAMERA_TMP_FILE);
+		File tmpFile = new File(fileDir,ObscuraConstants.CAMERA_TMP_FILE);
 		if (tmpFile.exists())
 			tmpFile.delete();
 	}
@@ -70,6 +67,8 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 
         setLayout();
         deleteTmpFile();
+        
+        informaService = null;
         
         Eula.show(this);
 
@@ -84,7 +83,9 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	                Activity.MODE_PRIVATE);
 		  
 	        if (eula.getBoolean(Eula.PREFERENCE_EULA_ACCEPTED, false)) {
-	        	InformaSettings.show(this);
+	        	boolean res = InformaSettings.show(this);
+	    		if(res)
+	    			launchInforma();
 	        }
 	    
 				
@@ -110,13 +111,13 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 				 setContentView(R.layout.mainloading);
 				Intent intent = new Intent(Intent.ACTION_PICK);
 				intent.setType("image/*"); //limit to image types for now
-				startActivityForResult(intent, GALLERY_RESULT);
+				startActivityForResult(intent, ObscuraConstants.GALLERY_RESULT);
 				
 			}
 			catch (Exception e)
 			{
 				Toast.makeText(this, "Unable to open Gallery app", Toast.LENGTH_LONG).show();
-				Log.e(TAG, "error loading gallery app to choose photo: " + e.getMessage(), e);
+				Log.e(ObscuraConstants.TAG, "error loading gallery app to choose photo: " + e.getMessage(), e);
 			}
 			
 		} else if (v == takePictureButton) {
@@ -129,7 +130,7 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	          
 	            ContentValues values = new ContentValues();
 	          
-	            values.put(MediaStore.Images.Media.TITLE, CAMERA_TMP_FILE);
+	            values.put(MediaStore.Images.Media.TITLE, ObscuraConstants.CAMERA_TMP_FILE);
 	      
 	            values.put(MediaStore.Images.Media.DESCRIPTION,"ssctmp");
 
@@ -145,7 +146,7 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE );
 	            intent.putExtra( MediaStore.EXTRA_OUTPUT, uriCameraImage);
 	            
-	            startActivityForResult(intent, CAMERA_RESULT);
+	            startActivityForResult(intent, ObscuraConstants.CAMERA_RESULT);
 	        }   else {
 	            new AlertDialog.Builder(ObscuraApp.this)
 	            .setMessage("External Storeage (SD Card) is required.\n\nCurrent state: " + storageState)
@@ -164,7 +165,7 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 		{
 			setContentView(R.layout.mainloading);
 			
-			if (requestCode == GALLERY_RESULT) 
+			if (requestCode == ObscuraConstants.GALLERY_RESULT) 
 			{
 				if (intent != null)
 				{
@@ -174,7 +175,7 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 					{
 						Intent passingIntent = new Intent(this,ImageEditor.class);
 						passingIntent.setData(uriGalleryImage);
-						startActivityForResult(passingIntent,IMAGE_EDITOR);
+						startActivityForResult(passingIntent, ObscuraConstants.IMAGE_EDITOR);
 						
 					}
 					else
@@ -190,7 +191,7 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 				}
 					
 			}
-			else if (requestCode == CAMERA_RESULT)
+			else if (requestCode == ObscuraConstants.CAMERA_RESULT)
 			{
 				//Uri uriCameraImage = intent.getData();
 				
@@ -198,7 +199,7 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 				{
 					Intent passingIntent = new Intent(this,ImageEditor.class);
 					passingIntent.setData(uriCameraImage);
-					startActivityForResult(passingIntent,IMAGE_EDITOR);
+					startActivityForResult(passingIntent, ObscuraConstants.IMAGE_EDITOR);
 				}
 				else
 				{
@@ -270,10 +271,10 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
 		
-    	MenuItem aboutMenuItem = menu.add(Menu.NONE, ABOUT, Menu.NONE, getString(R.string.menu_about));
+    	MenuItem aboutMenuItem = menu.add(Menu.NONE, ObscuraConstants.ABOUT, Menu.NONE, getString(R.string.menu_about));
     	aboutMenuItem.setIcon(R.drawable.ic_menu_about);
     	
-    	MenuItem prefsMenuItem = menu.add(Menu.NONE, PREFS, Menu.NONE, getString(R.string.menu_prefs));
+    	MenuItem prefsMenuItem = menu.add(Menu.NONE, ObscuraConstants.PREFS, Menu.NONE, getString(R.string.menu_prefs));
     	prefsMenuItem.setIcon(R.drawable.ic_menu_prefs);
     	
     	return true;
@@ -281,16 +282,35 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	
     public boolean onOptionsItemSelected(MenuItem item) {	
         switch (item.getItemId()) {
-        	case ABOUT:
+        	case ObscuraConstants.ABOUT:
         		displayAbout();
         		return true;
-        	case PREFS:
+        	case ObscuraConstants.PREFS:
         		launchPrefs();
         		return true;
         	default:
         		
         		return false;
         }
+    }
+    
+    private ServiceConnection sc = new ServiceConnection() {
+    	public void onServiceConnected(ComponentName cn, IBinder binder) {
+    		LocalBinder lb = (LocalBinder) binder;
+    		informaService = lb.getService();
+    	}
+    	
+    	public void onServiceDisconnected(ComponentName cn) {
+    		informaService = null;
+    	}
+    };
+    
+    private void launchInforma() {
+    	if(informaService != null) {
+    		Intent startSensorSucker = new Intent(this, SensorSucker.class);
+    		bindService(startSensorSucker, sc, Context.BIND_AUTO_CREATE);
+    	}
+    	
     }
     
 	
@@ -308,12 +328,14 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 
 	@Override
 	public void onEulaAgreedTo() {
-		InformaSettings.show(this);
+		boolean res = InformaSettings.show(this);
+		if(res)
+			launchInforma();
 	}
 	
 	@Override
 	public void onSettingsSeen() {
-		
+		launchInforma();
 	}
     
 }
