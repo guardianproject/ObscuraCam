@@ -6,34 +6,29 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 class InformaSettings {
-	public static final String INFORMA = "informa";
-	public static final String SETTINGS_VIEWED = "informa.SettingsViewed";
-	public static final String HAS_DB_PASSWORD = "informa.PasswordSet";
-	public static final String DB_PASSWORD_CACHE_TIMEOUT = "informa.PasswordCacheTimeout";
-	public static final String HAS_TRUSTED_ENDPOINTS = "informa.HasTrustedEndpoints";
-	
-	private static final String TAG = "*************** INFORMA PREFERENCES ***********\n";
+
 	
 	static interface OnSettingsSeen {
 		void onSettingsSeen();
 	}
 	
 	static boolean show(final Activity activity) {
-		SharedPreferences preferences = activity.getPreferences(Activity.MODE_PRIVATE);
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
 		
-		if(!preferences.getBoolean(SETTINGS_VIEWED, false)) {
-			Log.d(TAG, "virgin user, EULA accepted. launching wizard");
+		if(!preferences.getBoolean(InformaConstants.Settings.SETTINGS_VIEWED, false)) {
+			Log.d(InformaConstants.TAG, "virgin user, EULA accepted. launching wizard");
 			if(activity instanceof OnSettingsSeen) {
 				Intent intent = new Intent(activity, Wizard.class);
 				activity.startActivity(intent);
 			}
 			
 			return false;
-		} else if(!preferences.getBoolean(HAS_DB_PASSWORD, false)) {
-			Log.d(TAG, "user\'s password expired.  must log in again.");
+		} else if(preferences.getString(InformaConstants.Settings.HAS_DB_PASSWORD, "").compareTo(InformaConstants.PW_EXPIRY) == 0) {
+			Log.d(InformaConstants.TAG, "user\'s password expired.  must log in again.");
 			SharedPreferences.Editor _ed = preferences.edit();
 			final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 			builder.setCancelable(false);

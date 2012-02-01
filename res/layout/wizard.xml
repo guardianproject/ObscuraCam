@@ -11,11 +11,14 @@
         android:background="#ffffff"
         android:id="@+id/wizard_progress"
         android:orientation="horizontal" />
+
     <TextView
-    	android:layout_width="fill_parent"
-    	android:layout_height="0dip"
-    	android:layout_weight="0.1"
-    	android:text="@string/wizard_main_title" />
+        android:layout_width="fill_parent"
+        android:layout_height="0dip"
+        android:layout_weight="0.1"
+        android:text="@string/wizard_main_title"
+        android:textSize="25px" />
+
   	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   	    android:layout_width="fill_parent"
   	    android:layout_height="0dip"
@@ -26,7 +29,9 @@
   	    <TextView
   	        android:layout_width="fill_parent"
   	        android:layout_height="wrap_content"
-            android:id="@+id/wizard_frame_title" />
+            android:id="@+id/wizard_frame_title"
+            android:textSize="45px"
+            android:textColor="#94e400" />
   	</LinearLayout>
    	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
    	    android:layout_width="fill_parent"

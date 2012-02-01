@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class SelectionsAdapter extends BaseAdapter {
@@ -47,30 +48,35 @@ public class SelectionsAdapter extends BaseAdapter {
 	}
 
 	@Override
-	public View getView(final int position, View convertView, ViewGroup parent) {
+	public View getView(final int position, View convertView, final ViewGroup parent) {
 		convertView = li.inflate(R.layout.select_listview, null);
 		TextView selectText = (TextView) convertView.findViewById(R.id.selectText);
 		selectText.setText(_selections.get(position)._optionValue);
 		
 		CheckBox selectBox = (CheckBox) convertView.findViewById(R.id.selectBox);
 		selectBox.setSelected(_selections.get(position).getSelected());
-		
+				
 		if(!_isMulti) {
+			
 			selectBox.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
 
 				@Override
 				public void onCheckedChanged(CompoundButton buttonView,
 						boolean isChecked) {
+					
 					if(isChecked) {
 						for(Selections s: _selections) {
 							if(position != _selections.indexOf(s)) {
-								s.setSelected(false);
+								LinearLayout ll = (LinearLayout) parent.getChildAt(_selections.indexOf(s));
+								CheckBox cb = (CheckBox) ll.getChildAt(0);
 								
+								s.setSelected(false);
+								cb.setChecked(false);
 							} else
 								s.setSelected(true);
-								
-							Log.d(InformaConstants.TAG, _selections.indexOf(s) + ") " + s._optionValue + " new check: " + s.getSelected());
 						}
+						
+						
 					}
 				
 				}

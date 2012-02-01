@@ -1,3 +1,3 @@
 To start saving and sending images with InformaCam, you must register your PGP key.  You must have APG (Android's PGP app) already installed on your device.
 
-{$ type=button; text=Register to my PGP key; callback=setUserPGP; mandatory=true;} 
+{$ type=button; text=Register to my PGP key; callback=getUserPGP; mandatory=true;} 

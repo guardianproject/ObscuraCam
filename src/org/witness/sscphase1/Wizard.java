@@ -1,9 +1,10 @@
 package org.witness.sscphase1;
 
+import info.guardianproject.database.sqlcipher.SQLiteDatabase;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -12,35 +13,29 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.witness.informa.utils.InformaConstants;
+import org.witness.informa.utils.secure.Apg;
+import org.witness.securesmartcam.io.DatabaseHelper;
 import org.witness.sscphase1.utils.Selections;
 import org.witness.sscphase1.utils.SelectionsAdapter;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
+import android.content.SharedPreferences;
+
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnKeyListener;
-import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.LinearLayout.LayoutParams;
 import android.widget.Toast;
 
 public class Wizard extends Activity implements OnClickListener {
@@ -50,14 +45,22 @@ public class Wizard extends Activity implements OnClickListener {
 	TextView frameTitle;
 	Button wizard_next, wizard_back, wizard_done;
 	
-	boolean listenForInput = false;
+	private SharedPreferences preferences;
+	private SharedPreferences.Editor _ed;
 	
 	WizardForm wizardForm;
+	
+	Apg apg;
+	DatabaseHelper dh;
+	SQLiteDatabase db;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.wizard);
+		
+		preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+		_ed = preferences.edit();
 		
 		current = getIntent().getIntExtra("current", 0);
 		wizardForm = new WizardForm(this);
@@ -87,7 +90,11 @@ public class Wizard extends Activity implements OnClickListener {
 			setMandatory(wizard_back);
 		}
 		
-		
+		try {
+			initFrame();
+		} catch(JSONException e) {
+			Log.e(InformaConstants.TAG, e.toString());
+		}
 	}
 	
 	public void setMandatory(View v) {
@@ -105,74 +112,73 @@ public class Wizard extends Activity implements OnClickListener {
 	}
 	
 	public void initFrame() throws JSONException {
-		final ProgressCircle[] circles = new ProgressCircle[wizardForm.frames.length()];
-		for(int x = 0; x < wizardForm.frames.length(); x++) {
-			int color = Color.GRAY;
-			if(x == current)
-				color = Color.CYAN;
-			
-			circles[x] = new ProgressCircle(color, x * 70);
-			
-		}
-		
-		progress.setBackgroundDrawable(new Drawable() {
-			private Paint p = new Paint();
-			
-			@Override
-			public void draw(Canvas canvas) {
-				for(ProgressCircle pc : circles) {
-					p.setColor(pc.color);
-					canvas.drawCircle(pc.x, pc.y, pc.r, p);
-				}
-				
-			}
-
-			@Override
-			public int getOpacity() {
-				return 0;
-			}
-
-			@Override
-			public void setAlpha(int alpha) {}
-
-			@Override
-			public void setColorFilter(ColorFilter cf) {}
-			
-		});
-		
 		wizardForm.setFrame(current);
 		frameTitle.setText(wizardForm.getTitle());
-		
-		int w = getWindowManager().getDefaultDisplay().getWidth();
-		int h = getWindowManager().getDefaultDisplay().getHeight();
 
 		ArrayList<View> views = wizardForm.getContent();
 		for(View v : views)
 			holder.addView(v);
 	}
 	
+	@SuppressWarnings("unused")
+	private void getUserPGP() {
+		apg = Apg.getInstance();
+		if(!apg.isAvailable(getApplicationContext()))
+			makeToast(getResources().getString(R.string.wizard_error_no_apg));
+		else {
+			apg.selectSecretKey(this);
+		}
+	}
+	
 	private void setUserPGP() {
-		Log.d(InformaConstants.TAG, "getting the user PGP key...");
-		enableAction(wizard_next);
+		Log.d(InformaConstants.TAG, "opening up database...");
+		
+		SQLiteDatabase.loadLibs(this);
+		
+		dh = new DatabaseHelper(this);
+		db = dh.getWritableDatabase(preferences.getString(InformaConstants.Settings.HAS_DB_PASSWORD, ""));
+		
+		dh.setTable(db, InformaConstants.Tables.INFORMA_SETUP);
+		
+		long localTimestamp = System.currentTimeMillis();
+		
+		ContentValues cv = new ContentValues();
+		cv.put(InformaConstants.Tables.Setup.SIG_KEY_ID, apg.getSignatureKeyId());
+		cv.put(InformaConstants.Tables.Setup.DEFAULT_SECURITY_LEVEL, InformaConstants.Keys.SecurityLevels.UNENCRYPTED_NOT_SHARABLE);
+		cv.put(InformaConstants.Tables.Setup.LOCAL_TIMESTAMP, localTimestamp);
+		cv.put(InformaConstants.Tables.Setup.PUBLIC_TIMESTAMP, getPublicTimestamp(localTimestamp));
+		
+		long insert = db.insert(dh.getTable(), null, cv);
+		if(insert != 0)
+			enableAction(wizard_next);
+		
+		db.close();
 	}
 	
+	private long getPublicTimestamp(long ts) {
+		//TODO public timestamp?
+		return ts;
+	}
+	
+	@SuppressWarnings("unused")
 	private void saveDBPW(String pw) {
-		Log.d(InformaConstants.TAG, "saving user password as " + pw + "...");
+		_ed.putString(InformaConstants.Settings.HAS_DB_PASSWORD, pw).commit();
+		Log.d(InformaConstants.TAG, "setting password...");
 	}
 	
-	private void setDBWPCache(int cacheSelection) {
-		Log.d(InformaConstants.TAG, "saving cache as " + cacheSelection + "...");
-	}
-	
-	private String[] getAPGContacts() {
-		Log.d(InformaConstants.TAG, "getting APG Contacts...");
-		return new String[] {"here are","sample contacts","from APG..."};
+	@SuppressWarnings("unused")
+	private void setDBWPCache(ArrayList<Selections> cacheSelection) {
+		for(Selections s : cacheSelection) {
+			if(s.getSelected())
+				_ed.putInt(InformaConstants.Settings.DB_PASSWORD_CACHE_TIMEOUT, cacheSelection.indexOf(s) + 200).commit();
+		}
 	}
 	
 	private class WizardForm extends JSONObject {
 		Context _c;
 		JSONArray frames, order;
 		JSONObject currentFrame;
+		ArrayList<Callback> callbacks;
 		
 		public final static String frameKey = "frameKey";
 		public final static String frameTitle = "frameTitle";
@@ -184,6 +190,7 @@ public class Wizard extends Activity implements OnClickListener {
 			_c = c;
 			frames = new JSONArray();
 			order = new JSONArray();
+			callbacks = new ArrayList<Callback>();
 			
 			// get the list of files within assets/wizard
 			try {
@@ -238,6 +245,10 @@ public class Wizard extends Activity implements OnClickListener {
 			}
 		}
 		
+		public ArrayList<Callback> getCallbacks() {
+			return callbacks;
+		}
+		
 		private String findKey(String content, String key) {
 			if(content.indexOf(key) != -1) {
 				String keyTail = content.substring(content.indexOf(key + "="));
@@ -265,9 +276,7 @@ public class Wizard extends Activity implements OnClickListener {
 					final String type = findKey(s, "type");
 					final String callback = findKey(s, "callback");
 					final boolean isMandatory = Boolean.parseBoolean(findKey(s, "mandatory"));
-					
-					Log.d(InformaConstants.TAG, "mandatory: " + isMandatory);
-					Log.d(InformaConstants.TAG, "callback: " + callback);
+					final String attachTo = findKey(s, "attachTo");
 					
 					if(isMandatory)
 						Wizard.this.setMandatory(wizard_next);
@@ -275,21 +284,23 @@ public class Wizard extends Activity implements OnClickListener {
 					if(type.compareTo("button") == 0) {
 						Button button = new Button(_c);
 						button.setText(findKey(s, "text"));
+						
+						String[] args = parseArguments(findKey(s, "args"));
+						final Callback buttonCall = new Callback(callback, args); 
+						
 						button.setOnClickListener(new OnClickListener() {
 
 							@Override
 							public void onClick(View v) {
-								if(callback != null)
-									try {
-										String[] args = parseArguments(findKey(s, "args"));
-										doCallback(callback, args);
-									} catch (IllegalAccessException e) {
-										Log.d(InformaConstants.TAG, e.toString());
-									} catch (NoSuchMethodException e) {
-										Log.d(InformaConstants.TAG, e.toString());
-									} catch (InvocationTargetException e) {
-										Log.d(InformaConstants.TAG, e.toString());
-									}
+								try {
+									buttonCall.doCallback();
+								} catch (IllegalAccessException e) {
+									Log.d(InformaConstants.TAG, e.toString());
+								} catch (NoSuchMethodException e) {
+									Log.d(InformaConstants.TAG, e.toString());
+								} catch (InvocationTargetException e) {
+									Log.d(InformaConstants.TAG, e.toString());
+								}
 							}
 							
 						});
@@ -329,19 +340,11 @@ public class Wizard extends Activity implements OnClickListener {
 								else if(pw.length() < 6 && pw.length() > 0)
 									Wizard.this.makeToast(_c.getResources().getString(R.string.wizard_error_password_too_short));
 								else {
-									Wizard.this.enableAction(wizard_next);
+									enableAction(wizard_next);
 									if(callback != null) {
-										String[] args = new String[] {pw};
+										if(attachTo == null)
+											callbacks.add(new Callback(callback, new String[] {pw}));
 										
-										try {
-											doCallback(callback, args);
-										} catch (IllegalAccessException e) {
-											Log.d(InformaConstants.TAG, e.toString());
-										} catch (NoSuchMethodException e) {
-											Log.d(InformaConstants.TAG, e.toString());
-										} catch (InvocationTargetException e) {
-											Log.d(InformaConstants.TAG, e.toString());
-										}
 									}
 								}
 								
@@ -358,11 +361,11 @@ public class Wizard extends Activity implements OnClickListener {
 						for(String option : findKey(s, "values").split(",")) {
 							if(Character.toString(option.charAt(0)).compareTo("#") == 0) {
 								// populate from callback
+								Callback populate = new Callback(option.substring(1), null);
+								
 								try {
-									
-									for(String res : (String[]) doCallback(option.substring(1), null)) {
+									for(String res : (String[]) populate.doCallback())
 										selections.add(new Selections(res, false));
-									}
 									
 								} catch (IllegalAccessException e) {
 									Log.d(InformaConstants.TAG, e.toString());
@@ -375,8 +378,9 @@ public class Wizard extends Activity implements OnClickListener {
 								selections.add(new Selections(option, false));
 						}
 						
-						lv.setAdapter(new SelectionsAdapter(_c, selections, type));
+						callbacks.add(new Callback(callback, new Object[] {selections}));
 						
+						lv.setAdapter(new SelectionsAdapter(_c, selections, type));
 						views.add(lv);
 					}
 				} else {
@@ -389,48 +393,44 @@ public class Wizard extends Activity implements OnClickListener {
 			return views;
 		}
 		
-		private Object doCallback(String callback, Object[] args) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-			Method method;
-			if(args != null) {
-				Class<?>[] paramTypes = new Class[args.length];
-				
-				for(int p=0; p<paramTypes.length; p++)
-					paramTypes[p] = args[p].getClass();
-				
-				method = Wizard.this.getClass().getDeclaredMethod(callback, paramTypes);
-			} else
-				method = Wizard.this.getClass().getDeclaredMethod(callback, null);
-			
-			method.setAccessible(true);
-			return method.invoke(Wizard.this, args);			
-		}
-		
 		public String getTitle() throws JSONException {
 			return currentFrame.getString(frameTitle);
 		}
 	}
 	
-	private class ProgressCircle  {
-		float x;
-		int color;
-		float y = 30f;
-		float r = 8f;
+	public class Callback {
+		String _func;
+		Object[] _args;
 		
-		public ProgressCircle(int color, float x) {
-			this.x = x + 20f;
-			this.color = color;
+		public Callback(String func, Object[] args) {
+			_func = func;
+			_args = args;
+			if(_args != null)
+				Log.d(InformaConstants.TAG, "fuction: " + _func + "\nnum args: " + _args.length);
+			else
+				Log.d(InformaConstants.TAG, "fuction: " + _func + "\nnum args: 0");
+		}
+		
+		public Object doCallback() throws  IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+			Method method;
+			if(_args != null) {
+				Class<?>[] paramTypes = new Class[_args.length];
+				
+				for(int p=0; p<paramTypes.length; p++)
+					paramTypes[p] = _args[p].getClass();
+				
+				method = Wizard.this.getClass().getDeclaredMethod(_func, paramTypes);
+			} else
+				method = Wizard.this.getClass().getDeclaredMethod(_func, null);
+			
+			method.setAccessible(true);
+			return method.invoke(Wizard.this, _args);
 		}
 	}
 	
 	@Override
 	public void onResume() {
 		super.onResume();
-		
-		try {
-			initFrame();
-		} catch(JSONException e) {
-			Log.e(InformaConstants.TAG, e.toString());
-		}
 	}
 	
 	@Override
@@ -454,17 +454,47 @@ public class Wizard extends Activity implements OnClickListener {
 			}
 		} else if(v == wizard_next) {
 			if(current < wizardForm.frames.length() - 1) {
+				// do the callbacks...
+				for(Callback c: wizardForm.getCallbacks()) {
+					try {
+						c.doCallback();
+					} catch (IllegalAccessException e) {
+						Log.d(InformaConstants.TAG, e.toString());
+					} catch (NoSuchMethodException e) {
+						Log.d(InformaConstants.TAG, e.toString());
+					} catch (InvocationTargetException e) {
+						Log.d(InformaConstants.TAG, e.toString());
+					}
+				}
+				
 				Intent i = new Intent(this,Wizard.class);
 				i.putExtra("current", current + 1);
 				startActivity(i);
 				finish();
 			}
 		} else if(v == wizard_done) {
+			_ed.putBoolean(InformaConstants.Settings.SETTINGS_VIEWED, true).commit();
 			Intent i = new Intent(this, ObscuraApp.class);
 			startActivity(i);
 			finish();
 		}
 		
+	}
+	
+	@Override
+	protected void onActivityResult(int request, int result, Intent data) {
+		super.onActivityResult(request, result, data);
+		
+		if(result == Activity.RESULT_OK) {
+			apg.onActivityResult(this, request, result, data);
+			
+			switch(request) {
+			case Apg.SELECT_SECRET_KEY:
+				setUserPGP();
+				break;
+			}
+		}
+			
 	}
 	
 	@Override

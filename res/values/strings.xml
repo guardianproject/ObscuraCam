@@ -101,4 +101,5 @@
     <!--  WIZARD related -->
     <string name="wizard_main_title">Setup Wizard</string>
     <string name="wizard_error_password_too_short">Please choose a password of 6 or more characters.</string>
+    <string name="wizard_error_no_apg">APG cannot be detected on the device.  Are you sure you have it installed?</string>
 </resources>
