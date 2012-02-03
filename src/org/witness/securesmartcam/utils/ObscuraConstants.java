@@ -41,4 +41,10 @@ public class ObscuraConstants {
 	public final static int SAVE_MENU_ITEM = 2;
 	public final static int SHARE_MENU_ITEM = 3;
 	public final static int NEW_REGION_MENU_ITEM = 4;
+	
+	public final static class Preferences {
+		public final static class Keys {
+			public final static String LANGUAGE = "obscura.language";
+		}
+	}
 }

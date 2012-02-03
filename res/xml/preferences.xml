@@ -1,51 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="@string/informaPref_label">
-        <EditTextPreference 
-            android:key="informaPref_dbpw"
-            android:title="@string/informaPref_dbpw"
-            android:summary="@string/informaPref_dbpw_sum"
-            android:defaultValue="" />
-        <EditTextPreference
-            android:key="informaPref_destKeys"
-            android:title="@string/informaPref_destKeys"
-            android:summary="@string/informaPref_destKeys_sum"
-            android:defaultValue="" />
-    </PreferenceCategory>
-    
-    
-    <!--  OLDER THINGS THAT MIGHT GET PUT BACK...
-	<PreferenceCategory android:title="Preferences">
-		<CheckBoxPreference 
-			android:title="Show Splash Screen"
-			android:defaultValue="true" 
-			android:summary="Display Splash Screen on Application Startup"
-			android:key="SplashScreenPref" />
-		<ListPreference
-			android:title="Original Image Handling"
-			android:summary="When image is imported"
-            android:key="OriginalImagePref"
-            android:defaultValue="0"
-            android:entries="@array/OriginalImageHandlingPrefNames"
-            android:entryValues="@array/OriginalImageHandlingPrefValues" />
-		<ListPreference
-			android:title="Panic Button"
-			android:summary="When panic button is pressed"
-			android:key="PanicButtonPref"
-			android:defaultValue="1"
-			android:entries="@array/PanicButtonPrefNames"
-			android:entryValues="@array/PanicButtonPrefValues" />
-		<CheckBoxPreference 
-			android:title="Automatically Sign Images"
-			android:defaultValue="true"
-			android:summary="Automatically Sign Images with Unique Key"
-			android:key="AutoSignPref" />
-		<CheckBoxPreference
-			android:title="Automatically Submit Images"
-			android:defaultValue="true"
-			android:summary="Automatically Sync Images with Cloud Service"
-			android:key="AutoSubmitPref" />
-	</PreferenceCategory>
-	-->
-		<!-- <Preference android:title="Done" android:key="DoneButtonPref"></Preference> -->
+	<ListPreference
+		android:title="@string/preferences_language_label"
+		android:summary="@string/preferences_language_text"
+		android:defaultValue="0"
+		android:entries="@array/default_language"
+		android:entryValues="@array/default_language_values"
+		android:key="obscura.language" />
+	<ListPreference
+		android:title="@string/preferences_cache_label"
+		android:summary="@string/preferences_cache_text"
+		android:defaultValue="200"
+		android:entries="@array/password_cache"
+		android:entryValues="@array/password_cache_values"
+		android:key="informa.PasswordCacheTimeout" />
+	<ListPreference
+		android:title="@string/preferences_image_handling_label"
+		android:summary="@string/preferences_image_handling_text"
+		android:defaultValue="300"
+		android:entries="@array/default_image_handling"
+		android:entryValues="@array/default_image_handling_values"
+		android:key="informa.DefaultImageHandling" />
 </PreferenceScreen>

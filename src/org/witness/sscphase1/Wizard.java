@@ -163,15 +163,32 @@ public class Wizard extends Activity implements OnClickListener {
 	@SuppressWarnings("unused")
 	private void saveDBPW(String pw) {
 		_ed.putString(InformaConstants.Settings.HAS_DB_PASSWORD, pw).commit();
-		Log.d(InformaConstants.TAG, "setting password...");
 	}
 	
 	@SuppressWarnings("unused")
-	private void setDBWPCache(ArrayList<Selections> cacheSelection) {
+	private void setDBPWCache(ArrayList<Selections> cacheSelection) {
 		for(Selections s : cacheSelection) {
 			if(s.getSelected())
-				_ed.putInt(InformaConstants.Settings.DB_PASSWORD_CACHE_TIMEOUT, cacheSelection.indexOf(s) + 200).commit();
+				_ed.putString(InformaConstants.Settings.DB_PASSWORD_CACHE_TIMEOUT, String.valueOf(cacheSelection.indexOf(s) + 200)).commit();
 		}
+	}
+	
+	@SuppressWarnings("unused")
+	private void setDefaultImageHandling(ArrayList<Selections> imageHandlingSelection) {
+		for(Selections s : imageHandlingSelection) {
+			if(s.getSelected())
+				_ed.putString(InformaConstants.Settings.DEFAULT_IMAGE_HANDLING, String.valueOf(imageHandlingSelection.indexOf(s) + 300)).commit();
+		}
+	}
+	
+	@SuppressWarnings("unused")
+	private String[] getDefaultImageHandlingOptions() {
+		return getResources().getStringArray(R.array.default_image_handling);
+	}
+	
+	@SuppressWarnings("unused")
+	private String[] getDBPWCacheValues() {
+		return getResources().getStringArray(R.array.password_cache);
 	}
 	
 	private class WizardForm extends JSONObject {
@@ -405,10 +422,6 @@ public class Wizard extends Activity implements OnClickListener {
 		public Callback(String func, Object[] args) {
 			_func = func;
 			_args = args;
-			if(_args != null)
-				Log.d(InformaConstants.TAG, "fuction: " + _func + "\nnum args: " + _args.length);
-			else
-				Log.d(InformaConstants.TAG, "fuction: " + _func + "\nnum args: 0");
 		}
 		
 		public Object doCallback() throws  IllegalAccessException, NoSuchMethodException, InvocationTargetException {

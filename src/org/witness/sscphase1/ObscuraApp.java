@@ -256,7 +256,8 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	}
 	
 	private void launchPrefs() {
-		//TODO: go directly to prefs panel. 
+		Intent intent = new Intent(this, Preferences.class);
+		startActivity(intent);
 	}
 	
 	private void showDialog (String msg)

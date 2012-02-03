@@ -1,0 +1,3 @@
+What should InformaCam do with your original image after you've saved it?
+
+{$ type=select_one; callback=setDefaultImageHandling; values=#getDefaultImageHandlingOptions; }

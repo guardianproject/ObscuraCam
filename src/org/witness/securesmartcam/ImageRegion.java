@@ -380,32 +380,6 @@ public class ImageRegion implements OnActionItemClickListener
 				mImageEditor.updateDisplayImage();
 					
 				return true;
-			/*	
-			case MotionEvent.ACTION_OUTSIDE:
-				Log.v(LOGTAG,"ACTION_OUTSIDE");
-				
-				mImageEditor.doRealtimePreview = true;
-				mImageEditor.updateDisplayImage();
-				
-
-				return true;
-				
-			case MotionEvent.ACTION_CANCEL:
-				Log.v(LOGTAG,"ACTION_CANCEL");
-				
-				mImageEditor.doRealtimePreview = true;
-				mImageEditor.updateDisplayImage();
-				
-				return true;
-				
-			default:
-				Log.v(LOGTAG, "DEFAULT: " + (event.getAction() & MotionEvent.ACTION_MASK));
-		
-				mImageEditor.doRealtimePreview = true;
-				mImageEditor.updateDisplayImage();
-				
-				return true;*/
-				
 		}
 		
 		return false;

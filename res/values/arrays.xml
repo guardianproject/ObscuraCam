@@ -1,72 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<!-- Used in Preferences/Values for Original Image Handling -->
-	<string-array name="OriginalImageHandlingPrefNames">
-		<item>Leave Original Alone</item>
-<!-- 		<item>Lock Original</item>  -->
-		<item>Delete Original</item>
-	</string-array>
-	<string-array name="OriginalImageHandlingPrefValues">
-		<item>0</item>
-	<!-- <item>1</item> -->	
-		<item>2</item>
-	</string-array>
-
-	<!--  Used in Preferences for Panic Button -->
-	<string-array name="PanicButtonPrefNames">
-		<item>Wipe Everything</item>
-		<item>Lock Down</item>
-	</string-array>
-	<string-array name="PanicButtonPrefValues">
-		<item>0</item>
-		<item>1</item>
+	<string-array name="password_cache">
+		<item>Always</item>
+		<item>Until after I save an image</item>
+		<item>Until I close the app</item>
 	</string-array>
 	
-	<!--  Strings for the Popup menu -->
-	<string-array name="UIMenuItemNames">
-		<item>Edit</item>
-		<item>ID</item>
-		<item>Encrypt</item>
-		<item>Erase</item>
+	<string-array name="password_cache_values">
+		<item>200</item>
+		<item>201</item>
+		<item>202</item>
 	</string-array>
-
-	<!--  All EXIF Tags to be Queried, but this doesn't work.  keeping it here in case i need it -->
-	<string-array name="ExifTags">
-
-		<item>ExifInterface.TAG_DATETIME</item>
-		<item>ExifInterface.TAG_FLASH</item>
-		<item>ExifInterface.TAG_FOCAL_LENGTH</item>
-		<item>ExifInterface.TAG_GPS_DATESTAMP</item>
-		<item>ExifInterface.TAG_GPS_LATITUDE</item>
-		<item>ExifInterface.TAG_GPS_LATITUDE_REF</item>
-		<item>ExifInterface.TAG_GPS_LONGITUDE</item>
-		<item>ExifInterface.TAG_GPS_LONGITUDE_REF</item>
-		<item>ExifInterface.TAG_GPS_PROCESSING_METHOD</item>
-		<item>ExifInterface.TAG_GPS_TIMESTAMP</item>
-		<item>ExifInterface.TAG_IMAGE_LENGTH</item>
-		<item>ExifInterface.TAG_IMAGE_WIDTH</item>
-		<item>ExifInterface.TAG_MAKE</item>
-		<item>ExifInterface.TAG_MODEL</item>
-		<item>ExifInterface.TAG_ORIENTATION</item>
-		<item>ExifInterface.TAG_WHITE_BALANCE</item>
+	
+	<string-array name="default_image_handling">
+		<item>Leave original on SD card</item>
+		<item>Encrypt original</item>
+		<item>Delete original</item>
 	</string-array>
-
-	<string-array name="ExifTagsDB">
-		<item>d_tagDateTime</item>
-		<item>d_tagFlash</item>
-		<item>d_tagFocalLength</item>
-		<item>d_tagGPSDateStamp</item>
-		<item>d_tagGPSLatitude</item>
-		<item>d_tagGPSLatitudeRef</item>
-		<item>d_tagLongitude</item>
-		<item>d_tagLongitudeRef</item>
-		<item>d_tagGPSProcessingMethod</item>
-		<item>d_tagGPSTimeStamp</item>
-		<item>d_tagImageLength</item>
-		<item>d_tagImageWidth</item>
-		<item>d_tagMake</item>
-		<item>d_tagModel</item>
-		<item>d_tagOrientation</item>
-		<item>d_tagWhiteBalance</item>
+	
+	<string-array name="default_image_handling_values">
+		<item>300</item>
+		<item>301</item>
+		<item>302</item>
+	</string-array>
+	
+	<string-array name="default_language">
+		<item>English</item>
+		<item>French</item>
+		<item>Arabic</item>
+		<item>Farsi</item>
+	</string-array>
+	
+	<string-array name="default_language_values">
+		<item>en</item>
+		<item>fr</item>
+		<item>ar</item>
+		<item>fa</item>
 	</string-array>
 </resources>

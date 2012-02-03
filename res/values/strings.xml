@@ -102,4 +102,13 @@
     <string name="wizard_main_title">Setup Wizard</string>
     <string name="wizard_error_password_too_short">Please choose a password of 6 or more characters.</string>
     <string name="wizard_error_no_apg">APG cannot be detected on the device.  Are you sure you have it installed?</string>
+    
+    <!--  GLOBAL PREFERENCES related -->
+    <string name="preferences_label">InformaCam Preferences</string>
+    <string name="preferences_cache_label">Login Options</string>
+    <string name="preferences_cache_text">How long should you stay logged in to the app?  If you choose "always," you must manually log out of the app (through the main menu.)</string>
+    <string name="preferences_image_handling_label">Image Handling</string>
+    <string name="preferences_image_handling_text">What should the app do with your original images?</string>
+    <string name="preferences_language_label">Language</string>
+    <string name="preferences_language_text">What language should the app use?</string>
 </resources>
