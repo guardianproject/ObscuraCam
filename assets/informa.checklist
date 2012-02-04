@@ -1,0 +1,1 @@
+{$ type=boolean; defaultValue=false; text=This subject given his/her informed consent to appear in this image; id=subject_informedConsentGiven; }

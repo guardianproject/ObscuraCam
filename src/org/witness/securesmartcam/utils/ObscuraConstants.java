@@ -2,6 +2,9 @@ package org.witness.securesmartcam.utils;
 
 import org.witness.sscphase1.R;
 
+import android.content.Context;
+import android.widget.Toast;
+
 public class ObscuraConstants {
 	public final static String TAG = "************ OBSCURA ***********";
 	
@@ -46,5 +49,13 @@ public class ObscuraConstants {
 		public final static class Keys {
 			public final static String LANGUAGE = "obscura.language";
 		}
+	}
+	
+	public final static class ImageRegion {
+		public final static String PROPERTIES = "mProps";
+	}
+	
+	public static void makeToast(Context c, String m) {
+		Toast.makeText(c, m, Toast.LENGTH_LONG).show();
 	}
 }

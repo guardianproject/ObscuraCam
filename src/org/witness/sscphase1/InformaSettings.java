@@ -19,7 +19,7 @@ class InformaSettings {
 	static boolean show(final Activity activity) {
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(activity);
 		
-		if(!preferences.getBoolean(InformaConstants.Settings.SETTINGS_VIEWED, false)) {
+		if(!preferences.getBoolean(InformaConstants.Keys.Settings.SETTINGS_VIEWED, false)) {
 			Log.d(InformaConstants.TAG, "virgin user, EULA accepted. launching wizard");
 			if(activity instanceof OnSettingsSeen) {
 				Intent intent = new Intent(activity, Wizard.class);
@@ -27,7 +27,7 @@ class InformaSettings {
 			}
 			
 			return false;
-		} else if(preferences.getString(InformaConstants.Settings.HAS_DB_PASSWORD, "").compareTo(InformaConstants.PW_EXPIRY) == 0) {
+		} else if(preferences.getString(InformaConstants.Keys.Settings.HAS_DB_PASSWORD, "").compareTo(InformaConstants.PW_EXPIRY) == 0) {
 			Log.d(InformaConstants.TAG, "user\'s password expired.  must log in again.");
 			SharedPreferences.Editor _ed = preferences.edit();
 			final AlertDialog.Builder builder = new AlertDialog.Builder(activity);

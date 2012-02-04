@@ -38,13 +38,30 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	private Uri uriCameraImage = null;
 	
 	SensorSucker informaService;
+	
+	private ServiceConnection sc = new ServiceConnection() {
+    	public void onServiceConnected(ComponentName cn, IBinder binder) {
+    		LocalBinder lb = (LocalBinder) binder;
+    		informaService = lb.getService();
+    	}
+    	
+    	public void onServiceDisconnected(ComponentName cn) {
+    		informaService = null;
+    	}
+    };
 		
 	@Override
 	protected void onDestroy() 
 	{
-		super.onDestroy();	
+		super.onDestroy();
 		deleteTmpFile();
 		
+	}
+	
+	@Override
+	protected void onPause() {
+		// TODO: this is only for testing...
+		super.onPause();
 	}
 	
 	private void deleteTmpFile ()
@@ -268,7 +285,6 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
          .create().show();
 	}
 
-
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
 		
@@ -295,19 +311,8 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
         }
     }
     
-    private ServiceConnection sc = new ServiceConnection() {
-    	public void onServiceConnected(ComponentName cn, IBinder binder) {
-    		LocalBinder lb = (LocalBinder) binder;
-    		informaService = lb.getService();
-    	}
-    	
-    	public void onServiceDisconnected(ComponentName cn) {
-    		informaService = null;
-    	}
-    };
-    
     private void launchInforma() {
-    	if(informaService != null) {
+    	if(informaService == null) {
     		Intent startSensorSucker = new Intent(this, SensorSucker.class);
     		bindService(startSensorSucker, sc, Context.BIND_AUTO_CREATE);
     	}
@@ -336,7 +341,7 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	
 	@Override
 	public void onSettingsSeen() {
-		launchInforma();
+
 	}
     
 }

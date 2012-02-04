@@ -89,7 +89,7 @@ public class SensorLogger<T> {
 			Log.d(InformaConstants.TAG, "LOG CLEARED");
 		}
 		
-		logItem.put(InformaConstants.Keys.Labels.TIMESTAMP, System.currentTimeMillis());
+		logItem.put(InformaConstants.Keys.CaptureEvent.TIMESTAMP, System.currentTimeMillis());
 		mBuffer.put(logItem);		
 	}
 	

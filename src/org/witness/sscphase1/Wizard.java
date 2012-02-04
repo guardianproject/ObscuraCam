@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import org.witness.informa.utils.InformaConstants;
 import org.witness.informa.utils.io.DatabaseHelper;
 import org.witness.informa.utils.secure.Apg;
+import org.witness.securesmartcam.utils.ObscuraConstants;
 import org.witness.securesmartcam.utils.Selections;
 import org.witness.securesmartcam.utils.SelectionsAdapter;
 
@@ -107,10 +108,6 @@ public class Wizard extends Activity implements OnClickListener {
 		((Button) v).setClickable(true);
 	}
 	
-	public void makeToast(String msg) {
-		Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
-	}
-	
 	public void initFrame() throws JSONException {
 		wizardForm.setFrame(current);
 		frameTitle.setText(wizardForm.getTitle());
@@ -124,7 +121,7 @@ public class Wizard extends Activity implements OnClickListener {
 	private void getUserPGP() {
 		apg = Apg.getInstance();
 		if(!apg.isAvailable(getApplicationContext()))
-			makeToast(getResources().getString(R.string.wizard_error_no_apg));
+			ObscuraConstants.makeToast(this, getResources().getString(R.string.wizard_error_no_apg));
 		else {
 			apg.selectSecretKey(this);
 		}
@@ -136,17 +133,18 @@ public class Wizard extends Activity implements OnClickListener {
 		SQLiteDatabase.loadLibs(this);
 		
 		dh = new DatabaseHelper(this);
-		db = dh.getWritableDatabase(preferences.getString(InformaConstants.Settings.HAS_DB_PASSWORD, ""));
+		db = dh.getWritableDatabase(preferences.getString(InformaConstants.Keys.Settings.HAS_DB_PASSWORD, ""));
 		
-		dh.setTable(db, InformaConstants.Tables.INFORMA_SETUP);
+		dh.setTable(db, InformaConstants.Keys.Tables.SETUP);
 		
 		long localTimestamp = System.currentTimeMillis();
 		
 		ContentValues cv = new ContentValues();
-		cv.put(InformaConstants.Tables.Setup.SIG_KEY_ID, apg.getSignatureKeyId());
-		cv.put(InformaConstants.Tables.Setup.DEFAULT_SECURITY_LEVEL, InformaConstants.Keys.SecurityLevels.UNENCRYPTED_NOT_SHARABLE);
-		cv.put(InformaConstants.Tables.Setup.LOCAL_TIMESTAMP, localTimestamp);
-		cv.put(InformaConstants.Tables.Setup.PUBLIC_TIMESTAMP, getPublicTimestamp(localTimestamp));
+		cv.put(InformaConstants.Keys.Owner.SIG_KEY_ID, apg.getSignatureKeyId());
+		cv.put(InformaConstants.Keys.Owner.DEFAULT_SECURITY_LEVEL, InformaConstants.SecurityLevels.UNENCRYPTED_NOT_SHARABLE);
+		cv.put(InformaConstants.Keys.Owner.OWNERSHIP_TYPE, InformaConstants.Owner.INDIVIDUAL);
+		cv.put(InformaConstants.Keys.Device.LOCAL_TIMESTAMP, localTimestamp);
+		cv.put(InformaConstants.Keys.Device.PUBLIC_TIMESTAMP, getPublicTimestamp(localTimestamp));
 		
 		long insert = db.insert(dh.getTable(), null, cv);
 		if(insert != 0)
@@ -162,14 +160,14 @@ public class Wizard extends Activity implements OnClickListener {
 	
 	@SuppressWarnings("unused")
 	private void saveDBPW(String pw) {
-		_ed.putString(InformaConstants.Settings.HAS_DB_PASSWORD, pw).commit();
+		_ed.putString(InformaConstants.Keys.Settings.HAS_DB_PASSWORD, pw).commit();
 	}
 	
 	@SuppressWarnings("unused")
 	private void setDBPWCache(ArrayList<Selections> cacheSelection) {
 		for(Selections s : cacheSelection) {
 			if(s.getSelected())
-				_ed.putString(InformaConstants.Settings.DB_PASSWORD_CACHE_TIMEOUT, String.valueOf(cacheSelection.indexOf(s) + 200)).commit();
+				_ed.putString(InformaConstants.Keys.Settings.DB_PASSWORD_CACHE_TIMEOUT, String.valueOf(cacheSelection.indexOf(s) + 200)).commit();
 		}
 	}
 	
@@ -177,7 +175,7 @@ public class Wizard extends Activity implements OnClickListener {
 	private void setDefaultImageHandling(ArrayList<Selections> imageHandlingSelection) {
 		for(Selections s : imageHandlingSelection) {
 			if(s.getSelected())
-				_ed.putString(InformaConstants.Settings.DEFAULT_IMAGE_HANDLING, String.valueOf(imageHandlingSelection.indexOf(s) + 300)).commit();
+				_ed.putString(InformaConstants.Keys.Settings.DEFAULT_IMAGE_HANDLING, String.valueOf(imageHandlingSelection.indexOf(s) + 300)).commit();
 		}
 	}
 	
@@ -355,7 +353,7 @@ public class Wizard extends Activity implements OnClickListener {
 								String pw = ((EditText) v).getText().toString();
 								if(pw.length() == 0) {}
 								else if(pw.length() < 6 && pw.length() > 0)
-									Wizard.this.makeToast(_c.getResources().getString(R.string.wizard_error_password_too_short));
+									ObscuraConstants.makeToast(_c, _c.getResources().getString(R.string.wizard_error_password_too_short));
 								else {
 									enableAction(wizard_next);
 									if(callback != null) {
@@ -486,7 +484,7 @@ public class Wizard extends Activity implements OnClickListener {
 				finish();
 			}
 		} else if(v == wizard_done) {
-			_ed.putBoolean(InformaConstants.Settings.SETTINGS_VIEWED, true).commit();
+			_ed.putBoolean(InformaConstants.Keys.Settings.SETTINGS_VIEWED, true).commit();
 			Intent i = new Intent(this, ObscuraApp.class);
 			startActivity(i);
 			finish();

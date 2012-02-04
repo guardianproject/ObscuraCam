@@ -1,6 +1,6 @@
 package org.witness.informa.utils.io;
 
-import org.witness.informa.utils.InformaConstants.Tables;
+import org.witness.informa.utils.InformaConstants.Keys.*;
 
 import info.guardianproject.database.sqlcipher.SQLiteDatabase;
 import info.guardianproject.database.sqlcipher.SQLiteOpenHelper;
@@ -19,28 +19,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 			@Override
 			public String[] build() {
 				return new String[] {
-					"CREATE TABLE " + Tables.INFORMA_IMAGES + " (" + BaseColumns._ID + " " +
+					"CREATE TABLE " + Tables.IMAGES + " (" + BaseColumns._ID + " " +
 							"integer primary key autoincrement, " +
-							Tables.Images.METADATA + " blob not null, " +
-							Tables.Images.CONTAINMENT_ARRAY + " blob not null, " +
-							Tables.Images.IMAGE_HASH + " text not null" +
+							Image.METADATA + " blob not null, " +
+							Image.CONTAINMENT_ARRAY + " blob not null, " +
+							Image.UNREDACTED_IMAGE_HASH + " text not null, " +
+							Image.REDACTED_IMAGE_HASH + " text not null, " +
+							Image.LOCATION_OF_ORIGINAL + " text not null" +
 							")",
-					"CREATE TABLE " + Tables.INFORMA_CONTACTS + " (" + BaseColumns._ID + " " +
+					"CREATE TABLE " + Tables.CONTACTS + " (" + BaseColumns._ID + " " +
 							"integer primary key autoincrement, " +
-							Tables.Contacts.PSEUDONYM + " text not null, " +
-							Tables.Contacts.DEFAULT_FILTER + " integer not null" +
+							ImageRegion.Subject.PSEUDONYM + " text not null, " +
+							ImageRegion.Subject.PERSIST_FILTER + " integer not null" +
 							")",
-					"CREATE TABLE " + Tables.INFORMA_SETUP + "(" + BaseColumns._ID + " " +
+					"CREATE TABLE " + Tables.SETUP + "(" + BaseColumns._ID + " " +
 							"integer primary key autoincrement, " +
-							Tables.Setup.SIG_KEY_ID + " text not null, " + 
-							Tables.Setup.DEFAULT_SECURITY_LEVEL + " integer not null, " +
-							Tables.Setup.LOCAL_TIMESTAMP + " integer not null, " +
-							Tables.Setup.PUBLIC_TIMESTAMP + " integer not null" +
+							Owner.SIG_KEY_ID + " text not null, " + 
+							Owner.DEFAULT_SECURITY_LEVEL + " integer not null, " +
+							Device.LOCAL_TIMESTAMP + " integer not null, " +
+							Device.PUBLIC_TIMESTAMP + " integer not null, " +
+							Owner.OWNERSHIP_TYPE + " integer not null" +
 							")",
 					"CREATE TABLE " + Tables.IMAGE_REGIONS + " (" + BaseColumns._ID + " " +
 							"integer primary key autoincrement, " +
-							Tables.Regions.KEY + " text not null, " +
-							Tables.Regions.DATA + " blob not null" +
+							ImageRegion.KEY + " text not null, " +
+							ImageRegion.DATA + " blob not null" +
 							")"
 				};
 			}
@@ -66,6 +69,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {}
 	
+	public Cursor getValue(SQLiteDatabase db, String[] values, String matchKey, Object matchValue) {
+		String select = "*";
+		
+		if(values != null) {
+			StringBuffer sb = new StringBuffer();
+			for(String v : values)
+				sb.append(v + ",");
+			select = sb.toString().substring(0, sb.toString().length() - 1);
+		}
+		
+		if(matchValue.getClass().equals(String.class))
+			matchValue = "\"" + matchValue + "\"";
+		
+		Cursor c = db.rawQuery("SELECT " + select + " FROM " + getTable() + " WHERE " + matchKey + " = " + matchValue, null);
+		if(c != null && c.getCount() > 0) {
+			return c;
+		} else
+			return null;
+	}
+	
 	public boolean setTable(SQLiteDatabase db, String whichTable) {
 		TABLE = whichTable;
 		
@@ -77,9 +100,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 			c.close();
 			String[] queries = null;
 			if(
-				getTable().compareTo(Tables.INFORMA_CONTACTS) == 0 ||
-				getTable().compareTo(Tables.INFORMA_IMAGES) == 0 ||
-				getTable().compareTo(Tables.INFORMA_SETUP) == 0 ||
+				getTable().compareTo(Tables.CONTACTS) == 0 ||
+				getTable().compareTo(Tables.IMAGES) == 0 ||
+				getTable().compareTo(Tables.SETUP) == 0 ||
 				getTable().compareTo(Tables.IMAGE_REGIONS) == 0
 			)
 				queries = QueryBuilders.INIT_INFORMA.build();

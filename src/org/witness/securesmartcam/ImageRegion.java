@@ -52,9 +52,7 @@ public class ImageRegion implements OnActionItemClickListener
 	public static final int REDACT = 0; // PaintSquareObscure
 	public static final int PIXELATE = 1; // PixelizeObscure
 	public static final int BG_PIXELATE = 2; // BlurObscure
-	public static final int MASK = 3; // MaskObscure	
-	//public static final int BLUR = 4; // PixelizeObscure
-	public static final int CONSENT = 4; // PixelizeObscure
+	public static final int CONSENT = 3; // PixelizeObscure
 	
 	boolean selected = false;
 	

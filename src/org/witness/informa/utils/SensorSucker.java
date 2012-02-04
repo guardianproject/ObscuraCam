@@ -59,10 +59,10 @@ public class SensorSucker extends Service {
 		
 		Log.d(InformaConstants.TAG, "Informa v1.1 starting");
 		
-		br.add(new Broadcaster(new IntentFilter(InformaConstants.Service.STOP_SERVICE)));
+		br.add(new Broadcaster(new IntentFilter(InformaConstants.Keys.Service.STOP_SERVICE)));
 		br.add(new Broadcaster(new IntentFilter(BluetoothDevice.ACTION_FOUND)));
-		br.add(new Broadcaster(new IntentFilter(InformaConstants.Service.SET_CURRENT)));
-		br.add(new Broadcaster(new IntentFilter(InformaConstants.Service.SEAL_LOG)));
+		br.add(new Broadcaster(new IntentFilter(InformaConstants.Keys.Service.SET_CURRENT)));
+		br.add(new Broadcaster(new IntentFilter(InformaConstants.Keys.Service.SEAL_LOG)));
 		
 		for(BroadcastReceiver b : br)
 			registerReceiver(b, ((Broadcaster) b)._filter);
@@ -106,8 +106,8 @@ public class SensorSucker extends Service {
 	private void captureEventData(long timestampToMatch, int captureEvent) throws Exception {
 		JSONObject captureEventData = new JSONObject();
 		
-		captureEventData.put(InformaConstants.Keys.Labels.CAPTURE_EVENT, captureEvent);
-		captureEventData.put(InformaConstants.Keys.Labels.MATCH_TIMESTAMP, timestampToMatch);
+		captureEventData.put(InformaConstants.Keys.CaptureEvent.TYPE, captureEvent);
+		captureEventData.put(InformaConstants.Keys.CaptureEvent.MATCH_TIMESTAMP, timestampToMatch);
 		captureEventData.put(InformaConstants.Keys.Suckers.GEO, _geo.returnCurrent());
 		captureEventData.put(InformaConstants.Keys.Suckers.PHONE, _phone.returnCurrent());
 		captureEventData.put(InformaConstants.Keys.Suckers.ACCELEROMETER, _acc.returnCurrent());
@@ -116,11 +116,13 @@ public class SensorSucker extends Service {
 	}
 	
 	private void sealLog(String imageRegionData, String localMediaPath, long[] encryptTo) throws Exception {
-		imageData.put(InformaConstants.Keys.Labels.LOCAL_MEDIA_PATH, localMediaPath);
-		imageData.put(InformaConstants.Keys.Labels.MEDIA_TYPE, InformaConstants.Keys.MediaTypes.PHOTO);
-				
+		imageData.put(InformaConstants.Keys.Image.LOCAL_MEDIA_PATH, localMediaPath);
+		imageData.put(InformaConstants.Keys.Image.MEDIA_TYPE, InformaConstants.MediaTypes.PHOTO);
 		imageRegions = (JSONArray) new JSONTokener(imageRegionData).nextValue();
 		
+		//TODO informa in new thread
+		
+		stopSucking();
 		//Informa informa = new Informa(getApplicationContext(), imageData, imageRegions, capturedEvents, encryptTo);
 	}
 	
@@ -140,20 +142,21 @@ public class SensorSucker extends Service {
 
 		@Override
 		public void onReceive(Context c, Intent i) {
+			Log.d(InformaConstants.TAG, c.getPackageName());
 			try {
-				if(InformaConstants.Service.STOP_SERVICE.equals(i.getAction())) {
+				if(InformaConstants.Keys.Service.STOP_SERVICE.equals(i.getAction())) {
 					stopSucking();
 				} else if(BluetoothDevice.ACTION_FOUND.equals(i.getAction())) {
 					handleBluetooth((BluetoothDevice) i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE));
-				} else if(InformaConstants.Service.SEAL_LOG.equals(i.getAction())) {
+				} else if(InformaConstants.Keys.Service.SEAL_LOG.equals(i.getAction())) {
 					sealLog(
-						i.getStringExtra(InformaConstants.Keys.Labels.REGION_DATA), 
-						i.getStringExtra(InformaConstants.Keys.Labels.LOCAL_MEDIA_PATH), 
-						i.getLongArrayExtra(InformaConstants.Keys.Labels.ENCRYPT_LIST));
-				} else if(InformaConstants.Service.SET_CURRENT.equals(i.getAction())) {
+						i.getStringExtra(InformaConstants.Keys.ImageRegion.DATA), 
+						i.getStringExtra(InformaConstants.Keys.Image.LOCAL_MEDIA_PATH), 
+						i.getLongArrayExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST));
+				} else if(InformaConstants.Keys.Service.SET_CURRENT.equals(i.getAction())) {
 					captureEventData(
-						i.getLongExtra(InformaConstants.Keys.Labels.MATCH_TIMESTAMP, 0L),
-						i.getIntExtra(InformaConstants.Keys.Labels.CAPTURE_EVENT, InformaConstants.Keys.CaptureEvents.REGION_GENERATED));
+						i.getLongExtra(InformaConstants.Keys.CaptureEvent.MATCH_TIMESTAMP, 0L),
+						i.getIntExtra(InformaConstants.Keys.CaptureEvent.TYPE, InformaConstants.CaptureEvents.REGION_GENERATED));
 				}
 			} catch (Exception e) {
 				Log.d(InformaConstants.TAG, "error: " + e);

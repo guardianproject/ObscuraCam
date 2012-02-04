@@ -6,8 +6,7 @@
 	android:layout_height="fill_parent"
     android:weightSum="1.0">
 	<CheckBox
-	    	android:padding="3px"
-	
+	    android:padding="3px"
     	android:layout_width="wrap_content"
     	android:layout_height="wrap_content"
     	android:id="@+id/optionSelection" />
@@ -16,6 +15,4 @@
     	android:layout_height="wrap_content"
     	android:layout_weight="1"
     	android:id="@+id/optionText" />
-  
-    
 </LinearLayout>

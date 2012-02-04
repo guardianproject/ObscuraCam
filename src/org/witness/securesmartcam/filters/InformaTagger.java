@@ -1,7 +1,8 @@
 package org.witness.securesmartcam.filters;
 
-import java.util.Date;
 import java.util.Properties;
+
+import org.witness.informa.utils.InformaConstants.Keys.ImageRegion;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -16,23 +17,22 @@ public class InformaTagger implements RegionProcesser
 	public InformaTagger ()
 	{
 		mProps = new Properties ();
-		mProps.put("regionSubject", "");
-		mProps.put("informedConsent", "false");
-		mProps.put("persistObscureType", "false");
-		mProps.put("obfuscationType", this.getClass().getName());
-		
-		mProps.put("timestampOnGeneration", new Date().getTime());
+		mProps.put(ImageRegion.Subject.PSEUDONYM, "");
+		mProps.put(ImageRegion.Subject.INFORMED_CONSENT_GIVEN, "false");
+		mProps.put(ImageRegion.Subject.PERSIST_FILTER, "false");
+		mProps.put(ImageRegion.FILTER, this.getClass().getName());
+		mProps.put(ImageRegion.TIMESTAMP, System.currentTimeMillis());
 	}
 	
 	@Override
 	public void processRegion (RectF rect, Canvas canvas,  Bitmap bitmap) 
 	{
 		// return properties and data as a map
-		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
-		mProps.put("regionWidth", Integer.toString((int) Math.abs(rect.left - rect.right)));
-		mProps.put("regionHeight", Integer.toString((int) Math.abs(rect.top - rect.bottom)));		
-		mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
-		mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
+		mProps.put(ImageRegion.COORDINATES, "[" + rect.top + "," + rect.left + "]");
+		mProps.put(ImageRegion.WIDTH, Integer.toString((int) Math.abs(rect.left - rect.right)));
+		mProps.put(ImageRegion.HEIGHT, Integer.toString((int) Math.abs(rect.top - rect.bottom)));		
+		//mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
+		//mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
 		
 		mPreview = Bitmap.createBitmap(
 				bitmap, 

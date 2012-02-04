@@ -1,5 +1,6 @@
 package org.witness.securesmartcam;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -16,6 +17,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
+import org.witness.informa.Tagger;
 import org.witness.informa.utils.InformaConstants;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.InformaTagger;
@@ -1499,6 +1501,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	cv.put(Images.Media.DATE_TAKEN, dateString);
     	cv.put(Images.Media.DATE_MODIFIED, dateString);
     	cv.put(Images.Media.TITLE, dateString);
+    	cv.put(Images.Media.LATITUDE, 0);
+    	cv.put(Images.Media.LONGITUDE, 0);
     //    cv.put(Images.Media.BUCKET_ID, "ObscuraCam");
     //    cv.put(Images.Media.DESCRIPTION, "ObscuraCam");
     	//cv.put(Images.Media.CONTENT_TYPE, MIME_TYPE_JPEG);
@@ -1557,6 +1561,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		Toast t = Toast.makeText(this,"Image saved to Gallery", Toast.LENGTH_SHORT); 
 		t.show();
+		
+		/*
+		Intent informa = new Intent()
+			.setAction(InformaConstants.Keys.Service.SEAL_LOG)
+			.putExtra(InformaConstants.Keys.ImageRegion.DATA, value)
+			.putExtra(InformaConstants.Keys.Image.LOCAL_MEDIA_PATH, pullPathFromUri(savedImageUri).getAbsolutePath())
+			.putExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST), encryptList);
+			
+		sendBroadcast(informa);
+		*/
 
 		mProgressDialog.cancel();
 		
@@ -1566,14 +1580,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		return true;
     }
     
-    // Queries the contentResolver to pull out the path for the actual file.
-    /*  This code is currently unused but i often find myself needing it so I 
-     * am placing it here for safe keeping ;-) */
-    
-    /*
-     * Yep, uncommenting it back out so we can use the original path to refresh media scanner
-     * HNH 8/23/11
-     */
     public File pullPathFromUri(Uri originalUri) {
 
     	String originalImageFilePath = null;
@@ -1619,8 +1625,20 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }    
     
     public void launchInforma(ImageRegion ir) {
+    	Intent informa = new Intent(this, Tagger.class);
+    	informa.putExtra(ObscuraConstants.ImageRegion.PROPERTIES, ir.getRegionProcessor().getProperties());
+    	informa.putExtra(InformaConstants.Keys.ImageRegion.INDEX, imageRegions.indexOf(ir));
     	
-    	ir.getRegionProcessor().processRegion(new RectF(ir.getBounds()), obscuredCanvas, obscuredBmp);    	
+    	ir.getRegionProcessor().processRegion(new RectF(ir.getBounds()), obscuredCanvas, obscuredBmp);
+    	
+    	if(ir.getRegionProcessor().getBitmap() != null) {
+    		Bitmap b = ir.getRegionProcessor().getBitmap();
+    		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    		b.compress(Bitmap.CompressFormat.JPEG, 50, baos);
+    		informa.putExtra(InformaConstants.Keys.ImageRegion.THUMBNAIL, baos.toByteArray());
+    	}
+    	
+    	startActivityForResult(informa, InformaConstants.FROM_INFORMA_TAGGER);
     	
     }
     
@@ -1630,15 +1648,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     		if(requestCode == InformaConstants.FROM_INFORMA_TAGGER) {
     			// replace corresponding image region
     			@SuppressWarnings("unchecked")
-				HashMap<String, String> informaReturn = (HashMap<String, String>) data.getSerializableExtra("informaReturn");    			
-    			Properties mProp = imageRegions.get(data.getIntExtra("irIndex", 0)).getRegionProcessor().getProperties();
+				HashMap<String, Object> informaReturn = 
+					(HashMap<String, Object>) data.getSerializableExtra(InformaConstants.Keys.ImageRegion.TAGGER_RETURN);    			
+    			Properties mProp = imageRegions.get(data.getIntExtra(InformaConstants.Keys.ImageRegion.INDEX, 0))
+    					.getRegionProcessor().getProperties();
     			
     			// iterate through returned hashmap and place these new properties in it.
-    			for(Map.Entry<String, String> entry : informaReturn.entrySet()) {
-    				mProp.setProperty(entry.getKey(), entry.getValue());
-    			}
+    			for(Map.Entry<String, Object> entry : informaReturn.entrySet())
+    				mProp.setProperty(entry.getKey(), entry.getValue().toString());
     			
-    			imageRegions.get(data.getIntExtra("irIndex", 0)).getRegionProcessor().setProperties(mProp);
+    			imageRegions.get(data.getIntExtra(InformaConstants.Keys.ImageRegion.INDEX, 0))
+    				.getRegionProcessor().setProperties(mProp);
     			    			
     		}
     	}
