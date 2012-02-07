@@ -44,6 +44,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 							"integer primary key autoincrement, " +
 							ImageRegion.KEY + " text not null, " +
 							ImageRegion.DATA + " blob not null" +
+							")",
+					"CREATE TABLE " + Tables.TRUSTED_DESTINATIONS + " (" + BaseColumns._ID + " " +
+							"integer primary key autoincrement, " +
+							TrustedDestinations.EMAIL + " text not null, " +
+							TrustedDestinations.KEYRING_ID + " text not null, " +
+							TrustedDestinations.DISPLAY_NAME + " text not null" +
 							")"
 				};
 			}
@@ -79,10 +85,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 			select = sb.toString().substring(0, sb.toString().length() - 1);
 		}
 		
-		if(matchValue.getClass().equals(String.class))
-			matchValue = "\"" + matchValue + "\"";
+		String query = "SELECT " + select + " FROM " + getTable();
 		
-		Cursor c = db.rawQuery("SELECT " + select + " FROM " + getTable() + " WHERE " + matchKey + " = " + matchValue, null);
+		if(matchKey != null) {
+			if(matchValue.getClass().equals(String.class))
+				matchValue = "\"" + matchValue + "\"";
+		
+			query += " WHERE " + matchKey + " = " + matchValue;
+		}
+		
+		Cursor c = db.rawQuery(query, null);
 		if(c != null && c.getCount() > 0) {
 			return c;
 		} else

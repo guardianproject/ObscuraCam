@@ -186,7 +186,7 @@ protected:
   int DecodeOneBlock(int dht, int comp, int subblock_redaction);
   int LookupPixellationValue(int comp);
 
-  void WriteValue(int which_dht, int value);
+  int WriteValue(int which_dht, int value);
   void WriteZeroLength(int which_dht);
 
   // Update the redacting_ state flag. According to whether we're in

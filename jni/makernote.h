@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 #include "tiff_ifd.h"
+#include "debug_flag.h"
 
 namespace jpeg_redaction {
 
@@ -89,9 +90,13 @@ namespace jpeg_redaction {
   Panasonic() : ifd_(NULL) {}
     ~Panasonic() {
       delete ifd_;
+      ifd_ = NULL;
     }
     virtual void Print() const {
-      printf("Panasonic makernote...\n");
+      if (debug > 0)
+	printf("Panasonic makernote... %p\n", this);
+      if (ifd_ == NULL)
+	throw("Panasonic ifd is NULL");
       ifd_->Print();
     }
     virtual int Read(FILE *pFile, int subfileoffset, int length) {
@@ -113,13 +118,12 @@ namespace jpeg_redaction {
       if (tag) printf("Panasonic6d: %s\n", (const char *)tag->GetData());
       tag = ifd_->FindTag(0x6f);
       if (tag) printf("Panasonic6f: %s\n", (const char *)tag->GetData());
-      delete ifd_;
 
       fseek(pFile, start, SEEK_SET);
       return 1;
     }
     virtual int Write(FILE *pFile, int subfileoffset) const {
-      if (ifd_ == NULL) throw("Trying to throw NULL Panasonic makernote");
+      if (ifd_ == NULL) throw("Trying to save NULL Panasonic makernote");
       fwrite("Panasonic\0\0\0", sizeof(char), 12, pFile);
       unsigned int urv = ifd_->Write(pFile, 0, subfileoffset);
       return 1;

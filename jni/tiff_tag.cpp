@@ -361,9 +361,10 @@ void TiffTag::TraceValue(int maxvals) const {
     return;
   }
   if (tagid_ == tag_MakerNote) {
-    if (makernote_) 
+    if (makernote_) {
+      printf("Now printing makernote\n");
       makernote_->Print();
-    else
+    } else
       printf("unresolved makernote...");
     return;
   }

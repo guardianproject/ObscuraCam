@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
+import org.witness.informa.KeyChooser;
 import org.witness.informa.Tagger;
 import org.witness.informa.utils.InformaConstants;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
@@ -1573,8 +1574,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		*/
 
 		mProgressDialog.cancel();
+		Intent keyChooser = new Intent(this, KeyChooser.class);
+		startActivityForResult(keyChooser, InformaConstants.FROM_TRUSTED_DESTINATION_CHOOSER);
 		
-		showDeleteOriginalDialog ();
+		//showDeleteOriginalDialog ();
 		
 		
 		return true;
@@ -1660,6 +1663,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     			imageRegions.get(data.getIntExtra(InformaConstants.Keys.ImageRegion.INDEX, 0))
     				.getRegionProcessor().setProperties(mProp);
     			    			
+    		} else if(requestCode == InformaConstants.FROM_TRUSTED_DESTINATION_CHOOSER) {
+    			Log.d(InformaConstants.TAG, "OK now we are cooking with gas:");
+    			for(long l : data.getLongArrayExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST))
+    				Log.d(InformaConstants.TAG, "i see: " + l);
     		}
     	}
     }

@@ -6,20 +6,18 @@
     android:background="#000000"
     android:weightSum="1.0" >
     <TextView
-        android:text="Choose a Trusted Destination"
+        android:text="@string/chooser_prompt"
         android:layout_width="fill_parent"
         android:layout_height="0dip"
-        android:textSize="24dp"
-    	android:layout_weight="0.1" />
-    <ScrollView
-        android:layout_width="fill_parent"
-        android:layout_height="0dip"
-        android:layout_weight="0.8">
-    	<ListView
-    	    android:layout_width="fill_parent"
-    	    android:layout_height="wrap_content"
-    	    android:id="@+id/keyChooser" />    
-    </ScrollView>
+    	android:layout_weight="0.2"
+    	android:textSize="45px"
+    	android:textStyle="bold"
+        android:textColor="#94e400" />
+   	<ListView
+   	    android:layout_width="fill_parent"
+   	    android:layout_height="0dip"
+   	    android:layout_weight="0.7"
+   	    android:id="@+id/keyChooser" /> 
     <Button
         android:layout_width="fill_parent"
         android:layout_height="0dip"

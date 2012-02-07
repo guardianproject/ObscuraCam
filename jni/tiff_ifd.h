@@ -88,7 +88,7 @@ public:
       return NULL;
     return(tags_[tagindex]);
   }
-  int GetNTags() const { return tags_.size(); }
+  size_t GetNTags() const { return tags_.size(); }
   // Print all tags to stdout.
   void Print() const;
   Jpeg *GetJpeg() { return jpeg_;}

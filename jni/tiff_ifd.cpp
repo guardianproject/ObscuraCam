@@ -74,7 +74,7 @@ TiffIfd::TiffIfd(FILE *pFile, unsigned int ifdoffset,
   // Print all tags to stdout.
 void TiffIfd::Print() const {
   if (debug >= 0)
-    printf("%s:%d Listing %d tags\n", __FILE__, __LINE__, GetNTags());
+    printf("%s:%d Listing %zu tags\n", __FILE__, __LINE__, GetNTags());
   TiffTag *width_tag = FindTag(TiffTag::tag_ImageWidth);
   TiffTag *height_tag = FindTag(TiffTag::tag_ImageHeight);
   if (width_tag && height_tag) {

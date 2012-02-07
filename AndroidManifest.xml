@@ -26,6 +26,7 @@
         </activity>
         <activity android:name="org.witness.securesmartcam.ImagePreview" android:label="@string/image_preview" android:configChanges="orientation|keyboardHidden" />
     	<activity android:name="org.witness.informa.Tagger" android:theme="@style/Theme.CustomDialog" android:configChanges="orientation|keyboardHidden" />
+		<activity android:name="org.witness.informa.KeyChooser" android:theme="@style/Theme.CustomDialog" android:configChanges="orientation|keyboardHidden" />
     	<activity android:name=".Wizard" android:theme="@style/Theme.CustomDialog" />
     	<activity android:name=".Preferences" android:label="@string/preferences_label" />
     	

@@ -198,12 +198,15 @@ class JpegDHT {
     throw("can't decode");
   }
   // Find the table entry that codes a particular value.
+  // Return -1 if not in the table.
   int Lookup(int value) {
     for (int i = 0; i < symbols_.size(); ++i) {
       if (symbols_[i] == value)
 	return i;
     }
-    throw("Can't find value v");
+    if (debug > 0)
+      fprintf(stderr, "Can't find value %d\n", value);
+    return -1;
   }
   // Class is 0 for DC, 1 for AC.
   int class_;

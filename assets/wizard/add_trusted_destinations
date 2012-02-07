@@ -1,0 +1,4 @@
+Import contacts from your PGP keyring.  
+{$ type=button; text=Select my Trusted Destinations; callback=getTrustedDestinations; mandatory=true;}
+
+If you need to add or delete contacts, you may always manage your trusted destinations in the app's preferences. 

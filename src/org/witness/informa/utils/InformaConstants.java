@@ -6,6 +6,7 @@ public class InformaConstants {
 	public final static String PW_EXPIRY = "**EXPIRED**";
 	public final static int FROM_INFORMA_WIZARD = 3;
 	public final static int FROM_INFORMA_TAGGER = 4;
+	public final static int FROM_TRUSTED_DESTINATION_CHOOSER = 5;
 	public final static int BLOB_MAX = 1048576;
 
 	public final static class Keys {
@@ -66,6 +67,16 @@ public class InformaConstants {
 		
 		public final static class Intent {
 			public final static String ENCRYPT_LIST = "encryptList";
+			public final static class Destination {
+				public final static String EMAIL = "destinationEmail";
+				public final static String DISPLAY_NAME = "displayName";
+			}
+		}
+		
+		public final static class TrustedDestinations {
+			public final static String EMAIL = Intent.Destination.EMAIL;
+			public final static String KEYRING_ID = "keyringId";
+			public final static String DISPLAY_NAME = Intent.Destination.DISPLAY_NAME;
 		}
 		
 		public final static class Image {
@@ -98,6 +109,7 @@ public class InformaConstants {
 			public static final String CONTACTS = "informaContacts";
 			public static final String SETUP = "informaSetup";
 			public static final String IMAGE_REGIONS = "imageRegions";
+			public static final String TRUSTED_DESTINATIONS = "trustedDestinations";
 		}
 		
 		public final static class Suckers {
@@ -179,6 +191,11 @@ public class InformaConstants {
 	
 	public final static class Consent {
 		public final static int GENERAL = 101;
+	}
+	
+	public final static class Selections {
+		public final static String SELECT_ONE = "select_one";
+		public final static String SELECT_MULTI = "select_multi";
 	}
 }
 

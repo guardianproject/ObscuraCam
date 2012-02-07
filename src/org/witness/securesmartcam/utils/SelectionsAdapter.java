@@ -6,7 +6,6 @@ import org.witness.informa.utils.InformaConstants;
 import org.witness.sscphase1.R;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +23,7 @@ public class SelectionsAdapter extends BaseAdapter {
 	public SelectionsAdapter(Context c, ArrayList<Selections> selections, String multiType) {
 		_selections = selections;
 		
-		if(multiType.compareTo("select_one") == 0)
+		if(multiType.compareTo(InformaConstants.Selections.SELECT_ONE) == 0)
 			_isMulti = false;
 		else
 			_isMulti = true;
@@ -82,6 +81,18 @@ public class SelectionsAdapter extends BaseAdapter {
 				}
 			
 			});
+		} else {
+			selectBox.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
+				
+				@Override
+				public void onCheckedChanged(CompoundButton buttonView,
+						boolean isChecked) {
+					if(isChecked) {
+						_selections.get(position).setSelected(true);
+					}
+				}
+			});
+			
 		}
 		return convertView;
 	}

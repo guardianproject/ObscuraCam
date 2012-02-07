@@ -56,8 +56,8 @@ JpegDecoder::JpegDecoder(int w, int h,
 	   (ac_dht == NULL || dc_dht == NULL); ++i) {
       if (dhts[i]->id_ == (*components)[comp]->table_) {
 	if (debug > 0)
-	  printf("Comp %d %s DHT: %d\n",
-		 comp, (dhts[i]->class_? "AC":"DC"), i);
+	  printf("Comp %d %d%s DHT: %d\n",
+		 comp, dhts[i]->class_, (dhts[i]->class_? "AC":"DC"), i);
 	if (dhts[i]->class_ == 0)
 	  dc_dht = dhts[i];
 	else
@@ -66,11 +66,11 @@ JpegDecoder::JpegDecoder(int w, int h,
     }
     if (ac_dht == NULL || dc_dht == NULL) {
       for (int i = 0; i < dhts.size(); ++i)
-	fprintf(stderr, "DHT %d id %d\n", i, dhts[i]->id_);
-      fprintf(stderr, "comp %d/%zu table %d dhts %zu AC %p dc %p\n",
-	     comp, components->size(),
-	     (*components)[comp]->table_, dhts.size(), ac_dht, dc_dht);
-      throw("Can't find table ");
+      	fprintf(stderr, "DHT %d %p id %d\n", i, dhts[i], dhts[i]->id_);
+      fprintf(stderr, "comp %d of %zu table %d dhts %zu AC %p dc %p\n",
+      	     comp, components->size(),
+      	     (*components)[comp]->table_, dhts.size(), ac_dht, dc_dht);
+      throw("Can't find DHT table in JpegDecoder::JpegDecoder " __FILE__);
     }
     dhts_.push_back(dc_dht);
     dhts_.push_back(ac_dht);
@@ -103,10 +103,12 @@ void JpegDecoder::WriteZeroLength(int which_dht) {
 }
 
   // Write value out as coded in the given dht.
-void JpegDecoder::WriteValue(int which_dht, int value) {
+  // return 0 on success.
+  // return >= 1 if the value can't be written. 
+int JpegDecoder::WriteValue(int which_dht, int value) {
   if (value == 0) {
     WriteZeroLength(which_dht);
-    return;
+    return 0;
   }
   int absval = abs(value);
   int coded_len = 0;
@@ -115,13 +117,16 @@ void JpegDecoder::WriteValue(int which_dht, int value) {
   if (value < 0) {
     coded_val ^= ((1 << coded_len) - 1);
   }
-  int len_index = dhts_[which_dht]->Lookup(coded_len);
-  int coded_len_len = dhts_[which_dht]->lengths_[len_index];
-  unsigned int coded_len_code = dhts_[which_dht]->codes_[len_index];
+  const int len_index = dhts_[which_dht]->Lookup(coded_len);
+  if (len_index < 0)
+    return 1;
+  const int coded_len_len = dhts_[which_dht]->lengths_[len_index];
+  const unsigned int coded_len_code = dhts_[which_dht]->codes_[len_index];
   // printf("Writing value %d in %d + %d bits: %x %x\n", value,
   // 	 coded_len_len, coded_len, coded_len_code, coded_val);
   InsertBits(coded_len_code << (32-coded_len_len), coded_len_len);
   InsertBits(coded_val << (32 - coded_len), coded_len);
+  return 0;
 }
 
 void JpegDecoder::SetRedactingState(Redaction *redaction) {
@@ -212,8 +217,8 @@ void JpegDecoder::DecodeOneMCU() {
 	int subblock_redaction = redacting_;
 	if (redacting_ == kRedactingStarting && subblock != 0)
 	  subblock_redaction = kRedactingActive;
-	if (redacting_ == kRedactingEnding && subblock != 0)
-	  subblock_redaction = kRedactingInactive;
+	// if (redacting_ == kRedactingEnding && subblock != 0)
+	//   subblock_redaction = kRedactingInactive;
 
 	int dc_value = 0;
 	try {
@@ -312,19 +317,32 @@ int JpegDecoder::DecodeOneBlock(int dht, int comp, int redacting) {
   // Work out the (absolute) value we want to write.
   // Default is the cumulative sum so far.
     int value_to_write = dc_values_[comp];
-  // If solid, we write out 0.
+    // If solid, we write out 0.
     if ( redacting != kRedactingEnding) {
-      if (redaction_method_ == Redaction::redact_solid)
+      if (redaction_method_ == Redaction::redact_solid) {
 	// Write black.
 	//	value_to_write = (comp == 0) ? (-127 * (1 << dct_gain_)) : 0;
-	value_to_write = (comp == 0) ? (0 * (1 << dct_gain_)) : ((comp==1) ? -511 : -511);
+	value_to_write = (comp == 0) ? (-127 * (1 << dct_gain_)) : ((comp==1) ? 0 : 0);
+	//	value_to_write = (comp == 0) ? (0 * (1 << dct_gain_)) : ((comp==1) ? 0 : 0);
+      }
       else if (redaction_method_ == Redaction::redact_copystrip)
 	value_to_write = redaction_dc_[comp];
       else if (redaction_method_ == Redaction::redact_pixellate ||
 	       redaction_method_ == Redaction::redact_inverse_pixellate)
 	value_to_write = LookupPixellationValue(comp);
     }
-    WriteValue(2 * dht, value_to_write - redaction_dc_[comp]);
+    int rv;
+    while (rv = WriteValue(2 * dht, value_to_write - redaction_dc_[comp]) != 0) {
+      int delta = value_to_write - redaction_dc_[comp];
+      value_to_write = delta *.9 + redaction_dc_[comp];
+    }
+    // if (rv != 0) {
+    //   fprintf(stderr,
+    // 	  "Caught error in WriteValue for comp %d, table 2*%d, value %d=%d-%d.",
+    // 	      comp, dht, value_to_write-redaction_dc_[comp],
+    // 	      value_to_write, redaction_dc_[comp]);
+    //   throw("WriteValueErr");
+    // }
     redaction_dc_[comp] = value_to_write;
   }
   if (redacting == kRedactingInactive)

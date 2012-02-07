@@ -127,6 +127,42 @@ public class Wizard extends Activity implements OnClickListener {
 		}
 	}
 	
+	@SuppressWarnings("unused")
+	private void getTrustedDestinations() {
+		apg = Apg.getInstance();
+		if(!apg.isAvailable(getApplicationContext()))
+			ObscuraConstants.makeToast(this, getResources().getString(R.string.wizard_error_no_apg));
+		else
+			apg.selectEncryptionKeys(this, null);
+	}
+	
+	private void setTrustedDestinations() {
+		SQLiteDatabase.loadLibs(this);
+		
+		dh = new DatabaseHelper(this);
+		db = dh.getWritableDatabase(preferences.getString(InformaConstants.Keys.Settings.HAS_DB_PASSWORD, ""));
+		
+		dh.setTable(db, InformaConstants.Keys.Tables.TRUSTED_DESTINATIONS);
+		for(long key : apg.getEncryptionKeys()) {
+			String userId = apg.getPublicUserId(this, key);
+			String email_ = userId.substring(userId.indexOf("<") + 1);
+			String email = email_.substring(0, email_.indexOf(">"));
+			String displayName = userId.substring(0, userId.indexOf("<"));
+			
+			if(userId.indexOf("(") != -1)
+				displayName = userId.substring(0, userId.indexOf("("));
+			
+			ContentValues cv = new ContentValues();
+			cv.put(InformaConstants.Keys.TrustedDestinations.KEYRING_ID, key);
+			cv.put(InformaConstants.Keys.TrustedDestinations.EMAIL, email);
+			cv.put(InformaConstants.Keys.TrustedDestinations.DISPLAY_NAME, displayName);
+			
+			db.insert(dh.getTable(), null, cv);
+		}
+		enableAction(wizard_next);
+		db.close();
+	}
+	
 	private void setUserPGP() {
 		Log.d(InformaConstants.TAG, "opening up database...");
 		
@@ -502,6 +538,9 @@ public class Wizard extends Activity implements OnClickListener {
 			switch(request) {
 			case Apg.SELECT_SECRET_KEY:
 				setUserPGP();
+				break;
+			case Apg.SELECT_PUBLIC_KEYS:
+				setTrustedDestinations();
 				break;
 			}
 		}
