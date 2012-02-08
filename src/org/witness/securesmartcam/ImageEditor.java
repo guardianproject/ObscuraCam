@@ -17,6 +17,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.witness.informa.KeyChooser;
 import org.witness.informa.Tagger;
 import org.witness.informa.utils.InformaConstants;
@@ -146,12 +148,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	// Saved Image Uri
 	Uri savedImageUri;
 	
-	// Constant for temp filename
-	public final static String TMP_FILE_NAME = "tmp.jpg";
-	
-	public final static String TMP_FILE_DIRECTORY = "/Android/data/org.witness.sscphase1/files/";
-	
-	
 	//handles threaded events for the UI thread
     private Handler mHandler = new Handler();
 
@@ -164,34 +160,37 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     // Keep track of the orientation
     private int originalImageOrientation = ExifInterface.ORIENTATION_NORMAL;    
 
-    // for saving images
-    private final static String EXPORT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
-
-	 private class mAutoDetectTask extends AsyncTask<Integer, Integer, Long> {
-	     protected Long doInBackground(Integer... params) {
+	private class mAutoDetectTask extends AsyncTask<Integer, Integer, Long> {
+		protected Long doInBackground(Integer... params) {
 	    	  return (long)doAutoDetection();	         
-	     }
+	    }
 
-	     protected void onProgressUpdate(Integer... progress) {
+	    protected void onProgressUpdate(Integer... progress) {
 	       
-	     }
+	    }
 
-	     protected void onPostExecute(Long result) {
+	    protected void onPostExecute(Long result) {
 	     
 	    	mProgressDialog.dismiss();
 	    	 
-	 		Toast autodetectedToast = Toast.makeText(ImageEditor.this, result + " face(s) detected", Toast.LENGTH_SHORT);
+	    	Toast autodetectedToast = Toast.makeText(ImageEditor.this, result + " face(s) detected", Toast.LENGTH_SHORT);
 	 		autodetectedToast.show();
-	     }
-	 }
+	    }
+	}
     	
     	
 	@SuppressWarnings("unused")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-				
 
+		
+		sendBroadcast(new Intent()
+			.setAction(InformaConstants.Keys.Service.SET_CURRENT)
+			.putExtra(InformaConstants.Keys.CaptureEvent.MATCH_TIMESTAMP, System.currentTimeMillis())
+			.putExtra(InformaConstants.Keys.CaptureEvent.TYPE, InformaConstants.CaptureEvents.MEDIA_CAPTURED));
+		
+		
         String versNum = "";
         
         try {
@@ -279,8 +278,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				debug(ObscuraConstants.TAG,"Couldn't get Orientation");
 				e1.printStackTrace();
 			}
-
-			//debug(ObscuraApp.TAG,"loading uri: " + pullPathFromUri(originalImageUri));
 
 			// Load up smaller image
 			try {
@@ -512,16 +509,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		originalImageUri = null;
 	}
 	
-	
-	/*
-	 * Do actual auto detection and create regions
-	 * 
-	 * public void createImageRegion(int _scaledStartX, int _scaledStartY, 
-			int _scaledEndX, int _scaledEndY, 
-			int _scaledImageWidth, int _scaledImageHeight, 
-			int _imageWidth, int _imageHeight, 
-			int _backgroundColor) {
-	 */
 	
 	private int doAutoDetection() {
 		// This should be called via a pop-up/alert mechanism
@@ -979,6 +966,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			});
 		}
 	}
+	/*
+	 * Associate the current log data to the image region's properties
+	 */
+	public void associateImageRegionData(ImageRegion ir) {
+		sendBroadcast(new Intent()
+			.setAction(InformaConstants.Keys.Service.SET_CURRENT)
+			.putExtra(InformaConstants.Keys.CaptureEvent.MATCH_TIMESTAMP, (Long) ir.mRProc.getProperties().get(InformaConstants.Keys.ImageRegion.TIMESTAMP))
+			.putExtra(InformaConstants.Keys.CaptureEvent.TYPE, InformaConstants.CaptureEvents.REGION_GENERATED));
+	}
 	
 	/*
 	 * Delete/Remove specific ImageRegion
@@ -1042,16 +1038,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 		else if (v == btnSave)
 		{
-			//Why does this not show?
-	    	mProgressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
 
-    		mHandler.postDelayed(new Runnable() {
-    			  @Override
-    			  public void run() {
-    			    // this will be done in the Pipeline Thread
-    	        		saveImage();
-    			  }
-    			},500);
+			Intent keyChooser = new Intent(this, KeyChooser.class);
+			startActivityForResult(keyChooser, InformaConstants.FROM_TRUSTED_DESTINATION_CHOOSER);
 		}
 		else if (v == btnShare)
 		{
@@ -1130,17 +1119,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     			
         	case R.id.menu_save:
 
-				//Why does this not show?
-		    	mProgressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
-	
-        		mHandler.postDelayed(new Runnable() {
-        			  @Override
-        			  public void run() {
-        			    // this will be done in the Pipeline Thread
-        	        		saveImage();
-        			  }
-        			},500);
-
+				Intent keyChooser = new Intent(this, KeyChooser.class);
+				startActivityForResult(keyChooser, InformaConstants.FROM_TRUSTED_DESTINATION_CHOOSER);
         		
         		return true;
         		
@@ -1362,8 +1342,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	}
     	
     	
-    	File tmpInFile = new File(tmpFileDirectory,'i' + TMP_FILE_NAME);
-    	File fileTarget = new File(tmpFileDirectory,TMP_FILE_NAME);
+    	File tmpInFile = new File(tmpFileDirectory,'i' + ObscuraConstants.TMP_FILE_NAME);
+    	File fileTarget = new File(tmpFileDirectory, ObscuraConstants.TMP_FILE_NAME);
     	
     	if (tmpInFile.exists())
     		tmpInFile.delete();
@@ -1459,8 +1439,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	Bitmap obscuredBmp = createObscuredBitmap(w,h, false);
     	
     	// Create the Uri - This can't be "private"
-    	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory().getPath() + TMP_FILE_DIRECTORY);
-    	File tmpFile = new File(tmpFileDirectory,TMP_FILE_NAME);
+    	File tmpFileDirectory = new File(Environment.getExternalStorageDirectory().getPath() + ObscuraConstants.TMP_FILE_DIRECTORY);
+    	File tmpFile = new File(tmpFileDirectory, ObscuraConstants.TMP_FILE_NAME);
     	debug(ObscuraConstants.TAG, tmpFile.getPath());
     	
 		try {
@@ -1487,13 +1467,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * The method that actually saves the altered image.  
      * This in combination with createObscuredBitmap could/should be done in another, more memory efficient manner. 
      */
-    private boolean saveImage() 
+    private boolean saveImage(String imageRegionObject, long[] encryptList) 
     {
 
     	ContentValues cv = new ContentValues();
     	
     	// Add a date so it shows up in a reasonable place in the gallery - Should we do this??
-    	SimpleDateFormat dateFormat = new SimpleDateFormat(EXPORT_DATE_FORMAT); 
+    	SimpleDateFormat dateFormat = new SimpleDateFormat(ObscuraConstants.EXPORT_DATE_FORMAT); 
     	Date date = new Date();
     	String dateString = dateFormat.format(date);
 
@@ -1507,6 +1487,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     //    cv.put(Images.Media.BUCKET_ID, "ObscuraCam");
     //    cv.put(Images.Media.DESCRIPTION, "ObscuraCam");
     	//cv.put(Images.Media.CONTENT_TYPE, MIME_TYPE_JPEG);
+    	
+		sendBroadcast(new Intent()
+			.setAction(InformaConstants.Keys.Service.SET_CURRENT)
+			.putExtra(InformaConstants.Keys.CaptureEvent.MATCH_TIMESTAMP, date.getTime())
+			.putExtra(InformaConstants.Keys.CaptureEvent.TYPE, InformaConstants.CaptureEvents.MEDIA_SAVED));
+    	
 
     	// Uri is savedImageUri which is global
     	// Create the Uri, this should put it in the gallery
@@ -1562,25 +1548,34 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		Toast t = Toast.makeText(this,"Image saved to Gallery", Toast.LENGTH_SHORT); 
 		t.show();
-		
-		/*
-		Intent informa = new Intent()
-			.setAction(InformaConstants.Keys.Service.SEAL_LOG)
-			.putExtra(InformaConstants.Keys.ImageRegion.DATA, value)
-			.putExtra(InformaConstants.Keys.Image.LOCAL_MEDIA_PATH, pullPathFromUri(savedImageUri).getAbsolutePath())
-			.putExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST), encryptList);
-			
-		sendBroadcast(informa);
-		*/
 
 		mProgressDialog.cancel();
-		Intent keyChooser = new Intent(this, KeyChooser.class);
-		startActivityForResult(keyChooser, InformaConstants.FROM_TRUSTED_DESTINATION_CHOOSER);
 		
-		//showDeleteOriginalDialog ();
+    	Intent informa = new Intent()
+			.setAction(InformaConstants.Keys.Service.SEAL_LOG)
+			.putExtra(InformaConstants.Keys.ImageRegion.DATA, imageRegionObject)
+			.putExtra(InformaConstants.Keys.Image.LOCAL_MEDIA_PATH, pullPathFromUri(savedImageUri).getAbsolutePath());
+			
+		if(encryptList[0] != 0)
+			informa.putExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST, encryptList);
 		
-		
+    	sendBroadcast(informa);
 		return true;
+    }
+    
+    private void launchInforma(final String imageRegionObject, final long[] encryptList) {
+    	
+    	
+    	//Why does this not show?
+    	mProgressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
+
+		mHandler.postDelayed(new Runnable() {
+			  @Override
+			  public void run() {
+			    // this will be done in the Pipeline Thread
+	        		saveImage(imageRegionObject, encryptList);
+			  }
+			},500);
     }
     
     public File pullPathFromUri(Uri originalUri) {
@@ -1604,9 +1599,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	return new File(originalImageFilePath);
     }
     
-
-    
-
     /*
      * Handling screen configuration changes ourselves, we don't want the activity to restart on rotation
      */
@@ -1627,7 +1619,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         thread.start();
     }    
     
-    public void launchInforma(ImageRegion ir) {
+    public void launchTagger(ImageRegion ir) {
     	Intent informa = new Intent(this, Tagger.class);
     	informa.putExtra(ObscuraConstants.ImageRegion.PROPERTIES, ir.getRegionProcessor().getProperties());
     	informa.putExtra(InformaConstants.Keys.ImageRegion.INDEX, imageRegions.indexOf(ir));
@@ -1664,9 +1656,19 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     				.getRegionProcessor().setProperties(mProp);
     			    			
     		} else if(requestCode == InformaConstants.FROM_TRUSTED_DESTINATION_CHOOSER) {
-    			Log.d(InformaConstants.TAG, "OK now we are cooking with gas:");
-    			for(long l : data.getLongArrayExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST))
-    				Log.d(InformaConstants.TAG, "i see: " + l);
+    			JSONArray imageRegionObject = new JSONArray();
+    			try {
+	    			for(ImageRegion ir : imageRegions)
+	    				imageRegionObject.put(ir.getRepresentation());
+    			} catch(JSONException e) {
+    				Log.d(InformaConstants.TAG, e.toString());
+    			}
+    			
+    			long[] encryptList = new long[] {0L};
+    			if(data.hasExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST))
+    				encryptList = data.getLongArrayExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST);
+    			
+    			launchInforma(imageRegionObject.toString(), encryptList);
     		}
     	}
     }
@@ -1674,7 +1676,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	@Override
 	protected void onPostResume() {
 		super.onPostResume();
-		
 	}
 	
 	public Paint getPainter ()

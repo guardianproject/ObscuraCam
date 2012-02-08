@@ -8,6 +8,7 @@ package org.witness.securesmartcam.filters;
 import java.util.Date;
 import java.util.Properties;
 
+import org.witness.informa.utils.InformaConstants.Keys.ImageRegion;
 import org.witness.securesmartcam.utils.ObscuraConstants;
 
 import android.graphics.Bitmap;
@@ -25,9 +26,8 @@ public class CrowdPixelizeObscure implements RegionProcesser {
 	
 	public CrowdPixelizeObscure() {
 		mProps = new Properties();
-		mProps.put("obfuscationType", this.getClass().getName());
-		
-		mProps.put("timestampOnGeneration", new Date().getTime());
+		mProps.put(ImageRegion.FILTER, this.getClass().getName());
+		mProps.put(ImageRegion.TIMESTAMP, System.currentTimeMillis());
 		unredactedBmpSet = false;
 	}
 	
@@ -50,9 +50,9 @@ public class CrowdPixelizeObscure implements RegionProcesser {
 		pixelate(rect, pixelSize);
 		
 		// return properties and data as a map
-		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
-		mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
-		mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
+		mProps.put(ImageRegion.COORDINATES, "[" + rect.top + "," + rect.left + "]");
+		mProps.put(ImageRegion.WIDTH, Integer.toString((int) Math.abs(rect.left - rect.right)));
+		mProps.put(ImageRegion.HEIGHT, Integer.toString((int) Math.abs(rect.top - rect.bottom)));	
 		
 	}
 	

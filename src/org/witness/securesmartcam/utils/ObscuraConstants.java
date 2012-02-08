@@ -45,6 +45,14 @@ public class ObscuraConstants {
 	public final static int SHARE_MENU_ITEM = 3;
 	public final static int NEW_REGION_MENU_ITEM = 4;
 	
+	// Constant for temp filename
+	public final static String TMP_FILE_NAME = "tmp.jpg";
+	
+	public final static String TMP_FILE_DIRECTORY = "/Android/data/org.witness.sscphase1/files/";
+	
+	// for saving images
+    public final static String EXPORT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+	
 	public final static class Preferences {
 		public final static class Keys {
 			public final static String LANGUAGE = "obscura.language";

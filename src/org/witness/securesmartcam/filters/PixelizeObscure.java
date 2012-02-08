@@ -7,6 +7,7 @@ package org.witness.securesmartcam.filters;
 import java.util.Date;
 import java.util.Properties;
 
+import org.witness.informa.utils.InformaConstants.Keys.ImageRegion;
 import org.witness.securesmartcam.utils.ObscuraConstants;
 
 import android.graphics.Bitmap;
@@ -27,15 +28,17 @@ public class PixelizeObscure implements RegionProcesser {
 	{
 		mProps = new Properties ();
 		mProps.put("size", "10");
-		mProps.put("obfuscationType", this.getClass().getName());
-		
-		mProps.put("timestampOnGeneration", new Date().getTime());
+		mProps.put(ImageRegion.FILTER, this.getClass().getName());
+		mProps.put(ImageRegion.TIMESTAMP, System.currentTimeMillis());
 		unredactedBmpSet = false;
 	}
 	
 	public void processRegion(RectF rect, Canvas canvas, Bitmap bitmap) {
 	
 		originalBmp = bitmap;
+		mProps.put(ImageRegion.COORDINATES, "[" + rect.top + "," + rect.left + "]");
+		mProps.put(ImageRegion.WIDTH, Integer.toString((int) Math.abs(rect.left - rect.right)));
+		mProps.put(ImageRegion.HEIGHT, Integer.toString((int) Math.abs(rect.top - rect.bottom)));	
 		
 		if(!unredactedBmpSet) {
 			unredactedBmp = Bitmap.createBitmap(
@@ -46,6 +49,7 @@ public class PixelizeObscure implements RegionProcesser {
 					(int) Math.min(bitmap.getHeight(), (Math.abs(rect.top - rect.bottom)))
 				);
 			
+
 			unredactedBmpSet = true;
 			Log.d(ObscuraConstants.TAG, "this is where the bitmap is set.");
 		} else

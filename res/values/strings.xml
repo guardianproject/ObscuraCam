@@ -74,8 +74,11 @@
 	
 	<string name="about3">This software is freely licensed under the GNU GPL v3.</string>
 	
+	<!--  BASIC STRINGS -->
 	<string name="yes">Yes</string>
 	<string name="no">No</string>
+	<string name="_continue">Continue</string>
+	<string name="cancel">Cancel</string>
 	
 	<!--  INFORMA TAGGER -->
 	<string name="tagger_no_name_error">You haven\'t identified anyone!</string>
@@ -84,7 +87,8 @@
 	
 	<!--  INFORMA KEY CHOOSER  -->
 	<string name="chooser_prompt">Select trusted destinations for your image:</string>
-	<string name="chooser_no_choice_warning">You have not selected any trusted destinations.  Continue anyway?</string>
+	<string name="chooser_no_choice_warning_title">Wait!</string>
+	<string name="chooser_no_choice_warning_text">You have not selected any trusted destinations.  Continue anyway?</string>
 	
 	<!--  EULA related -->
     <string name="eula_title">You agree to:</string>

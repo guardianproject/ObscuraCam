@@ -2,6 +2,7 @@ package org.witness.informa;
 
 import info.guardianproject.database.sqlcipher.SQLiteDatabase;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import org.json.JSONException;
@@ -12,11 +13,14 @@ import org.witness.informa.utils.InformaConstants.Keys.Tables;
 import org.witness.informa.utils.InformaConstants.Keys.TrustedDestinations;
 import org.witness.informa.utils.io.DatabaseHelper;
 import org.witness.informa.utils.secure.Apg;
+import org.witness.securesmartcam.utils.ObscuraConstants;
 import org.witness.securesmartcam.utils.Selections;
 import org.witness.securesmartcam.utils.SelectionsAdapter;
 import org.witness.sscphase1.R;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -102,23 +106,52 @@ public class KeyChooser extends Activity implements OnClickListener {
 		keyChooser.setAdapter(new SelectionsAdapter(this, keys, InformaConstants.Selections.SELECT_MULTI));
 	}
 	
+	private void checkForEmptyEncryptList() {
+		final AlertDialog.Builder b = new AlertDialog.Builder(this);
+		b.setIcon(android.R.drawable.ic_dialog_alert);
+		b.setTitle(R.string.chooser_no_choice_warning_title);
+		b.setMessage(R.string.chooser_no_choice_warning_text);
+		b.setPositiveButton(R.string._continue, new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				setResult(Activity.RESULT_CANCELED, getIntent());
+				finish();
+				
+			}
+		});
+		b.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+			
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				finish();
+			}
+		});
+		b.show();
+	}
+	
 	@Override
 	public void onClick(View v) {
 		if(v == keyChooser_ok) {
-			ArrayList<Long> selected = new ArrayList<Long>();
+			ArrayList<Long> sel = new ArrayList<Long>();
 			for(Selections s : keys) {
 				if(s.getSelected())
 					try {
-						selected.add(s.getExtras().getLong(TrustedDestinations.KEYRING_ID));
+						sel.add(s.getExtras().getLong(TrustedDestinations.KEYRING_ID));
 					} catch (JSONException e) {
 						Log.d(InformaConstants.TAG, e.toString());
 					}
 			}
-			if(selected.size() > 0) {
-				getIntent().putExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST, ((Long[]) selected.toArray()));
+			if(sel.size() > 0) {
+				long[] selected = new long[sel.size()];
+				for(int l=0; l<sel.size(); l++)
+					selected[l] = sel.get(l);
+					
+				getIntent().putExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST, selected);
 				setResult(Activity.RESULT_OK, getIntent());
 				finish();
-			}
+			} else
+				checkForEmptyEncryptList();
 		}
 	}
 }

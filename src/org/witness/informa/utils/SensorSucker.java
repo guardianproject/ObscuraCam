@@ -14,9 +14,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.witness.informa.Informa;
 import org.witness.informa.utils.suckers.*;
+import org.witness.securesmartcam.ImageEditor;
 import org.witness.sscphase1.ObscuraApp;
 
+import android.app.Activity;
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -26,6 +29,7 @@ import android.content.IntentFilter;
 
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -37,6 +41,7 @@ public class SensorSucker extends Service {
 
 	JSONArray capturedEvents, imageRegions;
 	JSONObject imageData;
+	Handler informaCallback;
 	
 	List<BroadcastReceiver> br = new ArrayList<BroadcastReceiver>();
 
@@ -90,12 +95,15 @@ public class SensorSucker extends Service {
 	}
 	
 	private void handleBluetooth(BluetoothDevice device) throws JSONException {
-		JSONObject d = new JSONObject();		
+		JSONObject captureEventData = new JSONObject();
 		
-		d.put(InformaConstants.Keys.Suckers.Phone.BLUETOOTH_DEVICE_NAME, device.getName());
-		d.put(InformaConstants.Keys.Suckers.Phone.BLUETOOTH_DEVICE_ADDRESS, device.getAddress());
+		captureEventData.put(InformaConstants.Keys.CaptureEvent.TYPE, InformaConstants.CaptureEvents.BLUETOOTH_DEVICE_SEEN);
+		captureEventData.put(InformaConstants.Keys.CaptureEvent.MATCH_TIMESTAMP, System.currentTimeMillis());
+		captureEventData.put(InformaConstants.Keys.Suckers.Phone.BLUETOOTH_DEVICE_NAME, device.getName());
+		captureEventData.put(InformaConstants.Keys.Suckers.Phone.BLUETOOTH_DEVICE_ADDRESS, device.getAddress());
 		
-		pushToSucker(_phone, d);
+		capturedEvents.put(captureEventData);
+		Log.d(InformaConstants.SUCKER_TAG, "new bluetooth device seen: " + captureEventData.toString());
 	}
 	
 	private void pushToSucker(SensorLogger<?> sucker, JSONObject payload) throws JSONException {
@@ -113,17 +121,51 @@ public class SensorSucker extends Service {
 		captureEventData.put(InformaConstants.Keys.Suckers.ACCELEROMETER, _acc.returnCurrent());
 		
 		capturedEvents.put(captureEventData);
+		Log.d(InformaConstants.SUCKER_TAG, "captured event: " + captureEventData.toString());
 	}
 	
 	private void sealLog(String imageRegionData, String localMediaPath, long[] encryptTo) throws Exception {
 		imageData.put(InformaConstants.Keys.Image.LOCAL_MEDIA_PATH, localMediaPath);
 		imageData.put(InformaConstants.Keys.Image.MEDIA_TYPE, InformaConstants.MediaTypes.PHOTO);
 		imageRegions = (JSONArray) new JSONTokener(imageRegionData).nextValue();
+		final long[] intendedDestinations = encryptTo;
 		
 		//TODO informa in new thread
+		//Informa informa = new Informa(getApplicationContext(), imageData, imageRegions, capturedEvents, encryptTo);
+		informaCallback = new Handler();
+		
+		Runnable r = new Runnable() {
+			Informa informa; 
+			
+			@Override
+			public void run() {
+				try {
+					informa = new Informa(getApplicationContext(), imageData, imageRegions, capturedEvents, intendedDestinations);
+					
+					informaCallback.post(new Runnable() {
+
+						@Override
+						public void run() {
+							Log.d(InformaConstants.TAG, "ok.");
+							
+						}
+						
+					});
+				} catch (IllegalArgumentException e) {
+					Log.d(InformaConstants.TAG, e.toString());
+				} catch (JSONException e) {
+					Log.d(InformaConstants.TAG, e.toString());
+				} catch (IllegalAccessException e) {
+					Log.d(InformaConstants.TAG, e.toString());
+				}
+				
+			}
+			
+		};
+		new Thread(r).start();
 		
 		stopSucking();
-		//Informa informa = new Informa(getApplicationContext(), imageData, imageRegions, capturedEvents, encryptTo);
+		
 	}
 	
 	public class Broadcaster extends BroadcastReceiver {

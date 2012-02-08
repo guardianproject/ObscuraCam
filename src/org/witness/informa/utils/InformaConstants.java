@@ -1,13 +1,17 @@
 package org.witness.informa.utils;
 
+import android.os.Environment;
+
 public class InformaConstants {
 	public final static String TAG = "************ INFORMA ***********";
 	public final static String READOUT = "******************* INFORMA READOUT ******************";
+	public final static String SUCKER_TAG = "******************** SUCKER SERVICE ******************";
 	public final static String PW_EXPIRY = "**EXPIRED**";
 	public final static int FROM_INFORMA_WIZARD = 3;
 	public final static int FROM_INFORMA_TAGGER = 4;
 	public final static int FROM_TRUSTED_DESTINATION_CHOOSER = 5;
 	public final static int BLOB_MAX = 1048576;
+	public final static String DUMP_FOLDER = Environment.getExternalStorageDirectory() + "/InformaCam/";
 
 	public final static class Keys {
 		public final static class Settings {
@@ -155,12 +159,19 @@ public class InformaConstants {
 		public final static int MEDIA_SAVED = 6;
 		public final static int REGION_GENERATED = 7;
 		public final static int EXIF_REPORTED = 8;
+		public final static int BLUETOOTH_DEVICE_SEEN = 9;
 	}
 
 	public final static class LocationTypes {
-		public final static int ON_MEDIA_CAPTURED = 9;
-		public final static int ON_MEDIA_SAVED = 10;
-		public final static int ON_REGION_GENERATED = 11;
+		public final static int ON_MEDIA_CAPTURED = 10;
+		public final static int ON_MEDIA_SAVED = 11;
+		public final static int ON_REGION_GENERATED = 12;
+	}
+	
+	public final static class CaptureTimestamps {
+		public final static int ON_MEDIA_CAPTURED = LocationTypes.ON_MEDIA_CAPTURED;
+		public final static int ON_MEDIA_SAVED = LocationTypes.ON_MEDIA_SAVED;
+		public final static int ON_REGION_GENERATED = LocationTypes.ON_REGION_GENERATED;
 	}
 
 	public final static class SecurityLevels {

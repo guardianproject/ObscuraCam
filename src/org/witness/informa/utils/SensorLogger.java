@@ -67,7 +67,6 @@ public class SensorLogger<T> {
 		return isRunning;
 	}
 	
-	// LOL reflection...
 	public JSONObject returnCurrent() throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		JSONObject current = new JSONObject();
 		
@@ -82,7 +81,6 @@ public class SensorLogger<T> {
 	}
 
 	public void sendToBuffer(JSONObject logItem) throws JSONException {
-		// TODO: append to buffer, and...
 		if(mBuffer.length() > 60) {
 			mBuffer = null;
 			mBuffer = new JSONArray();
@@ -90,7 +88,8 @@ public class SensorLogger<T> {
 		}
 		
 		logItem.put(InformaConstants.Keys.CaptureEvent.TIMESTAMP, System.currentTimeMillis());
-		mBuffer.put(logItem);		
+		mBuffer.put(logItem);
+		Log.d(InformaConstants.SUCKER_TAG, "logged: " + logItem.toString());
 	}
 	
 	public JSONObject jPack(String key, Object val) throws JSONException {

@@ -151,11 +151,11 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	      
 	            values.put(MediaStore.Images.Media.DESCRIPTION,"ssctmp");
 
-	            File tmpFileDirectory = new File(Environment.getExternalStorageDirectory().getPath() + ImageEditor.TMP_FILE_DIRECTORY);
+	            File tmpFileDirectory = new File(Environment.getExternalStorageDirectory().getPath() + ObscuraConstants.TMP_FILE_DIRECTORY);
 	            if (!tmpFileDirectory.exists())
 	            	tmpFileDirectory.mkdirs();
 	            
-	            File tmpFile = new File(tmpFileDirectory,"cam" + ImageEditor.TMP_FILE_NAME);
+	            File tmpFile = new File(tmpFileDirectory,"cam" + ObscuraConstants.TMP_FILE_NAME);
 	        	
 	        	uriCameraImage = Uri.fromFile(tmpFile);
 	            //uriCameraImage = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
@@ -312,6 +312,11 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
     }
     
     private void launchInforma() {
+    	// create folder if it doesn't exist
+    	File informaDump = new File(InformaConstants.DUMP_FOLDER);
+    	if(!informaDump.exists() || !informaDump.isDirectory())
+    		informaDump.mkdir();
+    	
     	if(informaService == null) {
     		Intent startSensorSucker = new Intent(this, SensorSucker.class);
     		bindService(startSensorSucker, sc, Context.BIND_AUTO_CREATE);

@@ -1,9 +1,13 @@
 package org.witness.securesmartcam;
 
+import java.util.Enumeration;
+
 import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
 import net.londatiga.android.QuickAction.OnActionItemClickListener;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.witness.securesmartcam.filters.InformaTagger;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
 import org.witness.securesmartcam.filters.PixelizeObscure;
@@ -87,9 +91,20 @@ public class ImageRegion implements OnActionItemClickListener
 
 	public void setRegionProcessor(RegionProcesser rProc) {
 		mRProc = rProc;
+		mImageEditor.associateImageRegionData(this);
 	}
 	
-	
+	public JSONObject getRepresentation() throws JSONException {
+		JSONObject representation = new JSONObject();
+		Enumeration<?> e = mRProc.getProperties().propertyNames();
+		
+		while(e.hasMoreElements()) {
+			String prop = (String) e.nextElement();
+			representation.put(prop, mRProc.getProperties().get(prop));
+		}
+		
+		return representation;
+	}
 	
 	public void setCornerMode (float x, float y)
 	{
@@ -429,7 +444,7 @@ public class ImageRegion implements OnActionItemClickListener
 			if(!(getRegionProcessor() instanceof InformaTagger))
 				setRegionProcessor(new InformaTagger());
 			
-			mImageEditor.launchInforma(this);
+			mImageEditor.launchTagger(this);
 			break;
 		default:
 			Log.v(ObscuraConstants.TAG,"obscureType: NONE/PIXELIZE");
@@ -441,6 +456,7 @@ public class ImageRegion implements OnActionItemClickListener
 			imageRegionBorder = identifiedBorder;
 		else
 			imageRegionBorder = unidentifiedBorder;
+		
 	}
 
 	

@@ -16,8 +16,12 @@ import org.witness.informa.utils.InformaConstants;
 import org.witness.informa.utils.InformaConstants.CaptureEvents;
 import org.witness.informa.utils.InformaConstants.Keys;
 import org.witness.informa.utils.InformaConstants.Keys.Service;
+import org.witness.informa.utils.InformaConstants.Keys.Tables;
+import org.witness.informa.utils.InformaConstants.Keys.TrustedDestinations;
+import org.witness.informa.utils.InformaConstants.MediaTypes;
 import org.witness.informa.utils.io.DatabaseHelper;
 import org.witness.informa.utils.secure.Apg;
+import org.witness.securesmartcam.utils.Selections;
 
 import android.app.Activity;
 import android.content.ContentValues;
@@ -39,8 +43,7 @@ public class Informa {
 	private Apg apg;
 	private Image[] images;
 	
-	private Context c;
-	private Activity a;
+	private Context _c;
 	
 	private class InformaZipper extends JSONObject {
 		Field[] fields;
@@ -91,7 +94,8 @@ public class Informa {
 		public Genealogy(String localMediaPath, long dateCreated) {
 			this.localMediaPath = localMediaPath;
 			this.dateCreated = dateCreated;
-			this.dateAcquired = dateCreated; // TODO: set us up the date acquired via imageeditor...
+			this.dateAcquired = dateCreated; 
+			// TODO: set us up the date acquired via imageeditor...
 		}
 	}
 	
@@ -120,19 +124,9 @@ public class Informa {
 		String imei;
 		Corroboration bluetoothInfo;
 		
-		public Device(JSONObject devicePackage) throws JSONException {
-			int isSelf = InformaConstants.Device.IS_SELF;
-			if(devicePackage.has(Keys.Device.IMEI))
-				this.imei = devicePackage.getString(Keys.Device.IMEI);
-			else {
-				this.imei = null;
-				isSelf = InformaConstants.Device.IS_NEIGHBOR;
-			}
-			
-			this.bluetoothInfo = new Corroboration(
-					devicePackage.getString(Keys.Device.BLUETOOTH_DEVICE_ADDRESS),
-					devicePackage.getString(Keys.Device.BLUETOOTH_DEVICE_NAME),
-					isSelf);
+		public Device(String imei, Corroboration bluetoothInfo) {
+			this.imei = imei;
+			this.bluetoothInfo = bluetoothInfo;
 		}
 	}
 	
@@ -170,9 +164,9 @@ public class Informa {
 	public class Subject extends InformaZipper {
 		String subjectName;
 		boolean informedConsentGiven;
-		int[] consentGiven;
+		String consentGiven;
 		
-		public Subject(String subjectName, boolean informedConsentGiven, int[] consentGiven) {
+		public Subject(String subjectName, boolean informedConsentGiven, String consentGiven) {
 			this.subjectName = subjectName;
 			this.informedConsentGiven = informedConsentGiven;
 			this.consentGiven = consentGiven;
@@ -188,32 +182,8 @@ public class Informa {
 		
 		Subject subject;
 		
-		public ImageRegion(JSONObject ir) throws JSONException {
-			this.captureTimestamp = new CaptureTimestamp(CaptureEvents.REGION_GENERATED, ir.getLong(Keys.ImageRegion.TIMESTAMP));
-			this.location = new Location(InformaConstants.LocationTypes.ON_REGION_GENERATED, ir.getJSONObject(Keys.Location.COORDINATES));
-			this.obfuscationType = ir.getString(Keys.ImageRegion.FILTER);
+		public ImageRegion(CaptureTimestamp captureTimestamp, Location location, String obfuscationType, JSONObject regionDimensions, JSONObject regionCoordinates) throws JSONException {
 			
-			if(ir.has(Keys.ImageRegion.UNREDACTED_HASH))
-				this.unredactedRegion = ir.getString(Keys.ImageRegion.UNREDACTED_HASH);
-			else
-				this.unredactedRegion = null;
-			
-			this.regionDimensions = new JSONObject();
-			this.regionDimensions.put(Keys.ImageRegion.WIDTH, Float.parseFloat(ir.getString(Keys.ImageRegion.WIDTH)));
-			this.regionDimensions.put(Keys.ImageRegion.HEIGHT, Float.parseFloat(ir.getString(Keys.ImageRegion.HEIGHT)));
-			
-			String[] rCoords = ir.getString(Keys.ImageRegion.COORDINATES).substring(1, ir.getString(Keys.ImageRegion.COORDINATES).length() -1).split(",");
-			this.regionCoordinates = new JSONObject();
-			this.regionCoordinates.put(Keys.ImageRegion.TOP, Integer.parseInt(rCoords[0]));
-			this.regionCoordinates.put(Keys.ImageRegion.LEFT, Integer.parseInt(rCoords[1]));
-			
-			if(ir.has(Keys.ImageRegion.Subject.PSEUDONYM)) {
-				this.subject = new Subject(
-						ir.getString(Keys.ImageRegion.Subject.PSEUDONYM),
-						Boolean.parseBoolean(ir.getString(Keys.ImageRegion.Subject.INFORMED_CONSENT_GIVEN)),
-						new int[] {InformaConstants.Consent.GENERAL});
-			} else
-				this.subject = null;
 			
 		}
 	}
@@ -228,69 +198,29 @@ public class Informa {
 		}
 	}
 	
+	private String getMimeType(int sourceType) {
+		String mime = "";
+		switch(sourceType) {
+		case MediaTypes.PHOTO:
+			mime = ".jpg";
+			break;
+		case MediaTypes.VIDEO:
+			mime = ".mp4";
+			break;
+		}
+		return mime;
+	}
+	
 	private class Image extends File {
 		private static final long serialVersionUID = 1L;
 		private JSONObject json;
 		private String encrypedVersionPath, intendedDestination;
 
-		public Image(String path, JSONObject imageData, JSONArray regionData, JSONArray capturedEvents, String intendedDestination) throws JSONException, IllegalArgumentException, IllegalAccessException {
+		public Image(String path, String intendedDestination) throws JSONException, IllegalArgumentException, IllegalAccessException {
 			super(path);
 			
 			this.intendedDestination = intendedDestination;
-			
-			intent = new Intent(intendedDestination);
-			genealogy = new Genealogy(path, System.currentTimeMillis());
-			data = new Data(
-					imageData.getInt(Keys.Image.MEDIA_TYPE), 
-					new Device((JSONObject) ((JSONObject) capturedEvents.get(0)).get(Keys.Suckers.PHONE)));
-			
-			for(int c=0; c<capturedEvents.length(); c++) {
-				JSONObject rd = (JSONObject) capturedEvents.get(c);
-				JSONObject geo = rd.getJSONObject(Keys.Suckers.GEO);
-				JSONObject phone = rd.getJSONObject(Keys.Suckers.PHONE);
-				JSONObject acc = rd.getJSONObject(Keys.Suckers.ACCELEROMETER);
-				
-				switch(rd.getInt(Keys.CaptureEvent.TYPE)) {
-				case CaptureEvents.MEDIA_CAPTURED:
-					JSONObject lomc = new JSONObject();
-					lomc.put(Keys.Location.COORDINATES, geo.getString(Keys.Suckers.Geo.GPS_COORDS));
-					lomc.put(Keys.Location.CELL_ID, phone.getString(Keys.Suckers.Phone.CELL_ID));
-					lomc.put(Keys.Suckers.Accelerometer.LIGHT, acc.getJSONObject(Keys.Suckers.Accelerometer.LIGHT_METER_VALUE));
-					lomc.put(Keys.Suckers.Accelerometer.ACC, acc.getJSONObject(Keys.Suckers.Accelerometer.ACC));
-					lomc.put(Keys.Suckers.Accelerometer.ORIENTATION, acc.getJSONObject(Keys.Suckers.Accelerometer.ORIENTATION));
-					break;
-				case CaptureEvents.MEDIA_SAVED:
-					JSONObject loms = new JSONObject();
-					loms.put(Keys.Location.COORDINATES, geo.getString(Keys.Suckers.Geo.GPS_COORDS));
-					loms.put(Keys.Location.CELL_ID, phone.getString(Keys.Suckers.Phone.CELL_ID));
-					data.location.add(new Location(rd.getInt(Keys.CaptureEvent.TYPE), loms));
-					break;
-				case CaptureEvents.REGION_GENERATED:
-					for(int x=0; x< regionData.length(); x++) {
-						JSONObject imageRegion = (JSONObject) regionData.get(x);
-						/*
-						 *  TODO: make call to jpeg redaction object to get unredacted strips
-						 *  add them to metadata block
-						 */
-						
-						long timestampToMatch = Long.parseLong(imageRegion.getString(Keys.CaptureEvent.MATCH_TIMESTAMP));
-						if(rd.getLong(Keys.CaptureEvent.TIMESTAMP) == timestampToMatch) {
-							JSONObject log = new JSONObject();
-							log.put(Keys.Location.COORDINATES, geo.getString(Keys.Suckers.Geo.GPS_COORDS));
-							log.put(Keys.Location.CELL_ID, phone.getString(Keys.Suckers.Phone.CELL_ID));
-							imageRegion.put(Keys.ImageRegion.LOCATION, log);
-							data.imageRegions.add(new ImageRegion(imageRegion));
-						}
-					}
-					break;
-				}
-			}
-			
-			json = new JSONObject();
-			json.put(Keys.Informa.INTENT, intent.zip());
-			json.put(Keys.Informa.GENEALOGY, genealogy.zip());
-			json.put(Keys.Informa.DATA, data.zip());
-			Log.d(InformaConstants.READOUT, json.toString());
+			Informa.this.intent = new Intent(intendedDestination);
 						
 		}
 		
@@ -304,57 +234,195 @@ public class Informa {
 		
 	}
 	
-	private Object getDBValue(String table, String[] key, String matchKey, Object matchValue, Class<?> expectedType) {
+	private Object getDBValue(String table, String[] keys, String matchKey, Object matchValue, Class<?> expectedType) {
 		dh.setTable(db, table);
-		Cursor c = dh.getValue(db, key, matchKey, matchValue);
-		//"SELECT " + select + " FROM " + getTable() + " WHERE " + matchKey + " = " + matchValue, null);
-		Object value = new Object();
-		if(c != null) {
-			if(expectedType.equals(Long.class))
-				value = c.getLong(0);
-			else if(expectedType.equals(String.class))
-				value = c.getString(0);
-			else if(expectedType.equals(Integer.class))
-				value = c.getInt(0);
-			else if(expectedType.equals(Blob.class))
-				value = c.getBlob(0);
+		Object result = new Object();
+		
+		try {
+			Cursor c = dh.getValue(db, keys, matchKey, matchValue);
+			c.moveToFirst();
+			
+			while(!c.isAfterLast()) {
+				for(String key : keys) {
+					int index = c.getColumnIndex(key);
+					if(expectedType.equals(Long.class)) {
+						result = c.getLong(index);
+					} else if(expectedType.equals(String.class)) {
+						result = c.getString(index);
+					} else if(expectedType.equals(Integer.class)) {
+						result = c.getInt(index);
+					}
+				}
+				c.moveToNext();
+			}
+			
+			c.close();
+			
+		} catch(NullPointerException e) {
+			Log.d(InformaConstants.TAG, "cursor was nulllll");
 		}
-		Log.d(InformaConstants.TAG, value.toString());
-		return value;
+		
+		return result;
 	}
 	
 	private String getAPGEmail(long keyId) {
-		return apg.getPublicUserId(c, keyId);
+		return apg.getPublicUserId(_c, keyId);
 	}
 	
 	public Informa(
-			Activity a,
+			Context c,
 			JSONObject imageData, 
 			JSONArray regionData, 
 			JSONArray capturedEvents, 
-			String[] intendedDestinations) throws IllegalArgumentException, JSONException, IllegalAccessException {
+			long[] intendedDestinations) throws IllegalArgumentException, JSONException, IllegalAccessException {
 		
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(c);
-		this.a = a;
-		c = a.getApplicationContext();
+		
+		_c = c;
+		
+		JSONObject mediaSaved = new JSONObject();
+		JSONObject mediaCaptured = new JSONObject();
+		Set<ImageRegion> imageRegions = new HashSet<ImageRegion>();
+		Set<Corroboration> corroboration = new HashSet<Corroboration>();
+		Set<Location> locations = new HashSet<Location>();
+		
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(_c);
 		
 		dh = new DatabaseHelper(c);
 		db = dh.getWritableDatabase(sp.getString(Keys.Settings.HAS_DB_PASSWORD, ""));
-		ContentValues cv = new ContentValues();
 		
 		apg = Apg.getInstance();
-		apg.setSignatureKeyId((Long) getDBValue(Keys.Tables.SETUP, new String[] {Keys.Owner.SIG_KEY_ID}, BaseColumns._ID, 1, String.class));
+		apg.setSignatureKeyId((Long) getDBValue(Keys.Tables.SETUP, new String[] {Keys.Owner.SIG_KEY_ID}, BaseColumns._ID, 1, Long.class));
 		
-		images = new Image[intendedDestinations.length];
-		for(int i = 0; i<intendedDestinations.length; i++) {
-			images[i] = new Image(
-					imageData.getString(Keys.Image.LOCAL_MEDIA_PATH), 
-					imageData, 
-					regionData, 
-					capturedEvents, 
-					intendedDestinations[i]);
+		for(int ce=0; ce<capturedEvents.length(); ce++) {
+			JSONObject rd = (JSONObject) capturedEvents.get(ce);
+						
+			if(rd.getInt(Keys.CaptureEvent.TYPE) != CaptureEvents.BLUETOOTH_DEVICE_SEEN) {
+				JSONObject geo = rd.getJSONObject(Keys.Suckers.GEO);
+				JSONObject phone = rd.getJSONObject(Keys.Suckers.PHONE);
+				JSONObject acc = rd.getJSONObject(Keys.Suckers.ACCELEROMETER);
+				
+				switch(rd.getInt(Keys.CaptureEvent.TYPE)) {
+				case CaptureEvents.MEDIA_CAPTURED:
+					mediaCaptured.put(Keys.Location.COORDINATES, geo.getString(Keys.Suckers.Geo.GPS_COORDS));
+					mediaCaptured.put(Keys.Location.CELL_ID, phone.getString(Keys.Suckers.Phone.CELL_ID));
+					mediaCaptured.put(Keys.Suckers.Accelerometer.LIGHT, 
+							((JSONObject) acc.getJSONObject(Keys.Suckers.Accelerometer.LIGHT)).getInt(Keys.Suckers.Accelerometer.LIGHT_METER_VALUE));
+					mediaCaptured.put(Keys.Suckers.Accelerometer.ACC, acc.getJSONObject(Keys.Suckers.Accelerometer.ACC));
+					mediaCaptured.put(Keys.Suckers.Accelerometer.ORIENTATION, acc.getJSONObject(Keys.Suckers.Accelerometer.ORIENTATION));
+					mediaCaptured.put(Keys.Image.TIMESTAMP, rd.getLong(Keys.CaptureEvent.MATCH_TIMESTAMP));
+					mediaCaptured.put(Keys.Device.BLUETOOTH_DEVICE_ADDRESS, phone.getString(Keys.Suckers.Phone.BLUETOOTH_DEVICE_ADDRESS));
+					mediaCaptured.put(Keys.Device.BLUETOOTH_DEVICE_NAME, phone.getString(Keys.Suckers.Phone.BLUETOOTH_DEVICE_NAME));
+					mediaCaptured.put(Keys.Device.IMEI, phone.getString(Keys.Suckers.Phone.IMEI));
+					
+					JSONObject lomc = new JSONObject();
+					lomc.put(Keys.Location.COORDINATES, mediaCaptured.getString(Keys.Suckers.Geo.GPS_COORDS));
+					lomc.put(Keys.Location.CELL_ID, mediaCaptured.getString(Keys.Suckers.Phone.CELL_ID));
+					locations.add(new Location(InformaConstants.LocationTypes.ON_MEDIA_CAPTURED, lomc));
+					break;
+				case CaptureEvents.MEDIA_SAVED:
+					mediaSaved.put(Keys.Location.COORDINATES, geo.getString(Keys.Suckers.Geo.GPS_COORDS));
+					mediaSaved.put(Keys.Location.CELL_ID, phone.getString(Keys.Suckers.Phone.CELL_ID));
+					mediaSaved.put(Keys.Image.TIMESTAMP, rd.getLong(Keys.CaptureEvent.MATCH_TIMESTAMP));
+					mediaSaved.put(Keys.Device.BLUETOOTH_DEVICE_ADDRESS, phone.getString(Keys.Suckers.Phone.BLUETOOTH_DEVICE_ADDRESS));
+					mediaSaved.put(Keys.Device.BLUETOOTH_DEVICE_NAME, phone.getString(Keys.Suckers.Phone.BLUETOOTH_DEVICE_NAME));
+					mediaSaved.put(Keys.Device.IMEI, phone.getString(Keys.Suckers.Phone.IMEI));
+					
+					JSONObject loms = new JSONObject();
+					loms.put(Keys.Location.COORDINATES, mediaSaved.getString(Keys.Suckers.Geo.GPS_COORDS));
+					loms.put(Keys.Location.CELL_ID, mediaSaved.getString(Keys.Suckers.Phone.CELL_ID));
+					locations.add(new Location(InformaConstants.LocationTypes.ON_MEDIA_SAVED, loms));
+					break;
+				case CaptureEvents.REGION_GENERATED:
+					for(int x=0; x< regionData.length(); x++) {
+						JSONObject imageRegion = (JSONObject) regionData.get(x);
+						
+						long timestampToMatch = Long.parseLong(imageRegion.getString(Keys.ImageRegion.TIMESTAMP));
+						if(rd.getLong(Keys.CaptureEvent.MATCH_TIMESTAMP) == timestampToMatch) {
+							CaptureTimestamp ct = new CaptureTimestamp(InformaConstants.CaptureTimestamps.ON_REGION_GENERATED, timestampToMatch);
+							
+							JSONObject log = new JSONObject();
+							log.put(Keys.Location.COORDINATES, geo.getString(Keys.Suckers.Geo.GPS_COORDS));
+							log.put(Keys.Location.CELL_ID, phone.getString(Keys.Suckers.Phone.CELL_ID));
+							Location locationOnGeneration = new Location(InformaConstants.LocationTypes.ON_REGION_GENERATED, log);
+							
+							JSONObject regionDimensions = new JSONObject();
+							regionDimensions.put(Keys.ImageRegion.WIDTH, Float.parseFloat(imageRegion.getString(Keys.ImageRegion.WIDTH)));
+							regionDimensions.put(Keys.ImageRegion.HEIGHT, Float.parseFloat(imageRegion.getString(Keys.ImageRegion.HEIGHT)));
+							
+							String[] rCoords = imageRegion.getString(Keys.ImageRegion.COORDINATES).substring(1, imageRegion.getString(Keys.ImageRegion.COORDINATES).length() -1).split(",");
+							JSONObject regionCoordinates = new JSONObject();
+							regionCoordinates.put(Keys.ImageRegion.TOP, Float.parseFloat(rCoords[0]));
+							regionCoordinates.put(Keys.ImageRegion.LEFT, Float.parseFloat(rCoords[1]));
+							
+							ImageRegion ir = new ImageRegion(
+									ct, 
+									locationOnGeneration, 
+									imageRegion.getString(Keys.ImageRegion.FILTER), 
+									regionDimensions,
+									regionCoordinates);
+							
+							if(imageRegion.has(Keys.ImageRegion.Subject.PSEUDONYM)) {
+								ir.subject = new Subject(
+									imageRegion.getString(Keys.ImageRegion.Subject.PSEUDONYM),
+									Boolean.parseBoolean(imageRegion.getString(Keys.ImageRegion.Subject.INFORMED_CONSENT_GIVEN)),
+									"[" + InformaConstants.Consent.GENERAL + "]");
+							} else
+								ir.subject = null;
+							
+							imageRegions.add(ir);
+						}
+					}
+					break;
+				}
+			} else {
+				corroboration.add(new Corroboration(rd.getString(Keys.Device.BLUETOOTH_DEVICE_ADDRESS), rd.getString(Keys.Device.BLUETOOTH_DEVICE_NAME), InformaConstants.Device.IS_NEIGHBOR));
+			}
 		}
 		
+		genealogy = new Genealogy(
+				imageData.getString(Keys.Image.LOCAL_MEDIA_PATH), 
+				mediaCaptured.getLong(Keys.Image.TIMESTAMP));
+		data = new Data(
+				imageData.getInt(Keys.Image.MEDIA_TYPE), 
+				new Device(
+						mediaSaved.getString(Keys.Device.IMEI), 
+						new Corroboration(
+								mediaSaved.getString(Keys.Device.BLUETOOTH_DEVICE_ADDRESS),
+								mediaSaved.getString(Keys.Device.BLUETOOTH_DEVICE_NAME),
+								InformaConstants.Device.IS_SELF)));
+		data.imageRegions = imageRegions;
+		data.corroboration = corroboration;
+		data.location = locations;
 		
+		Log.d(InformaConstants.READOUT, genealogy.zip().toString());
+		Log.d(InformaConstants.READOUT, data.zip().toString());
+		
+		images = new Image[intendedDestinations.length];
+		for(int i=0; i<intendedDestinations.length; i++) {
+			dh.setTable(db, Tables.TRUSTED_DESTINATIONS);
+			try {
+				Cursor td = dh.getValue(
+						db, 
+						new String[] {TrustedDestinations.DISPLAY_NAME, TrustedDestinations.EMAIL},
+						TrustedDestinations.KEYRING_ID,
+						intendedDestinations[i]);
+				td.moveToFirst();
+				String displayName = td.getString(td.getColumnIndex(TrustedDestinations.DISPLAY_NAME));
+				String email = td.getString(td.getColumnIndex(TrustedDestinations.EMAIL));
+				String newPath = 
+						InformaConstants.DUMP_FOLDER + 
+						genealogy.localMediaPath.substring(genealogy.localMediaPath.lastIndexOf("/"), genealogy.localMediaPath.length() - 4) +
+						"_" + displayName.replace(" ", "-") +
+						getMimeType(data.sourceType);
+				td.close();
+				
+				Log.d(InformaConstants.READOUT, "Saving file " + newPath);
+			} catch(NullPointerException e) {
+				Log.d(InformaConstants.TAG, "fucking npe: " + e);
+			}
+		}
+		
+		db.close();
+		dh.close();
 	}
 }
