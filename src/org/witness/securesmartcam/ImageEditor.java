@@ -1461,21 +1461,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     private void generateInformaImage(String informaPath, String informaMetadata, int numExpected) {
     	try {
 			
-			if(canDoNative()) {
-				Log.d(InformaConstants.TAG, "running redaction on " + informaPath);
-				
-				File tmp = new File(InformaConstants.DUMP_FOLDER, ObscuraConstants.TMP_FILE_NAME);
-				if(tmp.exists())
-					tmp.delete();
-				copy(originalImageUri, tmp);
-				
-				ImageConstructor ic = new ImageConstructor(
-						tmp.getAbsolutePath(),
-						informaPath,
-						informaMetadata);
-				
-			}
-			
 			numInformaImagesGenerated++;
 			if(numInformaImagesGenerated == numExpected) {
 				mProgressDialog.cancel();
@@ -1494,7 +1479,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * Pass the path of the original to informa, 
      * along with the metadata and intended destinations
      */
-    private boolean saveImage(String imageRegionObject, long[] encryptList) throws FileNotFoundException 
+    private boolean saveImage(String imageRegionObject, long[] encryptList) throws IOException 
     {
     	
     	SimpleDateFormat dateFormat = new SimpleDateFormat(ObscuraConstants.EXPORT_DATE_FORMAT);
@@ -1525,7 +1510,23 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				new String[] {pullPathFromUri(savedImageUri).getAbsolutePath()},
 				new String[] {ObscuraConstants.MIME_TYPE_JPEG},
 				null);
+		
+		if(!canDoNative()) // there are no image regions!
+			return false;
 			
+		
+		// TODO: in this thread
+		File tmp = new File(InformaConstants.DUMP_FOLDER, ObscuraConstants.TMP_FILE_NAME);
+		if(tmp.exists())
+			tmp.delete();
+		copy(originalImageUri, tmp);
+		
+		for(int i=0; i<imageRegions.size(); i++) {
+			JpegRedaction jr = new JpegRedaction(imageRegions.get(i).getRegionProcessor(), tmp.getAbsolutePath(), "i" + tmp.getAbsolutePath());
+			jr.processRegion(new RectF(imageRegions.get(i).getBounds()), obscuredCanvas, obscuredBmp);
+		}
+		
+		// TODO: do this when finished
 		sendBroadcast(new Intent()
 			.setAction(InformaConstants.Keys.Service.SET_CURRENT)
 			.putExtra(InformaConstants.Keys.CaptureEvent.MATCH_TIMESTAMP, System.currentTimeMillis())
@@ -1558,6 +1559,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	        		try {
 						saveImage(imageRegionObject, encryptList);
 					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
 			  }
