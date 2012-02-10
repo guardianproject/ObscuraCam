@@ -50,19 +50,24 @@ public class InformaConstants {
 			public final static String TIMESTAMP = "timestampOnGeneration";
 			public final static String LOCATION = "locationOnGeneration";
 			public final static String TAGGER_RETURN = "taggerReturned";
-			public final static String FILTER = "region_obfuscationType";
-			public final static String COORDINATES = "region_initialCoordinates";
+			public final static String FILTER = "obfuscationType";
+			public final static String COORDINATES = "regionCoordinates";
+			public final static String DIMENSIONS = "regionDimensions";
 			public final static String WIDTH = "region_width";
 			public final static String HEIGHT = "region_height";
 			public final static String TOP = "region_top";
 			public final static String LEFT = "region_left";
-			public final static String UNREDACTED_HASH = "region_unredactedHash";
+			public final static String UNREDACTED_HASH = "unredactedRegion";
 			
 			public final static class Subject {
 				public final static String PSEUDONYM = "subject_pseudonym";
 				public final static String INFORMED_CONSENT_GIVEN = "subject_informedConsentGiven";
 				public final static String PERSIST_FILTER = "subject_persistFilter";
 			}
+		}
+		
+		public final static class Data {
+			public final static String IMAGE_REGIONS = "imageRegions";
 		}
 		
 		public final static class Location {

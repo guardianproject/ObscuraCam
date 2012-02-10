@@ -177,14 +177,23 @@ public class Informa {
 		CaptureTimestamp captureTimestamp;
 		Location location;
 		
-		public String obfuscationType, unredactedRegion;
+		public String obfuscationType;
 		JSONObject regionDimensions, regionCoordinates;
+		char[] unredactedRegion;
 		
 		Subject subject;
 		
 		public ImageRegion(CaptureTimestamp captureTimestamp, Location location, String obfuscationType, JSONObject regionDimensions, JSONObject regionCoordinates) throws JSONException {
+			this.captureTimestamp = captureTimestamp;
+			this.location = location;
+			this.obfuscationType = obfuscationType;
+			this.regionDimensions = regionDimensions;
+			this.regionCoordinates = regionCoordinates;
 			
-			
+			String unredactionStart = "unredactionStart:";
+			this.unredactedRegion = new char[unredactionStart.length()];
+			for(int s=0;s<unredactionStart.length();s++)
+				this.unredactedRegion[s] = unredactionStart.charAt(s);
 		}
 	}
 	
@@ -225,9 +234,6 @@ public class Informa {
 			this.metadataPackage.put(Keys.Informa.INTENT, Informa.this.intent.zip());
 			this.metadataPackage.put(Keys.Informa.GENEALOGY, Informa.this.genealogy.zip());
 			this.metadataPackage.put(Keys.Informa.DATA, Informa.this.data.zip());
-			
-			Log.d(InformaConstants.READOUT, "image contains: " + this.metadataPackage.toString());
-						
 		}
 		
 		@SuppressWarnings("unused")
@@ -350,6 +356,7 @@ public class Informa {
 						
 						long timestampToMatch = Long.parseLong(imageRegion.getString(Keys.ImageRegion.TIMESTAMP));
 						if(rd.getLong(Keys.CaptureEvent.MATCH_TIMESTAMP) == timestampToMatch) {
+														
 							CaptureTimestamp ct = new CaptureTimestamp(InformaConstants.CaptureTimestamps.ON_REGION_GENERATED, timestampToMatch);
 							
 							JSONObject log = new JSONObject();
@@ -373,6 +380,7 @@ public class Informa {
 									regionDimensions,
 									regionCoordinates);
 							
+							
 							if(imageRegion.has(Keys.ImageRegion.Subject.PSEUDONYM)) {
 								ir.subject = new Subject(
 									imageRegion.getString(Keys.ImageRegion.Subject.PSEUDONYM),
@@ -382,7 +390,6 @@ public class Informa {
 								ir.subject = null;
 							
 							imageRegions.add(ir);
-							Log.d(InformaConstants.TAG, "added region: " + ir.toString());
 						}
 					}
 					break;
@@ -405,8 +412,6 @@ public class Informa {
 								InformaConstants.Device.IS_SELF)));
 		
 		data.imageRegions = imageRegions;
-		for(ImageRegion ir : data.imageRegions)
-			Log.d(InformaConstants.TAG, "data is now set to: " + ir.toString());
 		data.corroboration = corroboration;
 		data.location = locations;
 		

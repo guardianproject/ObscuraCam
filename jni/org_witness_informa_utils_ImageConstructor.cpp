@@ -18,11 +18,72 @@
 #include "parse_functions.h"
 #include "org_witness_informa_utils_ImageConstructor.h"
 
+JNIEXPORT void JNICALL
+Java_org_witness_informa_utils_ImageConstructor_setRegion
+(JNIEnv *env, jobject obj, jstring jstrOriginalImageFilename, jstring jstrInformaImageFilename, int left, int right, int top, int bottom, jstring jstrRedactionMethod, jcharArray jcharResultBuffer) {
+    
+    jpeg_redaction::Jpeg original;
+    char* redactionBlock;
+    const char* originalImageFilename;
+    const char* informaImageFilename;
+    const char* redactionMethod;
+    
+    const char* TAG = "********************** INFORMA_JNI **********************";
+    __android_log_write(ANDROID_LOG_DEBUG, TAG, "2. adding image region");
+    
+    try {
+        originalImageFilename = (env)->GetStringUTFChars(jstrOriginalImageFilename, NULL);
+        informaImageFilename = (env)->GetStringUTFChars(jstrInformaImageFilename, NULL);
+        redactionMethod = (env)->GetStringUTFChars(jstrRedactionMethod, NULL);
+        
+        bool success = original.LoadFromFile(originalImageFilename, true);
+        if(!success) {
+            (env)->ReleaseStringUTFChars(jstrOriginalImageFilename, originalImageFilename);
+            (env)->ReleaseStringUTFChars(jstrInformaImageFilename, informaImageFilename);
+            (env)->ReleaseStringUTFChars(jstrRedactionMethod, redactionMethod);            
+        }
+        __android_log_write(ANDROID_LOG_DEBUG, TAG, "[opened file]");
+        __android_log_write(ANDROID_LOG_DEBUG, TAG, originalImageFilename);
+        
+        jpeg_redaction::Redaction::Region region(left, right, top, bottom);
+        region.SetRedactionMethod(redactionMethod);
+        jpeg_redaction::Redaction redaction;
+        redaction.AddRegion(region);
+        original.DecodeImage(&redaction, NULL);
+        __android_log_write(ANDROID_LOG_DEBUG, TAG,"added redact region");
+        
+        std::vector<unsigned char> redactionPack;
+        redaction.Pack(&redactionPack);
+        
+        redactionBlock = new char[redactionPack.size() + 1];
+        copy(redactionPack.begin(), redactionPack.end(), redactionBlock);
+        
+        jchar* jResultBuffer = (jchar*)calloc(sizeof(jchar), redactionPack.size() + 1);
+        for(int i = 0; i < (redactionPack.size() + 1); i++) {
+            jResultBuffer[i] = (jchar) redactionBlock[i];
+        }
+        free(redactionBlock);
+        
+        env->SetCharArrayRegion(jcharResultBuffer, 0, (redactionPack.size() + 1), jResultBuffer);
+        free(jResultBuffer);
+        
+        original.Save(informaImageFilename);
+        
+        (env)->ReleaseStringUTFChars(jstrOriginalImageFilename, originalImageFilename);
+        (env)->ReleaseStringUTFChars(jstrInformaImageFilename, informaImageFilename);
+        (env)->ReleaseStringUTFChars(jstrRedactionMethod, redactionMethod);
+        
+    } catch (const char *error) {
+        __android_log_write(ANDROID_LOG_ERROR, TAG, error);
+    }
+    
+    __android_log_write(ANDROID_LOG_DEBUG, TAG,"Finished!");
+    
+}
+
 JNIEXPORT int JNICALL
 Java_org_witness_informa_utils_ImageConstructor_constructImage
 (JNIEnv *env, jobject obj, jstring jstrOriginalImageFilename, jstring jstrInformaImageFilename, jstring jstrMetadataObjectString, int metadataLength) {
-    
-    __android_log_write(ANDROID_LOG_DEBUG, "INFORMA_JNI", "Running.");
 
     jpeg_redaction::Jpeg original;
     jpeg_redaction::Jpeg check;
@@ -31,7 +92,8 @@ Java_org_witness_informa_utils_ImageConstructor_constructImage
     const char* metadataObjectString;
     std::vector<unsigned char> metadata;
     
-    const char* TAG = "INFORMA_JNI";
+    const char* TAG = "********************** INFORMA_JNI **********************";
+    __android_log_write(ANDROID_LOG_DEBUG, TAG, "3. setting metadata");
     
     try {
                 

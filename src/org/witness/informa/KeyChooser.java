@@ -82,6 +82,8 @@ public class KeyChooser extends Activity implements OnClickListener {
 					}
 					
 					c.close();
+					db.close();
+					dh.close();
 					
 				} catch(NullPointerException e) {
 					Log.d(InformaConstants.TAG, "cursor was nulllll");

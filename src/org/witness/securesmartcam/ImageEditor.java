@@ -190,9 +190,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				generateInformaImage(intent.getStringExtra(
 						InformaConstants.Keys.Image.LOCAL_MEDIA_PATH), 
 						intent.getStringExtra(InformaConstants.Keys.Image.METADATA),
-						intent.getIntExtra(InformaConstants.Keys.Service.IMAGES_GENERATED, 0));
-				
-				Log.d(ObscuraConstants.TAG, "and image editor received: " + intent.getStringExtra(InformaConstants.Keys.Image.METADATA));
+						intent.getIntExtra(InformaConstants.Keys.Service.IMAGES_GENERATED, 0));				
 			}
 			
 		}
@@ -1475,6 +1473,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						tmp.getAbsolutePath(),
 						informaPath,
 						informaMetadata);
+				
 			}
 			
 			numInformaImagesGenerated++;

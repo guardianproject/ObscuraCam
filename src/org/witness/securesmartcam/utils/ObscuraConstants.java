@@ -1,5 +1,6 @@
 package org.witness.securesmartcam.utils;
 
+import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.sscphase1.R;
 
 import android.content.Context;
@@ -68,6 +69,13 @@ public class ObscuraConstants {
 		public final static String TITLE = "Image taken with InformaCam";
 		public final static String CONTENT_TYPE = "MIME_TYPE_JPEG";
 		public final static float GEO = 0.0f;
+	}
+	
+	public final static class Filters {
+		public final static String PIXELIZE = "p";
+		public final static String INFORMA_TAGGER = "t";
+		public final static String CROWD_PIXELIZE = "i";
+		public final static String SOLID = "s";
 	}
 	
 	public static void makeToast(Context c, String m) {

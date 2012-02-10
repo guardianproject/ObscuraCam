@@ -20,6 +20,10 @@ JNIEXPORT int JNICALL
     Java_org_witness_informa_utils_ImageConstructor_constructImage
     (JNIEnv *, jobject, jstring, jstring, jstring, int);
     
+JNIEXPORT void JNICALL
+    Java_org_witness_informa_utils_ImageConstructor_setRegion
+    (JNIEnv *, jobject, jstring, jstring, int, int, int, int, jstring, jcharArray);
+    
 #ifdef __cplusplus
 }
 #endif
