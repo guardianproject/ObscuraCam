@@ -1460,7 +1460,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      */
     private void generateInformaImage(String informaPath, String informaMetadata, int numExpected) {
     	try {
-			
+			ImageConstructor ic = new ImageConstructor(informaPath, informaMetadata);
 			numInformaImagesGenerated++;
 			if(numInformaImagesGenerated == numExpected) {
 				mProgressDialog.cancel();
