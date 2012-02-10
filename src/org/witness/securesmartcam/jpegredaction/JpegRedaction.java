@@ -9,6 +9,7 @@ import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
 import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.securesmartcam.filters.RegionProcesser;
 import org.witness.securesmartcam.filters.SolidObscure;
+import org.witness.securesmartcam.utils.ObscuraConstants;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -103,7 +104,7 @@ public class JpegRedaction implements RegionProcesser {
 	}
 	
 	public void processRegions(ArrayList<ImageRegion> iRegions, float inSampleSize, Canvas canvas) {
-
+		
 		 String strInFile = mInFile.getAbsolutePath();
 		 String strOutFile = mOutFile.getAbsolutePath();
 		 
@@ -115,7 +116,7 @@ public class JpegRedaction implements RegionProcesser {
 		for (ImageRegion currentRegion : iRegions)
 	    {
 			RegionProcesser rProc = currentRegion.getRegionProcessor();
-			
+			// TODO: this is where the image gets constructed.
             RectF rect = new RectF(currentRegion.getBounds());
             rect.left *= inSampleSize;
             rect.top *= inSampleSize;

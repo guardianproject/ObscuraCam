@@ -5,7 +5,6 @@
 package org.witness.securesmartcam.filters;
 
 
-import java.util.Date;
 import java.util.Properties;
 
 import org.witness.informa.utils.InformaConstants.Keys.ImageRegion;
@@ -18,8 +17,7 @@ import android.util.Log;
 
 public class CrowdPixelizeObscure implements RegionProcesser {
 
-	Bitmap originalBmp, unredactedBmp;
-	boolean unredactedBmpSet;
+	Bitmap originalBmp;
 	Properties mProps;
 	
 	public static int PIXEL_BLOCK = 50;
@@ -28,20 +26,11 @@ public class CrowdPixelizeObscure implements RegionProcesser {
 		mProps = new Properties();
 		mProps.put(ImageRegion.FILTER, this.getClass().getName());
 		mProps.put(ImageRegion.TIMESTAMP, System.currentTimeMillis());
-		unredactedBmpSet = false;
 	}
 	
 	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitmap) {
 	
 		originalBmp = bitmap;
-		
-		if(!unredactedBmpSet) {
-			unredactedBmp = bitmap;
-			unredactedBmpSet = true;
-			Log.d(ObscuraConstants.TAG, "this is where the bitmap is set.");
-		} else
-			Log.d(ObscuraConstants.TAG, "nope, original bmp already set.");
-		
 		int pixelSize = originalBmp.getWidth()/PIXEL_BLOCK;
 		
 		if (pixelSize <= 0) //1 is the smallest it can be
@@ -113,7 +102,6 @@ public class CrowdPixelizeObscure implements RegionProcesser {
 
 	@Override
 	public Bitmap getBitmap() {
-		// TODO: this one will be a bit more complex...
 		return null;
 	}
 }

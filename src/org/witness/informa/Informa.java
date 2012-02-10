@@ -57,7 +57,7 @@ public class Informa {
 				f.setAccessible(true);
 				Object value = f.get(this);
 				
-				if(!(value instanceof Informa)) {
+				if(!(value instanceof Informa)  && !(value instanceof Image)) {
 					if(value instanceof InformaZipper)
 						this.put(f.getName(), ((InformaZipper) value).zip());
 					else if(value instanceof Set) {
@@ -211,25 +211,33 @@ public class Informa {
 		return mime;
 	}
 	
-	private class Image extends File {
+	public class Image extends File {
 		private static final long serialVersionUID = 1L;
-		private JSONObject json;
-		private String encrypedVersionPath, intendedDestination;
+		private String intendedDestination;
+		private JSONObject metadataPackage;
 
 		public Image(String path, String intendedDestination) throws JSONException, IllegalArgumentException, IllegalAccessException {
 			super(path);
 			
 			this.intendedDestination = intendedDestination;
 			Informa.this.intent = new Intent(intendedDestination);
+			this.metadataPackage = new JSONObject();
+			this.metadataPackage.put(Keys.Informa.INTENT, Informa.this.intent.zip());
+			this.metadataPackage.put(Keys.Informa.GENEALOGY, Informa.this.genealogy.zip());
+			this.metadataPackage.put(Keys.Informa.DATA, Informa.this.data.zip());
+			
+			Log.d(InformaConstants.READOUT, "image contains: " + this.metadataPackage.toString());
 						
 		}
 		
+		@SuppressWarnings("unused")
 		public String getIntendedDestination() {
 			return this.intendedDestination;
 		}
 		
-		public String getEncryptedVersionPath() {
-			return this.encrypedVersionPath;
+		@SuppressWarnings("unused")
+		public String getMetadataPackage() {
+			return this.metadataPackage.toString();
 		}
 		
 	}
@@ -267,6 +275,10 @@ public class Informa {
 	
 	private String getAPGEmail(long keyId) {
 		return apg.getPublicUserId(_c, keyId);
+	}
+	
+	public Image[] getImages() {
+		return images;
 	}
 	
 	public Informa(
@@ -370,6 +382,7 @@ public class Informa {
 								ir.subject = null;
 							
 							imageRegions.add(ir);
+							Log.d(InformaConstants.TAG, "added region: " + ir.toString());
 						}
 					}
 					break;
@@ -390,12 +403,12 @@ public class Informa {
 								mediaSaved.getString(Keys.Device.BLUETOOTH_DEVICE_ADDRESS),
 								mediaSaved.getString(Keys.Device.BLUETOOTH_DEVICE_NAME),
 								InformaConstants.Device.IS_SELF)));
+		
 		data.imageRegions = imageRegions;
+		for(ImageRegion ir : data.imageRegions)
+			Log.d(InformaConstants.TAG, "data is now set to: " + ir.toString());
 		data.corroboration = corroboration;
 		data.location = locations;
-		
-		Log.d(InformaConstants.READOUT, genealogy.zip().toString());
-		Log.d(InformaConstants.READOUT, data.zip().toString());
 		
 		images = new Image[intendedDestinations.length];
 		for(int i=0; i<intendedDestinations.length; i++) {
@@ -415,8 +428,7 @@ public class Informa {
 						"_" + displayName.replace(" ", "-") +
 						getMimeType(data.sourceType);
 				td.close();
-				
-				Log.d(InformaConstants.READOUT, "Saving file " + newPath);
+				images[i] = new Image(newPath, email);
 			} catch(NullPointerException e) {
 				Log.d(InformaConstants.TAG, "fucking npe: " + e);
 			}

@@ -63,6 +63,13 @@ public class ObscuraConstants {
 		public final static String PROPERTIES = "mProps";
 	}
 	
+	public final static class ExifValues {
+		public final static String DESCRIPTION = "InformaCam image";
+		public final static String TITLE = "Image taken with InformaCam";
+		public final static String CONTENT_TYPE = "MIME_TYPE_JPEG";
+		public final static float GEO = 0.0f;
+	}
+	
 	public static void makeToast(Context c, String m) {
 		Toast.makeText(c, m, Toast.LENGTH_LONG).show();
 	}

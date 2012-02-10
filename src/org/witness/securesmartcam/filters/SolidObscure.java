@@ -5,7 +5,6 @@
 package org.witness.securesmartcam.filters;
 
 
-import java.util.Date;
 import java.util.Properties;
 
 import org.witness.informa.utils.InformaConstants.Keys.ImageRegion;
@@ -23,8 +22,7 @@ public class SolidObscure implements RegionProcesser {
 	Paint paint;
 	Properties mProps;
 	
-	Bitmap originalBmp, unredactedBmp;
-	boolean unredactedBmpSet;
+	Bitmap originalBmp;
 	
 	public SolidObscure() {
 		paint = new Paint();
@@ -33,24 +31,9 @@ public class SolidObscure implements RegionProcesser {
         mProps = new Properties();
 		mProps.put(ImageRegion.FILTER, this.getClass().getName());
 		mProps.put(ImageRegion.TIMESTAMP, System.currentTimeMillis());
-        unredactedBmpSet = false;
 	}
  	
 	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitmap) {
-		// capture the original bitmpap;
-		if(!unredactedBmpSet) {
-			unredactedBmp = Bitmap.createBitmap(
-					bitmap, 
-					(int) rect.left, 
-					(int) rect.top,
-					(int) Math.min(bitmap.getWidth(),(Math.abs(rect.left - rect.right))), 
-					(int) Math.min(bitmap.getHeight(), (Math.abs(rect.top - rect.bottom)))
-				);
-			unredactedBmpSet = true;
-			Log.d(ObscuraConstants.TAG, "this is where the bitmap is set.");
-		} else
-			Log.d(ObscuraConstants.TAG, "nope, original bmp already set.");
-		
 		canvas.drawRect(rect, paint);
 		// return properties and data as a map
 		mProps.put(ImageRegion.COORDINATES, "[" + rect.top + "," + rect.left + "]");
@@ -67,13 +50,9 @@ public class SolidObscure implements RegionProcesser {
 	{
 		mProps = props;
 	}
-	
-	public void updateBitmap() {
-		unredactedBmpSet = false;
-	}
 
 	@Override
 	public Bitmap getBitmap() {
-		return unredactedBmp;
+		return null;
 	}
 }

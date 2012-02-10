@@ -17,8 +17,7 @@ import android.util.Log;
 
 public class PixelizeObscure implements RegionProcesser {
 
-	Bitmap originalBmp, unredactedBmp;
-	boolean unredactedBmpSet;
+	Bitmap originalBmp;
 	
 	private final static int PIXEL_BLOCK = 10;
 	
@@ -30,7 +29,6 @@ public class PixelizeObscure implements RegionProcesser {
 		mProps.put("size", "10");
 		mProps.put(ImageRegion.FILTER, this.getClass().getName());
 		mProps.put(ImageRegion.TIMESTAMP, System.currentTimeMillis());
-		unredactedBmpSet = false;
 	}
 	
 	public void processRegion(RectF rect, Canvas canvas, Bitmap bitmap) {
@@ -39,21 +37,6 @@ public class PixelizeObscure implements RegionProcesser {
 		mProps.put(ImageRegion.COORDINATES, "[" + rect.top + "," + rect.left + "]");
 		mProps.put(ImageRegion.WIDTH, Integer.toString((int) Math.abs(rect.left - rect.right)));
 		mProps.put(ImageRegion.HEIGHT, Integer.toString((int) Math.abs(rect.top - rect.bottom)));	
-		
-		if(!unredactedBmpSet) {
-			unredactedBmp = Bitmap.createBitmap(
-					bitmap, 
-					(int) rect.left, 
-					(int) rect.top,
-					(int) Math.min(bitmap.getWidth(),(Math.abs(rect.left - rect.right))), 
-					(int) Math.min(bitmap.getHeight(), (Math.abs(rect.top - rect.bottom)))
-				);
-			
-
-			unredactedBmpSet = true;
-			Log.d(ObscuraConstants.TAG, "this is where the bitmap is set.");
-		} else
-			Log.d(ObscuraConstants.TAG, "nope, original bmp already set.");
 		
 		int pixelSize = (int)(rect.right-rect.left)/PIXEL_BLOCK;
 		
@@ -132,14 +115,10 @@ public class PixelizeObscure implements RegionProcesser {
 	{
 		mProps = props;
 	}
-	
-	public void updateBitmap() {
-		unredactedBmpSet = false;
-	}
 
 	@Override
 	public Bitmap getBitmap() {
-		return unredactedBmp;
+		return null;
 	}
 }
 

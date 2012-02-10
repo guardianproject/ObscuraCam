@@ -21,6 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.witness.informa.KeyChooser;
 import org.witness.informa.Tagger;
+import org.witness.informa.utils.ImageConstructor;
 import org.witness.informa.utils.InformaConstants;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.InformaTagger;
@@ -32,11 +33,13 @@ import org.witness.sscphase1.R;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -178,7 +181,26 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    }
 	}
     	
-    	
+    
+	private BroadcastReceiver ibr = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			if(InformaConstants.Keys.Service.GENERATE_IMAGE.equals(intent.getAction())) {
+				generateInformaImage(intent.getStringExtra(
+						InformaConstants.Keys.Image.LOCAL_MEDIA_PATH), 
+						intent.getStringExtra(InformaConstants.Keys.Image.METADATA),
+						intent.getIntExtra(InformaConstants.Keys.Service.IMAGES_GENERATED, 0));
+				
+				Log.d(ObscuraConstants.TAG, "and image editor received: " + intent.getStringExtra(InformaConstants.Keys.Image.METADATA));
+			}
+			
+		}
+		
+	};
+	
+	private int numInformaImagesGenerated = 0;
+	
 	@SuppressWarnings("unused")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -384,6 +406,21 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		bitmapCornerLR = BitmapFactory.decodeResource(getResources(),
                 R.drawable.edit_region_corner_lr);
 		 
+	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+	}
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+	}
+	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
 	}
 	
 	private void setBitmap (Bitmap nBitmap)
@@ -860,23 +897,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		return handled; // indicate event was handled
 	}
-
-	/*
-	public void moveAndZoom (float x, float y, float scale)
-	{
-		matrix.postTranslate(x - startPoint.x, y - startPoint.y);
-		imageView.setImageMatrix(matrix);
-//		// Reset the start point
-		startPoint.set(x, y);
-		
-		matrix.postScale(scale, scale, startFingerSpacingMidPoint.x, startFingerSpacingMidPoint.y);
-		
-		imageView.setImageMatrix(matrix);
-		
-		putOnScreen();
-		redrawRegions();
-		
-	}*/
 	
 	/*
 	 * For live previews
@@ -1273,7 +1293,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	Matrix obscuredMatrix = new Matrix();    	
     	// Draw the scaled image on the new bitmap
     	obscuredCanvas.drawBitmap(imageBitmap, obscuredMatrix, obscuredPaint);
-
+    	
     	// Iterate through the regions that have been created
     	Iterator<ImageRegion> i = imageRegions.iterator();
 	    while (i.hasNext()) 
@@ -1312,7 +1332,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    return obscuredBmp;
     }
     
-    
     private boolean canDoNative ()
     {
     	if (originalImageUri == null)
@@ -1327,40 +1346,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    
 	    return true;
 
-    }
-    
-    /*
-     * Goes through the regions that have been defined and creates a bitmap with them obscured.
-     * This may introduce memory issues and therefore have to be done in a different manner.
-     */
-    private Uri processNativeRes (Uri sourceImage) throws Exception
-    {
-
-    	File tmpFileDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES); 
-    	if (!tmpFileDirectory.exists()) {
-    		tmpFileDirectory.mkdirs();
-    	}
-    	
-    	
-    	File tmpInFile = new File(tmpFileDirectory,'i' + ObscuraConstants.TMP_FILE_NAME);
-    	File fileTarget = new File(tmpFileDirectory, ObscuraConstants.TMP_FILE_NAME);
-    	
-    	if (tmpInFile.exists())
-    		tmpInFile.delete();
-    	
-    	if (fileTarget.exists())
-    		fileTarget.delete();
-    	
-    	copy (sourceImage, tmpInFile);
-	  	
-		JpegRedaction om = new JpegRedaction();	
-    	om.setFiles(tmpInFile, fileTarget);
-    	om.processRegions(imageRegions, inSampleSize, obscuredCanvas);
-    	
-	    if (!fileTarget.exists())
-	    	throw new Exception("native proc failed");
-	    
-	    return Uri.fromFile(fileTarget);
     }
     
     private void copy (Uri uriSrc, File fileTarget) throws IOException
@@ -1464,102 +1449,100 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }
     
     /*
+     * TODO: handle the deletion of the original image
+     * according to preferences
+     */
+    private void handleDelete() {
+    	// delete temp file created.
+    }
+    
+    /*
      * The method that actually saves the altered image.  
      * This in combination with createObscuredBitmap could/should be done in another, more memory efficient manner. 
      */
-    private boolean saveImage(String imageRegionObject, long[] encryptList) 
+    private void generateInformaImage(String informaPath, String informaMetadata, int numExpected) {
+    	try {
+			
+			if(canDoNative()) {
+				Log.d(InformaConstants.TAG, "running redaction on " + informaPath);
+				
+				File tmp = new File(InformaConstants.DUMP_FOLDER, ObscuraConstants.TMP_FILE_NAME);
+				if(tmp.exists())
+					tmp.delete();
+				copy(originalImageUri, tmp);
+				
+				ImageConstructor ic = new ImageConstructor(
+						tmp.getAbsolutePath(),
+						informaPath,
+						informaMetadata);
+			}
+			
+			numInformaImagesGenerated++;
+			if(numInformaImagesGenerated == numExpected) {
+				mProgressDialog.cancel();
+				handleDelete();
+				unregisterReceiver(ibr);
+				Log.d(ObscuraConstants.TAG, "goodbye br!");
+				viewImage(savedImageUri);
+			}
+		} catch (Exception e) {
+			Log.e(ObscuraConstants.TAG, "error doing redact",e);
+			
+		}	
+    }
+    
+    /*
+     * Pass the path of the original to informa, 
+     * along with the metadata and intended destinations
+     */
+    private boolean saveImage(String imageRegionObject, long[] encryptList) throws FileNotFoundException 
     {
-
-    	ContentValues cv = new ContentValues();
     	
-    	// Add a date so it shows up in a reasonable place in the gallery - Should we do this??
-    	SimpleDateFormat dateFormat = new SimpleDateFormat(ObscuraConstants.EXPORT_DATE_FORMAT); 
+    	SimpleDateFormat dateFormat = new SimpleDateFormat(ObscuraConstants.EXPORT_DATE_FORMAT);
     	Date date = new Date();
     	String dateString = dateFormat.format(date);
-
-		// Which one?
+    	
+    	ContentValues cv = new ContentValues();
     	cv.put(Images.Media.DATE_ADDED, dateString);
     	cv.put(Images.Media.DATE_TAKEN, dateString);
     	cv.put(Images.Media.DATE_MODIFIED, dateString);
-    	cv.put(Images.Media.TITLE, dateString);
-    	cv.put(Images.Media.LATITUDE, 0);
-    	cv.put(Images.Media.LONGITUDE, 0);
-    //    cv.put(Images.Media.BUCKET_ID, "ObscuraCam");
-    //    cv.put(Images.Media.DESCRIPTION, "ObscuraCam");
-    	//cv.put(Images.Media.CONTENT_TYPE, MIME_TYPE_JPEG);
+    	cv.put(Images.Media.DESCRIPTION, ObscuraConstants.ExifValues.DESCRIPTION);
+    	cv.put(Images.Media.TITLE, ObscuraConstants.ExifValues.TITLE);
     	
-		sendBroadcast(new Intent()
-			.setAction(InformaConstants.Keys.Service.SET_CURRENT)
-			.putExtra(InformaConstants.Keys.CaptureEvent.MATCH_TIMESTAMP, date.getTime())
-			.putExtra(InformaConstants.Keys.CaptureEvent.TYPE, InformaConstants.CaptureEvents.MEDIA_SAVED));
-    	
+    	savedImageUri = getContentResolver().insert(Media.EXTERNAL_CONTENT_URI, cv);
+    	obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight(), false);
 
-    	// Uri is savedImageUri which is global
-    	// Create the Uri, this should put it in the gallery
-    	// New Each time
-		savedImageUri = getContentResolver().insert(
-				Media.EXTERNAL_CONTENT_URI, cv);
+		OutputStream imageFileOS;
+	
+		int quality = 100; //lossless?  good question - still a smaller version
+		imageFileOS = getContentResolver().openOutputStream(savedImageUri);
+		obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
 		
-		if (savedImageUri == null)
-			return false;
+		//TODO: handle the exif wiping...
 		
-		boolean nativeSuccess = false;
-		
-    	if (canDoNative())
-    	{
-    		try {
-    			Uri savedNativeTmp = processNativeRes(originalImageUri);
-
-    			copy(savedNativeTmp, savedImageUri);
-    			
-    			nativeSuccess = true;
-    			
-    		} catch (Exception e) {
-    			Log.e(ObscuraConstants.TAG, "error doing native redact",e);
-    		}
-    	}
-    	
-    	
-    	if (!nativeSuccess)
-    	{
-    		try {
-    			
-    			obscuredBmp = createObscuredBitmap(imageBitmap.getWidth(),imageBitmap.getHeight(), false);
-    
-    			OutputStream imageFileOS;
-			
-				int quality = 100; //lossless?  good question - still a smaller version
-				imageFileOS = getContentResolver().openOutputStream(savedImageUri);
-				obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
-				
-			} catch (Exception e) {
-				Log.e(ObscuraConstants.TAG, "error doing redact",e);
-				return false;
-			}
-
-    	}
-
 		// force mediascanner to update file
 		MediaScannerConnection.scanFile(
 				this,
 				new String[] {pullPathFromUri(savedImageUri).getAbsolutePath()},
 				new String[] {ObscuraConstants.MIME_TYPE_JPEG},
 				null);
-		
-		Toast t = Toast.makeText(this,"Image saved to Gallery", Toast.LENGTH_SHORT); 
-		t.show();
-
-		mProgressDialog.cancel();
+			
+		sendBroadcast(new Intent()
+			.setAction(InformaConstants.Keys.Service.SET_CURRENT)
+			.putExtra(InformaConstants.Keys.CaptureEvent.MATCH_TIMESTAMP, System.currentTimeMillis())
+			.putExtra(InformaConstants.Keys.CaptureEvent.TYPE, InformaConstants.CaptureEvents.MEDIA_SAVED));
 		
     	Intent informa = new Intent()
 			.setAction(InformaConstants.Keys.Service.SEAL_LOG)
 			.putExtra(InformaConstants.Keys.ImageRegion.DATA, imageRegionObject)
-			.putExtra(InformaConstants.Keys.Image.LOCAL_MEDIA_PATH, pullPathFromUri(savedImageUri).getAbsolutePath());
+			.putExtra(InformaConstants.Keys.Image.LOCAL_MEDIA_PATH, pullPathFromUri(originalImageUri).getAbsolutePath());
 			
 		if(encryptList[0] != 0)
 			informa.putExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST, encryptList);
 		
     	sendBroadcast(informa);
+    	
+    	
 		return true;
     }
     
@@ -1573,7 +1556,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			  @Override
 			  public void run() {
 			    // this will be done in the Pipeline Thread
-	        		saveImage(imageRegionObject, encryptList);
+	        		try {
+						saveImage(imageRegionObject, encryptList);
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					}
 			  }
 			},500);
     }
@@ -1656,6 +1643,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     				.getRegionProcessor().setProperties(mProp);
     			    			
     		} else if(requestCode == InformaConstants.FROM_TRUSTED_DESTINATION_CHOOSER) {
+    			Log.d(ObscuraConstants.TAG, "hello br!");
+    			registerReceiver(ibr, new IntentFilter(InformaConstants.Keys.Service.GENERATE_IMAGE));
+    			
     			JSONArray imageRegionObject = new JSONArray();
     			try {
 	    			for(ImageRegion ir : imageRegions)

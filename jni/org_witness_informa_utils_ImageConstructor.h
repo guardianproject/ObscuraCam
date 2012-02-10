@@ -16,9 +16,9 @@ extern "C" {
  * Method:      constructImage
  * Signature:   ()V
  */
-JNIEXPORT jstring JNICALL
+JNIEXPORT int JNICALL
     Java_org_witness_informa_utils_ImageConstructor_constructImage
-    (JNIEnv *, jobject, jstring, jstring, int);
+    (JNIEnv *, jobject, jstring, jstring, jstring, int);
     
 #ifdef __cplusplus
 }

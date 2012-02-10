@@ -103,7 +103,7 @@ public class SensorSucker extends Service {
 		captureEventData.put(InformaConstants.Keys.Suckers.Phone.BLUETOOTH_DEVICE_ADDRESS, device.getAddress());
 		
 		capturedEvents.put(captureEventData);
-		Log.d(InformaConstants.SUCKER_TAG, "new bluetooth device seen: " + captureEventData.toString());
+		//Log.d(InformaConstants.SUCKER_TAG, "new bluetooth device seen: " + captureEventData.toString());
 	}
 	
 	private void pushToSucker(SensorLogger<?> sucker, JSONObject payload) throws JSONException {
@@ -121,7 +121,7 @@ public class SensorSucker extends Service {
 		captureEventData.put(InformaConstants.Keys.Suckers.ACCELEROMETER, _acc.returnCurrent());
 		
 		capturedEvents.put(captureEventData);
-		Log.d(InformaConstants.SUCKER_TAG, "captured event: " + captureEventData.toString());
+		//Log.d(InformaConstants.SUCKER_TAG, "captured event: " + captureEventData.toString());
 	}
 	
 	private void sealLog(String imageRegionData, String localMediaPath, long[] encryptTo) throws Exception {
@@ -146,7 +146,14 @@ public class SensorSucker extends Service {
 
 						@Override
 						public void run() {
-							Log.d(InformaConstants.TAG, "ok.");
+							for(Informa.Image i : informa.getImages()) {
+								Intent intent = new Intent()
+									.setAction(InformaConstants.Keys.Service.GENERATE_IMAGE)
+									.putExtra(InformaConstants.Keys.Image.LOCAL_MEDIA_PATH, i.getAbsolutePath())
+									.putExtra(InformaConstants.Keys.Image.METADATA, i.getMetadataPackage())
+									.putExtra(InformaConstants.Keys.Service.IMAGES_GENERATED, informa.getImages().length);
+								sendBroadcast(intent);
+							}
 							
 						}
 						

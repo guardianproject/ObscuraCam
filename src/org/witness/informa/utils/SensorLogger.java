@@ -89,7 +89,7 @@ public class SensorLogger<T> {
 		
 		logItem.put(InformaConstants.Keys.CaptureEvent.TIMESTAMP, System.currentTimeMillis());
 		mBuffer.put(logItem);
-		Log.d(InformaConstants.SUCKER_TAG, "logged: " + logItem.toString());
+		//Log.d(InformaConstants.SUCKER_TAG, "logged: " + logItem.toString());
 	}
 	
 	public JSONObject jPack(String key, Object val) throws JSONException {

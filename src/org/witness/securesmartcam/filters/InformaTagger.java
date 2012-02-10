@@ -11,8 +11,7 @@ import android.graphics.RectF;
 public class InformaTagger implements RegionProcesser
 {
 	Properties mProps;
-	private Bitmap mPreview, unredactedBmp;
-	boolean unredactedBmpSet;
+	private Bitmap mPreview;
 	
 	public InformaTagger ()
 	{
@@ -31,8 +30,6 @@ public class InformaTagger implements RegionProcesser
 		mProps.put(ImageRegion.COORDINATES, "[" + rect.top + "," + rect.left + "]");
 		mProps.put(ImageRegion.WIDTH, Integer.toString((int) Math.abs(rect.left - rect.right)));
 		mProps.put(ImageRegion.HEIGHT, Integer.toString((int) Math.abs(rect.top - rect.bottom)));		
-		//mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
-		//mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));
 		
 		mPreview = Bitmap.createBitmap(
 				bitmap, 
@@ -52,10 +49,6 @@ public class InformaTagger implements RegionProcesser
 	public void setProperties(Properties props)
 	{
 		mProps = props;
-	}
-	
-	public void updateBitmap() {
-		unredactedBmpSet = false;
 	}
 
 	@Override

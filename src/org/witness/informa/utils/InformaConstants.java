@@ -26,6 +26,8 @@ public class InformaConstants {
 			public final static String STOP_SERVICE = "stopService";
 			public final static String SET_CURRENT = "setCurrent";
 			public final static String SEAL_LOG = "sealLog";
+			public final static String GENERATE_IMAGE = "generateImage";
+			public final static String IMAGES_GENERATED = "imagesGenerated";
 		}
 		
 		public final static class Informa {

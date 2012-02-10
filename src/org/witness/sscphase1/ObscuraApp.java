@@ -314,9 +314,9 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
     private void launchInforma() {
     	// create folder if it doesn't exist
     	File informaDump = new File(InformaConstants.DUMP_FOLDER);
-    	if(!informaDump.exists() || !informaDump.isDirectory())
-    		informaDump.mkdir();
-    	
+    	if(!informaDump.exists())
+    		informaDump.mkdirs();
+    	    	
     	if(informaService == null) {
     		Intent startSensorSucker = new Intent(this, SensorSucker.class);
     		bindService(startSensorSucker, sc, Context.BIND_AUTO_CREATE);
