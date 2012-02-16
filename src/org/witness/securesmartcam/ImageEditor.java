@@ -12,6 +12,7 @@ import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -1474,24 +1475,40 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				null);
 		
 		if(canDoNative()) {				// there are no image regions if false!
-			
-			
-			
 			File tmp = new File(InformaConstants.DUMP_FOLDER, ObscuraConstants.TMP_FILE_NAME);
+			File tmp_ = new File(InformaConstants.DUMP_FOLDER, InformaConstants.TMP_FILE_NAME);
+			
 			if(tmp.exists())
 				tmp.delete();
+			if(tmp_.exists())
+				tmp_.delete();
+			
 			copy(originalImageUri, tmp);
+			if(tmp.exists())
+				Log.d(InformaConstants.TAG, "tmp size after copy: " + tmp.length());
 			
 			for(ImageRegion ir : imageRegions)
-				irThread.add(new JpegRedactor(tmp, ir));
+				irThread.add(new JpegRedactor(tmp, tmp_, ir));
 			
+			imageRegions.clear();
+
 			do {
-				if(irThread.size() == 0) {
+				if(irThread.size() == 1 && !irThread.get(0).isAlive()) {
+					irThread.remove(0);
+					
 					JSONArray imageRegionObject = new JSONArray();
-					Log.d(InformaConstants.TAG, "done with jpegging");
 					try {
-						for(JpegRedactor jr : irThread)
-							imageRegionObject.put(jr.ir.getRepresentation());
+						for(ImageRegion ir : imageRegions) {
+							Enumeration<?> e = ir.getRegionProcessor().getProperties().propertyNames();
+							JSONObject representation = new JSONObject();
+
+							while(e.hasMoreElements()) {
+								String prop = (String) e.nextElement();
+								representation.put(prop, ir.getRegionProcessor().getProperties().get(prop));
+							}
+							
+							imageRegionObject.put(representation);
+						}
 						
 						sendBroadcast(new Intent()
 						.setAction(InformaConstants.Keys.Service.SET_CURRENT)
@@ -1650,25 +1667,38 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	}
 	
 	private class JpegRedactor extends Thread {
-		File tmp;
+		File tmp, tmp_;
 		ImageRegion ir;
 		
-		public JpegRedactor(File tmp, ImageRegion ir) {
+		public JpegRedactor(File tmp, File tmp_, ImageRegion ir) {
 			this.tmp = tmp;
+			this.tmp_ = tmp_;
 			this.ir = ir;
+			
+			if(this.tmp.exists())
+				Log.d(InformaConstants.TAG, "tmp size: " + this.tmp.length());
 		}
 		
 		private void removeThread() {
+			try {
+				Log.d(InformaConstants.TAG, "thread state: " + this.getState());
+				this.interrupt();
+			} catch (Exception e) {
+				Log.d(InformaConstants.TAG, "thread exception: " + e);
+			}
+			
 			irThread.remove(this);
 		}
 		
 		private void init() {
-			JpegRedaction jr = new JpegRedaction(ir.getRegionProcessor(), tmp.getAbsolutePath(), "i" + tmp.getAbsolutePath());
+			JpegRedaction jr = new JpegRedaction(ir.getRegionProcessor(), tmp.getAbsolutePath(), tmp_.getAbsolutePath());
 			jr.setProperties(ir.getRegionProcessor().getProperties());
 			jr.processRegion(new RectF(ir.getBounds()), obscuredCanvas, obscuredBmp);
 			do {
-				if(jr.hasRedacted)
+				if(jr.hasRedacted) {
+					imageRegions.add(this.ir);
 					removeThread();
+				}
 				
 			} while(!jr.hasRedacted);
 		}

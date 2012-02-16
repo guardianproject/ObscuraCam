@@ -12,6 +12,7 @@ public class InformaConstants {
 	public final static int FROM_TRUSTED_DESTINATION_CHOOSER = 5;
 	public final static int BLOB_MAX = 1048576;
 	public final static String DUMP_FOLDER = Environment.getExternalStorageDirectory() + "/InformaCam/";
+	public final static String TMP_FILE_NAME = "tmp_.jpg";
 
 	public final static class Keys {
 		public final static class Settings {

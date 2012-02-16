@@ -16,6 +16,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.witness.informa.Informa;
+import org.witness.informa.Informa.Image;
 import org.witness.informa.utils.suckers.*;
 import org.witness.securesmartcam.ImageEditor;
 import org.witness.sscphase1.ObscuraApp;
@@ -104,7 +105,6 @@ public class SensorSucker extends Service {
 		captureEventData.put(InformaConstants.Keys.Suckers.Phone.BLUETOOTH_DEVICE_ADDRESS, device.getAddress());
 		
 		capturedEvents.put(captureEventData);
-		//Log.d(InformaConstants.SUCKER_TAG, "new bluetooth device seen: " + captureEventData.toString());
 	}
 	
 	private void pushToSucker(SensorLogger<?> sucker, JSONObject payload) throws JSONException {
@@ -122,7 +122,6 @@ public class SensorSucker extends Service {
 		captureEventData.put(InformaConstants.Keys.Suckers.ACCELEROMETER, _acc.returnCurrent());
 		
 		capturedEvents.put(captureEventData);
-		//Log.d(InformaConstants.SUCKER_TAG, "captured event: " + captureEventData.toString());
 	}
 	
 	private void sealLog(String imageRegionData, String localMediaPath, long[] encryptTo) throws Exception {
@@ -142,23 +141,9 @@ public class SensorSucker extends Service {
 			public void run() {
 				try {
 					informa = new Informa(getApplicationContext(), imageData, imageRegions, capturedEvents, intendedDestinations);
-					
-					informaCallback.post(new Runnable() {
-
-						@Override
-						public void run() {
-							for(Informa.Image i : informa.getImages()) {
-								Intent intent = new Intent()
-									.setAction(InformaConstants.Keys.Service.GENERATE_IMAGE)
-									.putExtra(InformaConstants.Keys.Image.LOCAL_MEDIA_PATH, i.getAbsolutePath())
-									.putExtra(InformaConstants.Keys.Image.METADATA, i.getMetadataPackage())
-									.putExtra(InformaConstants.Keys.Service.IMAGES_GENERATED, informa.getImages().length);
-								sendBroadcast(intent);
-							}
-							
-						}
-						
-					});
+					for(Image img : informa.getImages()) {
+						ImageConstructor ic = new ImageConstructor(img.getAbsolutePath(), img.getMetadataPackage());
+					}
 				} catch (IllegalArgumentException e) {
 					Log.d(InformaConstants.TAG, e.toString());
 				} catch (JSONException e) {

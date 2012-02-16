@@ -1,5 +1,7 @@
 package org.witness.informa.utils;
 
+import java.io.File;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,14 +28,15 @@ public class ImageConstructor {
 	
 	
 	public ImageConstructor(final String informaImageFilename, String metadataObjectString) throws JSONException {
+		File clone = new File(InformaConstants.DUMP_FOLDER, InformaConstants.TMP_FILE_NAME);
 		// tokenize metadata
 		JSONObject metadataObject;
 		metadataObject = (JSONObject) new JSONTokener(metadataObjectString).nextValue();
 		
-		// get who it's intended for
+		Log.d(InformaConstants.TAG, "creating file: " + informaImageFilename + "\nwith metadata:\n" + metadataObject.toString());
 		
 		// set metadata via jpegredaction lib
-		constructImage(InformaConstants.DUMP_FOLDER + "itmp.jpg", informaImageFilename, metadataObjectString, metadataObjectString.length());
+		constructImage(clone.getAbsolutePath(), informaImageFilename, metadataObjectString, metadataObjectString.length());
 		
 		// encrypt
 		

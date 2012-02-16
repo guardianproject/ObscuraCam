@@ -135,12 +135,15 @@ Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_setRegion
         regionBuffer = (env)->NewByteArray(redactionPack.size() + 1);
         (env)->SetByteArrayRegion(regionBuffer, 0, (redactionPack.size() + 1), (jbyte*) buff);
         free(buff);
+        __android_log_write(ANDROID_LOG_DEBUG, TAG,"setting redaction buffer");
         
         original.DecodeImage(&redaction, NULL);
         __android_log_write(ANDROID_LOG_DEBUG, TAG,"region redacted!");
         
         original.Save(informaImageFilename);
-        __android_log_write(ANDROID_LOG_DEBUG, TAG,"image saved!");
+        __android_log_write(ANDROID_LOG_DEBUG, TAG,"image saved as");
+        __android_log_write(ANDROID_LOG_DEBUG, TAG, informaImageFilename);
+        
         (env)->ReleaseStringUTFChars(jstrOriginalImageFilename, originalImageFilename);
         (env)->ReleaseStringUTFChars(jstrInformaImageFilename, informaImageFilename);
         (env)->ReleaseStringUTFChars(jstrRedactionMethod, redactionMethod);

@@ -84,6 +84,7 @@ public class JpegRedaction implements RegionProcesser {
 			 int bottom = Math.max(canvas.getHeight(), (int)rect.bottom);
 			 
 			 byte[] redactionPack = setRegion(mInFile, mOutFile, left, right, top, bottom, mMethod);
+			 Log.d(InformaConstants.TAG, "saving to " +  mOutFile);
 			 try {
 				 mProps.setProperty(Keys.ImageRegion.UNREDACTED_DATA, Base64.encodeToString(redactionPack, Base64.DEFAULT));
 				 mProps.setProperty(Keys.ImageRegion.UNREDACTED_HASH, MediaHasher.hash(redactionPack, "MD5"));
