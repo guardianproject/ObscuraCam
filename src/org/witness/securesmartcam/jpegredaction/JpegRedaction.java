@@ -1,11 +1,14 @@
 package org.witness.securesmartcam.jpegredaction;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Properties;
 
 import org.witness.informa.utils.InformaConstants;
 import org.witness.informa.utils.InformaConstants.Keys;
+import org.witness.informa.utils.secure.MediaHasher;
 import org.witness.securesmartcam.ImageRegion;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
 import org.witness.securesmartcam.filters.InformaTagger;
@@ -17,11 +20,12 @@ import org.witness.securesmartcam.utils.ObscuraConstants;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.RectF;
+import android.util.Base64;
 import android.util.Log;
 
 public class JpegRedaction implements RegionProcesser {
 	
-    private native int setRegion(String src, String target, int left, int right, int top, int bottom, String method, char[] redactionBuffer);
+    private native byte[] setRegion(String src, String target, int left, int right, int top, int bottom, String method);
     Properties mProps;
 
     static {
@@ -30,8 +34,7 @@ public class JpegRedaction implements RegionProcesser {
 
     private String mInFile, mOutFile;
     private String mMethod = null;
-    
-    private char[] redactionPack = new char[] {};
+    public boolean hasRedacted = false;
     	 
     public JpegRedaction (RegionProcesser iMethod, String inFile, String outFile)
     {
@@ -72,7 +75,6 @@ public class JpegRedaction implements RegionProcesser {
     
 	@Override
 	public void processRegion(RectF rect, Canvas canvas, Bitmap bitmap) {
-		
 		if (mMethod != null)
 		{
 	
@@ -81,24 +83,20 @@ public class JpegRedaction implements RegionProcesser {
 			 int top = Math.max(0, (int)rect.top);
 			 int bottom = Math.max(canvas.getHeight(), (int)rect.bottom);
 			 
-			 if (setRegion(mInFile, mOutFile, left, right, top, bottom, mMethod, redactionPack) == 1)
-				 mProps.setProperty(Keys.ImageRegion.UNREDACTED_HASH, convertRedactionPack());
-				 
+			 byte[] redactionPack = setRegion(mInFile, mOutFile, left, right, top, bottom, mMethod);
+			 try {
+				 mProps.setProperty(Keys.ImageRegion.UNREDACTED_DATA, Base64.encodeToString(redactionPack, Base64.DEFAULT));
+				 mProps.setProperty(Keys.ImageRegion.UNREDACTED_HASH, MediaHasher.hash(redactionPack, "MD5"));
+				 hasRedacted = true;
+
+			 } catch(NoSuchAlgorithmException e) {
+				 Log.d(InformaConstants.TAG, e.toString());
+			 } catch (IOException e) {
+				 Log.d(InformaConstants.TAG, e.toString());
+			}
 		}
 		
 	}
-	
-	public String convertRedactionPack() {
-		String byteString = "";
-		/*
-		 *  TODO:
-		 *  1) turn char[] into byte[]
-		 *  2) base64 encode bytes
-		 */
-		
-		return byteString;
-	}
-	
 	
 	public Properties getProperties()
 	{
@@ -107,7 +105,9 @@ public class JpegRedaction implements RegionProcesser {
 	
 	public void setProperties(Properties props)
 	{
+		
 		mProps = props;
+		Log.d(InformaConstants.TAG, mProps.toString());
 	}
 	@Override
 	public Bitmap getBitmap() {

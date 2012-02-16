@@ -18,7 +18,7 @@
 #include "parse_functions.h"
 #include "org_witness_informa_utils_ImageConstructor.h"
 
-JNIEXPORT void JNICALL
+JNIEXPORT int JNICALL
 Java_org_witness_informa_utils_ImageConstructor_setRegion
 (JNIEnv *env, jobject obj, jstring jstrOriginalImageFilename, jstring jstrInformaImageFilename, int left, int right, int top, int bottom, jstring jstrRedactionMethod, jcharArray jcharResultBuffer) {
     
@@ -49,7 +49,6 @@ Java_org_witness_informa_utils_ImageConstructor_setRegion
         region.SetRedactionMethod(redactionMethod);
         jpeg_redaction::Redaction redaction;
         redaction.AddRegion(region);
-        original.DecodeImage(&redaction, NULL);
         __android_log_write(ANDROID_LOG_DEBUG, TAG,"added redact region");
         
         std::vector<unsigned char> redactionPack;
@@ -67,17 +66,22 @@ Java_org_witness_informa_utils_ImageConstructor_setRegion
         env->SetCharArrayRegion(jcharResultBuffer, 0, (redactionPack.size() + 1), jResultBuffer);
         free(jResultBuffer);
         
+        original.DecodeImage(&redaction, NULL);
+        __android_log_write(ANDROID_LOG_DEBUG, TAG,"region redacted!");
+
         original.Save(informaImageFilename);
-        
+        __android_log_write(ANDROID_LOG_DEBUG, TAG,"image saved!");
         (env)->ReleaseStringUTFChars(jstrOriginalImageFilename, originalImageFilename);
         (env)->ReleaseStringUTFChars(jstrInformaImageFilename, informaImageFilename);
         (env)->ReleaseStringUTFChars(jstrRedactionMethod, redactionMethod);
         
     } catch (const char *error) {
         __android_log_write(ANDROID_LOG_ERROR, TAG, error);
+        exit(0);
     }
     
     __android_log_write(ANDROID_LOG_DEBUG, TAG,"Finished!");
+    return 1;
     
 }
 

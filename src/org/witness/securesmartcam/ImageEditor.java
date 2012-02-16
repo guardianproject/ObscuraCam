@@ -19,6 +19,7 @@ import java.util.Properties;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.witness.informa.KeyChooser;
 import org.witness.informa.Tagger;
 import org.witness.informa.utils.ImageConstructor;
@@ -134,7 +135,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
 	// Vector to hold ImageRegions 
 	ArrayList<ImageRegion> imageRegions = new ArrayList<ImageRegion>(); 
-		
+	ArrayList<JpegRedactor> irThread = new ArrayList<JpegRedactor>();
+	
 	// The original image dimensions (not scaled)
 	int originalImageWidth;
 	int originalImageHeight;
@@ -180,25 +182,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 		autodetectedToast.show();
 	    }
 	}
-    	
-    
-	private BroadcastReceiver ibr = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			if(InformaConstants.Keys.Service.GENERATE_IMAGE.equals(intent.getAction())) {
-				generateInformaImage(intent.getStringExtra(
-						InformaConstants.Keys.Image.LOCAL_MEDIA_PATH), 
-						intent.getStringExtra(InformaConstants.Keys.Image.METADATA),
-						intent.getIntExtra(InformaConstants.Keys.Service.IMAGES_GENERATED, 0));				
-			}
-			
-		}
-		
-	};
-	
-	private int numInformaImagesGenerated = 0;
-	
+    		
 	@SuppressWarnings("unused")
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -1458,30 +1442,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * The method that actually saves the altered image.  
      * This in combination with createObscuredBitmap could/should be done in another, more memory efficient manner. 
      */
-    private void generateInformaImage(String informaPath, String informaMetadata, int numExpected) {
-    	try {
-			ImageConstructor ic = new ImageConstructor(informaPath, informaMetadata);
-			numInformaImagesGenerated++;
-			if(numInformaImagesGenerated == numExpected) {
-				mProgressDialog.cancel();
-				handleDelete();
-				unregisterReceiver(ibr);
-				Log.d(ObscuraConstants.TAG, "goodbye br!");
-				viewImage(savedImageUri);
-			}
-		} catch (Exception e) {
-			Log.e(ObscuraConstants.TAG, "error doing redact",e);
-			
-		}	
-    }
     
-    /*
-     * Pass the path of the original to informa, 
-     * along with the metadata and intended destinations
-     */
-    private boolean saveImage(String imageRegionObject, long[] encryptList) throws IOException 
-    {
-    	
+    private boolean saveImage(long[] encryptList) throws IOException {
     	SimpleDateFormat dateFormat = new SimpleDateFormat(ObscuraConstants.EXPORT_DATE_FORMAT);
     	Date date = new Date();
     	String dateString = dateFormat.format(date);
@@ -1511,60 +1473,54 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				new String[] {ObscuraConstants.MIME_TYPE_JPEG},
 				null);
 		
-		if(!canDoNative()) // there are no image regions!
-			return false;
+		if(canDoNative()) {				// there are no image regions if false!
 			
-		
-		// TODO: in this thread
-		File tmp = new File(InformaConstants.DUMP_FOLDER, ObscuraConstants.TMP_FILE_NAME);
-		if(tmp.exists())
-			tmp.delete();
-		copy(originalImageUri, tmp);
-		
-		for(int i=0; i<imageRegions.size(); i++) {
-			JpegRedaction jr = new JpegRedaction(imageRegions.get(i).getRegionProcessor(), tmp.getAbsolutePath(), "i" + tmp.getAbsolutePath());
-			jr.processRegion(new RectF(imageRegions.get(i).getBounds()), obscuredCanvas, obscuredBmp);
+			
+			
+			File tmp = new File(InformaConstants.DUMP_FOLDER, ObscuraConstants.TMP_FILE_NAME);
+			if(tmp.exists())
+				tmp.delete();
+			copy(originalImageUri, tmp);
+			
+			for(ImageRegion ir : imageRegions)
+				irThread.add(new JpegRedactor(tmp, ir));
+			
+			do {
+				if(irThread.size() == 0) {
+					JSONArray imageRegionObject = new JSONArray();
+					Log.d(InformaConstants.TAG, "done with jpegging");
+					try {
+						for(JpegRedactor jr : irThread)
+							imageRegionObject.put(jr.ir.getRepresentation());
+						
+						sendBroadcast(new Intent()
+						.setAction(InformaConstants.Keys.Service.SET_CURRENT)
+						.putExtra(InformaConstants.Keys.CaptureEvent.MATCH_TIMESTAMP, System.currentTimeMillis())
+						.putExtra(InformaConstants.Keys.CaptureEvent.TYPE, InformaConstants.CaptureEvents.MEDIA_SAVED));
+					
+				    	Intent informa = new Intent()
+							.setAction(InformaConstants.Keys.Service.SEAL_LOG)
+							.putExtra(InformaConstants.Keys.ImageRegion.DATA, imageRegionObject.toString())
+							.putExtra(InformaConstants.Keys.Image.LOCAL_MEDIA_PATH, tmp.getAbsolutePath());
+							
+						if(encryptList[0] != 0)
+							informa.putExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST, encryptList);
+						
+				    	sendBroadcast(informa);
+				    	mProgressDialog.cancel();
+					} catch (JSONException e) {
+						Log.e(InformaConstants.TAG, "problem: " + e.toString());
+					}
+				} else {
+					if(!irThread.get(0).isAlive())
+						irThread.get(0).run();
+				}
+			} while(irThread.size() > 0);
+			
+			
 		}
-		
-		// TODO: do this when finished
-		sendBroadcast(new Intent()
-			.setAction(InformaConstants.Keys.Service.SET_CURRENT)
-			.putExtra(InformaConstants.Keys.CaptureEvent.MATCH_TIMESTAMP, System.currentTimeMillis())
-			.putExtra(InformaConstants.Keys.CaptureEvent.TYPE, InformaConstants.CaptureEvents.MEDIA_SAVED));
-		
-    	Intent informa = new Intent()
-			.setAction(InformaConstants.Keys.Service.SEAL_LOG)
-			.putExtra(InformaConstants.Keys.ImageRegion.DATA, imageRegionObject)
-			.putExtra(InformaConstants.Keys.Image.LOCAL_MEDIA_PATH, pullPathFromUri(originalImageUri).getAbsolutePath());
-			
-		if(encryptList[0] != 0)
-			informa.putExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST, encryptList);
-		
-    	sendBroadcast(informa);
-    	
     	
 		return true;
-    }
-    
-    private void launchInforma(final String imageRegionObject, final long[] encryptList) {
-    	
-    	
-    	//Why does this not show?
-    	mProgressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
-
-		mHandler.postDelayed(new Runnable() {
-			  @Override
-			  public void run() {
-			    // this will be done in the Pipeline Thread
-	        		try {
-						saveImage(imageRegionObject, encryptList);
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-			  }
-			},500);
     }
     
     public File pullPathFromUri(Uri originalUri) {
@@ -1627,7 +1583,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }
     
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, final Intent data) {
     	if(resultCode == Activity.RESULT_OK) {
     		if(requestCode == InformaConstants.FROM_INFORMA_TAGGER) {
     			// replace corresponding image region
@@ -1645,22 +1601,21 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     				.getRegionProcessor().setProperties(mProp);
     			    			
     		} else if(requestCode == InformaConstants.FROM_TRUSTED_DESTINATION_CHOOSER) {
-    			Log.d(ObscuraConstants.TAG, "hello br!");
-    			registerReceiver(ibr, new IntentFilter(InformaConstants.Keys.Service.GENERATE_IMAGE));
-    			
-    			JSONArray imageRegionObject = new JSONArray();
-    			try {
-	    			for(ImageRegion ir : imageRegions)
-	    				imageRegionObject.put(ir.getRepresentation());
-    			} catch(JSONException e) {
-    				Log.d(InformaConstants.TAG, e.toString());
-    			}
-    			
-    			long[] encryptList = new long[] {0L};
-    			if(data.hasExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST))
-    				encryptList = data.getLongArrayExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST);
-    			
-    			launchInforma(imageRegionObject.toString(), encryptList);
+    			mProgressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
+    			mHandler.postDelayed(new Runnable() {
+    				  @Override
+    				  public void run() {
+    				    // this will be done in the Pipeline Thread
+    					long[] encryptList = new long[] {0L};
+		        		if(data.hasExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST))
+		        			encryptList = data.getLongArrayExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST);
+		        		try {
+							saveImage(encryptList);
+						} catch (IOException e) {
+							Log.d(InformaConstants.TAG, e.toString());
+						}
+    				  }
+    				},500);
     		}
     	}
     }
@@ -1692,6 +1647,37 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    window.setFormat(PixelFormat.RGBA_8888);
 	    window.getDecorView().getBackground().setDither(true);
 
+	}
+	
+	private class JpegRedactor extends Thread {
+		File tmp;
+		ImageRegion ir;
+		
+		public JpegRedactor(File tmp, ImageRegion ir) {
+			this.tmp = tmp;
+			this.ir = ir;
+		}
+		
+		private void removeThread() {
+			irThread.remove(this);
+		}
+		
+		private void init() {
+			JpegRedaction jr = new JpegRedaction(ir.getRegionProcessor(), tmp.getAbsolutePath(), "i" + tmp.getAbsolutePath());
+			jr.setProperties(ir.getRegionProcessor().getProperties());
+			jr.processRegion(new RectF(ir.getBounds()), obscuredCanvas, obscuredBmp);
+			do {
+				if(jr.hasRedacted)
+					removeThread();
+				
+			} while(!jr.hasRedacted);
+		}
+		
+		@Override
+		public void run() {
+			init();
+		}
+		
 	}
 
 }

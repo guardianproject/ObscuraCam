@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -163,6 +164,10 @@ public class SensorSucker extends Service {
 				} catch (JSONException e) {
 					Log.d(InformaConstants.TAG, e.toString());
 				} catch (IllegalAccessException e) {
+					Log.d(InformaConstants.TAG, e.toString());
+				} catch (NoSuchAlgorithmException e) {
+					Log.d(InformaConstants.TAG, e.toString());
+				} catch (IOException e) {
 					Log.d(InformaConstants.TAG, e.toString());
 				}
 				

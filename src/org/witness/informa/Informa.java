@@ -3,7 +3,9 @@ package org.witness.informa;
 import info.guardianproject.database.sqlcipher.SQLiteDatabase;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Blob;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -21,6 +23,7 @@ import org.witness.informa.utils.InformaConstants.Keys.TrustedDestinations;
 import org.witness.informa.utils.InformaConstants.MediaTypes;
 import org.witness.informa.utils.io.DatabaseHelper;
 import org.witness.informa.utils.secure.Apg;
+import org.witness.informa.utils.secure.MediaHasher;
 import org.witness.securesmartcam.utils.Selections;
 
 import android.app.Activity;
@@ -29,6 +32,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.media.ExifInterface;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.provider.BaseColumns;
 import android.util.Log;
@@ -103,6 +108,7 @@ public class Informa {
 		int sourceType;
 		String imageHash;
 		Device device;
+		Exif exif;
 		
 		Set<CaptureTimestamp> captureTimestamp;
 		Set<Location> location;
@@ -117,6 +123,26 @@ public class Informa {
 			this.location = new HashSet<Location>();
 			this.corroboration = new HashSet<Corroboration>();
 			this.imageRegions = new HashSet<ImageRegion>();
+		}
+	}
+	
+	public class Exif extends InformaZipper {
+		int sdk, orientation, imageLength, imageWidth, whiteBalance, flash, focalLength;
+		String make, model, iso, exposureTime, aperture;
+		
+		public Exif(ExifInterface ei) {
+			this.sdk = Build.VERSION.SDK_INT;
+			this.make = ei.getAttribute(Keys.Exif.MAKE);
+			this.model = ei.getAttribute(Keys.Exif.MODEL);
+			this.orientation = ei.getAttributeInt(Keys.Exif.ORIENTATION, InformaConstants.NOT_REPORTED);
+			this.imageLength = ei.getAttributeInt(Keys.Exif.IMAGE_LENGTH, InformaConstants.NOT_REPORTED);
+			this.imageWidth = ei.getAttributeInt(Keys.Exif.IMAGE_WIDTH, InformaConstants.NOT_REPORTED);
+			this.iso = ei.getAttribute(Keys.Exif.ISO);
+			this.whiteBalance = ei.getAttributeInt(Keys.Exif.WHITE_BALANCE, InformaConstants.NOT_REPORTED);
+			this.flash = ei.getAttributeInt(Keys.Exif.FLASH, InformaConstants.NOT_REPORTED);
+			this.exposureTime = ei.getAttribute(Keys.Exif.EXPOSURE);
+			this.focalLength = ei.getAttributeInt(Keys.Exif.FOCAL_LENGTH, InformaConstants.NOT_REPORTED);
+			this.aperture = ei.getAttribute(Keys.Exif.APERTURE);
 		}
 	}
 	
@@ -177,9 +203,9 @@ public class Informa {
 		CaptureTimestamp captureTimestamp;
 		Location location;
 		
-		public String obfuscationType;
+		public String obfuscationType, unredactedRegionHash;
 		JSONObject regionDimensions, regionCoordinates;
-		char[] unredactedRegion;
+		char[] unredactedRegionData;
 		
 		Subject subject;
 		
@@ -189,11 +215,6 @@ public class Informa {
 			this.obfuscationType = obfuscationType;
 			this.regionDimensions = regionDimensions;
 			this.regionCoordinates = regionCoordinates;
-			
-			String unredactionStart = "unredactionStart:";
-			this.unredactedRegion = new char[unredactionStart.length()];
-			for(int s=0;s<unredactionStart.length();s++)
-				this.unredactedRegion[s] = unredactionStart.charAt(s);
 		}
 	}
 	
@@ -292,7 +313,7 @@ public class Informa {
 			JSONObject imageData, 
 			JSONArray regionData, 
 			JSONArray capturedEvents, 
-			long[] intendedDestinations) throws IllegalArgumentException, JSONException, IllegalAccessException {
+			long[] intendedDestinations) throws IllegalArgumentException, JSONException, IllegalAccessException, IOException, NoSuchAlgorithmException {
 		
 		
 		_c = c;
@@ -414,6 +435,8 @@ public class Informa {
 		data.imageRegions = imageRegions;
 		data.corroboration = corroboration;
 		data.location = locations;
+		data.exif = new Exif(new ExifInterface(genealogy.localMediaPath));
+		data.imageHash = MediaHasher.hash(new File(genealogy.localMediaPath), "MD5");
 		
 		images = new Image[intendedDestinations.length];
 		for(int i=0; i<intendedDestinations.length; i++) {

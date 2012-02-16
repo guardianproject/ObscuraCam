@@ -57,7 +57,8 @@ public class InformaConstants {
 			public final static String HEIGHT = "region_height";
 			public final static String TOP = "region_top";
 			public final static String LEFT = "region_left";
-			public final static String UNREDACTED_HASH = "unredactedRegion";
+			public final static String UNREDACTED_DATA = "unredactedRegionData";
+			public final static String UNREDACTED_HASH = "unredactedRegionHash";
 			
 			public final static class Subject {
 				public final static String PSEUDONYM = "subject_pseudonym";
@@ -96,7 +97,7 @@ public class InformaConstants {
 			public static final String UNREDACTED_IMAGE_HASH = "source_unredactedImageHash";
 			public static final String REDACTED_IMAGE_HASH = "source_redactedImageHash";
 			public final static String MEDIA_TYPE = "source_type";
-			public final static String LOCAL_MEDIA_PATH = "source_localMeidaPath";
+			public final static String LOCAL_MEDIA_PATH = "localMeidaPath";
 			public final static String TIMESTAMP = "timestamp";
 			public final static String LOCATION_OF_ORIGINAL = "source_locationOfOriginal";
 		}
@@ -151,6 +152,20 @@ public class InformaConstants {
 				public final static String BLUETOOTH_DEVICE_NAME = "device_bluetooth_name";
 				public final static String BLUETOOTH_DEVICE_ADDRESS = "device_bluetooth_address";
 			}
+		}
+		
+		public final static class Exif {
+			public final static String MAKE = "TAG_MAKE";
+			public final static String MODEL = "TAG_MODEL";
+			public final static String APERTURE = "TAG_APERTURE";
+			public final static String FLASH = "TAG_FLASH";
+			public final static String EXPOSURE = "TAG_EXPOSURE_TIME";
+			public final static String FOCAL_LENGTH = "TAG_FOCAL_LENGTH";
+			public final static String IMAGE_WIDTH = "TAG_IMAGE_WIDTH";
+			public final static String IMAGE_LENGTH = "TAG_IMAGE_LENGTH";
+			public final static String ISO = "TAG_ISO";
+			public final static String ORIENTATION = "TAG_ORIENTATION";
+			public final static String WHITE_BALANCE = "TAG_WHITE_BALANCE";
 		}
 		
 		
@@ -215,5 +230,7 @@ public class InformaConstants {
 		public final static String SELECT_ONE = "select_one";
 		public final static String SELECT_MULTI = "select_multi";
 	}
+	
+	public final static int NOT_REPORTED = -1;
 }
 

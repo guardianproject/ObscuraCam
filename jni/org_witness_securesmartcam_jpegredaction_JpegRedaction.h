@@ -18,6 +18,8 @@ JNIEXPORT void JNICALL Java_org_witness_securesmartcam_jpegredaction_JpegRedacti
 JNIEXPORT void JNICALL Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_redactRegions
   (JNIEnv *, jobject, jstring, jstring, jstring);
 
+JNIEXPORT jbyteArray JNICALL Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_setRegion 
+    (JNIEnv *, jobject, jstring, jstring, int, int, int, int, jstring);
 
 #ifdef __cplusplus
 }
