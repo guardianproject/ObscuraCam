@@ -25,6 +25,7 @@ import org.witness.informa.KeyChooser;
 import org.witness.informa.Tagger;
 import org.witness.informa.utils.ImageConstructor;
 import org.witness.informa.utils.InformaConstants;
+import org.witness.informa.utils.InformaConstants.Keys;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.InformaTagger;
 import org.witness.securesmartcam.filters.RegionProcesser;
@@ -276,12 +277,34 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			// Get the orientation
 			File originalFilename = pullPathFromUri(originalImageUri);			
 			try {
+				JSONObject exif = new JSONObject();
 				ExifInterface ei = new ExifInterface(originalFilename.getAbsolutePath());
+				
 				originalImageOrientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-				debug(ObscuraConstants.TAG,"Orientation: " + originalImageOrientation);
+				
+				exif.put(Keys.Exif.APERTURE, ei.getAttribute(Keys.Exif.APERTURE));
+				exif.put(Keys.Exif.EXPOSURE, ei.getAttribute(Keys.Exif.EXPOSURE));
+				exif.put(Keys.Exif.FLASH, ei.getAttributeInt(Keys.Exif.FLASH, InformaConstants.NOT_REPORTED));
+				exif.put(Keys.Exif.FOCAL_LENGTH, ei.getAttributeInt(Keys.Exif.FOCAL_LENGTH, InformaConstants.NOT_REPORTED));
+				exif.put(Keys.Exif.IMAGE_LENGTH, ei.getAttributeInt(Keys.Exif.IMAGE_LENGTH, InformaConstants.NOT_REPORTED));
+				exif.put(Keys.Exif.IMAGE_WIDTH, ei.getAttributeInt(Keys.Exif.IMAGE_WIDTH, InformaConstants.NOT_REPORTED));
+				exif.put(Keys.Exif.ISO, ei.getAttribute(Keys.Exif.ISO));
+				exif.put(Keys.Exif.MAKE, ei.getAttribute(Keys.Exif.MAKE));
+				exif.put(Keys.Exif.MODEL, ei.getAttribute(Keys.Exif.MODEL));
+				exif.put(Keys.Exif.ORIENTATION, originalImageOrientation);
+				exif.put(Keys.Exif.WHITE_BALANCE, ei.getAttributeInt(Keys.Exif.WHITE_BALANCE, InformaConstants.NOT_REPORTED));
+				
+				sendBroadcast(new Intent()
+				.setAction(InformaConstants.Keys.Service.SET_EXIF)
+				.putExtra(Keys.Image.EXIF, exif.toString()));
+				
+				debug(ObscuraConstants.TAG,"EXIF: " + exif.toString());
 			} catch (IOException e1) {
 				debug(ObscuraConstants.TAG,"Couldn't get Orientation");
 				e1.printStackTrace();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 
 			// Load up smaller image

@@ -107,6 +107,15 @@ public class SensorSucker extends Service {
 		capturedEvents.put(captureEventData);
 	}
 	
+	private void handleExif(String exif) throws JSONException {
+		JSONObject captureEventData = new JSONObject();
+		
+		captureEventData.put(InformaConstants.Keys.CaptureEvent.TYPE, InformaConstants.CaptureEvents.EXIF_REPORTED);
+		captureEventData.put(InformaConstants.Keys.Image.EXIF, (JSONObject) new JSONTokener(exif).nextValue());
+		
+		capturedEvents.put(captureEventData);
+	}
+	
 	private void pushToSucker(SensorLogger<?> sucker, JSONObject payload) throws JSONException {
 		if(sucker.getClass().equals(PhoneSucker.class))
 			_phone.sendToBuffer(payload);
@@ -196,6 +205,8 @@ public class SensorSucker extends Service {
 					captureEventData(
 						i.getLongExtra(InformaConstants.Keys.CaptureEvent.MATCH_TIMESTAMP, 0L),
 						i.getIntExtra(InformaConstants.Keys.CaptureEvent.TYPE, InformaConstants.CaptureEvents.REGION_GENERATED));
+				} else if(InformaConstants.Keys.Service.SET_EXIF.equals(i.getAction())) {
+					handleExif(i.getStringExtra(InformaConstants.Keys.Image.EXIF));
 				}
 			} catch (Exception e) {
 				Log.d(InformaConstants.TAG, "error: " + e);

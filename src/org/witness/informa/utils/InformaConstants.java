@@ -29,6 +29,7 @@ public class InformaConstants {
 			public final static String SEAL_LOG = "sealLog";
 			public final static String GENERATE_IMAGE = "generateImage";
 			public final static String IMAGES_GENERATED = "imagesGenerated";
+			public final static String SET_EXIF = "setExif";
 		}
 		
 		public final static class Informa {
@@ -101,6 +102,7 @@ public class InformaConstants {
 			public final static String LOCAL_MEDIA_PATH = "localMeidaPath";
 			public final static String TIMESTAMP = "timestamp";
 			public final static String LOCATION_OF_ORIGINAL = "source_locationOfOriginal";
+			public final static String EXIF = "exifData";
 		}
 		
 		public final static class Owner {

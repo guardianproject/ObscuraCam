@@ -130,19 +130,19 @@ public class Informa {
 		int sdk, orientation, imageLength, imageWidth, whiteBalance, flash, focalLength;
 		String make, model, iso, exposureTime, aperture;
 		
-		public Exif(ExifInterface ei) {
+		public Exif(JSONObject exif) throws JSONException {
 			this.sdk = Build.VERSION.SDK_INT;
-			this.make = ei.getAttribute(Keys.Exif.MAKE);
-			this.model = ei.getAttribute(Keys.Exif.MODEL);
-			this.orientation = ei.getAttributeInt(Keys.Exif.ORIENTATION, InformaConstants.NOT_REPORTED);
-			this.imageLength = ei.getAttributeInt(Keys.Exif.IMAGE_LENGTH, InformaConstants.NOT_REPORTED);
-			this.imageWidth = ei.getAttributeInt(Keys.Exif.IMAGE_WIDTH, InformaConstants.NOT_REPORTED);
-			this.iso = ei.getAttribute(Keys.Exif.ISO);
-			this.whiteBalance = ei.getAttributeInt(Keys.Exif.WHITE_BALANCE, InformaConstants.NOT_REPORTED);
-			this.flash = ei.getAttributeInt(Keys.Exif.FLASH, InformaConstants.NOT_REPORTED);
-			this.exposureTime = ei.getAttribute(Keys.Exif.EXPOSURE);
-			this.focalLength = ei.getAttributeInt(Keys.Exif.FOCAL_LENGTH, InformaConstants.NOT_REPORTED);
-			this.aperture = ei.getAttribute(Keys.Exif.APERTURE);
+			this.make = exif.getString(Keys.Exif.MAKE);
+			this.model = exif.getString(Keys.Exif.MODEL);
+			this.orientation = exif.getInt(Keys.Exif.ORIENTATION);
+			this.imageLength = exif.getInt(Keys.Exif.IMAGE_LENGTH);
+			this.imageWidth = exif.getInt(Keys.Exif.IMAGE_WIDTH);
+			this.iso = exif.getString(Keys.Exif.ISO);
+			this.whiteBalance = exif.getInt(Keys.Exif.WHITE_BALANCE);
+			this.flash = exif.getInt(Keys.Exif.FLASH);
+			this.exposureTime = exif.getString(Keys.Exif.EXPOSURE);
+			this.focalLength = exif.getInt(Keys.Exif.FOCAL_LENGTH);
+			this.aperture = exif.getString(Keys.Exif.APERTURE);
 		}
 	}
 	
@@ -320,6 +320,7 @@ public class Informa {
 		
 		JSONObject mediaSaved = new JSONObject();
 		JSONObject mediaCaptured = new JSONObject();
+		JSONObject exifData = new JSONObject();
 		Set<ImageRegion> imageRegions = new HashSet<ImageRegion>();
 		Set<Corroboration> corroboration = new HashSet<Corroboration>();
 		Set<Location> locations = new HashSet<Location>();
@@ -370,6 +371,9 @@ public class Informa {
 					loms.put(Keys.Location.COORDINATES, mediaSaved.getString(Keys.Suckers.Geo.GPS_COORDS));
 					loms.put(Keys.Location.CELL_ID, mediaSaved.getString(Keys.Suckers.Phone.CELL_ID));
 					locations.add(new Location(InformaConstants.LocationTypes.ON_MEDIA_SAVED, loms));
+					break;
+				case CaptureEvents.EXIF_REPORTED:
+					exifData = rd.getJSONObject(Keys.Image.EXIF);
 					break;
 				case CaptureEvents.REGION_GENERATED:
 					for(int x=0; x< regionData.length(); x++) {
@@ -435,8 +439,8 @@ public class Informa {
 		data.imageRegions = imageRegions;
 		data.corroboration = corroboration;
 		data.location = locations;
-		data.exif = new Exif(new ExifInterface(genealogy.localMediaPath));
 		data.imageHash = MediaHasher.hash(new File(genealogy.localMediaPath), "MD5");
+		data.exif = new Exif(exifData);
 		
 		images = new Image[intendedDestinations.length];
 		for(int i=0; i<intendedDestinations.length; i++) {
