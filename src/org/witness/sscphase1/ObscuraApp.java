@@ -3,6 +3,7 @@ package org.witness.sscphase1;
 import java.io.File;
 
 import org.witness.informa.utils.InformaConstants;
+import org.witness.informa.utils.InformaConstants.Keys;
 import org.witness.informa.utils.SensorSucker;
 import org.witness.informa.utils.SensorSucker.LocalBinder;
 import org.witness.securesmartcam.ImageEditor;
@@ -95,6 +96,11 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	protected void onResume() {
 
 		super.onResume();
+		
+        if(getIntent().hasExtra(Keys.Service.FINISH_ACTIVITY))
+        	finish();
+        else if(getIntent().hasExtra(Keys.Service.START_SERVICE))
+        	launchInforma();
 		
 		final SharedPreferences eula = getSharedPreferences(Eula.PREFERENCES_EULA,
 	                Activity.MODE_PRIVATE);

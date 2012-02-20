@@ -84,14 +84,12 @@ public class ImageConstructor {
 		metadataObject = (JSONObject) new JSONTokener(metadataObjectString).nextValue();
 		this.imageRegions = (JSONArray) (metadataObject.getJSONObject(Keys.Informa.DATA)).getJSONArray(Keys.Data.IMAGE_REGIONS);
 		
-		Log.d(InformaConstants.TAG, "creating file: " + informaImageFilename + "\nwith metadata:\n" + metadataObject.toString());
 		ContentValues cv = new ContentValues();
 		cv.put(Image.UNREDACTED_IMAGE_HASH, MediaHasher.hash(fileToBytes(clone), "SHA-1"));
 		cv.put(Image.CONTAINMENT_ARRAY, "NOT INCLUDED IN THIS VERSION");
 		
 		for(int i=0; i<imageRegions.length(); i++) {
 			JSONObject ir = imageRegions.getJSONObject(i);
-			Log.d(InformaConstants.TAG, "this region:\n" + ir.toString());
 			
 			String redactionMethod = ir.getString(Keys.ImageRegion.FILTER);
 			if(!redactionMethod.equals(InformaTagger.class.getName())) {
@@ -113,7 +111,6 @@ public class ImageConstructor {
 					redactionCode = ObscuraConstants.Filters.CROWD_PIXELIZE;
 				
 				byte[] redactionPack = redactRegion(clone.getAbsolutePath(), clone.getAbsolutePath(), left, right, top, bottom, redactionCode);
-				Log.d(InformaConstants.TAG, "metadata set has length: " + redactionPack.length);
 				
 				// insert hash and data length into metadata package
 				ir.put(Keys.ImageRegion.UNREDACTED_HASH, MediaHasher.hash(redactionPack, "SHA-1"));
@@ -143,14 +140,11 @@ public class ImageConstructor {
 			cv.put(Keys.Intent.Destination.EMAIL, ((JSONObject) metadataObject.getJSONObject(Informa.INTENT)).getString(Keys.Intent.INTENDED_DESTINATION));
 			
 			dh.setTable(db, Tables.IMAGES);
-			Log.d(InformaConstants.TAG, "trying to insert:\n" + cv.toString());
 			db.insert(dh.getTable(), null, cv);
 			
 			dh.setTable(db, Tables.IMAGE_REGIONS);
-			for(ContentValues rcv : unredactedRegions) {
-				Log.d(InformaConstants.TAG, "trying to insert:\n" + rcv.toString());
+			for(ContentValues rcv : unredactedRegions)
 				db.insert(dh.getTable(), null, rcv);
-			}
 			
 			db.close();
 			dh.close();

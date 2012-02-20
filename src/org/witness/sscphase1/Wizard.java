@@ -164,7 +164,6 @@ public class Wizard extends Activity implements OnClickListener {
 	}
 	
 	private void setUserPGP() {
-		Log.d(InformaConstants.TAG, "opening up database...");
 		
 		SQLiteDatabase.loadLibs(this);
 		
@@ -181,7 +180,7 @@ public class Wizard extends Activity implements OnClickListener {
 		cv.put(InformaConstants.Keys.Owner.OWNERSHIP_TYPE, InformaConstants.Owner.INDIVIDUAL);
 		cv.put(InformaConstants.Keys.Device.LOCAL_TIMESTAMP, localTimestamp);
 		cv.put(InformaConstants.Keys.Device.PUBLIC_TIMESTAMP, getPublicTimestamp(localTimestamp));
-		
+				
 		long insert = db.insert(dh.getTable(), null, cv);
 		if(insert != 0)
 			enableAction(wizard_next);

@@ -32,6 +32,7 @@ public class InformaConstants {
 			public final static String IMAGES_GENERATED = "imagesGenerated";
 			public final static String SET_EXIF = "setExif";
 			public final static String FINISH_ACTIVITY = "finishActivity";
+			public final static String START_SERVICE = "startService";
 		}
 		
 		public final static class Informa {
