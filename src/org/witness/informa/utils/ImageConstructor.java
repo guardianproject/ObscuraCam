@@ -1,8 +1,11 @@
 package org.witness.informa.utils;
 
+import info.guardianproject.database.sqlcipher.SQLiteDatabase;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +22,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.witness.informa.utils.InformaConstants.Keys;
+import org.witness.informa.utils.InformaConstants.Keys.Image;
 import org.witness.informa.utils.InformaConstants.Keys.ImageRegion;
+import org.witness.informa.utils.InformaConstants.Keys.Informa;
+import org.witness.informa.utils.InformaConstants.Keys.Tables;
+import org.witness.informa.utils.io.DatabaseHelper;
 import org.witness.informa.utils.secure.Apg;
 import org.witness.informa.utils.secure.MediaHasher;
 import org.witness.securesmartcam.filters.CrowdPixelizeObscure;
@@ -29,9 +36,14 @@ import org.witness.securesmartcam.filters.SolidObscure;
 import org.witness.securesmartcam.utils.ObscuraConstants;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Handler;
+import android.preference.PreferenceManager;
+import android.util.Base64;
 import android.util.Log;
 
 public class ImageConstructor {
@@ -50,9 +62,12 @@ public class ImageConstructor {
 			String redactionCommand);
 	
 	private JSONArray imageRegions;
-	private ArrayList<byte[]> unredactedRegions;
+	private ArrayList<ContentValues> unredactedRegions;
+	JSONObject metadataObject;
 	
 	Context c;
+	
+	private SharedPreferences _sp;
 	
 	static {
 		System.loadLibrary("JpegRedaction");
@@ -61,14 +76,18 @@ public class ImageConstructor {
 	
 	public ImageConstructor(Context c, final String informaImageFilename, String metadataObjectString) throws JSONException, NoSuchAlgorithmException, IOException {
 		this.c = c;
-		this.unredactedRegions = new ArrayList<byte[]>();
+		this.unredactedRegions = new ArrayList<ContentValues>();
 		File clone = new File(InformaConstants.DUMP_FOLDER, ObscuraConstants.TMP_FILE_NAME);
+		String[] baseParts = informaImageFilename.split("/");
+		String base = baseParts[baseParts.length - 1].split("_")[0] + ".jpg";
 		
-		JSONObject metadataObject;
 		metadataObject = (JSONObject) new JSONTokener(metadataObjectString).nextValue();
 		this.imageRegions = (JSONArray) (metadataObject.getJSONObject(Keys.Informa.DATA)).getJSONArray(Keys.Data.IMAGE_REGIONS);
 		
 		Log.d(InformaConstants.TAG, "creating file: " + informaImageFilename + "\nwith metadata:\n" + metadataObject.toString());
+		ContentValues cv = new ContentValues();
+		cv.put(Image.UNREDACTED_IMAGE_HASH, MediaHasher.hash(fileToBytes(clone), "SHA-1"));
+		cv.put(Image.CONTAINMENT_ARRAY, "NOT INCLUDED IN THIS VERSION");
 		
 		for(int i=0; i<imageRegions.length(); i++) {
 			JSONObject ir = imageRegions.getJSONObject(i);
@@ -97,30 +116,75 @@ public class ImageConstructor {
 				Log.d(InformaConstants.TAG, "metadata set has length: " + redactionPack.length);
 				
 				// insert hash and data length into metadata package
-				ir.put(Keys.ImageRegion.UNREDACTED_HASH, MediaHasher.hash(redactionPack, "MD5"));
+				ir.put(Keys.ImageRegion.UNREDACTED_HASH, MediaHasher.hash(redactionPack, "SHA-1"));
 				ir.put(Keys.ImageRegion.UNREDACTED_DATA, redactionPack.length);
 				
 				//zip data
-				unredactedRegions.add(gzip(redactionPack));
+				ContentValues rcv = new ContentValues();
+				rcv.put(ImageRegion.UNREDACTED_HASH, MediaHasher.hash(redactionPack, "SHA-1"));
+				rcv.put(ImageRegion.DATA, gzipImageRegionData(redactionPack));
+				rcv.put(ImageRegion.BASE, base);
+				unredactedRegions.add(rcv);
 			}
 		}		
 				
 		// insert metadata
-		constructImage(clone.getAbsolutePath(), informaImageFilename, metadataObject.toString(), metadataObject.toString().length());
-		
-		// package zipped image region bytes
-		
-		// delete unencrypted
+		if(constructImage(clone.getAbsolutePath(), informaImageFilename, metadataObject.toString(), metadataObject.toString().length()) > 0) {
+			
+			// package zipped image region bytes
+			_sp = PreferenceManager.getDefaultSharedPreferences(c);
+			DatabaseHelper dh = new DatabaseHelper(c);
+			SQLiteDatabase db = dh.getWritableDatabase(_sp.getString(Keys.Settings.HAS_DB_PASSWORD, ""));
+			
+			cv.put(Image.METADATA, metadataObject.toString());
+			cv.put(Image.REDACTED_IMAGE_HASH, MediaHasher.hash(fileToBytes(new File(informaImageFilename)), "SHA-1"));
+			cv.put(Image.LOCATION_OF_ORIGINAL, ((JSONObject) metadataObject.getJSONObject(Informa.GENEALOGY)).getString(Keys.Image.LOCAL_MEDIA_PATH));
+			cv.put(Image.LOCATION_OF_OBSCURED_VERSION, informaImageFilename);
+			cv.put(Keys.Intent.Destination.EMAIL, ((JSONObject) metadataObject.getJSONObject(Informa.INTENT)).getString(Keys.Intent.INTENDED_DESTINATION));
+			
+			dh.setTable(db, Tables.IMAGES);
+			Log.d(InformaConstants.TAG, "trying to insert:\n" + cv.toString());
+			db.insert(dh.getTable(), null, cv);
+			
+			dh.setTable(db, Tables.IMAGE_REGIONS);
+			for(ContentValues rcv : unredactedRegions) {
+				Log.d(InformaConstants.TAG, "trying to insert:\n" + rcv.toString());
+				db.insert(dh.getTable(), null, rcv);
+			}
+			
+			db.close();
+			dh.close();
+				
+			// delete unencrypted
+			clone.delete();
+			
+			
+			c.sendBroadcast(
+					new Intent()
+					.setAction(InformaConstants.Keys.Service.FINISH_ACTIVITY));
+		}
 		
 	}
 	
-	private byte[] gzip(byte[] data) throws IOException {
+	private byte[] gzipImageRegionData(byte[] data) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		GZIPOutputStream gos = new GZIPOutputStream(baos);
-		gos.write(data);
+		gos.write(Base64.encode(data, Base64.DEFAULT));
 		gos.close();
 		baos.close();
 		return baos.toByteArray();
+	}
+	
+	private byte[] fileToBytes(File file) throws IOException {
+		FileInputStream fis = new FileInputStream(file);
+		byte[] fileBytes = new byte[(int) file.length()];
+		
+		int offset = 0;
+		int bytesRead = 0;
+		while(offset < fileBytes.length && (bytesRead = fis.read(fileBytes, offset, fileBytes.length - offset)) >= 0)
+			offset += bytesRead;
+		fis.close();
+		return fileBytes;
 	}
 	
     private void copy (Uri uriSrc, File fileTarget) throws IOException

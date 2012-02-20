@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+    <TextView 
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/informaConfirm_title"
+        android:textSize="45px"
+        android:textColor="#94e400" />
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/informaConfirm_text" />
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    	android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+    	android:orientation="horizontal"
+    	android:weightSum="1.0">
+    	<Button
+    	    android:layout_width="0dip"
+    	    android:layout_height="fill_parent"
+    	    android:layout_weight="0.33"
+    	    android:text="@string/informaConfirm_btn_view"
+    	    android:id="@+id/informaConfirm_btn_view" />
+    	<Button
+    	    android:layout_width="0dip"
+    	    android:layout_height="fill_parent"
+    	    android:layout_weight="0.33"
+    	    android:text="@string/informaConfirm_btn_takeAnother"
+    	    android:id="@+id/informaConfirm_btn_takeAnother" />
+    	<Button
+    	    android:layout_width="0dip"
+    	    android:layout_height="fill_parent"
+    	    android:layout_weight="0.33"
+    	    android:text="@string/informaConfirm_btn_quit"
+    	    android:id="@+id/informaConfirm_btn_quit" />
+    </LinearLayout>
+
+    
+
+</LinearLayout>

@@ -31,6 +31,7 @@ public class InformaConstants {
 			public final static String GENERATE_IMAGE = "generateImage";
 			public final static String IMAGES_GENERATED = "imagesGenerated";
 			public final static String SET_EXIF = "setExif";
+			public final static String FINISH_ACTIVITY = "finishActivity";
 		}
 		
 		public final static class Informa {
@@ -48,7 +49,6 @@ public class InformaConstants {
 		public final static class ImageRegion {
 			public final static String INDEX = "regionIndex";
 			public final static String THUMBNAIL = "regionThumbnail";
-			public static final String KEY = "region_key";
 			public static final String DATA = "region_data";
 			public final static String TIMESTAMP = "timestampOnGeneration";
 			public final static String LOCATION = "locationOnGeneration";
@@ -62,6 +62,7 @@ public class InformaConstants {
 			public final static String LEFT = "region_left";
 			public final static String UNREDACTED_DATA = "unredactedRegionData";
 			public final static String UNREDACTED_HASH = "unredactedRegionHash";
+			public final static String BASE = "base";
 			
 			public final static class Subject {
 				public final static String PSEUDONYM = "subject_pseudonym";
@@ -82,6 +83,7 @@ public class InformaConstants {
 		
 		public final static class Intent {
 			public final static String ENCRYPT_LIST = "encryptList";
+			public final static String INTENDED_DESTINATION = "intendedDestination";
 			public final static class Destination {
 				public final static String EMAIL = "destinationEmail";
 				public final static String DISPLAY_NAME = "displayName";
@@ -100,9 +102,10 @@ public class InformaConstants {
 			public static final String UNREDACTED_IMAGE_HASH = "source_unredactedImageHash";
 			public static final String REDACTED_IMAGE_HASH = "source_redactedImageHash";
 			public final static String MEDIA_TYPE = "source_type";
-			public final static String LOCAL_MEDIA_PATH = "localMeidaPath";
+			public final static String LOCAL_MEDIA_PATH = "localMediaPath";
 			public final static String TIMESTAMP = "timestamp";
 			public final static String LOCATION_OF_ORIGINAL = "source_locationOfOriginal";
+			public final static String LOCATION_OF_OBSCURED_VERSION = "source_locationOfObscuredVersion";
 			public final static String EXIF = "exifData";
 		}
 		

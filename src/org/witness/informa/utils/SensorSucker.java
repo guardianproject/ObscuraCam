@@ -190,7 +190,6 @@ public class SensorSucker extends Service {
 
 		@Override
 		public void onReceive(Context c, Intent i) {
-			Log.d(InformaConstants.TAG, c.getPackageName());
 			try {
 				if(InformaConstants.Keys.Service.STOP_SERVICE.equals(i.getAction())) {
 					stopSucking();

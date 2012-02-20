@@ -53,6 +53,7 @@ public class ObscuraConstants {
 	
 	// for saving images
     public final static String EXPORT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public final static String OBSCURED_IMAGE_URI = "obscuredImageUri";
 	
 	public final static class Preferences {
 		public final static class Keys {

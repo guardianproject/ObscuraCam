@@ -22,6 +22,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.witness.informa.KeyChooser;
+import org.witness.informa.ReviewAndFinish;
 import org.witness.informa.Tagger;
 import org.witness.informa.utils.ImageConstructor;
 import org.witness.informa.utils.InformaConstants;
@@ -137,7 +138,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     
 	// Vector to hold ImageRegions 
 	ArrayList<ImageRegion> imageRegions = new ArrayList<ImageRegion>(); 
-	ArrayList<JpegRedactor> irThread = new ArrayList<JpegRedactor>();
 	
 	// The original image dimensions (not scaled)
 	int originalImageWidth;
@@ -165,8 +165,30 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     boolean doRealtimePreview = true;
     
     // Keep track of the orientation
-    private int originalImageOrientation = ExifInterface.ORIENTATION_NORMAL;    
+    private int originalImageOrientation = ExifInterface.ORIENTATION_NORMAL;
+    
+    BroadcastReceiver br = new BroadcastReceiver() {
 
+		@Override
+		public void onReceive(Context c, Intent i) {
+			if(InformaConstants.Keys.Service.FINISH_ACTIVITY.equals(i.getAction())) {
+		    	
+		    	reviewAndFinish();
+			}
+				
+			
+		}
+    	
+    };
+    
+    private void reviewAndFinish() {
+    	mProgressDialog.cancel();
+    	Intent i = new Intent(this, ReviewAndFinish.class);
+    	i.setData(savedImageUri);
+    	startActivity(i);
+    	finish();
+    }
+    
 	private class mAutoDetectTask extends AsyncTask<Integer, Integer, Long> {
 		protected Long doInBackground(Integer... params) {
 	    	  return (long)doAutoDetection();	         
@@ -418,11 +440,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	@Override
 	public void onResume() {
 		super.onResume();
+		Log.d(InformaConstants.TAG, "hello br");
+		registerReceiver(br, new IntentFilter(Keys.Service.FINISH_ACTIVITY));
 	}
 	
 	@Override
 	public void onPause() {
 		super.onPause();
+		unregisterReceiver(br);
 	}
 	
 	@Override
@@ -464,42 +489,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		imageView.setImageMatrix(matrix);
 		
 		
-	}
-	/*
-	 * Call this to delete the original image, will ask the user
-	 */
-	private void showDeleteOriginalDialog() 
-	{
-		final AlertDialog.Builder b = new AlertDialog.Builder(this);
-		b.setIcon(android.R.drawable.ic_dialog_alert);
-		b.setTitle(getString(R.string.app_name));
-		b.setMessage(getString(R.string.confirm_delete));
-		b.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-
-            	try
-            	{
-	                // User clicked OK so go ahead and delete
-	        		deleteOriginal();
-	            	viewImage(savedImageUri);
-            	}
-            	catch (IOException e)
-            	{
-            		Log.e(ObscuraConstants.TAG, "error saving", e);
-            	}
-            	finally
-            	{
-            		finish();
-            	}
-            }
-        });
-		b.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-
-            	viewImage(savedImageUri);
-            }
-        });
-		b.show();
 	}
 	
 	/*
@@ -1260,20 +1249,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	}
     }
     
-	/*
-	 * When the user selects the Share menu item
-	 * Uses saveTmpImage (overwriting what is already there) and uses the standard Android Share Intent
-	 */
-    private void viewImage(Uri imgView) {
-    	
-    	Intent iView = new Intent(Intent.ACTION_VIEW);
-    	iView.setType(ObscuraConstants.MIME_TYPE_JPEG);
-    	iView.putExtra(Intent.EXTRA_STREAM, imgView);
-    	iView.setDataAndType(imgView, ObscuraConstants.MIME_TYPE_JPEG);
-
-    	startActivity(Intent.createChooser(iView, "View Image"));    	
-	
-    }
     
     
     /*
@@ -1387,7 +1362,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      * according to preferences
      */
     private void handleDelete() {
-    	// delete temp file created.
+    	
     }
     
     /*
@@ -1460,8 +1435,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			informa.putExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST, encryptList);
 		
     	sendBroadcast(informa);
-    	mProgressDialog.cancel();
-    	
 		return true;
     }
     
@@ -1590,49 +1563,4 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    window.getDecorView().getBackground().setDither(true);
 
 	}
-	
-	private class JpegRedactor extends Thread {
-		File tmp, tmp_;
-		ImageRegion ir;
-		
-		public JpegRedactor(File tmp, File tmp_, ImageRegion ir) {
-			this.tmp = tmp;
-			this.tmp_ = tmp_;
-			this.ir = ir;
-			
-			if(this.tmp.exists())
-				Log.d(InformaConstants.TAG, "tmp size: " + this.tmp.length());
-		}
-		
-		private void removeThread() {
-			try {
-				Log.d(InformaConstants.TAG, "thread state: " + this.getState());
-				this.interrupt();
-			} catch (Exception e) {
-				Log.d(InformaConstants.TAG, "thread exception: " + e);
-			}
-			
-			irThread.remove(this);
-		}
-		
-		private void init() {
-			JpegRedaction jr = new JpegRedaction(ir.getRegionProcessor(), tmp.getAbsolutePath(), tmp_.getAbsolutePath());
-			jr.setProperties(ir.getRegionProcessor().getProperties());
-			jr.processRegion(new RectF(ir.getBounds()), obscuredCanvas, obscuredBmp);
-			do {
-				if(jr.hasRedacted) {
-					imageRegions.add(this.ir);
-					removeThread();
-				}
-				
-			} while(!jr.hasRedacted);
-		}
-		
-		@Override
-		public void run() {
-			init();
-		}
-		
-	}
-
 }

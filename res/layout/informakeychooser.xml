@@ -11,7 +11,6 @@
         android:layout_height="0dip"
     	android:layout_weight="0.2"
     	android:textSize="45px"
-    	android:textStyle="bold"
         android:textColor="#94e400" />
    	<ListView
    	    android:layout_width="fill_parent"

@@ -90,6 +90,13 @@
 	<string name="chooser_no_choice_warning_title">Wait!</string>
 	<string name="chooser_no_choice_warning_text">You have not selected any trusted destinations.  Continue anyway?</string>
 	
+	<!--  INFORMA CONFIRM ACTIVITY -->
+	<string name="informaConfirm_title">Images Saved</string>
+	<string name="informaConfirm_text">Your image has been saved and is now being encrypted and sent to your trusted destinations.</string>
+	<string name="informaConfirm_btn_view">View Image</string>
+	<string name="informaConfirm_btn_quit">Quit Informa</string>
+	<string name="informaConfirm_btn_takeAnother">Take Another Image</string>
+	
 	<!--  EULA related -->
     <string name="eula_title">You agree to:</string>
     <string name="eula_accept">Accept</string>
