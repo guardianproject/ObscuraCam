@@ -1,5 +1,6 @@
 package org.witness.informa.utils;
 
+import android.media.ExifInterface;
 import android.os.Environment;
 
 public class InformaConstants {
@@ -158,17 +159,17 @@ public class InformaConstants {
 		}
 		
 		public final static class Exif {
-			public final static String MAKE = "TAG_MAKE";
-			public final static String MODEL = "TAG_MODEL";
-			public final static String APERTURE = "TAG_APERTURE";
-			public final static String FLASH = "TAG_FLASH";
-			public final static String EXPOSURE = "TAG_EXPOSURE_TIME";
-			public final static String FOCAL_LENGTH = "TAG_FOCAL_LENGTH";
-			public final static String IMAGE_WIDTH = "TAG_IMAGE_WIDTH";
-			public final static String IMAGE_LENGTH = "TAG_IMAGE_LENGTH";
-			public final static String ISO = "TAG_ISO";
-			public final static String ORIENTATION = "TAG_ORIENTATION";
-			public final static String WHITE_BALANCE = "TAG_WHITE_BALANCE";
+			public final static String MAKE = ExifInterface.TAG_MAKE;
+			public final static String MODEL = ExifInterface.TAG_MODEL;
+			public final static String APERTURE = ExifInterface.TAG_APERTURE;
+			public final static String FLASH = ExifInterface.TAG_FLASH;
+			public final static String EXPOSURE = ExifInterface.TAG_EXPOSURE_TIME;
+			public final static String FOCAL_LENGTH = ExifInterface.TAG_FOCAL_LENGTH;
+			public final static String IMAGE_WIDTH = ExifInterface.TAG_IMAGE_WIDTH;
+			public final static String IMAGE_LENGTH = ExifInterface.TAG_IMAGE_LENGTH;
+			public final static String ISO = ExifInterface.TAG_ISO;
+			public final static String ORIENTATION = ExifInterface.TAG_ORIENTATION;
+			public final static String WHITE_BALANCE = ExifInterface.TAG_WHITE_BALANCE;
 		}
 		
 		

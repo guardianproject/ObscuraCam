@@ -19,11 +19,11 @@ extern "C" {
 JNIEXPORT int JNICALL
     Java_org_witness_informa_utils_ImageConstructor_constructImage
     (JNIEnv *, jobject, jstring, jstring, jstring, int);
-    
-JNIEXPORT int JNICALL
-    Java_org_witness_informa_utils_ImageConstructor_setRegion
-    (JNIEnv *, jobject, jstring, jstring, int, int, int, int, jstring, jcharArray);
-    
+
+JNIEXPORT jbyteArray JNICALL 
+    Java_org_witness_informa_utils_ImageConstructor_redactRegion
+    (JNIEnv *, jobject, jstring, jstring, int, int, int, int, jstring);
+
 #ifdef __cplusplus
 }
 #endif

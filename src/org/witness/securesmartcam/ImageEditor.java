@@ -294,6 +294,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				exif.put(Keys.Exif.ORIENTATION, originalImageOrientation);
 				exif.put(Keys.Exif.WHITE_BALANCE, ei.getAttributeInt(Keys.Exif.WHITE_BALANCE, InformaConstants.NOT_REPORTED));
 				
+				Log.d(InformaConstants.TAG, "EXIF DUMP:\n" + exif.toString());
 				sendBroadcast(new Intent()
 				.setAction(InformaConstants.Keys.Service.SET_EXIF)
 				.putExtra(Keys.Image.EXIF, exif.toString()));
@@ -1338,79 +1339,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    return obscuredBmp;
     }
     
-    private boolean canDoNative ()
-    {
-    	if (originalImageUri == null)
-    		return false;
-    				
-    	// Iterate through the regions that have been created
-    	Iterator<ImageRegion> i = imageRegions.iterator();
-	    while (i.hasNext()) 
-	    {
-	    	ImageRegion iRegion = i.next();
-	    }
-	    
-	    return true;
-
-    }
-    
-    private void copy (Uri uriSrc, File fileTarget) throws IOException
-    {
-    	InputStream is = getContentResolver().openInputStream(uriSrc);
-		
-		OutputStream os = new FileOutputStream (fileTarget);
-			
-		copyStreams (is, os);
-
-    	
-    }
-    
-    private void copy (Uri uriSrc, Uri uriTarget) throws IOException
-    {
-    	
-    	InputStream is = getContentResolver().openInputStream(uriSrc);
-		
-		OutputStream os = getContentResolver().openOutputStream(uriTarget);
-			
-		copyStreams (is, os);
-
-    	
-    }
-    
-    private static void copyStreams(InputStream input, OutputStream output) throws IOException {
-        // if both are file streams, use channel IO
-        if ((output instanceof FileOutputStream) && (input instanceof FileInputStream)) {
-          try {
-            FileChannel target = ((FileOutputStream) output).getChannel();
-            FileChannel source = ((FileInputStream) input).getChannel();
-
-            source.transferTo(0, Integer.MAX_VALUE, target);
-
-            source.close();
-            target.close();
-
-            return;
-          } catch (Exception e) { /* failover to byte stream version */
-          }
-        }
-
-        byte[] buf = new byte[8192];
-        while (true) {
-          int length = input.read(buf);
-          if (length < 0)
-            break;
-          output.write(buf, 0, length);
-        }
-
-        try {
-          input.close();
-        } catch (IOException ignore) {
-        }
-        try {
-          output.close();
-        } catch (IOException ignore) {
-        }
-      }
     /*
      * Save a temporary image for sharing only
      */
@@ -1497,68 +1425,42 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				new String[] {ObscuraConstants.MIME_TYPE_JPEG},
 				null);
 		
-		if(canDoNative()) {				// there are no image regions if false!
-			File tmp = new File(InformaConstants.DUMP_FOLDER, ObscuraConstants.TMP_FILE_NAME);
-			File tmp_ = new File(InformaConstants.DUMP_FOLDER, InformaConstants.TMP_FILE_NAME);
-			
-			if(tmp.exists())
-				tmp.delete();
-			if(tmp_.exists())
-				tmp_.delete();
-			
-			copy(originalImageUri, tmp);
-			if(tmp.exists())
-				Log.d(InformaConstants.TAG, "tmp size after copy: " + tmp.length());
-			
-			for(ImageRegion ir : imageRegions)
-				irThread.add(new JpegRedactor(tmp, tmp_, ir));
-			
-			imageRegions.clear();
-
-			do {
-				if(irThread.size() == 1 && !irThread.get(0).isAlive()) {
-					irThread.remove(0);
-					
-					JSONArray imageRegionObject = new JSONArray();
-					try {
-						for(ImageRegion ir : imageRegions) {
-							Enumeration<?> e = ir.getRegionProcessor().getProperties().propertyNames();
-							JSONObject representation = new JSONObject();
-
-							while(e.hasMoreElements()) {
-								String prop = (String) e.nextElement();
-								representation.put(prop, ir.getRegionProcessor().getProperties().get(prop));
-							}
-							
-							imageRegionObject.put(representation);
-						}
-						
-						sendBroadcast(new Intent()
-						.setAction(InformaConstants.Keys.Service.SET_CURRENT)
-						.putExtra(InformaConstants.Keys.CaptureEvent.MATCH_TIMESTAMP, System.currentTimeMillis())
-						.putExtra(InformaConstants.Keys.CaptureEvent.TYPE, InformaConstants.CaptureEvents.MEDIA_SAVED));
-					
-				    	Intent informa = new Intent()
-							.setAction(InformaConstants.Keys.Service.SEAL_LOG)
-							.putExtra(InformaConstants.Keys.ImageRegion.DATA, imageRegionObject.toString())
-							.putExtra(InformaConstants.Keys.Image.LOCAL_MEDIA_PATH, tmp.getAbsolutePath());
-							
-						if(encryptList[0] != 0)
-							informa.putExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST, encryptList);
-						
-				    	sendBroadcast(informa);
-				    	mProgressDialog.cancel();
-					} catch (JSONException e) {
-						Log.e(InformaConstants.TAG, "problem: " + e.toString());
-					}
-				} else {
-					if(!irThread.get(0).isAlive())
-						irThread.get(0).run();
-				}
-			} while(irThread.size() > 0);
-			
-			
+		File tmp = new File(InformaConstants.DUMP_FOLDER, ObscuraConstants.TMP_FILE_NAME);
+		if(tmp.exists())
+			tmp.delete();
+				
+		try {
+			FileOutputStream tmpImage = new FileOutputStream(tmp.getAbsoluteFile());
+			imageBitmap.compress(CompressFormat.JPEG, quality, tmpImage);
+		} catch(IOException e) {
+			Log.d(InformaConstants.TAG, "error saving tmp bitmap: " + e);
+			return false;
 		}
+		
+		sendBroadcast(new Intent()
+		.setAction(InformaConstants.Keys.Service.SET_CURRENT)
+		.putExtra(InformaConstants.Keys.CaptureEvent.MATCH_TIMESTAMP, System.currentTimeMillis())
+		.putExtra(InformaConstants.Keys.CaptureEvent.TYPE, InformaConstants.CaptureEvents.MEDIA_SAVED));
+	
+		JSONArray imageRegionObject = new JSONArray();
+		try {
+			for(ImageRegion ir : imageRegions)
+				imageRegionObject.put(ir.getRepresentation());
+		} catch (JSONException e) {
+			Log.e(InformaConstants.TAG, "problem: " + e.toString());
+			return false;
+		}
+		
+    	Intent informa = new Intent()
+			.setAction(InformaConstants.Keys.Service.SEAL_LOG)
+			.putExtra(InformaConstants.Keys.ImageRegion.DATA, imageRegionObject.toString())
+			.putExtra(InformaConstants.Keys.Image.LOCAL_MEDIA_PATH, pullPathFromUri(savedImageUri).getAbsolutePath());
+			
+		if(encryptList[0] != 0)
+			informa.putExtra(InformaConstants.Keys.Intent.ENCRYPT_LIST, encryptList);
+		
+    	sendBroadcast(informa);
+    	mProgressDialog.cancel();
     	
 		return true;
     }

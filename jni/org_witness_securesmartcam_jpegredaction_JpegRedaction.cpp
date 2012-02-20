@@ -114,32 +114,33 @@ Java_org_witness_securesmartcam_jpegredaction_JpegRedaction_setRegion
         if(!success) {
             (env)->ReleaseStringUTFChars(jstrOriginalImageFilename, originalImageFilename);
             (env)->ReleaseStringUTFChars(jstrInformaImageFilename, informaImageFilename);
-            (env)->ReleaseStringUTFChars(jstrRedactionMethod, redactionMethod);            
+            (env)->ReleaseStringUTFChars(jstrRedactionMethod, redactionMethod);
+            exit(1);
         }
         __android_log_write(ANDROID_LOG_DEBUG, TAG, "[opened file]");
         __android_log_write(ANDROID_LOG_DEBUG, TAG, originalImageFilename);
         
+        jpeg_redaction::Redaction redaction;
         jpeg_redaction::Redaction::Region region(left, right, top, bottom);
         region.SetRedactionMethod(redactionMethod);
-        jpeg_redaction::Redaction redaction;
-        redaction.AddRegion(region);
+                redaction.AddRegion(region);
+        original.DecodeImage(&redaction, NULL);
         __android_log_write(ANDROID_LOG_DEBUG, TAG,"added redact region");
+        if(!redaction.ValidateStrips())
+            __android_log_write(ANDROID_LOG_ERROR, TAG, "but it did not work");
         
         std::vector<unsigned char> redactionPack;
         redaction.Pack(&redactionPack);
-        jbyte* buff = new jbyte[redactionPack.size() + 1];
+        jbyte* buff = new jbyte[redactionPack.size()];
         for(int i=0; i<redactionPack.size() + 1; i++) {
             buff[i] = (jbyte) redactionPack[i];
         }
         
-        regionBuffer = (env)->NewByteArray(redactionPack.size() + 1);
-        (env)->SetByteArrayRegion(regionBuffer, 0, (redactionPack.size() + 1), (jbyte*) buff);
+        regionBuffer = (env)->NewByteArray(redactionPack.size());
+        (env)->SetByteArrayRegion(regionBuffer, 0, redactionPack.size(), (jbyte*) buff);
         free(buff);
         __android_log_write(ANDROID_LOG_DEBUG, TAG,"setting redaction buffer");
-        
-        original.DecodeImage(&redaction, NULL);
-        __android_log_write(ANDROID_LOG_DEBUG, TAG,"region redacted!");
-        
+                
         original.Save(informaImageFilename);
         __android_log_write(ANDROID_LOG_DEBUG, TAG,"image saved as");
         __android_log_write(ANDROID_LOG_DEBUG, TAG, informaImageFilename);

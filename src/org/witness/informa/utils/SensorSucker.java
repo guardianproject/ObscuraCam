@@ -151,18 +151,18 @@ public class SensorSucker extends Service {
 				try {
 					informa = new Informa(getApplicationContext(), imageData, imageRegions, capturedEvents, intendedDestinations);
 					for(Image img : informa.getImages()) {
-						ImageConstructor ic = new ImageConstructor(img.getAbsolutePath(), img.getMetadataPackage());
+						ImageConstructor ic = new ImageConstructor(getApplicationContext(), img.getAbsolutePath(), img.getMetadataPackage());
 					}
 				} catch (IllegalArgumentException e) {
-					Log.d(InformaConstants.TAG, e.toString());
+					Log.d(InformaConstants.TAG, "informa called Illegal Arguments: " + e.toString());
 				} catch (JSONException e) {
-					Log.d(InformaConstants.TAG, e.toString());
+					Log.d(InformaConstants.TAG, "informa called JSONException?: " + e.toString());
 				} catch (IllegalAccessException e) {
-					Log.d(InformaConstants.TAG, e.toString());
+					Log.d(InformaConstants.TAG, "informa called Illegal Access: " + e.toString());
 				} catch (NoSuchAlgorithmException e) {
-					Log.d(InformaConstants.TAG, e.toString());
+					Log.d(InformaConstants.TAG, "informa called NoSuchAlgoException: " + e.toString());
 				} catch (IOException e) {
-					Log.d(InformaConstants.TAG, e.toString());
+					Log.d(InformaConstants.TAG, "informa called IOException: " + e.toString());
 				}
 				
 			}

@@ -132,17 +132,28 @@ public class Informa {
 		
 		public Exif(JSONObject exif) throws JSONException {
 			this.sdk = Build.VERSION.SDK_INT;
-			this.make = exif.getString(Keys.Exif.MAKE);
-			this.model = exif.getString(Keys.Exif.MODEL);
-			this.orientation = exif.getInt(Keys.Exif.ORIENTATION);
-			this.imageLength = exif.getInt(Keys.Exif.IMAGE_LENGTH);
-			this.imageWidth = exif.getInt(Keys.Exif.IMAGE_WIDTH);
-			this.iso = exif.getString(Keys.Exif.ISO);
-			this.whiteBalance = exif.getInt(Keys.Exif.WHITE_BALANCE);
-			this.flash = exif.getInt(Keys.Exif.FLASH);
-			this.exposureTime = exif.getString(Keys.Exif.EXPOSURE);
-			this.focalLength = exif.getInt(Keys.Exif.FOCAL_LENGTH);
-			this.aperture = exif.getString(Keys.Exif.APERTURE);
+			if(exif.has(Keys.Exif.MAKE))
+				this.make = exif.getString(Keys.Exif.MAKE);
+			if(exif.has(Keys.Exif.MODEL))
+				this.model = exif.getString(Keys.Exif.MODEL);
+			if(exif.has(Keys.Exif.ORIENTATION))
+				this.orientation = exif.getInt(Keys.Exif.ORIENTATION);
+			if(exif.has(Keys.Exif.IMAGE_LENGTH))
+				this.imageLength = exif.getInt(Keys.Exif.IMAGE_LENGTH);
+			if(exif.has(Keys.Exif.IMAGE_WIDTH))
+				this.imageWidth = exif.getInt(Keys.Exif.IMAGE_WIDTH);
+			if(exif.has(Keys.Exif.ISO))
+				this.iso = exif.getString(Keys.Exif.ISO);
+			if(exif.has(Keys.Exif.WHITE_BALANCE))
+				this.whiteBalance = exif.getInt(Keys.Exif.WHITE_BALANCE);
+			if(exif.has(Keys.Exif.FLASH))
+				this.flash = exif.getInt(Keys.Exif.FLASH);
+			if(exif.has(Keys.Exif.EXPOSURE))
+				this.exposureTime = exif.getString(Keys.Exif.EXPOSURE);
+			if(exif.has(Keys.Exif.FOCAL_LENGTH))
+				this.focalLength = exif.getInt(Keys.Exif.FOCAL_LENGTH);
+			if(exif.has(Keys.Exif.APERTURE))
+				this.aperture = exif.getString(Keys.Exif.APERTURE);
 		}
 	}
 	
