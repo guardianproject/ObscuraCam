@@ -1,5 +1,7 @@
 package org.witness.informa.utils;
 
+import info.guardianproject.database.sqlcipher.SQLiteDatabase;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -17,6 +19,9 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.witness.informa.Informa;
 import org.witness.informa.Informa.Image;
+import org.witness.informa.utils.InformaConstants.Keys;
+import org.witness.informa.utils.InformaConstants.OriginalImageHandling;
+import org.witness.informa.utils.io.DatabaseHelper;
 import org.witness.informa.utils.suckers.*;
 import org.witness.securesmartcam.ImageEditor;
 import org.witness.sscphase1.ObscuraApp;
@@ -28,11 +33,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 @SuppressWarnings("unused")
@@ -150,9 +157,21 @@ public class SensorSucker extends Service {
 			public void run() {
 				try {
 					informa = new Informa(getApplicationContext(), imageData, imageRegions, capturedEvents, intendedDestinations);
-					for(Image img : informa.getImages()) {
-						ImageConstructor ic = new ImageConstructor(getApplicationContext(), img.getAbsolutePath(), img.getMetadataPackage());
-					}
+					Image[] img = informa.getImages();
+					ImageConstructor ic = new ImageConstructor(getApplicationContext(), img[0].getMetadataPackage(), img[0].getName());
+					for(Image i : img)
+						ic.createVersionForTrustedDestination(i.getAbsolutePath(),i.getIntendedDestination());
+							
+					ic.doCleanup();
+					
+					informaCallback.post(new Runnable() {
+						@Override
+						public void run() {
+							sendBroadcast(
+									new Intent()
+									.setAction(InformaConstants.Keys.Service.FINISH_ACTIVITY));
+						}
+					});
 				} catch (IllegalArgumentException e) {
 					Log.d(InformaConstants.TAG, "informa called Illegal Arguments: " + e.toString());
 				} catch (JSONException e) {

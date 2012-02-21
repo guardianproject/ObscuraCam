@@ -4,6 +4,7 @@ import info.guardianproject.database.sqlcipher.SQLiteDatabase;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -13,9 +14,9 @@ import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.zip.Deflater;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -25,7 +26,9 @@ import org.witness.informa.utils.InformaConstants.Keys;
 import org.witness.informa.utils.InformaConstants.Keys.Image;
 import org.witness.informa.utils.InformaConstants.Keys.ImageRegion;
 import org.witness.informa.utils.InformaConstants.Keys.Informa;
+import org.witness.informa.utils.InformaConstants.Keys.Settings;
 import org.witness.informa.utils.InformaConstants.Keys.Tables;
+import org.witness.informa.utils.InformaConstants.OriginalImageHandling;
 import org.witness.informa.utils.io.DatabaseHelper;
 import org.witness.informa.utils.secure.Apg;
 import org.witness.informa.utils.secure.MediaHasher;
@@ -35,13 +38,11 @@ import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.securesmartcam.filters.SolidObscure;
 import org.witness.securesmartcam.utils.ObscuraConstants;
 
-import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
@@ -63,10 +64,18 @@ public class ImageConstructor {
 	
 	private JSONArray imageRegions;
 	private ArrayList<ContentValues> unredactedRegions;
+	ArrayList<File> imageRegionFiles;
 	JSONObject metadataObject;
+	File clone;
+	String base, unredactedHash, redactedHash;
+	String containmentArray = InformaConstants.NOT_INCLUDED;
+	
+	FileOutputStream fos;
+	ZipOutputStream zos;
 	
 	Context c;
-	
+	private DatabaseHelper dh;
+	private SQLiteDatabase db;
 	private SharedPreferences _sp;
 	
 	static {
@@ -74,19 +83,26 @@ public class ImageConstructor {
 	}
 	
 	
-	public ImageConstructor(Context c, final String informaImageFilename, String metadataObjectString) throws JSONException, NoSuchAlgorithmException, IOException {
+	public ImageConstructor(Context c, String metadataObjectString, String baseName) throws JSONException, NoSuchAlgorithmException, IOException {
 		this.c = c;
 		this.unredactedRegions = new ArrayList<ContentValues>();
-		File clone = new File(InformaConstants.DUMP_FOLDER, ObscuraConstants.TMP_FILE_NAME);
-		String[] baseParts = informaImageFilename.split("/");
-		String base = baseParts[baseParts.length - 1].split("_")[0] + ".jpg";
+		clone = new File(InformaConstants.DUMP_FOLDER, ObscuraConstants.TMP_FILE_NAME);
 		
+		_sp = PreferenceManager.getDefaultSharedPreferences(c);
+		dh = new DatabaseHelper(c);
+		db = dh.getWritableDatabase(_sp.getString(Keys.Settings.HAS_DB_PASSWORD, ""));
+		
+		unredactedHash = MediaHasher.hash(fileToBytes(clone), "SHA-1");
+		
+		base = baseName.split("_")[0] + ".jpg";
+		
+		// handle original based on settings
+		handleOriginalImage();
+		
+		// do redaction
+		imageRegionFiles = new ArrayList<File>();
 		metadataObject = (JSONObject) new JSONTokener(metadataObjectString).nextValue();
 		this.imageRegions = (JSONArray) (metadataObject.getJSONObject(Keys.Informa.DATA)).getJSONArray(Keys.Data.IMAGE_REGIONS);
-		
-		ContentValues cv = new ContentValues();
-		cv.put(Image.UNREDACTED_IMAGE_HASH, MediaHasher.hash(fileToBytes(clone), "SHA-1"));
-		cv.put(Image.CONTAINMENT_ARRAY, "NOT INCLUDED IN THIS VERSION");
 		
 		for(int i=0; i<imageRegions.length(); i++) {
 			JSONObject ir = imageRegions.getJSONObject(i);
@@ -112,6 +128,9 @@ public class ImageConstructor {
 				
 				byte[] redactionPack = redactRegion(clone.getAbsolutePath(), clone.getAbsolutePath(), left, right, top, bottom, redactionCode);
 				
+				// create a file for the image region				
+				imageRegionFiles.add(bytesToFile(redactionPack, "ir" + i + ".informaRegion"));
+				
 				// insert hash and data length into metadata package
 				ir.put(Keys.ImageRegion.UNREDACTED_HASH, MediaHasher.hash(redactionPack, "SHA-1"));
 				ir.put(Keys.ImageRegion.UNREDACTED_DATA, redactionPack.length);
@@ -123,41 +142,125 @@ public class ImageConstructor {
 				rcv.put(ImageRegion.BASE, base);
 				unredactedRegions.add(rcv);
 			}
-		}		
+		}
+		
+		dh.setTable(db, Tables.IMAGE_REGIONS);
+		for(ContentValues rcv : unredactedRegions)
+			db.insert(dh.getTable(), null, rcv);
+		
+		redactedHash = MediaHasher.hash(fileToBytes(clone), "SHA-1");
+	}
+
+	public void doCleanup() {
+		File informaDir = new File(InformaConstants.DUMP_FOLDER);
+    	FileFilter cleanup = new FileFilter() {
+    		String[] extensions = new String[] {"jpg","informaregion"};
+			@Override
+			public boolean accept(File file) {
 				
+				for(String e : extensions)
+					if(file.getName().toLowerCase().endsWith(e))
+						return true;
+						
+				return false;
+			}
+    		
+    	};
+    	
+    	for(File f : informaDir.listFiles(cleanup))
+    		f.delete();
+    			
+		db.close();
+		dh.close();
+		
+		clone.delete();
+	}
+	
+	public int createVersionForTrustedDestination(String informaImageFilename, String intendedDestination) throws JSONException, NoSuchAlgorithmException, IOException {
+		int result = 0;
+		
+		// replace the metadata's intended destination
+		metadataObject.getJSONObject(Keys.Informa.INTENT).put(Keys.Intent.INTENDED_DESTINATION, intendedDestination);
+		
 		// insert metadata
 		if(constructImage(clone.getAbsolutePath(), informaImageFilename, metadataObject.toString(), metadataObject.toString().length()) > 0) {
-			
+			ContentValues cv = new ContentValues();
 			// package zipped image region bytes
-			_sp = PreferenceManager.getDefaultSharedPreferences(c);
-			DatabaseHelper dh = new DatabaseHelper(c);
-			SQLiteDatabase db = dh.getWritableDatabase(_sp.getString(Keys.Settings.HAS_DB_PASSWORD, ""));
-			
 			cv.put(Image.METADATA, metadataObject.toString());
-			cv.put(Image.REDACTED_IMAGE_HASH, MediaHasher.hash(fileToBytes(new File(informaImageFilename)), "SHA-1"));
+			cv.put(Image.REDACTED_IMAGE_HASH, redactedHash);
 			cv.put(Image.LOCATION_OF_ORIGINAL, ((JSONObject) metadataObject.getJSONObject(Informa.GENEALOGY)).getString(Keys.Image.LOCAL_MEDIA_PATH));
 			cv.put(Image.LOCATION_OF_OBSCURED_VERSION, informaImageFilename);
 			cv.put(Keys.Intent.Destination.EMAIL, ((JSONObject) metadataObject.getJSONObject(Informa.INTENT)).getString(Keys.Intent.INTENDED_DESTINATION));
+			cv.put(Image.CONTAINMENT_ARRAY, containmentArray);
+			cv.put(Image.UNREDACTED_IMAGE_HASH, unredactedHash);
+			
 			
 			dh.setTable(db, Tables.IMAGES);
 			db.insert(dh.getTable(), null, cv);
 			
-			dh.setTable(db, Tables.IMAGE_REGIONS);
-			for(ContentValues rcv : unredactedRegions)
-				db.insert(dh.getTable(), null, rcv);
+			// zip file for trusted destination
+			File informa = new File(informaImageFilename.substring(0, informaImageFilename.length() - 4) + ".informa");
+			fos = new FileOutputStream(informa);
+			zos = new ZipOutputStream(fos);
 			
-			db.close();
-			dh.close();
-				
-			// delete unencrypted
-			clone.delete();
+			addToZip(new File(informaImageFilename));
 			
+			for(File f : imageRegionFiles) {
+				addToZip(f);
+			}
 			
-			c.sendBroadcast(
-					new Intent()
-					.setAction(InformaConstants.Keys.Service.FINISH_ACTIVITY));
+			zos.close();
+			fos.close();
+			
+			// TODO: DO ENCRYPT!
+			result = 1;
 		}
 		
+		return result;
+	}
+	
+	private void handleOriginalImage() throws IOException {		
+		switch(Integer.parseInt(_sp.getString(Keys.Settings.DEFAULT_IMAGE_HANDLING,""))) {
+		case OriginalImageHandling.ENCRYPT_ORIGINAL:
+			encryptOriginal();
+			break;
+		case OriginalImageHandling.LEAVE_ORIGINAL_ALONE:
+			copyOriginalToSDCard();
+			break;
+		}
+	}
+	
+	private void copyOriginalToSDCard() {
+		Log.d(InformaConstants.TAG, "copying original to sd card...");
+	}
+	
+	private void encryptOriginal() throws IOException {
+		Log.d(InformaConstants.TAG, "copying original to database...");
+		long clength = clone.length();
+		int parts = (int) Math.round(clength/InformaConstants.BLOB_MAX);
+		Log.d(InformaConstants.TAG, "... in " + parts + " part[s]");
+		
+		byte[] b = fileToBytes(clone);
+		int bytesWritten;
+		int byteOffset;
+		bytesWritten = byteOffset = 0;
+		
+		for(int i=0; i<parts; i++) {
+			
+		}
+	}
+	
+	private void addToZip(File file) throws IOException {
+		byte[] buffer = new byte[(int) file.length()];
+		
+		FileInputStream fis = new FileInputStream(file);
+		zos.putNextEntry(new ZipEntry(file.getAbsolutePath()));
+		
+		int bytesRead = 0;
+		while((bytesRead = fis.read(buffer)) > 0)
+			zos.write(buffer, 0, bytesRead);
+		zos.closeEntry();
+		fis.close();
 	}
 	
 	private byte[] gzipImageRegionData(byte[] data) throws IOException {
@@ -167,6 +270,14 @@ public class ImageConstructor {
 		gos.close();
 		baos.close();
 		return baos.toByteArray();
+	}
+	
+	private File bytesToFile(byte[] data, String filename) throws IOException {
+		File byteFile = new File(InformaConstants.DUMP_FOLDER, filename);
+		FileOutputStream fos = new FileOutputStream(byteFile);
+		fos.write(data);
+		fos.close();
+		return byteFile;
 	}
 	
 	private byte[] fileToBytes(File file) throws IOException {

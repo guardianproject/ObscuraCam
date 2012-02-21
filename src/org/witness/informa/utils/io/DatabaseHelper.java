@@ -53,6 +53,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 							TrustedDestinations.EMAIL + " text not null, " +
 							TrustedDestinations.KEYRING_ID + " text not null, " +
 							TrustedDestinations.DISPLAY_NAME + " text not null" +
+							")",
+					"CREATE TABLE " + Tables.ENCRYPTED_IMAGES + " (" + BaseColumns._ID + " " +
+							"integer primary key autoincrement, " +
+							ImageRegion.BASE + " text not null, " +
+							ImageRegion.DATA + " blob not null" +
 							")"
 				};
 			}
@@ -118,7 +123,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				getTable().compareTo(Tables.CONTACTS) == 0 ||
 				getTable().compareTo(Tables.IMAGES) == 0 ||
 				getTable().compareTo(Tables.SETUP) == 0 ||
-				getTable().compareTo(Tables.IMAGE_REGIONS) == 0
+				getTable().compareTo(Tables.IMAGE_REGIONS) == 0 ||
+				getTable().compareTo(Tables.TRUSTED_DESTINATIONS) == 0 ||
+				getTable().compareTo(Tables.ENCRYPTED_IMAGES) == 0
 			)
 				queries = QueryBuilders.INIT_INFORMA.build();
 			

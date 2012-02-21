@@ -14,6 +14,7 @@ public class InformaConstants {
 	public final static int BLOB_MAX = 1048576;
 	public final static String DUMP_FOLDER = Environment.getExternalStorageDirectory() + "/InformaCam/";
 	public final static String TMP_FILE_NAME = "tmp_.jpg";
+	public final static String NOT_INCLUDED = "NOT INCLUDED IN THIS VERSION";
 
 	public final static class Keys {
 		public final static class Settings {
@@ -130,6 +131,7 @@ public class InformaConstants {
 			public static final String SETUP = "informaSetup";
 			public static final String IMAGE_REGIONS = "imageRegions";
 			public static final String TRUSTED_DESTINATIONS = "trustedDestinations";
+			public static final String ENCRYPTED_IMAGES = "encryptedImages";
 		}
 		
 		public final static class Suckers {
