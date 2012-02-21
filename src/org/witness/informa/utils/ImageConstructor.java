@@ -219,13 +219,25 @@ public class ImageConstructor {
 		return result;
 	}
 	
-	private void handleOriginalImage() throws IOException {		
+	private void handleOriginalImage() {		
 		switch(Integer.parseInt(_sp.getString(Keys.Settings.DEFAULT_IMAGE_HANDLING,""))) {
 		case OriginalImageHandling.ENCRYPT_ORIGINAL:
-			encryptOriginal();
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						encryptOriginal();
+					} catch (IOException e) {}
+				}
+			}).start();
 			break;
 		case OriginalImageHandling.LEAVE_ORIGINAL_ALONE:
-			copyOriginalToSDCard();
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					copyOriginalToSDCard();
+				}
+			}).start();
 			break;
 		}
 	}
@@ -235,19 +247,29 @@ public class ImageConstructor {
 	}
 	
 	private void encryptOriginal() throws IOException {
-		Log.d(InformaConstants.TAG, "copying original to database...");
+		JSONArray containment = new JSONArray();
 		long clength = clone.length();
-		int parts = (int) Math.round(clength/InformaConstants.BLOB_MAX);
-		Log.d(InformaConstants.TAG, "... in " + parts + " part[s]");
+		int parts = (int) Math.ceil(clength/InformaConstants.BLOB_MAX) + 1;
+		
+		dh.setTable(db, Tables.ENCRYPTED_IMAGES);
 		
 		byte[] b = fileToBytes(clone);
-		int bytesWritten;
-		int byteOffset;
-		bytesWritten = byteOffset = 0;
-		
+		int bytesLeft = b.length;
+		int offset = 0;
 		for(int i=0; i<parts; i++) {
+			byte[] cpy = new byte[Math.min(bytesLeft, InformaConstants.BLOB_MAX)];
+			System.arraycopy(b, offset, cpy, 0, cpy.length);
+			offset += cpy.length;
+			bytesLeft -= cpy.length;
 			
+			ContentValues cv = new ContentValues();
+			cv.put(Keys.ImageRegion.BASE, base);
+			cv.put(Keys.ImageRegion.DATA, cpy);
+			containment.put(db.insert(dh.getTable(), null, cv));
 		}
+		
+		containmentArray = containment.toString();
+		
 	}
 	
 	private void addToZip(File file) throws IOException {

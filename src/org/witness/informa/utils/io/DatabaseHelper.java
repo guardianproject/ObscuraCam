@@ -1,5 +1,7 @@
 package org.witness.informa.utils.io;
 
+import java.util.ArrayList;
+
 import org.witness.informa.utils.InformaConstants.Keys.*;
 
 import info.guardianproject.database.sqlcipher.SQLiteDatabase;
@@ -118,16 +120,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 			return true;
 		} else {
 			c.close();
-			String[] queries = null;
-			if(
-				getTable().compareTo(Tables.CONTACTS) == 0 ||
-				getTable().compareTo(Tables.IMAGES) == 0 ||
-				getTable().compareTo(Tables.SETUP) == 0 ||
-				getTable().compareTo(Tables.IMAGE_REGIONS) == 0 ||
-				getTable().compareTo(Tables.TRUSTED_DESTINATIONS) == 0 ||
-				getTable().compareTo(Tables.ENCRYPTED_IMAGES) == 0
-			)
-				queries = QueryBuilders.INIT_INFORMA.build();
+			ArrayList<String> queries = new ArrayList<String>();
+			if(getTable().compareTo(Tables.IMAGES) == 0)
+				queries.add(QueryBuilders.INIT_INFORMA.build()[0]);
+			else if(getTable().compareTo(Tables.CONTACTS) == 0)
+				queries.add(QueryBuilders.INIT_INFORMA.build()[1]);
+			else if(getTable().compareTo(Tables.SETUP) == 0)
+				queries.add(QueryBuilders.INIT_INFORMA.build()[2]);
+			else if(getTable().compareTo(Tables.IMAGE_REGIONS) == 0)
+				queries.add(QueryBuilders.INIT_INFORMA.build()[3]);
+			else if(getTable().compareTo(Tables.TRUSTED_DESTINATIONS) == 0)
+				queries.add(QueryBuilders.INIT_INFORMA.build()[4]);
+			else if(getTable().compareTo(Tables.ENCRYPTED_IMAGES) == 0)
+				queries.add(QueryBuilders.INIT_INFORMA.build()[5]);
 			
 			for(String q : queries)
 				db.execSQL(q);
