@@ -21,4 +21,8 @@
 		android:entries="@array/default_image_handling"
 		android:entryValues="@array/default_image_handling_values"
 		android:key="informa.DefaultImageHandling" />
+	<PreferenceCategory
+		android:title="@string/informaPrefs_trustedDestinations_title"
+		android:id="@+id/trustedDestinations_holder" />
+	
 </PreferenceScreen>

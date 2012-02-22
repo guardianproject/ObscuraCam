@@ -67,10 +67,28 @@ public class SensorSucker extends Service {
 		return binder;
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public void onCreate() {
 		
+		startUpService();
+	}
+	
+	public void onDestroy() {
+		super.onDestroy();
+		
+		for(BroadcastReceiver b : br)
+			unregisterReceiver(b);
+	}
+	
+	public void stopSucking() {
+		_geo.getSucker().stopUpdates();
+		_phone.getSucker().stopUpdates();
+		_acc.getSucker().stopUpdates();
+		stopSelf();
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void startUpService() {
 		Log.d(InformaConstants.TAG, "Informa v1.1 starting");
 		
 		br.add(new Broadcaster(new IntentFilter(InformaConstants.Keys.Service.STOP_SERVICE)));
@@ -87,20 +105,6 @@ public class SensorSucker extends Service {
 		
 		capturedEvents = imageRegions = new JSONArray();
 		imageData = new JSONObject();
-	}
-	
-	public void onDestroy() {
-		super.onDestroy();
-		
-		for(BroadcastReceiver b : br)
-			unregisterReceiver(b);
-	}
-	
-	public void stopSucking() {
-		_geo.getSucker().stopUpdates();
-		_phone.getSucker().stopUpdates();
-		_acc.getSucker().stopUpdates();
-		stopSelf();
 	}
 	
 	private void handleBluetooth(BluetoothDevice device) throws JSONException {
@@ -158,6 +162,7 @@ public class SensorSucker extends Service {
 				try {
 					informa = new Informa(getApplicationContext(), imageData, imageRegions, capturedEvents, intendedDestinations);
 					Image[] img = informa.getImages();
+					
 					ImageConstructor ic = new ImageConstructor(getApplicationContext(), img[0].getMetadataPackage(), img[0].getName());
 					for(Image i : img)
 						ic.createVersionForTrustedDestination(i.getAbsolutePath(),i.getIntendedDestination());
@@ -182,6 +187,11 @@ public class SensorSucker extends Service {
 					Log.d(InformaConstants.TAG, "informa called NoSuchAlgoException: " + e.toString());
 				} catch (IOException e) {
 					Log.d(InformaConstants.TAG, "informa called IOException: " + e.toString());
+				} catch (NullPointerException e) {
+					Log.d(InformaConstants.TAG, "informa called NPE: " + e.toString());
+					sendBroadcast(
+							new Intent()
+							.setAction(InformaConstants.Keys.Service.FINISH_ACTIVITY));
 				}
 				
 			}
@@ -225,7 +235,8 @@ public class SensorSucker extends Service {
 						i.getIntExtra(InformaConstants.Keys.CaptureEvent.TYPE, InformaConstants.CaptureEvents.REGION_GENERATED));
 				} else if(InformaConstants.Keys.Service.SET_EXIF.equals(i.getAction())) {
 					handleExif(i.getStringExtra(InformaConstants.Keys.Image.EXIF));
-				}
+				} else if(InformaConstants.Keys.Service.START_SERVICE.equals(i.getAction()))
+					startUpService();
 			} catch (Exception e) {
 				Log.d(InformaConstants.TAG, "error: " + e);
 			}

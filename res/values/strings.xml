@@ -22,6 +22,7 @@
     <string name="back">Back</string>
     <string name="next">Next</string>
     <string name="done">Done</string>
+    <string name="saving">Saving...</string>
     
     <string name="idtaggerh1">Identify</string>
     <string name="idtaggerh12">Consentify</string>
@@ -88,7 +89,7 @@
 	<!--  INFORMA KEY CHOOSER  -->
 	<string name="chooser_prompt">Select trusted destinations for your image:</string>
 	<string name="chooser_no_choice_warning_title">Wait!</string>
-	<string name="chooser_no_choice_warning_text">You have not selected any trusted destinations.  Continue anyway?</string>
+	<string name="chooser_no_choice_warning_text">You have not selected any trusted destinations.  Continue anyway?\nWarning: your image will be redacted, but metadata will not be saved.</string>
 	
 	<!--  INFORMA CONFIRM ACTIVITY -->
 	<string name="informaConfirm_title">Images Saved</string>
@@ -117,6 +118,7 @@
 	<string name="informaPrefs_newkey_label">New Trusted Destination</string>
 	<string name="informaPrefs_keyalias">Destination Name:</string>
 	<string name="informaPrefs_keyemail">Destination Email:</string>
+	<string name="informaPrefs_trustedDestinations_title">Trusted Destinations</string>
     
     <!--  WIZARD related -->
     <string name="wizard_main_title">Setup Wizard</string>

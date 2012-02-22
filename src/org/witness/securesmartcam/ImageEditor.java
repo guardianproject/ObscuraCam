@@ -1516,7 +1516,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     				.getRegionProcessor().setProperties(mProp);
     			    			
     		} else if(requestCode == InformaConstants.FROM_TRUSTED_DESTINATION_CHOOSER) {
-    			mProgressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
+    			mProgressDialog = ProgressDialog.show(this, "", getResources().getString(R.string.saving), true, true);
     			mHandler.postDelayed(new Runnable() {
     				  @Override
     				  public void run() {
@@ -1531,6 +1531,20 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						}
     				  }
     				},500);
+    		}
+    	} else if(resultCode == Activity.RESULT_CANCELED) {
+    		if(requestCode == InformaConstants.FROM_TRUSTED_DESTINATION_CHOOSER) {
+    			mProgressDialog = ProgressDialog.show(this,  "", getResources().getString(R.string.saving));
+    			mHandler.postDelayed(new Runnable() {
+    				@Override
+    				public void run() {
+    					try {
+							saveImage(new long[] {0});
+						} catch (IOException e) {
+							Log.d(InformaConstants.TAG, e.toString());
+						}
+    				}
+    			}, 500);
     		}
     	}
     }

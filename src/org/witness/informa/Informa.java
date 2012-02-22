@@ -453,28 +453,32 @@ public class Informa {
 		data.imageHash = MediaHasher.hash(new File(genealogy.localMediaPath), "MD5");
 		data.exif = new Exif(exifData);
 		
-		images = new Image[intendedDestinations.length];
-		for(int i=0; i<intendedDestinations.length; i++) {
-			dh.setTable(db, Tables.TRUSTED_DESTINATIONS);
-			try {
-				Cursor td = dh.getValue(
-						db, 
-						new String[] {TrustedDestinations.DISPLAY_NAME, TrustedDestinations.EMAIL},
-						TrustedDestinations.KEYRING_ID,
-						intendedDestinations[i]);
-				td.moveToFirst();
-				String displayName = td.getString(td.getColumnIndex(TrustedDestinations.DISPLAY_NAME));
-				String email = td.getString(td.getColumnIndex(TrustedDestinations.EMAIL));
-				String newPath = 
-						InformaConstants.DUMP_FOLDER + 
-						genealogy.localMediaPath.substring(genealogy.localMediaPath.lastIndexOf("/"), genealogy.localMediaPath.length() - 4) +
-						"_" + displayName.replace(" ", "-") +
-						getMimeType(data.sourceType);
-				td.close();
-				images[i] = new Image(newPath, email);
-			} catch(NullPointerException e) {
-				Log.d(InformaConstants.TAG, "fucking npe: " + e);
+		try {
+			images = new Image[intendedDestinations.length];
+			for(int i=0; i<intendedDestinations.length; i++) {
+				dh.setTable(db, Tables.TRUSTED_DESTINATIONS);
+				try {
+					Cursor td = dh.getValue(
+							db, 
+							new String[] {TrustedDestinations.DISPLAY_NAME, TrustedDestinations.EMAIL},
+							TrustedDestinations.KEYRING_ID,
+							intendedDestinations[i]);
+					td.moveToFirst();
+					String displayName = td.getString(td.getColumnIndex(TrustedDestinations.DISPLAY_NAME));
+					String email = td.getString(td.getColumnIndex(TrustedDestinations.EMAIL));
+					String newPath = 
+							InformaConstants.DUMP_FOLDER + 
+							genealogy.localMediaPath.substring(genealogy.localMediaPath.lastIndexOf("/"), genealogy.localMediaPath.length() - 4) +
+							"_" + displayName.replace(" ", "-") +
+							getMimeType(data.sourceType);
+					td.close();
+					images[i] = new Image(newPath, email);
+				} catch(NullPointerException e) {
+					Log.d(InformaConstants.TAG, "fucking npe: " + e);
+				}
 			}
+		} catch(NullPointerException e) {
+			Log.d(InformaConstants.TAG, "there are no intended destinations");
 		}
 		
 		db.close();

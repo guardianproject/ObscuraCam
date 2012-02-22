@@ -85,7 +85,7 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 
         setLayout();
         deleteTmpFile();
-        
+                
         informaService = null;
         
         Eula.show(this);
@@ -97,20 +97,26 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 
 		super.onResume();
 		
-        if(getIntent().hasExtra(Keys.Service.FINISH_ACTIVITY))
-        	finish();
-        else if(getIntent().hasExtra(Keys.Service.START_SERVICE))
-        	launchInforma();
-		
-		final SharedPreferences eula = getSharedPreferences(Eula.PREFERENCES_EULA,
-	                Activity.MODE_PRIVATE);
-		  
-	        if (eula.getBoolean(Eula.PREFERENCE_EULA_ACCEPTED, false)) {
-	        	boolean res = InformaSettings.show(this);
-	    		if(res)
-	    			launchInforma();
-	        }
-	    
+		if(getIntent().getExtras() != null) {
+			Bundle b = getIntent().getExtras();
+			if(b.containsKey(Keys.Service.FINISH_ACTIVITY)) {
+				informaService = null;
+				
+				finish();
+			} else if(b.containsKey(Keys.Service.START_SERVICE)) {
+				launchInforma();
+			}
+		} else {
+			
+			final SharedPreferences eula = getSharedPreferences(Eula.PREFERENCES_EULA,
+		                Activity.MODE_PRIVATE);
+			  
+		        if (eula.getBoolean(Eula.PREFERENCE_EULA_ACCEPTED, false)) {
+		        	boolean res = InformaSettings.show(this);
+		    		if(res)
+		    			launchInforma();
+		        }
+		}
 				
 	
 	}
@@ -187,6 +193,7 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 		if (resultCode == RESULT_OK)
 		{
 			setContentView(R.layout.mainloading);
+			Log.d(InformaConstants.TAG, "HELLO ON ACTIVITY RESULT");
 			
 			if (requestCode == ObscuraConstants.GALLERY_RESULT) 
 			{
@@ -322,7 +329,7 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
     	File informaDump = new File(InformaConstants.DUMP_FOLDER);
     	if(!informaDump.exists())
     		informaDump.mkdirs();
-    	    	
+    	    
     	if(informaService == null) {
     		Intent startSensorSucker = new Intent(this, SensorSucker.class);
     		bindService(startSensorSucker, sc, Context.BIND_AUTO_CREATE);

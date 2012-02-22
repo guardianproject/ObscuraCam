@@ -48,7 +48,6 @@ public class KeyChooser extends Activity implements OnClickListener {
 		keyChooser_ok.setOnClickListener(this);
 		keys = new ArrayList<Selections>();
 		
-		
 		h = new Handler();
 		
 		Runnable r = new Runnable() {
@@ -77,7 +76,9 @@ public class KeyChooser extends Activity implements OnClickListener {
 						extras.put(TrustedDestinations.EMAIL, c.getString(1));
 						extras.put(TrustedDestinations.KEYRING_ID, c.getLong(2));
 						
-						keys.add(new Selections(c.getString(3), false, extras));
+						// TODO: rehandle missing keys
+						if(!(apg.getUserId(getApplicationContext(), c.getLong(2)).compareTo("<unknown>") == 0))
+							keys.add(new Selections(c.getString(3), false, extras));
 						c.moveToNext();
 					}
 					
