@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.witness.informa.utils.InformaConstants;
+import org.witness.informa.utils.InformaConstants.Keys;
 import org.witness.informa.utils.InformaConstants.Keys.Settings;
 import org.witness.informa.utils.InformaConstants.Keys.Tables;
 import org.witness.informa.utils.InformaConstants.Keys.TrustedDestinations;
@@ -68,17 +69,22 @@ public class KeyChooser extends Activity implements OnClickListener {
 				dh.setTable(db, Tables.TRUSTED_DESTINATIONS);
 				
 				try {
-					Cursor c = dh.getValue(db, null, null, null);
+					Cursor c = dh.getValue(db, new String[] {
+							Keys.TrustedDestinations.EMAIL,
+							Keys.TrustedDestinations.DISPLAY_NAME,
+							Keys.TrustedDestinations.KEYRING_ID
+					}, null, null);
 					c.moveToFirst();
 					
 					while(!c.isAfterLast()) {
 						JSONObject extras = new JSONObject();
-						extras.put(TrustedDestinations.EMAIL, c.getString(1));
-						extras.put(TrustedDestinations.KEYRING_ID, c.getLong(2));
+						extras.put(TrustedDestinations.EMAIL, c.getString(c.getColumnIndex(Keys.TrustedDestinations.EMAIL)));
+						extras.put(TrustedDestinations.KEYRING_ID, c.getString(c.getColumnIndex(Keys.TrustedDestinations.KEYRING_ID)));
+						extras.put(TrustedDestinations.DISPLAY_NAME, c.getString(c.getColumnIndex(TrustedDestinations.DISPLAY_NAME)));
 						
 						// TODO: rehandle missing keys
-						if(!(apg.getUserId(getApplicationContext(), c.getLong(2)).compareTo("<unknown>") == 0))
-							keys.add(new Selections(c.getString(3), false, extras));
+						keys.add(new Selections(extras.getString(TrustedDestinations.DISPLAY_NAME), false, extras));
+							
 						c.moveToNext();
 					}
 					
@@ -118,6 +124,7 @@ public class KeyChooser extends Activity implements OnClickListener {
 			
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
+				getIntent().putExtra(Keys.USER_CANCELED_EVENT, Keys.USER_CANCELED_EVENT);
 				setResult(Activity.RESULT_CANCELED, getIntent());
 				finish();
 				
@@ -140,7 +147,7 @@ public class KeyChooser extends Activity implements OnClickListener {
 			for(Selections s : keys) {
 				if(s.getSelected())
 					try {
-						sel.add(s.getExtras().getLong(TrustedDestinations.KEYRING_ID));
+						sel.add(Long.parseLong(s.getExtras().getString(TrustedDestinations.KEYRING_ID)));
 					} catch (JSONException e) {
 						Log.d(InformaConstants.TAG, e.toString());
 					}

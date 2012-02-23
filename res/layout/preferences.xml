@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+    <ListView 
+        android:id="@android:id/list"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    	android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+    	android:orientation="vertical"
+    	android:weightSum="1.0" >
+		<Button
+		    android:layout_width="fill_parent"
+	    	android:layout_height="0dip"
+	    	android:id="@+id/tdmanager_addNew"
+	    	android:text="@string/tdmanager_add_new"
+	    	android:drawableLeft="@drawable/ic_menu_add"
+	    	android:gravity="left|center_vertical"
+	    	android:layout_weight="0.1" />
+		<ListView 
+	    	android:layout_width="fill_parent"
+	    	android:layout_height="0dip"
+	    	android:layout_weight="0.7"
+	    	android:id="@+id/tdmanager_holder" />
+	</LinearLayout>
+</LinearLayout>

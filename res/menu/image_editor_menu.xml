@@ -16,11 +16,10 @@
     <item android:id="@+id/menu_save"
         android:title="@string/menu_save"
         android:icon="@drawable/ic_menu_save" />
-<!--        
-	<item android:id="@+id/menu_delete_original" 
-    	android:title="@string/menu_delete_original"
-    	android:icon="@drawable/ic_menu_trash" />
--->
+   
+    <item android:id="@+id/menu_prefs"
+        android:title="@string/menu_prefs"
+        android:icon="@drawable/ic_menu_prefs" />
 	
     <item android:id="@+id/menu_about" 
     	android:title="@string/menu_about"

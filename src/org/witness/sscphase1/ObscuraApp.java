@@ -24,6 +24,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
@@ -88,7 +89,19 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
                 
         informaService = null;
         
-        Eula.show(this);
+        if(getIntent().getExtras() != null) {
+        	Bundle b = getIntent().getExtras();
+        	if(b.containsKey(Keys.Service.FINISH_ACTIVITY))
+        		finish();
+        	else if(b.containsKey(Keys.Service.START_SERVICE)) {
+        		Log.d(InformaConstants.TAG, "um hi? restart?");
+        		Eula.show(this);
+        	}
+        		
+        	
+        } else {
+        	Eula.show(this);
+        }
 
     }
     
@@ -97,26 +110,14 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 
 		super.onResume();
 		
-		if(getIntent().getExtras() != null) {
-			Bundle b = getIntent().getExtras();
-			if(b.containsKey(Keys.Service.FINISH_ACTIVITY)) {
-				informaService = null;
-				
-				finish();
-			} else if(b.containsKey(Keys.Service.START_SERVICE)) {
-				launchInforma();
-			}
-		} else {
-			
-			final SharedPreferences eula = getSharedPreferences(Eula.PREFERENCES_EULA,
-		                Activity.MODE_PRIVATE);
-			  
-		        if (eula.getBoolean(Eula.PREFERENCE_EULA_ACCEPTED, false)) {
-		        	boolean res = InformaSettings.show(this);
-		    		if(res)
-		    			launchInforma();
-		        }
-		}
+		final SharedPreferences eula = getSharedPreferences(Eula.PREFERENCES_EULA,
+                Activity.MODE_PRIVATE);
+	  
+        if (eula.getBoolean(Eula.PREFERENCE_EULA_ACCEPTED, false)) {
+        	boolean res = InformaSettings.show(this);
+    		if(res)
+    			launchInforma();
+        }
 				
 	
 	}
@@ -137,7 +138,7 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 			
 			try
 			{
-				 setContentView(R.layout.mainloading);
+				setContentView(R.layout.mainloading);
 				Intent intent = new Intent(Intent.ACTION_PICK);
 				intent.setType("image/*"); //limit to image types for now
 				startActivityForResult(intent, ObscuraConstants.GALLERY_RESULT);
@@ -307,6 +308,9 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
     	MenuItem prefsMenuItem = menu.add(Menu.NONE, ObscuraConstants.PREFS, Menu.NONE, getString(R.string.menu_prefs));
     	prefsMenuItem.setIcon(R.drawable.ic_menu_prefs);
     	
+    	MenuItem logoutMenuItem = menu.add(Menu.NONE, ObscuraConstants.LOGOUT, Menu.NONE, getString(R.string.menu_logout));
+    	logoutMenuItem.setIcon(R.drawable.ic_menu_logout);
+    	
     	return true;
 	}
 	
@@ -318,8 +322,9 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
         	case ObscuraConstants.PREFS:
         		launchPrefs();
         		return true;
+        	case ObscuraConstants.LOGOUT:
+        		doLogout();
         	default:
-        		
         		return false;
         }
     }
@@ -335,6 +340,13 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
     		bindService(startSensorSucker, sc, Context.BIND_AUTO_CREATE);
     	}
     	
+    }
+    
+    public void doLogout() {
+    	SharedPreferences _sp = PreferenceManager.getDefaultSharedPreferences(this);
+    	SharedPreferences.Editor _ed = _sp.edit();
+    	_ed.putString(InformaConstants.Keys.Settings.HAS_DB_PASSWORD, InformaConstants.PW_EXPIRY).commit();
+    	finish();
     }
     
 	

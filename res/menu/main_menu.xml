@@ -8,5 +8,9 @@
     <item android:id="@+id/menu_prefs"
         android:title="@string/menu_prefs"
         android:icon="@drawable/ic_menu_prefs" />
+
+    <item android:id="@+id/menu_logout"
+        android:title="@string/menu_logout"
+        android:icon="@drawable/ic_menu_logout" />
         
 </menu>

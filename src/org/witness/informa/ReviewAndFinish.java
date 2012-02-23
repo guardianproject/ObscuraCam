@@ -15,6 +15,7 @@ import java.util.zip.ZipOutputStream;
 import org.witness.informa.utils.InformaConstants;
 import org.witness.informa.utils.InformaConstants.Keys;
 import org.witness.informa.utils.InformaConstants.Keys.Tables;
+import org.witness.informa.utils.InformaConstants.LoginCache;
 import org.witness.informa.utils.io.DatabaseHelper;
 import org.witness.informa.utils.secure.Apg;
 import org.witness.securesmartcam.utils.ObscuraConstants;
@@ -47,6 +48,8 @@ public class ReviewAndFinish extends Activity implements OnClickListener {
 		setContentView(R.layout.reviewandfinish);
 		savedImageUri = getIntent().getData();
 		
+		_sp = PreferenceManager.getDefaultSharedPreferences(this);
+		
 		confirmView = (Button) findViewById(R.id.informaConfirm_btn_view);
 		confirmView.setOnClickListener(this);
 		
@@ -55,6 +58,9 @@ public class ReviewAndFinish extends Activity implements OnClickListener {
 		
 		confirmTakeAnother = (Button) findViewById(R.id.informaConfirm_btn_takeAnother);
 		confirmTakeAnother.setOnClickListener(this);
+		
+    	if(Integer.parseInt(_sp.getString(Keys.Settings.DB_PASSWORD_CACHE_TIMEOUT, "")) == LoginCache.AFTER_SAVE)
+    		_sp.edit().putString(Keys.Settings.HAS_DB_PASSWORD, InformaConstants.PW_EXPIRY).commit();
 	}
 	
     private void viewImage() {
@@ -93,14 +99,15 @@ public class ReviewAndFinish extends Activity implements OnClickListener {
 
 	@Override
 	public void onClick(View v) {
-		if(v == confirmView) {
+		if(v == confirmView) {			
 			viewImage();
 		} else if(v == confirmQuit) {			
+			if(Integer.parseInt(_sp.getString(Keys.Settings.DB_PASSWORD_CACHE_TIMEOUT, "")) == LoginCache.ON_CLOSE)
+	    		_sp.edit().putString(Keys.Settings.HAS_DB_PASSWORD, InformaConstants.PW_EXPIRY).commit();
 			startActivity(new Intent(this, ObscuraApp.class).putExtra(Keys.Service.FINISH_ACTIVITY, "die"));
-			finish();
 		} else if(v == confirmTakeAnother) {
 			startActivity(new Intent(this, ObscuraApp.class).putExtra(Keys.Service.START_SERVICE, "go"));
 		}
-		
+		finish();
 	}
 }

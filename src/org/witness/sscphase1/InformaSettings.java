@@ -29,13 +29,8 @@ class InformaSettings {
 			return false;
 		} else if(preferences.getString(InformaConstants.Keys.Settings.HAS_DB_PASSWORD, "").compareTo(InformaConstants.PW_EXPIRY) == 0) {
 			Log.d(InformaConstants.TAG, "user\'s password expired.  must log in again.");
-			SharedPreferences.Editor _ed = preferences.edit();
-			final AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-			builder.setCancelable(false);
-			builder.setTitle(R.string.ip_login_title);
-			
-			
-			builder.create().show();
+			Intent intent = new Intent(activity, Login.class);
+			activity.startActivity(intent);
 			return false;
 		}
 		

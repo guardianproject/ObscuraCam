@@ -15,6 +15,7 @@ public class ObscuraConstants {
 	
 	public final static int ABOUT = 0;
 	public final static int PREFS = 1;
+	public final static int LOGOUT = 2;
 	
 	public final static String CAMERA_TMP_FILE = "ssctmp.jpg";
 	public final static String MIME_TYPE_JPEG = "image/jpeg";

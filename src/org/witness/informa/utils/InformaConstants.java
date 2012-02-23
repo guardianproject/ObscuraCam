@@ -1,7 +1,9 @@
 package org.witness.informa.utils;
 
+import android.content.SharedPreferences;
 import android.media.ExifInterface;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 
 public class InformaConstants {
 	public final static String TAG = "************ INFORMA ***********";
@@ -17,6 +19,8 @@ public class InformaConstants {
 	public final static String NOT_INCLUDED = "NOT INCLUDED IN THIS VERSION";
 
 	public final static class Keys {
+		public final static String USER_CANCELED_EVENT = "userCanceledEvent";
+		
 		public final static class Settings {
 			public static final String INFORMA = "informa";
 			public static final String SETTINGS_VIEWED = "informa.SettingsViewed";

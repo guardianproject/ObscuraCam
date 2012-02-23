@@ -16,6 +16,7 @@
     <string name="menu_share">Share</string>
     <string name="menu_prefs">Preferences</string>
     <string name="menu_about">About InformaCam</string>
+    <string name="menu_logout">Logout</string>
     <string name="imgprefs_eraseexif">Erase All Exif Data</string>
     <string name="ok">OK</string>
     <string name="save">Save</string>
@@ -81,6 +82,11 @@
 	<string name="_continue">Continue</string>
 	<string name="cancel">Cancel</string>
 	
+	<!--  LOG IN ACTIVITY -->
+	<string name="login">Log In</string>
+	<string name="login_text">Please enter your password to continue</string>
+	<string name="login_fail">Your password is incorrect.  Please try again</string>
+	
 	<!--  INFORMA TAGGER -->
 	<string name="tagger_no_name_error">You haven\'t identified anyone!</string>
 	<string name="tagger_informed_consent_question">This subject given his/her informed consent to appear in this image</string>
@@ -105,7 +111,6 @@
     
     <!--  INFORMA PREFERENCES -->
     <string name="ip_title">Informa Preferences</string>
-    <string name="ip_login_title">Log in</string>
     <string name="ip_enter_pw">Please enter your InformaCam database password to continue:</string>
     <string name="informaPref_label">Informa Preferences</string>
 	<string name="informaPref_dbpw">Database Password</string>
@@ -119,6 +124,12 @@
 	<string name="informaPrefs_keyalias">Destination Name:</string>
 	<string name="informaPrefs_keyemail">Destination Email:</string>
 	<string name="informaPrefs_trustedDestinations_title">Trusted Destinations</string>
+	<string name="informaPrefs_trustedDestinations_prompt">Manage your trusted destinations...</string>
+	
+	<!--  INFORMA TRUSTED DESTINATIONS MANAGER -->
+	<string name="tdmanager_title">Trusted Destinations Manager</string>
+	<string name="tdmanager_add_new">Import new PGP contacts</string>
+	<string name="tdmanager_no_contacts">You do not have any PGP contacts yet!</string>
     
     <!--  WIZARD related -->
     <string name="wizard_main_title">Setup Wizard</string>

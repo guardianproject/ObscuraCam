@@ -2,6 +2,7 @@ package org.witness.informa.utils.io;
 
 import java.util.ArrayList;
 
+import org.witness.informa.utils.InformaConstants;
 import org.witness.informa.utils.InformaConstants.Keys.*;
 
 import info.guardianproject.database.sqlcipher.SQLiteDatabase;
@@ -9,6 +10,7 @@ import info.guardianproject.database.sqlcipher.SQLiteOpenHelper;
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.BaseColumns;
+import android.util.Log;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "informa.db";
@@ -85,6 +87,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {}
 	
+	public void removeValue(SQLiteDatabase db, String[] matchKey, Object[] matchValue) {
+		String query = "DELETE FROM " + TABLE + " WHERE ";
+		for(int m=0; m<matchKey.length; m++) {
+			if(matchValue[m].getClass().equals(String.class))
+				matchValue[m] = "\"" + matchValue[m] + "\"";
+			query += (matchKey[m] + "=" + matchValue[m] + " AND ");
+		}
+		query = query.substring(0, query.length() - 5);
+		db.execSQL(query);
+	}
+	
 	public Cursor getValue(SQLiteDatabase db, String[] values, String matchKey, Object matchValue) {
 		String select = "*";
 		
@@ -103,8 +116,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		
 			query += " WHERE " + matchKey + " = " + matchValue;
 		}
-		
+				
 		Cursor c = db.rawQuery(query, null);
+		
 		if(c != null && c.getCount() > 0) {
 			return c;
 		} else

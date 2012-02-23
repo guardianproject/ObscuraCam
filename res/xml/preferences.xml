@@ -23,6 +23,6 @@
 		android:key="informa.DefaultImageHandling" />
 	<PreferenceCategory
 		android:title="@string/informaPrefs_trustedDestinations_title"
-		android:id="@+id/trustedDestinations_holder" />
+		android:key="informa.trustedDestinations_holder" />
 	
 </PreferenceScreen>

@@ -2,21 +2,18 @@ package org.witness.securesmartcam;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.prefs.Preferences;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,13 +21,10 @@ import org.json.JSONObject;
 import org.witness.informa.KeyChooser;
 import org.witness.informa.ReviewAndFinish;
 import org.witness.informa.Tagger;
-import org.witness.informa.utils.ImageConstructor;
 import org.witness.informa.utils.InformaConstants;
 import org.witness.informa.utils.InformaConstants.Keys;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
-import org.witness.securesmartcam.filters.InformaTagger;
 import org.witness.securesmartcam.filters.RegionProcesser;
-import org.witness.securesmartcam.jpegredaction.JpegRedaction;
 import org.witness.securesmartcam.utils.ObscuraConstants;
 import org.witness.sscphase1.R;
 
@@ -41,7 +35,6 @@ import android.content.BroadcastReceiver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
@@ -133,8 +126,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     Bitmap bitmapCornerUR;
     Bitmap bitmapCornerLL;
     Bitmap bitmapCornerLR;
-    
-    
     
 	// Vector to hold ImageRegions 
 	ArrayList<ImageRegion> imageRegions = new ArrayList<ImageRegion>(); 
@@ -1137,23 +1128,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 				Intent keyChooser = new Intent(this, KeyChooser.class);
 				startActivityForResult(keyChooser, InformaConstants.FROM_TRUSTED_DESTINATION_CHOOSER);
-        		
         		return true;
         		
         	case R.id.menu_share:
         		// Share Image
           		shareImage();
-
-        		
         		return true;
-        	
-/*
- 			case R.id.menu_delete_original:
-        		// Delete Original Image
-        		handleDelete();
         		
-        		return true;
-*/        		
         	case R.id.menu_about:
         		// Pull up about screen
         		displayAbout();
@@ -1164,6 +1145,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         		showPreview();
         		
         		return true;
+        		
+        	case R.id.menu_prefs:
+        		launchPrefs();
         		
     		default:
     			return false;
@@ -1358,14 +1342,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     }
     
     /*
-     * TODO: handle the deletion of the original image
-     * according to preferences
-     */
-    private void handleDelete() {
-    	
-    }
-    
-    /*
      * The method that actually saves the altered image.  
      * This in combination with createObscuredBitmap could/should be done in another, more memory efficient manner. 
      */
@@ -1497,6 +1473,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	
     }
     
+    public void launchPrefs() {
+    	Intent toPrefs = new Intent(this, Preferences.class);
+    	startActivity(toPrefs);
+    }
+    
     @Override
     public void onActivityResult(int requestCode, int resultCode, final Intent data) {
     	if(resultCode == Activity.RESULT_OK) {
@@ -1533,7 +1514,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     				},500);
     		}
     	} else if(resultCode == Activity.RESULT_CANCELED) {
-    		if(requestCode == InformaConstants.FROM_TRUSTED_DESTINATION_CHOOSER) {
+    		// TODO: FIX THIS.
+    		if(requestCode == InformaConstants.FROM_TRUSTED_DESTINATION_CHOOSER && data.hasExtra(InformaConstants.Keys.USER_CANCELED_EVENT)) {
     			mProgressDialog = ProgressDialog.show(this,  "", getResources().getString(R.string.saving));
     			mHandler.postDelayed(new Runnable() {
     				@Override
