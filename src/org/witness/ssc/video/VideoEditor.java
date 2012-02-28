@@ -120,6 +120,8 @@ public class VideoEditor extends Activity implements
 	
 	FFMPEGWrapper ffmpeg;
 	
+	int timeNudgeOffset = 2;
+	
 	private Handler mHandler = new Handler()
 	{
 		 public void handleMessage(Message msg) {
@@ -127,7 +129,7 @@ public class VideoEditor extends Activity implements
 	                case 1: //status
 
 	                       progressDialog.setMessage(msg.getData().getString("status"));
-	                        
+	                       progressDialog.setProgress(msg.getData().getInt("progress"));
 	                    break;
 	               
 	                case 2: //cancelled
@@ -514,13 +516,13 @@ public class VideoEditor extends Activity implements
 	public static final int DRAG = 1;
 	//int mode = NONE;
 
-	public ObscureRegion findRegion(MotionEvent event) 
+	public ObscureRegion findRegion(float x, float y) 
 	{
 		ObscureRegion returnRegion = null;
 		
 		for (ObscureRegion region : obscureRegions)
 		{
-			if (region.getBounds().contains(event.getX(),event.getY()))
+			if (region.getBounds().contains(x,y))
 			{
 				returnRegion = region;
 				break;
@@ -586,7 +588,8 @@ public class VideoEditor extends Activity implements
 						showMenu = false;
 						
 						ObscureRegion previouslyActiveRegion = activeRegion;
-						activeRegion = findRegion(event);
+						
+						activeRegion = findRegion(x,y);
 						
 						if (activeRegion != null)
 						{
@@ -613,7 +616,7 @@ public class VideoEditor extends Activity implements
 						else 
 						{
 							
-							activeRegion = new ObscureRegion(mediaPlayer.getDuration(), mediaPlayer.getCurrentPosition(),mediaPlayer.getDuration(),x,y);
+							activeRegion = new ObscureRegion(mediaPlayer.getDuration(), mediaPlayer.getCurrentPosition()-timeNudgeOffset,mediaPlayer.getDuration(),x,y);
 							obscureRegions.add(activeRegion);
 							
 							Log.v(LOGTAG,"Creating a new activeRegion");
@@ -821,13 +824,21 @@ public class VideoEditor extends Activity implements
     	mediaPlayer.pause();
     	//mediaPlayer.release();
     	
-    	progressDialog = ProgressDialog.show(this, "", "Processing. Please wait...", true);
-    	progressDialog.setCancelable(true);
+    
     	
+    	progressDialog = new ProgressDialog(this);
+    	progressDialog.setMessage("Processing. Please wait...");
+    	progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    	progressDialog.setMax(100);
+        progressDialog.setCancelable(true);
+       
     	 Message msg = mHandler.obtainMessage(2);
          msg.getData().putString("status","cancelled");
          progressDialog.setCancelMessage(msg);
     	
+         progressDialog.show();
+     	
+         
 		// Convert to video
 		Thread thread = new Thread (runProcessVideo);
 		thread.setPriority(Thread.MAX_PRIORITY);
@@ -855,7 +866,9 @@ public class VideoEditor extends Activity implements
 				
 				ShellUtils.ShellCallback sc = new ShellUtils.ShellCallback ()
 				{
-
+					int total = 0;
+					int current = 0;
+					
 					@Override
 					public void shellOut(char[] shellout) {
 						
@@ -866,22 +879,43 @@ public class VideoEditor extends Activity implements
 						//time=00:00:00.00
 						int idx1;
 						String newStatus = null;
+						int progress = 0;
 						
 						if ((idx1 = line.indexOf("Duration:"))!=-1)
 						{
 							int idx2 = line.indexOf(",", idx1);
-							newStatus = line.substring(idx1,idx2);
+							String time = line.substring(idx1+10,idx2);
+							
+							int hour = Integer.parseInt(time.substring(0,2));
+							int min = Integer.parseInt(time.substring(3,5));
+							int sec = Integer.parseInt(time.substring(6,8));
+							
+							total = (hour * 60 * 60) + (min * 60) + sec;
+							
+							newStatus = line;
+							progress = 0;
 						}
 						else if ((idx1 = line.indexOf("time="))!=-1)
 						{
 							int idx2 = line.indexOf(" ", idx1);
-							newStatus = line.substring(idx1,idx2);
+							String time = line.substring(idx1+5,idx2);
+							newStatus = line;
+							
+							int hour = Integer.parseInt(time.substring(0,2));
+							int min = Integer.parseInt(time.substring(3,5));
+							int sec = Integer.parseInt(time.substring(6,8));
+							
+							current = (hour * 60 * 60) + (min * 60) + sec;
+							
+							progress = (int)( ((float)current) / ((float)total) *100f );
 						}
 						
 						if (newStatus != null)
 						{
 						 Message msg = mHandler.obtainMessage(1);
-				         msg.getData().putString("status",line);
+				         msg.getData().putInt("progress", progress);
+				         msg.getData().putString("status", newStatus);
+				         
 				         mHandler.sendMessage(msg);
 						}
 					}
