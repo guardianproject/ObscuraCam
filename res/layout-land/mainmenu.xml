@@ -6,14 +6,31 @@
 	android:layout_height="fill_parent">
 	
 	<LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
-		<ImageView android:id="@+id/imageView1" android:src="@drawable/ic_ssc" android:layout_width="fill_parent" android:layout_height="140dp"></ImageView>
-		<TextView android:layout_height="50dp" android:layout_gravity="center_vertical|center_horizontal" android:layout_width="fill_parent" android:id="@+id/SplashTextView" android:text="@string/SplashTextViewString" android:textColor="#FFFFff" android:gravity="center_vertical|center_horizontal" android:textSize="40dp"></TextView>
-			
+	
+	    <LinearLayout 
+			android:orientation="horizontal" 
+			android:gravity="center_horizontal" 
+			android:layout_width="fill_parent" 
+			android:layout_height="wrap_content"
+			android:layout_gravity="top" android:layout_marginTop="5dp">
+	    	<ImageView android:id="@+id/imageView1" android:layout_gravity="center_vertical|center_horizontal" android:src="@drawable/ic_ssc" android:layout_width="120dp" android:layout_height="120dp"></ImageView>
+
+	<TextView
+	    android:id="@+id/SplashTextView"
+	    android:layout_width="274dp"
+	    android:layout_height="50dp"
+	    android:layout_gravity="center_vertical"
+	    android:gravity="center_vertical|center_horizontal"
+	    android:text="@string/SplashTextViewString"
+	    android:textColor="#FFFFff"
+	    android:textSize="40dp" >
+</TextView>
+			</LinearLayout>
 		<LinearLayout 
 			android:orientation="horizontal" 
 			android:gravity="center_horizontal" 
 			android:layout_width="fill_parent" 
-			android:layout_height="fill_parent"
+			android:layout_height="wrap_content"
 			android:layout_gravity="bottom" android:layout_marginTop="5dp">
 			
 			<Button  android:id="@+id/TakePictureButton" 
@@ -23,7 +40,13 @@
 				android:drawableTop="@drawable/ic_camera" android:layout_marginRight="20dp">
 			</Button>
 			<Button  android:id="@+id/ChoosePictureButton" 
-				android:text="Choose Media" 
+				android:text="Choose Picture" 
+				android:layout_width="150dp"  
+				android:layout_height="90dp"
+				android:drawableTop="@drawable/ic_gallery" android:layout_marginLeft="20dp">
+			</Button>
+			<Button  android:id="@+id/ChooseVideoButton" 
+				android:text="Choose Video" 
 				android:layout_width="150dp"  
 				android:layout_height="90dp"
 				android:drawableTop="@drawable/ic_gallery" android:layout_marginLeft="20dp">

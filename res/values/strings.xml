@@ -82,4 +82,6 @@
     <string name="eula_title">You agree to:</string>
     <string name="eula_accept">Accept</string>
     <string name="eula_refuse">Refuse</string>
+    
+    <string name="welcomeSubMsg">now with video!</string>
 </resources>

@@ -12,18 +12,24 @@
 			android:gravity="center_vertical|center_horizontal" android:textColor="#FFFFff"
 			android:layout_height="wrap_content" android:textSize="40dp"/>
 		
+		
 		<LinearLayout android:orientation="horizontal" 
 			android:layout_width="fill_parent" 
-			android:layout_height="fill_parent" android:gravity="center_vertical|center_horizontal">
+			android:layout_height="wrap_content" android:gravity="center_vertical|center_horizontal">
 			<Button  android:id="@+id/TakePictureButton" 
-				android:text="Take Photo" 
-				android:layout_height="90dp"
-				android:drawableTop="@drawable/ic_camera" android:layout_width="125dp" android:layout_marginRight="15dp">
+				android:text="Camera" 
+				android:layout_height="100dp"
+				android:drawableTop="@drawable/ic_camera" android:layout_width="100dp" android:layout_marginRight="5dp">
 			</Button>
 			<Button  android:id="@+id/ChoosePictureButton" 
 				android:text="Select Photo" 
-				android:layout_height="90dp"
-				android:drawableTop="@drawable/ic_gallery" android:layout_width="125dp" android:layout_marginLeft="15dp">
+				android:layout_height="100dp"
+				android:drawableTop="@drawable/ic_gallery" android:layout_width="100dp" android:layout_marginLeft="5dp">
+			</Button>
+			<Button  android:id="@+id/ChooseVideoButton" 
+				android:text="Select Video" 
+				android:layout_height="100dp"
+				android:drawableTop="@drawable/ic_gallery" android:layout_width="100dp" android:layout_marginLeft="5dp">
 			</Button>
 		</LinearLayout>
 	</LinearLayout>

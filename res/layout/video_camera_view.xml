@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    <Button android:layout_width="fill_parent" android:text="Button" android:layout_height="50px" android:id="@+id/RecordButton"></Button>
+	<SurfaceView android:id="@+id/CameraView" android:layout_width="fill_parent" android:layout_height="fill_parent"></SurfaceView>
+</LinearLayout>
