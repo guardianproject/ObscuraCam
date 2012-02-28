@@ -5,6 +5,7 @@ package org.witness.sscphase1;
 import java.io.File;
 
 import org.witness.securesmartcam.ImageEditor;
+import org.witness.ssc.video.VideoEditor;
 import org.witness.sscphase1.Eula.OnEulaAgreedTo;
 
 import android.app.Activity;
@@ -13,6 +14,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -32,14 +34,12 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	final static int CAMERA_RESULT = 0;
 	final static int GALLERY_RESULT = 1;
 	final static int IMAGE_EDITOR = 2;
-	
+	final static int VIDEO_EDITOR = 3;
 	final static int ABOUT = 0;
 	
 	final static String CAMERA_TMP_FILE = "ssctmp.jpg";
 	
-	
-
-	private Button choosePictureButton, takePictureButton;		
+	private Button choosePictureButton, chooseVideoButton, takePictureButton;		
 	
 	private Uri uriCameraImage = null;
 	
@@ -92,13 +92,18 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	}
 
 	private void setLayout() {
+		
         setContentView(R.layout.mainmenu);
-        
-    	choosePictureButton = (Button) this.findViewById(R.id.ChoosePictureButton);
+
+		choosePictureButton = (Button) this.findViewById(R.id.ChoosePictureButton);
     	choosePictureButton.setOnClickListener(this);
+    	
+    	chooseVideoButton = (Button) this.findViewById(R.id.ChooseVideoButton);
+    	chooseVideoButton.setOnClickListener(this);
     	
     	takePictureButton = (Button) this.findViewById(R.id.TakePictureButton);
     	takePictureButton.setOnClickListener(this);
+		
     }
 
 	public void onClick(View v) {
@@ -119,7 +124,26 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 				Log.e(TAG, "error loading gallery app to choose photo: " + e.getMessage(), e);
 			}
 			
-		} else if (v == takePictureButton) {
+		} 
+		else if (v == chooseVideoButton) 
+		{
+			
+			try
+			{
+				 setContentView(R.layout.mainloading);
+				Intent intent = new Intent(Intent.ACTION_PICK);
+				intent.setType("video/*"); //limit to image types for now
+				startActivityForResult(intent, GALLERY_RESULT);
+				
+			}
+			catch (Exception e)
+			{
+				Toast.makeText(this, "Unable to open Gallery app", Toast.LENGTH_LONG).show();
+				Log.e(TAG, "error loading gallery app to choose photo: " + e.getMessage(), e);
+			}
+			
+		}
+		else if (v == takePictureButton) {
 			
 			setContentView(R.layout.mainloading);
 			
@@ -154,6 +178,8 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	        
 			takePictureButton.setVisibility(View.VISIBLE);
 			choosePictureButton.setVisibility(View.VISIBLE);
+			chooseVideoButton.setVisibility(View.VISIBLE);
+			
 		} 
 	}
 
@@ -168,14 +194,32 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 			{
 				if (intent != null)
 				{
-					Uri uriGalleryImage = intent.getData();
+					Uri uriGalleryFile = intent.getData();
 						
-					if (uriGalleryImage != null)
+					if (uriGalleryFile != null)
 					{
-						Intent passingIntent = new Intent(this,ImageEditor.class);
-						passingIntent.setData(uriGalleryImage);
-						startActivityForResult(passingIntent,IMAGE_EDITOR);
+						Cursor cursor = managedQuery(uriGalleryFile, null, 
+                                null, null, null); 
+						cursor.moveToNext(); 
+						// Retrieve the path and the mime type 
+						String path = cursor.getString(cursor 
+						                .getColumnIndex(MediaStore.MediaColumns.DATA)); 
+						String mimeType = cursor.getString(cursor 
+						                .getColumnIndex(MediaStore.MediaColumns.MIME_TYPE));
 						
+						if (mimeType == null || mimeType.startsWith("image"))
+						{
+							Intent passingIntent = new Intent(this,ImageEditor.class);
+							passingIntent.setData(uriGalleryFile);
+							startActivityForResult(passingIntent,IMAGE_EDITOR);
+						}
+						else if (mimeType.startsWith("video"))
+						{
+
+							Intent passingIntent = new Intent(this,VideoEditor.class);
+							passingIntent.setData(uriGalleryFile);
+							startActivityForResult(passingIntent,VIDEO_EDITOR);
+						}
 					}
 					else
 					{
