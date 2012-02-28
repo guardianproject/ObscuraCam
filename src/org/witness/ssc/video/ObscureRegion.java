@@ -32,8 +32,8 @@ public class ObscureRegion {
 
 	public static final long DEFAULT_LENGTH = 10; // Seconds
 	
-	public static final float DEFAULT_X_SIZE = 100;
-	public static final float DEFAULT_Y_SIZE = 100;
+	public static final float DEFAULT_X_SIZE = 150;
+	public static final float DEFAULT_Y_SIZE = 150;
 		
 	public float sx = 0;
 	public float sy = 0;
