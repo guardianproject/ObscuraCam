@@ -64,6 +64,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.os.Vibrator;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
@@ -196,7 +197,29 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	
 	
 	//handles threaded events for the UI thread
-    private Handler mHandler = new Handler();
+    private Handler mHandler = new Handler()
+    {
+
+		@Override
+		public void handleMessage(Message msg) {
+			super.handleMessage(msg);
+			
+
+	 	   switch (msg.what) {
+           	
+           case 3: //completed
+   	    	mProgressDialog.dismiss();
+   	    	 
+   	 		//Toast autodetectedToast = Toast.makeText(ImageEditor.this, result + " face(s) detected", Toast.LENGTH_SHORT);
+   	 		//autodetectedToast.show();	        			
+           	
+           	break;
+           default:
+               super.handleMessage(msg);
+       }
+   }
+    	
+    };
 
     //UI for background threads
     ProgressDialog mProgressDialog;
@@ -210,6 +233,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     // for saving images
     private final static String EXPORT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
+    /*
 	 private class mAutoDetectTask extends AsyncTask<Integer, Integer, Long> {
 	     protected Long doInBackground(Integer... params) {
 	    	  return (long)doAutoDetection();	         
@@ -226,7 +250,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 		Toast autodetectedToast = Toast.makeText(ImageEditor.this, result + " face(s) detected", Toast.LENGTH_SHORT);
 	 		autodetectedToast.show();
 	     }
-	 }
+	 }*/
+    
+    
     	
     	
 	@SuppressWarnings("unused")
@@ -296,7 +322,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 					mProgressDialog = ProgressDialog.show(this, "", "Detecting faces...", true, true);
 					
-					new mAutoDetectTask().execute(1);
+					doAutoDetectionThread();
 					
 					
 				}
@@ -410,7 +436,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 						mProgressDialog = ProgressDialog.show(this, "", "Detecting faces...", true, true);
 					
-						new mAutoDetectTask().execute(1);
+						doAutoDetectionThread();
 					}
 				}				
 			} catch (IOException e) {
@@ -555,7 +581,19 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		originalImageUri = null;
 	}
 	
-	
+	private void doAutoDetectionThread()
+	{
+		Thread thread = new Thread ()
+		{
+			public void run ()
+			{
+				doAutoDetection();
+				Message msg = mHandler.obtainMessage(3);
+		        mHandler.sendMessage(msg);
+			}
+		};
+		thread.start();
+	}
 	/*
 	 * Do actual auto detection and create regions
 	 * 
