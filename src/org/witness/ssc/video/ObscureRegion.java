@@ -61,8 +61,7 @@ public class ObscureRegion {
 			sy = 0;
 		}
 
-		Log.v(LOGTAG,"new region: " + startTime + " " + " " + endTime + " " + sx + " " + sy + " " + ex + " " + ey);
-		Log.v(LOGTAG,"to string: " + toString());
+		
 	}
 
 	public ObscureRegion(long _duration, long _startTime, float _sx, float _sy, float _ex, float _ey) {
