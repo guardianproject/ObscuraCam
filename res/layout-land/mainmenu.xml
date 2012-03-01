@@ -34,22 +34,22 @@
 			android:layout_gravity="bottom" android:layout_marginTop="5dp">
 			
 			<Button  android:id="@+id/TakePictureButton" 
-				android:text="Take Picture" 
+				android:text="Camera" 
 				android:layout_width="150dp" 
 				android:layout_height="90dp"
-				android:drawableTop="@drawable/ic_camera" android:layout_marginRight="20dp">
+				android:drawableTop="@drawable/ic_camera">
 			</Button>
 			<Button  android:id="@+id/ChoosePictureButton" 
-				android:text="Choose Picture" 
+				android:text="Photos" 
 				android:layout_width="150dp"  
 				android:layout_height="90dp"
-				android:drawableTop="@drawable/ic_gallery" android:layout_marginLeft="20dp">
+				android:drawableTop="@drawable/ic_gallery">
 			</Button>
 			<Button  android:id="@+id/ChooseVideoButton" 
-				android:text="Choose Video" 
+				android:text="Videos" 
 				android:layout_width="150dp"  
 				android:layout_height="90dp"
-				android:drawableTop="@drawable/ic_gallery" android:layout_marginLeft="20dp">
+				android:drawableTop="@drawable/ic_video" >
 			</Button>
 		</LinearLayout>
 	</LinearLayout>

@@ -2,7 +2,7 @@
 <resources>
     <string name="hello">Hello World</string>
     <string name="app_name">ObscuraCam</string>
-    <string name="app_name_label">Obscura Cam</string>
+    <string name="app_name_label">ObscuraCam</string>
     <string name="image_preview">ObscuraCam Image Preview</string>
 	<string name="SplashTextViewString">ObscuraCam</string>
 	<string name="CreditsTextViewString">Powered by the Guardian Project and Witness</string>
@@ -11,12 +11,17 @@
 	<string name="WalkThroughTextView">This is an application which helps protect the privacy of individuals that may appear in pictures.</string>
 	<string name="WalkThroughPrefSliderLabel">Select Risk Level</string>
     <string name="menu_new_region">New Tag</string>
+    <string name="menu_detect">Detect Faces</string>    
     <string name="menu_panic">Panic</string>
  	<string name="menu_image_prefs">Image Prefs</string>
     <string name="menu_save">Save</string>
     <string name="menu_share">Share</string>
     <string name="menu_send_hash">Send Hash</string>
     <string name="menu_prefs">Preferences</string>
+    <string name="menu_clear_regions">Clear</string>
+    
+    
+    
     <string name="imgprefs_h1">Preferences for this image</string>
     <string name="imgprefs_undo">Undo</string>
     <string name="imgprefs_save">Save Preferences</string>
@@ -84,4 +89,7 @@
     <string name="eula_refuse">Refuse</string>
     
     <string name="welcomeSubMsg">now with video!</string>
+    
+    <string name="play_video">Play Video</string>
+    <string name="share_video">Share Video</string>
 </resources>
