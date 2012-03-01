@@ -10,7 +10,7 @@
 		 <ImageView android:src="@drawable/ic_ssc" 
 		 	android:layout_width="fill_parent" 
   			android:layout_height="200dp"
-  			android:gravity="center_horizontal" android:layout_marginTop="20dp"/>
+  			android:gravity="center_vertical|center_horizontal" android:layout_marginTop="20dp"/>
 		
 		<TextView android:text="@string/SplashTextViewString"
 			android:id="@+id/SplashTextView" android:layout_width="fill_parent"
@@ -24,13 +24,15 @@
 			android:layout_height="wrap_content" android:gravity="center_vertical|center_horizontal">
 			<Button  android:id="@+id/TakePictureButton" 
 				android:text="Camera" 
-				android:layout_height="100dp"
-				android:drawableTop="@drawable/ic_camera" android:layout_width="100dp" android:layout_marginRight="5dp">
+							    android:layout_width="125dp"
+							    android:layout_height="match_parent"
+
+				android:drawableTop="@drawable/ic_camera"  android:layout_marginRight="5dp">
 			</Button>
 
 			<Button
 			    android:id="@+id/ChoosePictureButton"
-			    android:layout_width="100dp"
+			    android:layout_width="125dp"
 			    android:layout_height="match_parent"
 			    android:drawableTop="@drawable/ic_gallery"
 			    android:text="Photos" >
@@ -38,8 +40,9 @@
 			</Button>
 			<Button  android:id="@+id/ChooseVideoButton" 
 				android:text="Videos" 
-				android:layout_height="100dp"
-				android:drawableTop="@drawable/ic_video" android:layout_width="100dp" android:layout_marginLeft="5dp">
+				android:layout_width="125dp"
+							    android:layout_height="match_parent"				
+				android:drawableTop="@drawable/ic_video" android:layout_marginLeft="5dp">
 			</Button>
 		</LinearLayout>
 	</LinearLayout>

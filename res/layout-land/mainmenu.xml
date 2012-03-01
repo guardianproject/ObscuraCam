@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"  
-	android:background="@drawable/sscbg"  
+	android:background="@drawable/bg"  
 	android:id="@+id/FrameLayout" 
 	android:layout_width="fill_parent" 
 	android:layout_height="fill_parent">
 	
-	<LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
+	<LinearLayout android:gravity="center_vertical|center_horizontal" android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
 	
 	    <LinearLayout 
 			android:orientation="horizontal" 
-			android:gravity="center_horizontal" 
+			android:gravity="center_vertical|center_horizontal" 
 			android:layout_width="fill_parent" 
 			android:layout_height="wrap_content"
 			android:layout_gravity="top" android:layout_marginTop="5dp">
@@ -22,7 +22,7 @@
 	    android:layout_gravity="center_vertical"
 	    android:gravity="center_vertical|center_horizontal"
 	    android:text="@string/SplashTextViewString"
-	    android:textColor="#FFFFff"
+	    android:textColor="#aaaaaa"
 	    android:textSize="40dp" >
 </TextView>
 			</LinearLayout>
