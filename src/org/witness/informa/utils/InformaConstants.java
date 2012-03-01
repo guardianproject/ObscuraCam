@@ -67,8 +67,13 @@ public class InformaConstants {
 			public final static String TOP = "region_top";
 			public final static String LEFT = "region_left";
 			public final static String UNREDACTED_DATA = "unredactedRegionData";
-			public final static String UNREDACTED_HASH = "unredactedRegionHash";
 			public final static String BASE = "base";
+			
+			public final static class Data {
+				public final static String UNREDACTED_HASH = "unredactedRegionHash";
+				public final static String LENGTH = "dataLength";
+				public final static String POSITION = "byteStart";
+			}
 			
 			public final static class Subject {
 				public final static String PSEUDONYM = "subject_pseudonym";

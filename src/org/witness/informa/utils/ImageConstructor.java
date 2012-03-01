@@ -64,14 +64,10 @@ public class ImageConstructor {
 	
 	private JSONArray imageRegions;
 	private ArrayList<ContentValues> unredactedRegions;
-	ArrayList<File> imageRegionFiles;
 	JSONObject metadataObject;
 	File clone;
 	String base, unredactedHash, redactedHash;
 	String containmentArray = InformaConstants.NOT_INCLUDED;
-	
-	FileOutputStream fos;
-	ZipOutputStream zos;
 	
 	Context c;
 	private DatabaseHelper dh;
@@ -100,7 +96,6 @@ public class ImageConstructor {
 		handleOriginalImage();
 		
 		// do redaction
-		imageRegionFiles = new ArrayList<File>();
 		metadataObject = (JSONObject) new JSONTokener(metadataObjectString).nextValue();
 		this.imageRegions = (JSONArray) (metadataObject.getJSONObject(Keys.Informa.DATA)).getJSONArray(Keys.Data.IMAGE_REGIONS);
 		
@@ -128,17 +123,18 @@ public class ImageConstructor {
 				
 				byte[] redactionPack = redactRegion(clone.getAbsolutePath(), clone.getAbsolutePath(), left, right, top, bottom, redactionCode);
 				
-				// create a file for the image region				
-				imageRegionFiles.add(bytesToFile(redactionPack, "ir" + i + ".informaRegion"));
-				
 				// insert hash and data length into metadata package
-				ir.put(Keys.ImageRegion.UNREDACTED_HASH, MediaHasher.hash(redactionPack, "SHA-1"));
-				ir.put(Keys.ImageRegion.UNREDACTED_DATA, redactionPack.length);
+				JSONObject irData = new JSONObject();
+				irData.put(ImageRegion.Data.UNREDACTED_HASH, MediaHasher.hash(redactionPack, "SHA-1"));
+				irData.put(ImageRegion.Data.LENGTH, redactionPack.length);
+				irData.put(ImageRegion.Data.POSITION, appendImageRegion(redactionPack));
 				
-				//zip data
+				ir.put(Keys.ImageRegion.UNREDACTED_DATA, irData);
+				
+				//zip data for database
 				ContentValues rcv = new ContentValues();
-				rcv.put(ImageRegion.UNREDACTED_HASH, MediaHasher.hash(redactionPack, "SHA-1"));
-				rcv.put(ImageRegion.DATA, gzipImageRegionData(redactionPack));
+				rcv.put(ImageRegion.Data.UNREDACTED_HASH, MediaHasher.hash(redactionPack, "SHA-1"));
+				rcv.put(ImageRegion.DATA, gzipBytes(Base64.encode(redactionPack, Base64.DEFAULT)));
 				rcv.put(ImageRegion.BASE, base);
 				unredactedRegions.add(rcv);
 			}
@@ -152,24 +148,6 @@ public class ImageConstructor {
 	}
 
 	public void doCleanup() {
-		File informaDir = new File(InformaConstants.DUMP_FOLDER);
-    	FileFilter cleanup = new FileFilter() {
-    		String[] extensions = new String[] {"jpg","informaregion"};
-			@Override
-			public boolean accept(File file) {
-				
-				for(String e : extensions)
-					if(file.getName().toLowerCase().endsWith(e))
-						return true;
-						
-				return false;
-			}
-    		
-    	};
-    	
-    	for(File f : informaDir.listFiles(cleanup))
-    		f.delete();
-    			
 		db.close();
 		dh.close();
 		
@@ -178,6 +156,9 @@ public class ImageConstructor {
 	
 	public int createVersionForTrustedDestination(String informaImageFilename, String intendedDestination) throws JSONException, NoSuchAlgorithmException, IOException {
 		int result = 0;
+		
+		Log.d(InformaConstants.TAG, "metadata passed:" + metadataObject.toString());
+		Log.d(InformaConstants.TAG, "metadata length = " + metadataObject.toString().length());
 		
 		// replace the metadata's intended destination
 		metadataObject.getJSONObject(Keys.Informa.INTENT).put(Keys.Intent.INTENDED_DESTINATION, intendedDestination);
@@ -198,25 +179,18 @@ public class ImageConstructor {
 			dh.setTable(db, Tables.IMAGES);
 			db.insert(dh.getTable(), null, cv);
 			
-			// zip file for trusted destination
-			File informa = new File(informaImageFilename.substring(0, informaImageFilename.length() - 4) + ".informa");
-			fos = new FileOutputStream(informa);
-			zos = new ZipOutputStream(fos);
-			
-			addToZip(new File(informaImageFilename));
-			
-			for(File f : imageRegionFiles) {
-				addToZip(f);
-			}
-			
-			zos.close();
-			fos.close();
-			
 			// TODO: DO ENCRYPT!
 			result = 1;
 		}
 		
 		return result;
+	}
+	
+	private long appendImageRegion(byte[] irData) throws IOException {
+		FileOutputStream fos = new FileOutputStream(clone, true);
+		fos.write(irData);
+		fos.close();
+		return (clone.length() - irData.length);
 	}
 	
 	private void handleOriginalImage() {		
@@ -241,7 +215,8 @@ public class ImageConstructor {
 			break;
 		}
 	}
-	
+
+	// TODO:
 	private void copyOriginalToSDCard() {
 		Log.d(InformaConstants.TAG, "copying original to sd card...");
 	}
@@ -272,23 +247,10 @@ public class ImageConstructor {
 		
 	}
 	
-	private void addToZip(File file) throws IOException {
-		byte[] buffer = new byte[(int) file.length()];
-		
-		FileInputStream fis = new FileInputStream(file);
-		zos.putNextEntry(new ZipEntry(file.getAbsolutePath()));
-		
-		int bytesRead = 0;
-		while((bytesRead = fis.read(buffer)) > 0)
-			zos.write(buffer, 0, bytesRead);
-		zos.closeEntry();
-		fis.close();
-	}
-	
-	private byte[] gzipImageRegionData(byte[] data) throws IOException {
+	private byte[] gzipBytes(byte[] data) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		GZIPOutputStream gos = new GZIPOutputStream(baos);
-		gos.write(Base64.encode(data, Base64.DEFAULT));
+		gos.write(data);
 		gos.close();
 		baos.close();
 		return baos.toByteArray();

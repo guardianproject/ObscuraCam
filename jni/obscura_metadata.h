@@ -66,11 +66,42 @@ public:
 	       marker->data_.size(), strlen(kDescriptorType));
 	marker->Print();
       }
-      SetDescriptor(marker->length_ - 2 - (strlen(kDescriptorType) + 1),
-		    &marker->data_[strlen(kDescriptorType) + 1]);
-      return true;
-    } else if (strcmp((char*)&marker->data_.front(), kRedactionDataType) == 0) {
-      // TODO: import redaction data.
+      int marker_no;
+      int num_markers;
+      int marker_len;
+      int marker_start;
+      int descriptor_len;
+      unsigned char * marker_ptr =
+	&(marker->data_.front()) + strlen(kDescriptorType) + 1;
+      memcpy(&marker_no, marker_ptr, sizeof(int));
+      marker_ptr += sizeof(int);
+      memcpy(&num_markers, marker_ptr, sizeof(int));
+      marker_ptr += sizeof(int);
+      memcpy(&marker_len, marker_ptr, sizeof(int));
+      marker_ptr += sizeof(int);
+      memcpy(&marker_start, marker_ptr, sizeof(int));
+      marker_ptr += sizeof(int);
+      memcpy(&descriptor_len, marker_ptr, sizeof(int));
+      marker_ptr += sizeof(int);
+      if (marker_no <0 || num_markers <=0 || marker_no >= num_markers)
+	throw("marker numbers don't match");
+      if (marker_len < 0 || descriptor_len <=0 || marker_no >= num_markers ||
+	  marker_len >= 64 * 1024 ||
+	  marker_start + marker_len > descriptor_len ||
+	  marker_start < 0)
+	throw("marker lengths don't match");
+      if (marker_no == 0)
+	descriptor_.resize(descriptor_len);
+      else
+	if (descriptor_.size() != descriptor_len)
+	  throw("Marker store size != descriptor_len");
+      memcpy(&descriptor_[marker_start], marker_ptr, marker_len);
+      if (marker_no == num_markers -1) {
+	if (marker_start + marker_len != descriptor_len)
+	  throw("marker length inexact");
+      // SetDescriptor(marker->length_ - 2 - (strlen(kDescriptorType) + 1),
+      // 		    &marker->data_[strlen(kDescriptorType) + 1]);
+      }
       return true;
     }
     fprintf(stderr, "Unknown AppN Marker");
@@ -79,54 +110,61 @@ public:
   // Store all the metadata in a file as APPN JPEG Markers.
   int Write(FILE *pFile) {
     // Convert the data to markers and write.
-    JpegMarker *descriptor = MakeDescriptorMarker();
-    if (descriptor != NULL) {
+    std::vector<JpegMarker *> descriptors;
+    MakeDescriptorMarkers(&descriptors);
+    if (descriptors.size()!=0) {
       if (debug > 0)
 	printf("Writing Obscura descriptor at %zu\n",
 	       ftell(pFile));
-      descriptor->Save(pFile);
-      delete descriptor;
-    }
-    std::vector<JpegMarker *> *redaction_markers = MakeRedactionMarkers();
-    if (redaction_markers != NULL) {
-      if (debug > 0)
-	printf("Writing %zu Obscura redaction_markers.\n",
-	       redaction_markers->size());
-      for (int i = 0; i < redaction_markers->size(); ++i) {
-	(*redaction_markers)[i]->Save(pFile);
-	delete (*redaction_markers)[i];
+      for (int i=0; i < descriptors.size(); ++i) {
+	descriptors[i]->Save(pFile);
+	delete descriptors[i];
       }
-      delete redaction_markers;
     }
     return 0;
   }
 
 protected:
   // Make a JPEG marker containing the descriptor information.
-  JpegMarker *MakeDescriptorMarker() {
+   void MakeDescriptorMarkers(std::vector<JpegMarker *> *all_markers) {
     if (descriptor_.size() == 0)
-      return NULL;
-    const int string_length = strlen(kDescriptorType) + 1;
+      return;
+    const int header_len = strlen(kDescriptorType) + 1 + 4 * sizeof(int);
+    const int marker_size = 64 * 1024 - header_len - 4;
     const int des_length = descriptor_.size();
-    const int total_length = string_length + des_length;
+    const int num_markers = (des_length + marker_size - 1) / marker_size;
+    int marker_start = 0;
+    for (int count = 0; count < num_markers; ++count) {
+      int marker_len = marker_size;
+      if (des_length < marker_start + marker_len)
+	marker_len = des_length - marker_start;
+      const int total_length = marker_len + header_len;
     // Create a temporary buffer to store the string header and the
     // marker data.
-    std::vector<unsigned char> long_data(total_length);
-    memcpy(&long_data[0], kDescriptorType, string_length);
-    memcpy(&long_data[string_length], &descriptor_.front(), des_length);
-    JpegMarker *marker = new JpegMarker(kObscuraMarker, &long_data.front(),
-					total_length);
-    marker->Print();
-    return marker;
-  }
-  // Return a vector of markers containing the redaction data.
-  std::vector<JpegMarker *> *MakeRedactionMarkers() {
-    return NULL;
+      std::vector<unsigned char> long_data(total_length);
+      unsigned char *data_ptr = &long_data[0];
+      memcpy(data_ptr, &kDescriptorType, strlen(kDescriptorType)+1);
+      data_ptr += sizeof(int);
+      memcpy(data_ptr, &count, sizeof(int));
+      data_ptr += sizeof(int);
+      memcpy(data_ptr, &num_markers, sizeof(int));
+      data_ptr += sizeof(int);
+      memcpy(data_ptr, &marker_len, sizeof(int));
+      data_ptr += sizeof(int);
+      memcpy(data_ptr, &marker_start, sizeof(int));
+      data_ptr += sizeof(int);
+      memcpy(data_ptr, &des_length, sizeof(int));
+      data_ptr += sizeof(int);
+      memcpy(data_ptr, &descriptor_[0], marker_len);
+      JpegMarker *marker = new JpegMarker(kObscuraMarker, &long_data.front(),
+					  total_length);
+      marker->Print();
+      all_markers->push_back(marker);
+    }
   }
   std::vector<unsigned char> descriptor_;
   static const int kObscuraMarker;
   static const char *kDescriptorType;
-  static const char *kRedactionDataType;
 };
 }  // namespace redaction
 

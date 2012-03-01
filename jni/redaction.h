@@ -407,10 +407,8 @@ public:
     }
     if (packptr != &pack[0] + pack_size ||
 	pack_size != pack.size()) {
-      /*
       fprintf(stderr, "pack.size() %d. Calculated %d ptrdiff %d\n",
 	      pack.size(), pack_size, packptr-&pack[0]);
-	*/
       throw("After packing pointer is not start + size");
     }
   }

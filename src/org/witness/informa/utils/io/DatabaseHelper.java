@@ -48,7 +48,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 							")",
 					"CREATE TABLE " + Tables.IMAGE_REGIONS + " (" + BaseColumns._ID + " " +
 							"integer primary key autoincrement, " +
-							ImageRegion.UNREDACTED_HASH + " text not null, " +
+							ImageRegion.Data.UNREDACTED_HASH + " text not null, " +
 							ImageRegion.DATA + " blob not null, " +
 							ImageRegion.BASE + " text not null" +
 							")",

@@ -39,7 +39,7 @@ Java_org_witness_informa_utils_ImageConstructor_constructImage
         metadataObjectString = (env)->GetStringUTFChars(jstrMetadataObjectString, NULL);
         
         __android_log_write(ANDROID_LOG_DEBUG, TAG, "we have metadata:\n");
-        __android_log_write(ANDROID_LOG_DEBUG, TAG, metadataObjectString);
+        //__android_log_write(ANDROID_LOG_DEBUG, TAG, metadataObjectString);
         
         // copy object into metadata vector
         metadata.resize(metadataLength);
