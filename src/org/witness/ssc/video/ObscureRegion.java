@@ -28,8 +28,9 @@ public class ObscureRegion {
 	
 	public static final String LOGTAG = ObscuraApp.TAG;
 
-	public static final String DEFAULT_COLOR = "pixel";
+	public static final String DEFAULT_MODE = "pixel";
 
+	
 	public static final long DEFAULT_LENGTH = 10; // Seconds
 	
 	public static final float DEFAULT_X_SIZE = 150;
@@ -46,7 +47,9 @@ public class ObscureRegion {
 	
 	public long mediaDuration = 0;
 	
-	public ObscureRegion(long _duration, long _startTime, long _endTime, float _sx, float _sy, float _ex, float _ey) {
+	public String currentMode = DEFAULT_MODE;
+	
+	public ObscureRegion(long _duration, long _startTime, long _endTime, float _sx, float _sy, float _ex, float _ey, String _mode) {
 		mediaDuration = _duration;
 		startTime = _startTime;
 		endTime = _endTime;
@@ -60,24 +63,26 @@ public class ObscureRegion {
 		} else if (sy < 0) {
 			sy = 0;
 		}
+		
+		currentMode = _mode;
 
 		
 	}
 
 	public ObscureRegion(long _duration, long _startTime, float _sx, float _sy, float _ex, float _ey) {
-		this(_duration, _startTime, _startTime+DEFAULT_LENGTH, _sx, _sy, _ex, _ey);
+		this(_duration, _startTime, _startTime+DEFAULT_LENGTH, _sx, _sy, _ex, _ey, DEFAULT_MODE);
 	}
 
 	public ObscureRegion(long _duration, long _startTime, long _endTime, float _sx, float _sy) {
-		this(_duration, _startTime, _endTime, _sx - DEFAULT_X_SIZE/2, _sy - DEFAULT_Y_SIZE/2, _sx + DEFAULT_X_SIZE/2, _sy + DEFAULT_Y_SIZE/2);
+		this(_duration, _startTime, _endTime, _sx - DEFAULT_X_SIZE/2, _sy - DEFAULT_Y_SIZE/2, _sx + DEFAULT_X_SIZE/2, _sy + DEFAULT_Y_SIZE/2, DEFAULT_MODE);
 	}
 
 	public ObscureRegion(long _duration, long _startTime, float _sx, float _sy) {
-		this(_duration, _startTime, _startTime+DEFAULT_LENGTH, _sx - DEFAULT_X_SIZE/2, _sy - DEFAULT_Y_SIZE/2, _sx + DEFAULT_X_SIZE/2, _sy + DEFAULT_Y_SIZE/2);
+		this(_duration, _startTime, _startTime+DEFAULT_LENGTH, _sx - DEFAULT_X_SIZE/2, _sy - DEFAULT_Y_SIZE/2, _sx + DEFAULT_X_SIZE/2, _sy + DEFAULT_Y_SIZE/2, DEFAULT_MODE);
 	}
 	
 	public void moveRegion(float _sx, float _sy) {
-		this.moveRegion(_sx - DEFAULT_X_SIZE/2, _sy - DEFAULT_Y_SIZE/2, _sx + DEFAULT_X_SIZE/2, _sy + DEFAULT_Y_SIZE/2);
+		moveRegion(_sx - DEFAULT_X_SIZE/2, _sy - DEFAULT_Y_SIZE/2, _sx + DEFAULT_X_SIZE/2, _sy + DEFAULT_Y_SIZE/2);
 	}
 	
 	public void moveRegion(float _sx, float _sy, float _ex, float _ey) {
@@ -95,6 +100,7 @@ public class ObscureRegion {
 		return getRectF();
 	}
 	
+	
 	public boolean existsInTime(long time) {
 		if (time < endTime && time >= startTime) {
 			return true;
@@ -104,6 +110,6 @@ public class ObscureRegion {
 
 	public String getStringData(float sizeMult) {
 		//left, right, top, bottom
-		return "" + (float)startTime/(float)1000 + "," + (float)endTime/(float)1000 + "," + (int)(sx*sizeMult) + "," + (int)(ex*sizeMult) + "," + (int)(sy*sizeMult) + "," + (int)(ey*sizeMult) + "," + DEFAULT_COLOR;
+		return "" + (float)startTime/(float)1000 + ',' + (float)endTime/(float)1000 + ',' + (int)(sx*sizeMult) + ',' + (int)(ex*sizeMult) + ',' + (int)(sy*sizeMult) + ',' + (int)(ey*sizeMult) + ',' + currentMode;
 	}
 }
