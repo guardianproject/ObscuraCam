@@ -62,6 +62,20 @@ public class FFMPEGWrapper {
 
 	}
 	
+	public class FFMPEGArg
+	{
+		String key;
+		String value;
+		
+		public static final String ARG_VIDEOCODEC = "vcodec";
+		public static final String ARG_VERBOSITY = "v";
+		public static final String ARG_FILE_INPUT = "i";
+		public static final String ARG_SIZE = "-s";
+		public static final String ARG_FRAMERATE = "-r";
+		public static final String ARG_FORMAT = "-f";
+		
+	}
+	
 	public void processVideo(File redactSettingsFile, 
 			Vector<ObscureRegion> obscureRegions, File inputFile, File outputFile, String format, 
 			int width, int height, int frameRate, int kbitRate, float sizeMult, ShellCallback sc) throws Exception {
@@ -109,8 +123,9 @@ public class FFMPEGWrapper {
 		
 		for (int i = 0; i < obscureRegions.size(); i++) {
 			ObscureRegion or = (ObscureRegion)obscureRegions.get(i);
-		//	Log.v(ObscuraApp.LOGTAG,"Writing: " + or.getStringData(sizeMult));
-			redactSettingsPrintWriter.println(or.getStringData(sizeMult));
+			String orData = or.getStringData(sizeMult);
+			Log.d("SSC", orData);
+			redactSettingsPrintWriter.println(orData);
 		}
 		redactSettingsPrintWriter.flush();
 		redactSettingsPrintWriter.close();
