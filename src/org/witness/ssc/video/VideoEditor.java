@@ -539,20 +539,21 @@ public class VideoEditor extends Activity implements
 				       
 				       
 				            
-					   for (int f = 0; f < mDuration; f += timeInc)
+					   for (int f = 0; f < mDuration && mAutoDetectEnabled; f += timeInc)
 					   {
 						   mediaPlayer.seekTo(f);	
-						   mediaPlayer.pause();
 						   progressBar.setProgress((int)(((float)mediaPlayer.getCurrentPosition()/(float)mDuration)*100));
 						   //Bitmap bmp = getVideoFrame(rPath,f*1000);
 						   Bitmap bmp = retriever.getFrameAtTime(f*1000, MediaMetadataRetriever.OPTION_CLOSEST);
 						   
 						   if (bmp != null)
-							   autoDetectFrame(bmp,f, FACE_TIME_BUFFER, mDuration);							  
+							   autoDetectFrame(bmp,f, FACE_TIME_BUFFER, mDuration);
+						   
 					   }
 					   
 					   mediaPlayer.setVolume(1f, 1f);
 					   mediaPlayer.seekTo(0);
+					   progressBar.setProgress((int)(((float)mediaPlayer.getCurrentPosition()/(float)mDuration)*100));
 					   mediaPlayer.pause();
 					   
 					   
@@ -719,7 +720,7 @@ public class VideoEditor extends Activity implements
 			Log.v(LOGTAG,"MediaPlayer Position: " + mediaPlayer.getCurrentPosition());
 			*/
 			mediaPlayer.seekTo((int)(mediaPlayer.getDuration()*(float)(event.getX()/progressBar.getWidth())));
-
+			updateRegionDisplay();
 			// Attempt to get the player to update it's view - NOT WORKING
 			
 			handled = false; // The progress bar doesn't get it if we have true here
@@ -813,12 +814,13 @@ public class VideoEditor extends Activity implements
 					}
 					else
 					{
-						/*
 						if (activeRegion != null)
 						{
-							activeRegion.endTime = mediaPlayer.getCurrentPosition();
-							activeRegion = null;
-						}*/
+							if (mediaPlayer.isPlaying())
+								activeRegion.endTime = mediaPlayer.getCurrentPosition();
+							else
+								activeRegion.endTime = mDuration;
+						}
 					}
 					
 					break;
@@ -893,6 +895,9 @@ public class VideoEditor extends Activity implements
 					break;
 			}
 		}
+		
+		updateRegionDisplay();
+		
 		return handled; // indicate event was handled	
 	}
 	
