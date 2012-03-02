@@ -5,14 +5,19 @@
 	android:layout_width="fill_parent" 
 	android:layout_height="fill_parent">
 	
-	<LinearLayout android:gravity="center_vertical|center_horizontal" android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
+	<LinearLayout
+	   
+	     android:gravity="center_vertical|center_horizontal" android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
 	
 	    <LinearLayout 
 			android:orientation="horizontal" 
 			android:gravity="center_vertical|center_horizontal" 
 			android:layout_width="fill_parent" 
 			android:layout_height="wrap_content"
-			android:layout_gravity="top" android:layout_marginTop="5dp">
+			android:layout_gravity="top" android:layout_marginTop="5dp"
+				android:background="#cc333333"
+			
+			>
 	    	<ImageView android:id="@+id/imageView1" android:layout_gravity="center_vertical|center_horizontal" android:src="@drawable/ic_ssc" android:layout_width="120dp" android:layout_height="120dp"></ImageView>
 
 	<TextView
@@ -22,7 +27,8 @@
 	    android:layout_gravity="center_vertical"
 	    android:gravity="center_vertical|center_horizontal"
 	    android:text="@string/SplashTextViewString"
-	    android:textColor="#aaaaaa"
+	    android:textColor="#ffffff"
+	    
 	    android:textSize="40dp" >
 </TextView>
 			</LinearLayout>
@@ -31,7 +37,9 @@
 			android:gravity="center_horizontal" 
 			android:layout_width="fill_parent" 
 			android:layout_height="wrap_content"
-			android:layout_gravity="bottom" android:layout_marginTop="5dp">
+			android:layout_gravity="bottom" 
+			android:background="#cc333333"
+			>
 			
 			<Button  android:id="@+id/TakePictureButton" 
 				android:text="Camera" 

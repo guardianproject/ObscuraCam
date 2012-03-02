@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"  android:background="@drawable/sscbg"  android:id="@+id/FrameLayout" android:layout_width="fill_parent" android:layout_height="fill_parent" android:paddingTop="20sp">
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"  android:background="@drawable/bg"  android:id="@+id/FrameLayout" android:layout_width="fill_parent" android:layout_height="fill_parent" android:paddingTop="20sp">
 	<LinearLayout android:orientation="vertical"
 		android:layout_width="fill_parent" android:layout_height="fill_parent">
 		<ImageView android:src="@drawable/ic_ssc"
