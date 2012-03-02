@@ -820,6 +820,8 @@ public class VideoEditor extends Activity implements
 								activeRegion.endTime = mediaPlayer.getCurrentPosition();
 							else
 								activeRegion.endTime = mDuration;
+							
+							activeRegion = null;
 						}
 					}
 					
