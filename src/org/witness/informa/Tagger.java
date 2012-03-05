@@ -44,12 +44,12 @@ public class Tagger extends Activity implements OnClickListener {
 		setContentView(R.layout.informaeditor);
 		
 		mProps = (HashMap<String, String>) getIntent().getSerializableExtra(ObscuraConstants.ImageRegion.PROPERTIES);
-		Log.d(InformaConstants.TAG, mProps.toString());
+		//Log.d(InformaConstants.TAG, mProps.toString());
 		
 		try {
 			informaOptions = parseChecklist();
 		} catch (IOException e) {
-			Log.e(InformaConstants.TAG, e.toString());
+			Log.e(InformaConstants.TAG, "options parse error",e);
 		}
 		
 

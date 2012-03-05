@@ -94,7 +94,12 @@ public class SensorLogger<T> {
 	
 	public JSONObject jPack(String key, Object val) throws JSONException {
 		JSONObject item = new JSONObject();
-		item.put(key, val.toString());
+		
+		if (val != null)
+			item.put(key, val.toString());
+		else
+			item.put(key, ""); //TODO is this the best way to handle null value? n8fr8
+		
 		return item;
 	}
 }

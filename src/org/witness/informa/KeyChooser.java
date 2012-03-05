@@ -93,9 +93,10 @@ public class KeyChooser extends Activity implements OnClickListener {
 					dh.close();
 					
 				} catch(NullPointerException e) {
-					Log.d(InformaConstants.TAG, "cursor was nulllll");
+					Log.e(InformaConstants.TAG, "cursor was nulllll",e);
 				} catch (JSONException e) {
-					Log.d(InformaConstants.TAG, e.toString());
+					Log.e(InformaConstants.TAG, "json err on key chooser",e);
+					
 				}
 				
 				
@@ -149,7 +150,7 @@ public class KeyChooser extends Activity implements OnClickListener {
 					try {
 						sel.add(Long.parseLong(s.getExtras().getString(TrustedDestinations.KEYRING_ID)));
 					} catch (JSONException e) {
-						Log.d(InformaConstants.TAG, e.toString());
+						Log.e(InformaConstants.TAG, "json err",e);
 					}
 			}
 			if(sel.size() > 0) {

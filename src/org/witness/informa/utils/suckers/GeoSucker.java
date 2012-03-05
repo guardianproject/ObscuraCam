@@ -27,8 +27,12 @@ public class GeoSucker extends SensorLogger implements LocationListener {
 		setSucker(this);
 		
 		lm = (LocationManager) c.getSystemService(Context.LOCATION_SERVICE);
-		lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
-		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+		
+		if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
+			lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
+		
+		if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER))
+			lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
 		
 		criteria = new Criteria();
 		criteria.setAccuracy(Criteria.NO_REQUIREMENT);
@@ -40,11 +44,12 @@ public class GeoSucker extends SensorLogger implements LocationListener {
 				if(getIsRunning()) {
 					double[] loc = updateLocation();
 					try {
-						sendToBuffer(jPack(InformaConstants.Keys.Suckers.Geo.GPS_COORDS, "[" + loc[0] + "," + loc[1] + "]"));
+						if (loc != null)
+							sendToBuffer(jPack(InformaConstants.Keys.Suckers.Geo.GPS_COORDS, "[" + loc[0] + "," + loc[1] + "]"));
 					} catch (JSONException e) {
-						Log.d(InformaConstants.TAG,e.toString());
+						Log.e(InformaConstants.TAG,"location json error",e);
 					} catch(NullPointerException e) {
-						Log.d(InformaConstants.TAG, e.toString());
+						Log.e(InformaConstants.TAG, "location NPE", e);
 					}
 				}
 			}
@@ -56,7 +61,10 @@ public class GeoSucker extends SensorLogger implements LocationListener {
 	public JSONObject forceReturn() {
 		double[] loc = updateLocation();
 		try {
-			return jPack(InformaConstants.Keys.Suckers.Geo.GPS_COORDS, "[" + loc[0] + "," + loc[1] + "]");
+			if (loc != null)
+				return jPack(InformaConstants.Keys.Suckers.Geo.GPS_COORDS, "[" + loc[0] + "," + loc[1] + "]");
+			else
+				return null;
 		} catch(JSONException e){
 			return null;
 		}
@@ -66,12 +74,17 @@ public class GeoSucker extends SensorLogger implements LocationListener {
 		try {
 			String bestProvider = lm.getBestProvider(criteria, false);
 			Location l = lm.getLastKnownLocation(bestProvider);
-			return new double[] {l.getLatitude(),l.getLongitude()};
+			
+			if (l != null)
+				return new double[] {l.getLatitude(),l.getLongitude()};
+			else
+				return null;
+			
 		} catch(NullPointerException e) {
-			Log.d(InformaConstants.TAG,e.toString());
+			Log.e(InformaConstants.TAG,"location NPE", e);
 			return null;
 		} catch(IllegalArgumentException e) {
-			Log.d(InformaConstants.TAG, e.toString());
+			Log.e(InformaConstants.TAG, "location illegal arg",e);
 			return null;
 		}
 	}

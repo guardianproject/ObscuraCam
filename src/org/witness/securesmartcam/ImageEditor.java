@@ -1508,7 +1508,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		        		try {
 							saveImage(encryptList);
 						} catch (IOException e) {
-							Log.d(InformaConstants.TAG, e.toString());
+							Log.e(InformaConstants.TAG, "error saving image", e);
 						}
     				  }
     				},500);
@@ -1523,7 +1523,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     					try {
 							saveImage(new long[] {0});
 						} catch (IOException e) {
-							Log.d(InformaConstants.TAG, e.toString());
+							Log.e(InformaConstants.TAG, "err saving image", e);
 						}
     				}
     			}, 500);

@@ -305,7 +305,7 @@ public class Informa {
 			c.close();
 			
 		} catch(NullPointerException e) {
-			Log.d(InformaConstants.TAG, "cursor was nulllll");
+			Log.e(InformaConstants.TAG, "cursor was nulllll",e);
 		}
 		
 		return result;
@@ -474,11 +474,11 @@ public class Informa {
 					td.close();
 					images[i] = new Image(newPath, email);
 				} catch(NullPointerException e) {
-					Log.d(InformaConstants.TAG, "fucking npe: " + e);
+					Log.e(InformaConstants.TAG, "fracking npe",e); //watch your mouth!
 				}
 			}
 		} catch(NullPointerException e) {
-			Log.d(InformaConstants.TAG, "there are no intended destinations");
+			Log.e(InformaConstants.TAG, "there are no intended destinations",e);
 		}
 		
 		db.close();

@@ -33,15 +33,19 @@ public class PhoneSucker extends SensorLogger {
 		ba = BluetoothAdapter.getDefaultAdapter();
 		
 		if(ba != null)
+		{
 			hasBluetooth = true;
+			// if bluetooth is off, turn it on... (be sure to turn off when finished)
+			if(!ba.isEnabled())
+				ba.enable();
+	
+			
+		
+		}
 		else
 			Log.d(InformaConstants.TAG,"no bt?");
 		
-		// if bluetooth is off, turn it on... (be sure to turn off when finished)
-		if(!ba.isEnabled() && hasBluetooth)
-			ba.enable();
-		
-		// TODO: if wifi is off, turn it on... (be sure to turn off when finished)
+		// TODO: if bluetooth is off, turn it on... (be sure to turn off when finished)
 		setTask(new TimerTask() {
 			
 			@Override
@@ -51,7 +55,7 @@ public class PhoneSucker extends SensorLogger {
 						sendToBuffer(jPack(InformaConstants.Keys.Suckers.Phone.CELL_ID, getCellId()));
 						
 						// find other bluetooth devices around
-						if(!ba.isDiscovering())
+						if(hasBluetooth && !ba.isDiscovering())
 							ba.startDiscovery();
 						
 					} catch (JSONException e) {}
@@ -66,7 +70,7 @@ public class PhoneSucker extends SensorLogger {
 		try {
 			return tm.getDeviceId();
 		} catch(NullPointerException e) {
-			Log.d(InformaConstants.TAG,e.toString());
+			Log.e(InformaConstants.TAG,"getIMEI error",e);
 			return null;
 		}
 	}
@@ -113,7 +117,7 @@ public class PhoneSucker extends SensorLogger {
 	
 	public void stopUpdates() {
 		setIsRunning(false);
-		if(ba.isDiscovering()) {
+		if(hasBluetooth && ba.isDiscovering()) {
 			ba.cancelDiscovery();
 			ba.disable();
 		}

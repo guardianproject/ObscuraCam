@@ -178,17 +178,17 @@ public class SensorSucker extends Service {
 						}
 					});
 				} catch (IllegalArgumentException e) {
-					Log.d(InformaConstants.TAG, "informa called Illegal Arguments: " + e.toString());
+					Log.e(InformaConstants.TAG, "informa called Illegal Arguments",e);
 				} catch (JSONException e) {
-					Log.d(InformaConstants.TAG, "informa called JSONException?: " + e.toString());
+					Log.e(InformaConstants.TAG, "informa called JSONException?",e);
 				} catch (IllegalAccessException e) {
-					Log.d(InformaConstants.TAG, "informa called Illegal Access: " + e.toString());
+					Log.e(InformaConstants.TAG, "informa called Illegal Access",e);
 				} catch (NoSuchAlgorithmException e) {
-					Log.d(InformaConstants.TAG, "informa called NoSuchAlgoException: " + e.toString());
+					Log.e(InformaConstants.TAG, "informa called NoSuchAlgoException",e);
 				} catch (IOException e) {
-					Log.d(InformaConstants.TAG, "informa called IOException: " + e.toString());
+					Log.e(InformaConstants.TAG, "informa called IOException",e);
 				} catch (NullPointerException e) {
-					Log.d(InformaConstants.TAG, "informa called NPE: " + e.toString());
+					Log.e(InformaConstants.TAG, "informa called NPE",e);
 					sendBroadcast(
 							new Intent()
 							.setAction(InformaConstants.Keys.Service.FINISH_ACTIVITY));
@@ -238,7 +238,7 @@ public class SensorSucker extends Service {
 				} else if(InformaConstants.Keys.Service.START_SERVICE.equals(i.getAction()))
 					startUpService();
 			} catch (Exception e) {
-				Log.d(InformaConstants.TAG, "error: " + e);
+				Log.e(InformaConstants.TAG, "error",e);
 			}
 		}
 			

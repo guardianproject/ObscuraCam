@@ -347,11 +347,11 @@ public class Wizard extends Activity implements OnClickListener {
 								try {
 									buttonCall.doCallback();
 								} catch (IllegalAccessException e) {
-									Log.d(InformaConstants.TAG, e.toString());
+									Log.d(InformaConstants.TAG, "wizard error", e);
 								} catch (NoSuchMethodException e) {
-									Log.d(InformaConstants.TAG, e.toString());
+									Log.d(InformaConstants.TAG, "wizard error", e);
 								} catch (InvocationTargetException e) {
-									Log.d(InformaConstants.TAG, e.toString());
+									Log.d(InformaConstants.TAG, "wizard error", e);
 								}
 							}
 							
@@ -432,11 +432,11 @@ public class Wizard extends Activity implements OnClickListener {
 										selections.add(new Selections(res, false));
 									
 								} catch (IllegalAccessException e) {
-									Log.d(InformaConstants.TAG, e.toString());
+									Log.d(InformaConstants.TAG, "wizard error", e);
 								} catch (NoSuchMethodException e) {
-									Log.d(InformaConstants.TAG, e.toString());
+									Log.d(InformaConstants.TAG, "wizard error", e);
 								} catch (InvocationTargetException e) {
-									Log.d(InformaConstants.TAG, e.toString());
+									Log.d(InformaConstants.TAG, "wizard error", e);
 								}
 							} else 
 								selections.add(new Selections(option, false));
