@@ -27,7 +27,9 @@ import android.content.SharedPreferences;
 
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.View;
@@ -377,19 +379,17 @@ public class Wizard extends Activity implements OnClickListener {
 						edittext.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD);
 						edittext.setTransformationMethod(new PasswordTransformationMethod());
 						
-						edittext.addOnLayoutChangeListener(new TextView.OnLayoutChangeListener() {
+						edittext.addTextChangedListener(new TextWatcher() {
 
 							@Override
-							public void onLayoutChange(View v, int left,
-									int top, int right, int bottom,
-									int oldLeft, int oldTop, int oldRight,
-									int oldBottom) {
+							public void afterTextChanged(Editable arg0) {
 								
-								String pw = ((EditText) v).getText().toString();
+
+								String pw = arg0.toString();
+								
 								if(pw.length() == 0) {}
-								else if(pw.length() < 6 && pw.length() > 0)
-									ObscuraConstants.makeToast(_c, _c.getResources().getString(R.string.wizard_error_password_too_short));
-								else {
+								else if(isValidatedPassword(pw))
+								 {
 									enableAction(wizard_next);
 									if(callback != null) {
 										if(attachTo == null)
@@ -397,6 +397,20 @@ public class Wizard extends Activity implements OnClickListener {
 										
 									}
 								}
+										
+							}
+
+							@Override
+							public void beforeTextChanged(CharSequence s,
+									int start, int count, int after) {
+								
+								
+							}
+
+							@Override
+							public void onTextChanged(CharSequence s,
+									int start, int before, int count) {
+								
 								
 							}
 							
@@ -472,6 +486,11 @@ public class Wizard extends Activity implements OnClickListener {
 			method.setAccessible(true);
 			return method.invoke(Wizard.this, _args);
 		}
+	}
+	
+	private boolean isValidatedPassword (String password)
+	{
+		return password.length() > 6;
 	}
 	
 	@Override
