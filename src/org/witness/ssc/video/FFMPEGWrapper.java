@@ -44,7 +44,6 @@ public class FFMPEGWrapper {
 			pb.redirectErrorStream(true);
 	    	Process process = pb.start();      
 	    	
-			
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 	
 			String line;
@@ -78,10 +77,15 @@ public class FFMPEGWrapper {
 	
 	public void processVideo(File redactSettingsFile, 
 			Vector<ObscureRegion> obscureRegions, File inputFile, File outputFile, String format, 
-			int width, int height, int frameRate, int kbitRate, float sizeMult, ShellCallback sc) throws Exception {
+			int width, int height, int frameRate, int kbitRate, String vcodec, String acodec, ShellCallback sc) throws Exception {
 		
-		writeRedactData(redactSettingsFile, obscureRegions, sizeMult);
+		writeRedactData(redactSettingsFile, obscureRegions);
 		    	
+		if (vcodec == null)
+			vcodec = "copy";//"libx264"
+		
+		if (acodec == null)
+			acodec = "copy";
 		
     	String ffmpegBin = new File(fileBinDir,"ffmpeg").getAbsolutePath();
 		Runtime.getRuntime().exec("chmod 700 " +ffmpegBin);
@@ -89,11 +93,11 @@ public class FFMPEGWrapper {
     	//ffmpeg -v 10 -y -i /sdcard/org.witness.sscvideoproto/videocapture1042744151.mp4 -vcodec libx264 -b 3000k -s 720x480 -r 30 -acodec copy -f mp4 -vf 'redact=/data/data/org.witness.sscvideoproto/redact_unsort.txt' /sdcard/org.witness.sscvideoproto/new.mp4
     	
     	String[] ffmpegCommand = {ffmpegBin, "-v", "10", "-y", "-i", inputFile.getPath(), 
-				"-vcodec", "libx264", 
+				"-vcodec", vcodec, 
 				"-b", kbitRate+"k", 
-				"-s",  (int)(width*sizeMult) + "x" + (int)(height*sizeMult), 
+				"-s",  width + "x" + height, 
 				"-r", ""+frameRate,
-				"-an",
+				"-acodec", "copy",
 				"-f", format,
 				"-vf","redact=" + redactSettingsFile.getAbsolutePath(),
 				outputFile.getPath()};
@@ -103,7 +107,7 @@ public class FFMPEGWrapper {
     	
     	// Need to make sure this will create a legitimate mp4 file
     	//"-acodec", "ac3", "-ac", "1", "-ar", "16000", "-ab", "32k",
-    	//"-acodec", "copy",
+    	
 
     	/*
     	String[] ffmpegCommand = {"/data/data/"+PACKAGENAME+"/ffmpeg", "-v", "10", "-y", "-i", recordingFile.getPath(), 
@@ -118,7 +122,7 @@ public class FFMPEGWrapper {
 	    
 	}
 	
-	private void writeRedactData(File redactSettingsFile, Vector<ObscureRegion> obscureRegions, float sizeMult) throws IOException {
+	private void writeRedactData(File redactSettingsFile, Vector<ObscureRegion> obscureRegions) throws IOException {
 		// Write out the finger data
 					
 		FileWriter redactSettingsFileWriter = new FileWriter(redactSettingsFile);
@@ -126,8 +130,7 @@ public class FFMPEGWrapper {
 		
 		for (int i = 0; i < obscureRegions.size(); i++) {
 			ObscureRegion or = (ObscureRegion)obscureRegions.get(i);
-			String orData = or.getStringData(sizeMult);
-			Log.d("SSC", orData);
+			String orData = or.getStringData(1f);
 			redactSettingsPrintWriter.println(orData);
 		}
 		redactSettingsPrintWriter.flush();

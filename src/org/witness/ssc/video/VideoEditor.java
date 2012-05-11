@@ -35,6 +35,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -63,6 +64,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Display;
@@ -142,6 +144,20 @@ public class VideoEditor extends Activity implements
 	
 	float vRatio;
 	
+	int outFrameRate = -1;
+	int outBitRate = -1;
+	String outFormat = null;
+	String outAcodec = null;
+	String outVcodec = null;
+	int outVWidth = -1;
+	int outVHeight = -1;
+	
+	private final static String DEFAULT_OUT_FPS = "30";
+	private final static String DEFAULT_OUT_RATE = "500";
+	private final static String DEFAULT_OUT_FORMAT = "mp4";
+	private final static String DEFAULT_OUT_VCODEC = "libx264";
+	private final static String DEFAULT_OUT_ACODEC = "copy";
+
 	private Handler mHandler = new Handler()
 	{
 		 public void handleMessage(Message msg) {
@@ -298,6 +314,7 @@ public class VideoEditor extends Activity implements
 	
 		mAutoDetectEnabled = true; //first time do autodetect
 		
+		setPrefs();
 	}
 	
 	@Override
@@ -515,6 +532,7 @@ public class VideoEditor extends Activity implements
 	public void start() {
 		Log.v(LOGTAG,"Calling our start method");
 		mediaPlayer.start();
+		
 		playPauseButton.setImageDrawable(this.getResources().getDrawable(android.R.drawable.ic_media_pause));
 		
 		mHandler.post(updatePlayProgress);
@@ -1002,7 +1020,13 @@ public class VideoEditor extends Activity implements
         		completeActionFlag = 3;
         		processVideo();
         		
-        		return true;        		
+        		return true;   
+        		
+        	case R.id.menu_prefs:
+
+        		showPrefs();
+        		
+        		return true;  
         	
         	case R.id.menu_clear_regions:
         		obscureRegions.clear();
@@ -1118,11 +1142,7 @@ public class VideoEditor extends Activity implements
 				if (ffmpeg == null)
 					ffmpeg = new FFMPEGWrapper(VideoEditor.this.getBaseContext());
 	
-				float sizeMult = .75f;
-				int frameRate = 15;
-				int bitRate = 300;
-				String format = "mp4";
-				
+					
 				ShellUtils.ShellCallback sc = new ShellUtils.ShellCallback ()
 				{
 					int total = 0;
@@ -1133,9 +1153,12 @@ public class VideoEditor extends Activity implements
 						
 						String line = new String(shellout);
 						
+						Log.d(LOGTAG, line);
+						
 						//progressDialog.setMessage(new String(msg));
 						//Duration: 00:00:00.99,
 						//time=00:00:00.00
+						
 						int idx1;
 						String newStatus = null;
 						int progress = 0;
@@ -1181,8 +1204,18 @@ public class VideoEditor extends Activity implements
 					
 				};
 				
+				int processVWidth = videoWidth;
+				int processVHeight = videoHeight;
+				
+				if (outVWidth != -1)
+					processVWidth = outVWidth;
+				
+				if (outVHeight != -1)
+					processVHeight = outVHeight;
+				
 				// Could make some high/low quality presets	
-				ffmpeg.processVideo(redactSettingsFile, obscureRegions, recordingFile, saveFile, format, mediaPlayer.getVideoWidth(), mediaPlayer.getVideoHeight(), frameRate, bitRate, sizeMult, sc);
+				ffmpeg.processVideo(redactSettingsFile, obscureRegions, recordingFile, saveFile, outFormat, 
+						processVWidth, processVHeight, outFrameRate, outBitRate, outVcodec, outAcodec, sc);
 			}
 			catch (Exception e)
 			{
@@ -1411,6 +1444,23 @@ public class VideoEditor extends Activity implements
 	@Override
 	protected void onResume() {
 		super.onResume();
+		setPrefs();
+		
+	}
+	
+	private void setPrefs ()
+	{
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+		
+		outFrameRate = Integer.parseInt(prefs.getString("pref_out_fps", DEFAULT_OUT_FPS).trim());
+		outBitRate = Integer.parseInt(prefs.getString("pref_out_rate", DEFAULT_OUT_RATE).trim());
+		outFormat = prefs.getString("pref_out_format", DEFAULT_OUT_FORMAT).trim();
+		outAcodec =  prefs.getString("pref_out_acodec", DEFAULT_OUT_ACODEC).trim();
+		outVcodec =  prefs.getString("pref_out_vcodec", DEFAULT_OUT_VCODEC).trim();
+
+		outVWidth =   Integer.parseInt(prefs.getString("pref_out_vwidth", "-1").trim());
+		outVHeight =   Integer.parseInt(prefs.getString("pref_out_vheight", "-1").trim());
 		
 	}
 	
@@ -1578,5 +1628,11 @@ public class VideoEditor extends Activity implements
 		return bmOut;
 	}
 
+	public void showPrefs ()
+	{
+		Intent intent = new Intent(this, VideoPreferences.class);
+		startActivity(intent);
+		
+	}
 
 }

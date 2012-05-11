@@ -195,36 +195,45 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 				if (intent != null)
 				{
 					Uri uriGalleryFile = intent.getData();
-						
-					if (uriGalleryFile != null)
-					{
-						Cursor cursor = managedQuery(uriGalleryFile, null, 
-                                null, null, null); 
-						cursor.moveToNext(); 
-						// Retrieve the path and the mime type 
-						String path = cursor.getString(cursor 
-						                .getColumnIndex(MediaStore.MediaColumns.DATA)); 
-						String mimeType = cursor.getString(cursor 
-						                .getColumnIndex(MediaStore.MediaColumns.MIME_TYPE));
-						
-						if (mimeType == null || mimeType.startsWith("image"))
+					
+					try
 						{
-							Intent passingIntent = new Intent(this,ImageEditor.class);
-							passingIntent.setData(uriGalleryFile);
-							startActivityForResult(passingIntent,IMAGE_EDITOR);
+							if (uriGalleryFile != null)
+							{
+								Cursor cursor = managedQuery(uriGalleryFile, null, 
+		                                null, null, null); 
+								cursor.moveToNext(); 
+								// Retrieve the path and the mime type 
+								String path = cursor.getString(cursor 
+								                .getColumnIndex(MediaStore.MediaColumns.DATA)); 
+								String mimeType = cursor.getString(cursor 
+								                .getColumnIndex(MediaStore.MediaColumns.MIME_TYPE));
+								
+								if (mimeType == null || mimeType.startsWith("image"))
+								{
+									Intent passingIntent = new Intent(this,ImageEditor.class);
+									passingIntent.setData(uriGalleryFile);
+									startActivityForResult(passingIntent,IMAGE_EDITOR);
+								}
+								else if (mimeType.startsWith("video"))
+								{
+		
+									Intent passingIntent = new Intent(this,VideoEditor.class);
+									passingIntent.setData(uriGalleryFile);
+									startActivityForResult(passingIntent,VIDEO_EDITOR);
+								}
+							}
+							else
+							{
+								Toast.makeText(this, "Unable to load media.", Toast.LENGTH_LONG).show();
+			
+							}
 						}
-						else if (mimeType.startsWith("video"))
-						{
+					catch (Exception e)
+					{
+						Toast.makeText(this, "Unable to load media.", Toast.LENGTH_LONG).show();
+						Log.e(TAG, "error loading media: " + e.getMessage(), e);
 
-							Intent passingIntent = new Intent(this,VideoEditor.class);
-							passingIntent.setData(uriGalleryFile);
-							startActivityForResult(passingIntent,VIDEO_EDITOR);
-						}
-					}
-					else
-					{
-						Toast.makeText(this, "Unable to load photo.", Toast.LENGTH_LONG).show();
-	
 					}
 				}
 				else
