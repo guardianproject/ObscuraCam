@@ -113,8 +113,8 @@
     <string name="pref_out_vwidth_title">Custom Video Width (px)</string>
     <string name="pref_out_vwidth_summary">custom video width for outputed video</string>
     
-     <string name="pref_out_acodec_title">Custom Video Height (px)</string>
-    <string name="pref_out_acodec_summary">custom video height for outputed video</string>
+     <string name="pref_out_vheight_title">Custom Video Height (px)</string>
+    <string name="pref_out_vheight_summary">custom video height for outputed video</string>
     
     
 </resources>
