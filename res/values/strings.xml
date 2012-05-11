@@ -92,4 +92,29 @@
     
     <string name="play_video">Play Video</string>
     <string name="share_video">Share Video</string>
+    
+    
+    <!--  video processing -->
+    <string name="pref_out_fps_title">Output Framerate (fps)</string>
+    <string name="pref_out_fps_summary">Frames per second to save output video at (15-30)</string>
+    
+    <string name="pref_out_rate_title">Output Bitrate (kbps)</string>
+    <string name="pref_out_rate_summary">Bitrate of video output (300-1500)</string>
+    
+    <string name="pref_out_format_title">Output Format</string>
+    <string name="pref_out_format_summary">File container format (mp4, 3gp, ogg)</string>
+    
+     <string name="pref_out_vcodec_title">Output Video Codec</string>
+    <string name="pref_out_vcodec_summary">video codec (copy, libx264, etc)</string>
+    
+     <string name="pref_out_acodec_title">Output Audio Codec</string>
+    <string name="pref_out_acodec_summary">audio codec (copy, aac, mp3, etc)</string>
+    
+    <string name="pref_out_vwidth_title">Custom Video Width (px)</string>
+    <string name="pref_out_vwidth_summary">custom video width for outputed video</string>
+    
+     <string name="pref_out_acodec_title">Custom Video Height (px)</string>
+    <string name="pref_out_acodec_summary">custom video height for outputed video</string>
+    
+    
 </resources>
