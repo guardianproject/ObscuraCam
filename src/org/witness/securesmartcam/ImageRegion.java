@@ -248,14 +248,16 @@ public class ImageRegion implements OnActionItemClickListener
 
 					float[] points = {mBounds.centerX(), mBounds.centerY()};		
 					mMatrix.mapPoints(points);
-					mPopupMenu.show(mImageEditor.getImageView(), (int)points[0], (int)points[1]);
+					mPopupMenu.show(mImageEditor.getImageView());//, (int)points[0], (int)points[1]);
 			        }
 			}.sendMessageDelayed(new Message(), 500);
 		} else {			
 
 			float[] points = {mBounds.centerX(), mBounds.centerY()};		
 			mMatrix.mapPoints(points);
-			mPopupMenu.show(mImageEditor.getImageView(), (int)points[0], (int)points[1]);
+			
+			mPopupMenu.show(mImageEditor.getImageView());//, (int)points[0], (int)points[1]);
+			
 		}
 		
 
@@ -513,25 +515,6 @@ public class ImageRegion implements OnActionItemClickListener
 	}
 
 	
-	@Override
-	public void onItemClick(int pos) {
-		
-		if (pos == mFilterLabels.length) //meaing after the last one
-		{
-        	mImageEditor.deleteRegion(ImageRegion.this);
-		}
-		else
-		{
-        	mObscureType = pos;
-        	updateRegionProcessor(mObscureType);
-        	
-        		
-		}
-
-		mImageEditor.updateDisplayImage();
-
-	}
-	
 	private void updateRegionProcessor (int obscureType)
 	{
 		switch (obscureType) {
@@ -575,6 +558,25 @@ public class ImageRegion implements OnActionItemClickListener
 			imageRegionBorder = identifiedBorder;
 		else
 			imageRegionBorder = unidentifiedBorder;
+	}
+
+	@Override
+	public void onItemClick(QuickAction source, int pos, int actionId) {
+		
+		if (pos == mFilterLabels.length) //meaing after the last one
+		{
+        	mImageEditor.deleteRegion(ImageRegion.this);
+		}
+		else
+		{
+        	mObscureType = pos;
+        	updateRegionProcessor(mObscureType);
+        	
+        		
+		}
+
+		mImageEditor.updateDisplayImage();
+		
 	}
 
 	

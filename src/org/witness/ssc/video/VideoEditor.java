@@ -1340,7 +1340,7 @@ public class VideoEditor extends Activity implements
 		if (popupMenu == null)
 			initPopup();
 
-		popupMenu.show(regionsView, (int)activeRegion.getBounds().centerX(), (int)activeRegion.getBounds().centerY());
+		popupMenu.show(regionsView);//, (int)activeRegion.getBounds().centerX(), (int)activeRegion.getBounds().centerY());
 	}
 	
 	private void initPopup ()
@@ -1368,8 +1368,7 @@ public class VideoEditor extends Activity implements
 		popupMenu.setOnActionItemClickListener(this);
 	}
 
-	//Popup menu item clicked
-	@Override
+	
 	public void onItemClick(int pos) {
 		
 		switch (pos) {
@@ -1632,6 +1631,12 @@ public class VideoEditor extends Activity implements
 	{
 		Intent intent = new Intent(this, VideoPreferences.class);
 		startActivity(intent);
+		
+	}
+
+	@Override
+	public void onItemClick(QuickAction source, int pos, int actionId) {
+		// TODO Auto-generated method stub
 		
 	}
 
