@@ -772,7 +772,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			case MotionEvent.ACTION_DOWN:
 				clearImageRegionsEditMode();
 				currRegion.setSelected(true);	
-				
 				currRegion.setCornerMode(event.getX(),event.getY());
 				
 				mode = DRAG;
@@ -782,16 +781,21 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			
 			case MotionEvent.ACTION_UP:
 				mode = NONE;
-				handled = iRegion.onTouch(v, event);
+				handled = currRegion.onTouch(v, event);
 				currRegion.setSelected(false);
-				//if (handled)
-					//currRegion = null;
+				
+			break;
+			
+			case MotionEvent.ACTION_MOVE:
+				mode = DRAG;
+				handled = currRegion.onTouch(v, event);
+				//handled = iRegion.onTouch(v, event);
+				//currRegion.setSelected(false);
 			
 			break;
 			
 			default:
-				mode = DRAG;
-				handled = iRegion.onTouch(v, event);
+				mode = NONE;
 			
 		}
 		
@@ -906,11 +910,18 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						// Save the current matrix so that if zoom goes to big, we can revert
 						savedMatrix.set(matrix);
 						
-						// Get the spacing of the fingers, 2 fingers
-						float ex = event.getX(0) - event.getX(1);
-						float ey = event.getY(0) - event.getY(1);
-						endFingerSpacing = (float) Math.sqrt(ex * ex + ey * ey);
-	
+						if (event.getPointerCount() > 1)
+						{
+							// Get the spacing of the fingers, 2 fingers
+							float ex = event.getX(0) - event.getX(1);
+							float ey = event.getY(0) - event.getY(1);
+							endFingerSpacing = (float) Math.sqrt(ex * ex + ey * ey);
+						}
+						else
+						{
+							endFingerSpacing = 0;
+						}
+						
 						//Log.d(ObscuraApp.TAG, "End Finger Spacing=" + endFingerSpacing);
 		
 						// If we moved far enough
@@ -1383,7 +1394,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	    	RegionProcesser om = currentRegion.getRegionProcessor();
 
             RectF regionRect = new RectF(currentRegion.getBounds());
-	    	om.processRegion(regionRect, obscuredCanvas, obscuredBmp);
+            
+	    	if (mode != DRAG)
+	    		om.processRegion(regionRect, obscuredCanvas, obscuredBmp);
 
 	    	if (showBorders)
 	    	{
@@ -1396,6 +1409,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		    	obscuredPaint.setStrokeWidth(10f);
 		    	obscuredCanvas.drawRect(regionRect, obscuredPaint);
 		    	
+		    	/*
 		    	float cSize = CORNER_SIZE;
 		    	
 		    	if (currentRegion.isSelected())
@@ -1405,7 +1419,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		    		obscuredCanvas.drawBitmap(bitmapCornerUR, regionRect.right-(cSize/2), regionRect.top-cSize, obscuredPaint);
 		    		obscuredCanvas.drawBitmap(bitmapCornerLR, regionRect.right-(cSize/2), regionRect.bottom-(cSize/2), obscuredPaint);
 
-		    	}
+		    	}*/
 		    	
 	    	}
 		}
