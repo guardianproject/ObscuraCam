@@ -24,7 +24,7 @@
 	      
 	        <EditTextPreference android:key="pref_out_vheight"
 		android:title="@string/pref_out_vheight_title"
-		android:summary="@string/pref_vheight_rate_summary"
+		android:summary="@string/pref_out_vheight_summary"
 		android:dialogTitle="@string/pref_out_vheight_title"
 	
 		/>
