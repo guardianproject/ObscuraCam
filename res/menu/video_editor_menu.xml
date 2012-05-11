@@ -14,6 +14,13 @@
     	android:title="@string/menu_clear_regions"
     	android:icon="@drawable/ic_menu_trash" />
     
+    
+    <item android:id="@+id/menu_prefs" 
+    	android:title="@string/menu_prefs"
+    	android:icon="@drawable/ic_menu_prefs" 
+    	 android:showAsAction="ifRoom"
+    	/>
+    
     <item android:id="@+id/menu_about" 
     	android:title="@string/menu_about"
     	android:icon="@drawable/ic_menu_about" />
