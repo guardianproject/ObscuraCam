@@ -17,10 +17,10 @@ public class ObscureRegion {
 		int sy = 0; 
 		int ex = 0;
 		int ey = 0;
-		long startTime = 0; 
-		long endTime = 0;
+		int startTime = 0; 
+		int endTime = 0;
 		
-		PositionTime(int _sx, int _sy, int _ex, int _ey, long _startTime, long _endTime) {
+		PositionTime(int _sx, int _sy, int _ex, int _ey, int _startTime, int _endTime) {
 			
 		}
 	}
@@ -28,11 +28,11 @@ public class ObscureRegion {
 	
 	public static final String LOGTAG = ObscuraApp.TAG;
 
-	public static final String DEFAULT_MODE = "pixel";
+	public static final String MODE_REDACT = "black";
+	public static final String MODE_MOSAIC = "pixel";
+	
+	public static final String DEFAULT_MODE = MODE_MOSAIC;
 
-	
-	public static final long DEFAULT_LENGTH = 10; // Seconds
-	
 	public static final float DEFAULT_X_SIZE = 150;
 	public static final float DEFAULT_Y_SIZE = 150;
 		
@@ -42,17 +42,15 @@ public class ObscureRegion {
 	public float ex = 0;
 	public float ey = 0;
 		
-	public long startTime = 0;
-	public long endTime = 0;
+	public int timeStamp = 0;
 	
-	public long mediaDuration = 0;
+	public RegionTrail regionTrail;
 	
 	public String currentMode = DEFAULT_MODE;
 	
-	public ObscureRegion(long _duration, long _startTime, long _endTime, float _sx, float _sy, float _ex, float _ey, String _mode) {
-		mediaDuration = _duration;
-		startTime = _startTime;
-		endTime = _endTime;
+	public ObscureRegion(int _timeStamp, float _sx, float _sy, float _ex, float _ey, String _mode) {
+		
+		timeStamp = _timeStamp;
 		sx = _sx;
 		sy = _sy;
 		ex = _ex;
@@ -69,17 +67,14 @@ public class ObscureRegion {
 		
 	}
 
-	public ObscureRegion(long _duration, long _startTime, float _sx, float _sy, float _ex, float _ey) {
-		this(_duration, _startTime, _startTime+DEFAULT_LENGTH, _sx, _sy, _ex, _ey, DEFAULT_MODE);
+	public ObscureRegion(int _startTime, float _sx, float _sy, float _ex, float _ey) {
+		this(_startTime, _sx, _sy, _ex, _ey, DEFAULT_MODE);
 	}
 
-	public ObscureRegion(long _duration, long _startTime, long _endTime, float _sx, float _sy) {
-		this(_duration, _startTime, _endTime, _sx - DEFAULT_X_SIZE/2, _sy - DEFAULT_Y_SIZE/2, _sx + DEFAULT_X_SIZE/2, _sy + DEFAULT_Y_SIZE/2, DEFAULT_MODE);
+	public ObscureRegion(int _startTime, float _sx, float _sy) {
+		this(_startTime, _sx - DEFAULT_X_SIZE/2, _sy - DEFAULT_Y_SIZE/2, _sx + DEFAULT_X_SIZE/2, _sy + DEFAULT_Y_SIZE/2, DEFAULT_MODE);
 	}
 
-	public ObscureRegion(long _duration, long _startTime, float _sx, float _sy) {
-		this(_duration, _startTime, _startTime+DEFAULT_LENGTH, _sx - DEFAULT_X_SIZE/2, _sy - DEFAULT_Y_SIZE/2, _sx + DEFAULT_X_SIZE/2, _sy + DEFAULT_Y_SIZE/2, DEFAULT_MODE);
-	}
 	
 	public void moveRegion(float _sx, float _sy) {
 		moveRegion(_sx - DEFAULT_X_SIZE/2, _sy - DEFAULT_Y_SIZE/2, _sx + DEFAULT_X_SIZE/2, _sy + DEFAULT_Y_SIZE/2);
@@ -101,15 +96,17 @@ public class ObscureRegion {
 	}
 	
 	
-	public boolean existsInTime(long time) {
-		if (time < endTime && time >= startTime) {
-			return true;
-		}
-		return false;
+
+	public String getStringData(float sizeMult,int duration) {
+		//left, right, top, bottom
+		return "" + (float)timeStamp/(float)1000 + ',' + (float)(timeStamp+duration)/(float)1000 + ',' + (int)(sx*sizeMult) + ',' + (int)(ex*sizeMult) + ',' + (int)(sy*sizeMult) + ',' + (int)(ey*sizeMult) + ',' + currentMode;
 	}
 
-	public String getStringData(float sizeMult) {
-		//left, right, top, bottom
-		return "" + (float)startTime/(float)1000 + ',' + (float)endTime/(float)1000 + ',' + (int)(sx*sizeMult) + ',' + (int)(ex*sizeMult) + ',' + (int)(sy*sizeMult) + ',' + (int)(ey*sizeMult) + ',' + currentMode;
+	public RegionTrail getRegionTrail() {
+		return regionTrail;
+	}
+
+	public void setRegionTrail(RegionTrail regionTrail) {
+		this.regionTrail = regionTrail;
 	}
 }

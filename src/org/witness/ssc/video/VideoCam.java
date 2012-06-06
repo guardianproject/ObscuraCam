@@ -360,7 +360,7 @@ public class VideoCam extends Activity implements OnTouchListener, OnClickListen
 		
 	}
 	
-	long startTime = 0;
+	int startTime = 0;
 	float startX = 0;
 	float startY = 0;
 	
@@ -377,7 +377,7 @@ public class VideoCam extends Activity implements OnTouchListener, OnClickListen
 				// Single Finger down
 				
 				if (recording) {
-					startTime = SystemClock.uptimeMillis() - recordStartTime;
+					startTime = (int)(SystemClock.uptimeMillis() - recordStartTime);
 					startX = x;
 					startY = y;
 					
@@ -397,7 +397,7 @@ public class VideoCam extends Activity implements OnTouchListener, OnClickListen
 				// Single Finger Up
 				
 				if (recording) {					
-					ObscureRegion singleFingerUpRegion = new ObscureRegion(startTime, SystemClock.uptimeMillis() - recordStartTime,x,y);
+					ObscureRegion singleFingerUpRegion = new ObscureRegion(startTime,x,y);
 					obscureRegions.add(singleFingerUpRegion);
 				}
 				
@@ -411,10 +411,10 @@ public class VideoCam extends Activity implements OnTouchListener, OnClickListen
 				// Calculate distance moved
 				
 				if (recording) {
-					ObscureRegion oneFingerMoveRegion = new ObscureRegion(startTime, SystemClock.uptimeMillis() - recordStartTime,x,y);
+					ObscureRegion oneFingerMoveRegion = new ObscureRegion(startTime,x,y);
 					obscureRegions.add(oneFingerMoveRegion);
 					
-					startTime = SystemClock.uptimeMillis() - recordStartTime;
+					startTime = (int)(SystemClock.uptimeMillis() - recordStartTime);
 					startX = x;
 					startY = y;
 				}

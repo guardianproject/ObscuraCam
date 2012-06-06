@@ -62,13 +62,15 @@ public class RegionBarArea extends ImageView {
         if (numRegions > 0) {
 	        int regionHeight = getHeight()/numRegions;
 	        int count = 0;
+	        /*TODO fix this
 			for (ObscureRegion region:obscureRegions) {
-				canvas.drawRect(region.startTime/region.mediaDuration*getWidth(), 
+				canvas.drawRect(region.startTime/region.endTime*getWidth(), 
 								count*regionHeight, 
 								region.endTime/region.mediaDuration*getWidth(), 
 								(count+1)*regionHeight, paint);
 				count++;
 			}
+			*/
         }
         //canvas.drawRect(left, top, right, bottom, paint);
         //(float)startTime/(float)1000 + "," + (float)endTime/(float)1000

@@ -21,8 +21,6 @@ public class VideoPreferences
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.videopreferences);
 		
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		
 	}
 	
 	

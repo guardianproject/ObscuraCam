@@ -11,6 +11,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Vector;
 
 import org.witness.ssc.video.ShellUtils.ShellCallback;
@@ -76,10 +79,10 @@ public class FFMPEGWrapper {
 	}
 	
 	public void processVideo(File redactSettingsFile, 
-			Vector<ObscureRegion> obscureRegions, File inputFile, File outputFile, String format, 
-			int width, int height, int frameRate, int kbitRate, String vcodec, String acodec, ShellCallback sc) throws Exception {
+			ArrayList<RegionTrail> obscureRegionTrails, File inputFile, File outputFile, String format, 
+			int width, int height, int frameRate, int kbitRate, String vcodec, String acodec, float resize, ShellCallback sc) throws Exception {
 		
-		writeRedactData(redactSettingsFile, obscureRegions);
+		writeRedactData(redactSettingsFile, obscureRegionTrails, resize);
 		    	
 		if (vcodec == null)
 			vcodec = "copy";//"libx264"
@@ -90,17 +93,22 @@ public class FFMPEGWrapper {
     	String ffmpegBin = new File(fileBinDir,"ffmpeg").getAbsolutePath();
 		Runtime.getRuntime().exec("chmod 700 " +ffmpegBin);
     	
-    	//ffmpeg -v 10 -y -i /sdcard/org.witness.sscvideoproto/videocapture1042744151.mp4 -vcodec libx264 -b 3000k -s 720x480 -r 30 -acodec copy -f mp4 -vf 'redact=/data/data/org.witness.sscvideoproto/redact_unsort.txt' /sdcard/org.witness.sscvideoproto/new.mp4
+		int fwidth = (int)(width * resize);
+		int fheight = (int)(height * resize);
+		
     	
     	String[] ffmpegCommand = {ffmpegBin, "-v", "10", "-y", "-i", inputFile.getPath(), 
 				"-vcodec", vcodec, 
 				"-b", kbitRate+"k", 
-				"-s",  width + "x" + height, 
+				"-s",  fwidth + "x" + fheight, 
 				"-r", ""+frameRate,
 				"-acodec", "copy",
 				"-f", format,
 				"-vf","redact=" + redactSettingsFile.getAbsolutePath(),
 				outputFile.getPath()};
+    	
+    	
+    	//ffmpeg -v 10 -y -i /sdcard/org.witness.sscvideoproto/videocapture1042744151.mp4 -vcodec libx264 -b 3000k -s 720x480 -r 30 -acodec copy -f mp4 -vf 'redact=/data/data/org.witness.sscvideoproto/redact_unsort.txt' /sdcard/org.witness.sscvideoproto/new.mp4
     	
     	//"-vf" , "redact=" + Environment.getExternalStorageDirectory().getPath() + "/" + PACKAGENAME + "/redact_unsort.txt",
 
@@ -122,17 +130,39 @@ public class FFMPEGWrapper {
 	    
 	}
 	
-	private void writeRedactData(File redactSettingsFile, Vector<ObscureRegion> obscureRegions) throws IOException {
+	private void writeRedactData(File redactSettingsFile, ArrayList<RegionTrail> obscureRegionTrails, float resize) throws IOException {
 		// Write out the finger data
 					
 		FileWriter redactSettingsFileWriter = new FileWriter(redactSettingsFile);
 		PrintWriter redactSettingsPrintWriter = new PrintWriter(redactSettingsFileWriter);
 		
-		for (int i = 0; i < obscureRegions.size(); i++) {
-			ObscureRegion or = (ObscureRegion)obscureRegions.get(i);
-			String orData = or.getStringData(1f);
-			redactSettingsPrintWriter.println(orData);
+		for (RegionTrail trail : obscureRegionTrails)
+		{
+			Collection<ObscureRegion> obscureRegions = trail.getRegions();
+			
+			Iterator<ObscureRegion> itOr = obscureRegions.iterator();
+			
+			ObscureRegion lastOr = itOr.next();
+			ObscureRegion or = null;
+			
+			while (itOr.hasNext())
+			{
+				or = itOr.next();
+				
+				String orData = lastOr.getStringData(resize,or.timeStamp-lastOr.timeStamp);
+				redactSettingsPrintWriter.println(orData);
+				
+				lastOr = or;
+			}
+			
+			if (or != null)
+			{
+				String orData = lastOr.getStringData(resize,or.timeStamp-lastOr.timeStamp);
+				redactSettingsPrintWriter.println(orData);
+			}
+			
 		}
+		
 		redactSettingsPrintWriter.flush();
 		redactSettingsPrintWriter.close();
 

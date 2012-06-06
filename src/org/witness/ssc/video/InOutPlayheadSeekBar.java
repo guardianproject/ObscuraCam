@@ -46,10 +46,11 @@ public class InOutPlayheadSeekBar extends SeekBar {
 	public boolean thumbsActive = false;
 	
 	public void setThumbsActive(int inThumbValue, int outThumbValue) {
-		Log.v(LOGTAG,"in value: " + inThumbValue + " out value: " + outThumbValue);
+		//Log.v(LOGTAG,"in value: " + inThumbValue + " out value: " + outThumbValue);
 		thumbsActive = true;
 		setThumbsValue(inThumbValue, outThumbValue);
 		invalidate();
+		
 	}
 	
 	public void setThumbsInactive() {
@@ -122,24 +123,24 @@ public class InOutPlayheadSeekBar extends SeekBar {
 		case MotionEvent.ACTION_DOWN:
 			if (mx >= thumbInX - thumbInHalfWidth && mx <= thumbInX + thumbInHalfWidth) {
 				selectedThumb = THUMBIN;
-				Log.i(LOGTAG,"Select thumbIn");
+			//	Log.i(LOGTAG,"Select thumbIn");
 				handled = true;
 			} else if (mx >= thumbOutX - thumbOutHalfWidth && mx <= thumbOutX + thumbOutHalfWidth) {
 				selectedThumb = THUMBOUT;
-				Log.i(LOGTAG,"Select thumbOut");
+			//	Log.i(LOGTAG,"Select thumbOut");
 				handled = true;
 			}
 			break;
 		case MotionEvent.ACTION_MOVE:
-			Log.i(LOGTAG,"Mouse Move : " + selectedThumb);
+		//	Log.i(LOGTAG,"Mouse Move : " + selectedThumb);
 
 			if (selectedThumb == THUMBIN) {
 				thumbInX = mx;
-				Log.i(LOGTAG,"Move thumbIn");
+			//	Log.i(LOGTAG,"Move thumbIn");
 				handled = true;
 			} else if (selectedThumb == THUMBOUT) {
 				thumbOutX = mx;
-				Log.i(LOGTAG,"Move thumbOut");
+		//		Log.i(LOGTAG,"Move thumbOut");
 				handled = true;
 			}
 			break;
@@ -183,13 +184,13 @@ public class InOutPlayheadSeekBar extends SeekBar {
 	private void calculateThumbsValue(){
 		thumbInValue = (int)((100*((float)thumbInX))/((float)getWidth()));
 		thumbOutValue = (int)((100*((float)thumbOutX))/((float)getWidth()));
-		Log.v(LOGTAG,"thumb in value: " + thumbInValue + " thumb out value: " + thumbOutValue);
+	//	Log.v(LOGTAG,"thumb in value: " + thumbInValue + " thumb out value: " + thumbOutValue);
 	}
 	
 	private void setThumbsValue(int thumbInValue, int thumbOutValue) {
 		thumbInX = (int)(((float)thumbInValue/(float)100)*(float)getWidth());
 		thumbOutX = (int)(((float)thumbOutValue/(float)100)*(float)getWidth());
-		Log.v(LOGTAG,"thumbInX: " + thumbInX + " thumbOutX: " + thumbOutX);
+	//	Log.v(LOGTAG,"thumbInX: " + thumbInX + " thumbOutX: " + thumbOutX);
 		calculateThumbsValue();
 	}
 		
