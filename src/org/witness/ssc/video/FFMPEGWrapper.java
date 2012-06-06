@@ -129,26 +129,28 @@ public class FFMPEGWrapper {
 	    
 	}
 	
-	private void writeRedactData(File redactSettingsFile, ArrayList<RegionTrail> obscureRegionTrails, float widthMod, float heightMod) throws IOException {
+	private void writeRedactData(File redactSettingsFile, ArrayList<RegionTrail> regionTrails, float widthMod, float heightMod) throws IOException {
 		// Write out the finger data
 					
 		FileWriter redactSettingsFileWriter = new FileWriter(redactSettingsFile);
 		PrintWriter redactSettingsPrintWriter = new PrintWriter(redactSettingsFileWriter);
 		
-		for (RegionTrail trail : obscureRegionTrails)
+		for (RegionTrail trail : regionTrails)
 		{
-			Collection<ObscureRegion> obscureRegions = trail.getRegions();
 			
-			Iterator<ObscureRegion> itOr = obscureRegions.iterator();
+			ObscureRegion or = null, lastOr = null;
 			
-			ObscureRegion lastOr = itOr.next();
-			ObscureRegion or = null;
-			
-			while (itOr.hasNext())
+			for (Integer orKey : trail.getRegionKeys())
 			{
-				or = itOr.next();
+				or = trail.getRegion(orKey);
 				
-				String orData = lastOr.getStringData(widthMod, heightMod,or.timeStamp-lastOr.timeStamp);
+				String orData = "";
+				
+				if (lastOr != null)
+				{
+					orData = lastOr.getStringData(widthMod, heightMod,or.timeStamp-lastOr.timeStamp);
+				}
+				
 				redactSettingsPrintWriter.println(orData);
 				
 				lastOr = or;

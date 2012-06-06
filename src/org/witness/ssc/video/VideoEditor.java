@@ -726,9 +726,10 @@ public class VideoEditor extends Activity implements
 		obscuredPaint.setColor(color);
 		obscuredPaint.setStrokeWidth(10f);
 	    
-		for (ObscureRegion region:trail.getRegions())
+		for (Integer regionKey:trail.getRegionKeys())
 		{
 
+			ObscureRegion region = trail.getRegion(regionKey);
 			
 			int alpha = 150;//Math.min(255,Math.max(0, ((currentTime - region.timeStamp)/1000)));
 			
@@ -797,15 +798,15 @@ public class VideoEditor extends Activity implements
 
 	public ObscureRegion findRegion(float x, float y) 
 	{
-		ObscureRegion returnRegion = null;
+		ObscureRegion region, returnRegion = null;
 		
 		for (RegionTrail regionTrail:obscureTrails)
 		{
 		
-			Collection<ObscureRegion> obscureRegions = regionTrail.getRegions();
-		
-			for (ObscureRegion region : obscureRegions)
+			for (Integer regionKey : regionTrail.getRegionKeys())
 			{
+				region = regionTrail.getRegion(regionKey);
+				
 				if (region.getBounds().contains(x,y))
 				{
 					returnRegion = region;
@@ -1747,7 +1748,7 @@ public class VideoEditor extends Activity implements
 			break;
 		case 2:
 			// Remove region
-			activeRegionTrail.getRegions().remove(activeRegion);
+			activeRegionTrail.removeRegion(activeRegion);
 			activeRegion = null;
 			updateRegionDisplay(mediaPlayer.getCurrentPosition());
 			

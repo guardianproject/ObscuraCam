@@ -5,7 +5,7 @@ import org.witness.sscphase1.ObscuraApp;
 import android.graphics.RectF;
 import android.util.Log;
 
-public class ObscureRegion {
+public class ObscureRegion  {
 
 	/*
 	 * Thinking about whether or not a region should contain multiple start/end times

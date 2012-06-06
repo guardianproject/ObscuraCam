@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -43,14 +44,26 @@ public class RegionTrail {
 		or.setRegionTrail(this);
 	}
 	
+	public void removeRegion (ObscureRegion or)
+	{
+		regionMap.remove(or.timeStamp);
+	}
+	
 	public Iterator<ObscureRegion> getRegionsIterator ()
 	{
 		return regionMap.values().iterator();
 	}
 	
-	public Collection<ObscureRegion> getRegions ()
+	public ObscureRegion getRegion (Integer key)
 	{
-		return regionMap.values();
+		return regionMap.get(key);
+	}
+	
+	public TreeSet<Integer> getRegionKeys ()
+	{
+		TreeSet<Integer> regionKeys = new TreeSet<Integer>(regionMap.keySet());
+
+		return regionKeys;
 	}
 	
 	public ObscureRegion getCurrentRegion (int time)
