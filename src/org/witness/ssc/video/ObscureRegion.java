@@ -97,9 +97,9 @@ public class ObscureRegion {
 	
 	
 
-	public String getStringData(float sizeMult,int duration) {
+	public String getStringData(float widthMod, float heightMod, int duration) {
 		//left, right, top, bottom
-		return "" + (float)timeStamp/(float)1000 + ',' + (float)(timeStamp+duration)/(float)1000 + ',' + (int)(sx*sizeMult) + ',' + (int)(ex*sizeMult) + ',' + (int)(sy*sizeMult) + ',' + (int)(ey*sizeMult) + ',' + currentMode;
+		return "" + (float)timeStamp/(float)1000 + ',' + (float)(timeStamp+duration)/(float)1000 + ',' + (int)(sx*widthMod) + ',' + (int)(ex*widthMod) + ',' + (int)(sy*heightMod) + ',' + (int)(ey*heightMod) + ',' + currentMode;
 	}
 
 	public RegionTrail getRegionTrail() {

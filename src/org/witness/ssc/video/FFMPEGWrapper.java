@@ -80,9 +80,12 @@ public class FFMPEGWrapper {
 	
 	public void processVideo(File redactSettingsFile, 
 			ArrayList<RegionTrail> obscureRegionTrails, File inputFile, File outputFile, String format, 
-			int width, int height, int frameRate, int kbitRate, String vcodec, String acodec, float resize, ShellCallback sc) throws Exception {
+			int iWidth, int iHeight, int oWidth, int oHeight, int frameRate, int kbitRate, String vcodec, String acodec, ShellCallback sc) throws Exception {
 		
-		writeRedactData(redactSettingsFile, obscureRegionTrails, resize);
+		float widthMod = ((float)oWidth)/((float)iWidth);
+		float heightMod = ((float)oHeight)/((float)iHeight);
+		
+		writeRedactData(redactSettingsFile, obscureRegionTrails, widthMod, heightMod);
 		    	
 		if (vcodec == null)
 			vcodec = "copy";//"libx264"
@@ -93,14 +96,10 @@ public class FFMPEGWrapper {
     	String ffmpegBin = new File(fileBinDir,"ffmpeg").getAbsolutePath();
 		Runtime.getRuntime().exec("chmod 700 " +ffmpegBin);
     	
-		int fwidth = (int)(width * resize);
-		int fheight = (int)(height * resize);
-		
-    	
     	String[] ffmpegCommand = {ffmpegBin, "-v", "10", "-y", "-i", inputFile.getPath(), 
 				"-vcodec", vcodec, 
 				"-b", kbitRate+"k", 
-				"-s",  fwidth + "x" + fheight, 
+				"-s",  oWidth + "x" + oHeight, 
 				"-r", ""+frameRate,
 				"-acodec", "copy",
 				"-f", format,
@@ -130,7 +129,7 @@ public class FFMPEGWrapper {
 	    
 	}
 	
-	private void writeRedactData(File redactSettingsFile, ArrayList<RegionTrail> obscureRegionTrails, float resize) throws IOException {
+	private void writeRedactData(File redactSettingsFile, ArrayList<RegionTrail> obscureRegionTrails, float widthMod, float heightMod) throws IOException {
 		// Write out the finger data
 					
 		FileWriter redactSettingsFileWriter = new FileWriter(redactSettingsFile);
@@ -149,7 +148,7 @@ public class FFMPEGWrapper {
 			{
 				or = itOr.next();
 				
-				String orData = lastOr.getStringData(resize,or.timeStamp-lastOr.timeStamp);
+				String orData = lastOr.getStringData(widthMod, heightMod,or.timeStamp-lastOr.timeStamp);
 				redactSettingsPrintWriter.println(orData);
 				
 				lastOr = or;
@@ -157,7 +156,7 @@ public class FFMPEGWrapper {
 			
 			if (or != null)
 			{
-				String orData = lastOr.getStringData(resize,or.timeStamp-lastOr.timeStamp);
+				String orData = lastOr.getStringData(widthMod, heightMod,or.timeStamp-lastOr.timeStamp);
 				redactSettingsPrintWriter.println(orData);
 			}
 			

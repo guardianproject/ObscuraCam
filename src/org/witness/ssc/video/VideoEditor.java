@@ -157,7 +157,6 @@ public class VideoEditor extends Activity implements
 	String outVcodec = null;
 	int outVWidth = -1;
 	int outVHeight = -1;
-	float outResize = 1f;
 	
 	private final static String DEFAULT_OUT_FPS = "30";
 	private final static String DEFAULT_OUT_RATE = "500";
@@ -1314,7 +1313,7 @@ public class VideoEditor extends Activity implements
 				
 				// Could make some high/low quality presets	
 				ffmpeg.processVideo(redactSettingsFile, obscureTrails, recordingFile, saveFile, outFormat, 
-						processVWidth, processVHeight, outFrameRate, outBitRate, outVcodec, outAcodec, outResize, sc);
+						videoWidth, videoHeight, processVWidth, processVHeight, outFrameRate, outBitRate, outVcodec, outAcodec, sc);
 			}
 			catch (Exception e)
 			{
