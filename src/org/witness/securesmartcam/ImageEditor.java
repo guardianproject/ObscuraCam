@@ -491,6 +491,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		
 	}
+	
 	/*
 	 * Call this to delete the original image, will ask the user
 	 */

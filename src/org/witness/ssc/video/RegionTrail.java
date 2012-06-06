@@ -1,11 +1,7 @@
 package org.witness.ssc.video;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 import java.util.TreeSet;
 
 public class RegionTrail {

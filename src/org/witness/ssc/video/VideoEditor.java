@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Random;
 import java.util.Vector;
 
 import net.londatiga.android.ActionItem;
@@ -25,6 +26,7 @@ import net.londatiga.android.QuickAction;
 import net.londatiga.android.QuickAction.OnActionItemClickListener;
 
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
+import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.ssc.video.InOutPlayheadSeekBar.InOutPlayheadSeekBarChangeListener;
 import org.witness.ssc.video.ShellUtils.ShellCallback;
 import org.witness.sscphase1.ObscuraApp;
@@ -34,6 +36,7 @@ import android.R.color;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -51,6 +54,7 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
@@ -112,6 +116,8 @@ public class VideoEditor extends Activity implements
 	File redactSettingsFile;
 	File saveFile;
 	File recordingFile;
+	Random rand = new Random();
+
 	
 	Display currentDisplay;
 
@@ -119,6 +125,9 @@ public class VideoEditor extends Activity implements
 	SurfaceHolder surfaceHolder;
 	MediaPlayer mediaPlayer;	
 	
+	MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+	PixelizeObscure po = new PixelizeObscure ();
+	 
 	ImageView regionsView;
 	Bitmap obscuredBmp;
     Canvas obscuredCanvas;
@@ -261,7 +270,7 @@ public class VideoEditor extends Activity implements
 
 		regionsView = (ImageView) this.findViewById(R.id.VideoEditorImageView);
 		regionsView.setOnTouchListener(this);
-		createCleanSavePath();
+		
 
 
 		videoView = (VideoView) this.findViewById(R.id.SurfaceView);
@@ -334,6 +343,9 @@ public class VideoEditor extends Activity implements
 		mAutoDetectEnabled = true; //first time do autodetect
 		
 		setPrefs();
+		
+	    retriever.setDataSource(recordingFile.getAbsolutePath());
+
 	}
 	
 	@Override
@@ -614,10 +626,7 @@ public class VideoEditor extends Activity implements
 					   mediaPlayer.start();
 					   
 					   //mediaPlayer.setVolume(0f, 0f);
-					   String rPath = recordingFile.getAbsolutePath();
-					   MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-				       retriever.setDataSource(rPath);
-				            
+					        
 					   for (int f = 0; f < mDuration && mAutoDetectEnabled; f += timeInc)
 					   {
 						   mediaPlayer.seekTo(f);
@@ -689,20 +698,22 @@ public class VideoEditor extends Activity implements
 		for (RegionTrail regionTrail:obscureTrails)
 		{
 		
-			int currentColor = Color.WHITE;
-			boolean selected = regionTrail == activeRegionTrail;
-			
-			if (selected)
+			if (regionTrail.getCurrentRegion(currentTime)!=null)
 			{
-				currentColor = Color.GREEN;
-				displayRegionTrail(regionTrail, selected, currentColor, currentTime);
+				int currentColor = Color.WHITE;
+				boolean selected = regionTrail == activeRegionTrail;
+				
+				if (selected)
+				{
+					currentColor = Color.GREEN;
+					displayRegionTrail(regionTrail, selected, currentColor, currentTime);
+				}
+				
+				ObscureRegion region = regionTrail.getCurrentRegion(currentTime);
+				
+				if (region != null)
+					displayRegion(region, selected, currentColor, regionTrail.getObscureMode());
 			}
-			
-			ObscureRegion region = regionTrail.getCurrentRegion(currentTime);
-			
-			if (region != null)
-				displayRegion(region, selected, currentColor);
-		
 		}
 		
 		
@@ -733,34 +744,33 @@ public class VideoEditor extends Activity implements
 
 			ObscureRegion region = trail.getRegion(regionKey);
 			
-			int alpha = 150;//Math.min(255,Math.max(0, ((currentTime - region.timeStamp)/1000)));
-			
-			RectF nRect = new RectF();
-			nRect.set(region.getBounds());    	
-			nRect.left *= vRatio;
-			nRect.right *= vRatio;
-			nRect.top *= vRatio;
-			nRect.bottom *= vRatio;
-
-			obscuredPaint.setAlpha(alpha);
-
-			if (lastRect != null)
+			if (region.timeStamp < currentTime)
 			{
-				obscuredCanvas.drawLine(lastRect.centerX(), lastRect.centerY(), nRect.centerX(), nRect.centerY(), obscuredPaint);
+				int alpha = 150;//Math.min(255,Math.max(0, ((currentTime - region.timeStamp)/1000)));
+				
+				RectF nRect = new RectF();
+				nRect.set(region.getBounds());    	
+				nRect.left *= vRatio;
+				nRect.right *= vRatio;
+				nRect.top *= vRatio;
+				nRect.bottom *= vRatio;
+	
+				obscuredPaint.setAlpha(alpha);
+	
+				if (lastRect != null)
+				{
+					obscuredCanvas.drawLine(lastRect.centerX(), lastRect.centerY(), nRect.centerX(), nRect.centerY(), obscuredPaint);
+				}
+				
+				lastRect = nRect;
 			}
-			
-			lastRect = nRect;
-    		//obscuredCanvas.drawRect(paintingRect, obscuredPaint);    
-
-			//obscuredCanvas.drawPoint(paintingRect.centerX(), paintingRect.centerY(), obscuredPaint);
-			//obscuredCanvas.drawLines(points,obscuredPaint);	
 		}
 		
 		
 	}
 
 	
-	private void displayRegion(ObscureRegion region, boolean selected, int color) {
+	private void displayRegion(ObscureRegion region, boolean selected, int color, String mode) {
 
 		RectF paintingRect = new RectF();
     	paintingRect.set(region.getBounds());    	
@@ -772,14 +782,36 @@ public class VideoEditor extends Activity implements
     	obscuredPaint.setStyle(Style.FILL);
 		obscuredPaint.setColor(Color.BLACK);
 		obscuredPaint.setAlpha(150);
-		obscuredCanvas.drawRect(paintingRect, obscuredPaint);    
 		
+		obscuredCanvas.drawRect(paintingRect, obscuredPaint);  
+	
 		obscuredPaint.setStyle(Style.STROKE);	
     	obscuredPaint.setStrokeWidth(3f);
 		obscuredPaint.setColor(color);
     	
 		obscuredCanvas.drawRect(paintingRect, obscuredPaint);
+	
+		obscuredCanvas.drawText(mode, paintingRect.left, paintingRect.bottom, obscuredPaint);
 		
+    	if (mode.equals(RegionTrail.OBSCURE_MODE_PIXELATE))
+    	{
+    		/*
+    		//TODO not really working well right now to do real pixelization in real time
+    		 Bitmap bmp = retriever.getFrameAtTime(region.timeStamp*1000, MediaMetadataRetriever.OPTION_CLOSEST);
+		
+    		 RectF regionRect = region.getBounds();
+    		 
+    		 obscuredPaint.setAlpha(255);
+ 			 
+    		 po.processRegion(regionRect, obscuredCanvas, bmp);
+    		 
+    		 Rect rectSrc = new Rect((int)regionRect.left,(int)regionRect.top,(int)regionRect.width(),(int)regionRect.height());
+   	    			
+    		 obscuredCanvas.drawBitmap(bmp, rectSrc, paintingRect, obscuredPaint);
+    		 */
+    	}
+    	
+			
     
 	}
 	
@@ -820,13 +852,6 @@ public class VideoEditor extends Activity implements
 		return returnRegion;
 	}
 	
-	/*
-	long startTime = 0;
-	float startX = 0;
-	float startY = 0;
-	*/
-
-	boolean showingMenu = false;
 	
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
@@ -834,6 +859,7 @@ public class VideoEditor extends Activity implements
 		boolean handled = false;
 
 		if (v == progressBar) {
+			
 			// It's the progress bar/scrubber
 			if (event.getAction() == android.view.MotionEvent.ACTION_DOWN) {
 			    mediaPlayer.start();
@@ -857,9 +883,6 @@ public class VideoEditor extends Activity implements
 		}
 		else
 		{
-			// Region Related
-			//float x = event.getX()/(float)currentDisplay.getWidth() * videoWidth;
-			//float y = event.getY()/(float)currentDisplay.getHeight() * videoHeight;
 			float x = event.getX() / vRatio;
 			float y = event.getY() / vRatio;
 
@@ -872,18 +895,14 @@ public class VideoEditor extends Activity implements
 					
 					ObscureRegion newActiveRegion = findRegion(x,y);
 					
-					if (newActiveRegion != null && (!mediaPlayer.isPlaying()))
+					if (newActiveRegion != null)
 					{
 						activeRegionTrail = newActiveRegion.getRegionTrail();
 						
 						updateProgressBar(activeRegionTrail);
 						
-						if (fingerCount == 1)
-						{
-							
-							showingMenu = true;
+						if (fingerCount == 1 && (!mediaPlayer.isPlaying()))
 							inflatePopup(false, (int)x, (int)y);
-						}
 						
 						activeRegion = newActiveRegion;
 					}
@@ -902,7 +921,7 @@ public class VideoEditor extends Activity implements
 		                	newActiveRegion = new ObscureRegion(mediaPlayer.getCurrentPosition(),startX,startY,endX,endY);
 					
 						}
-						else
+						else if (!isPopupShowing)
 						{
 							newActiveRegion = new ObscureRegion(mediaPlayer.getCurrentPosition(),x,y);
 							
@@ -921,9 +940,7 @@ public class VideoEditor extends Activity implements
 
 									newActiveRegion = new ObscureRegion(mediaPlayer.getCurrentPosition(),sx,sy,ex,ey);
 									
-									
 							}
-								
 								
 							
 						}
@@ -957,7 +974,6 @@ public class VideoEditor extends Activity implements
 					
 				case MotionEvent.ACTION_UP:
 									
-					showingMenu = false;
 					
 					break;
 										
@@ -981,7 +997,7 @@ public class VideoEditor extends Activity implements
 						activeRegionTrail.addRegion(activeRegion);
 						
 					}
-					else if (!showingMenu)
+					else if (!isPopupShowing)
 					{
 					
 						newActiveRegion = new ObscureRegion(mediaPlayer.getCurrentPosition(),x,y);
@@ -1087,10 +1103,10 @@ public class VideoEditor extends Activity implements
     	return originalVideoFilePath;
     }
 	
-	private void createCleanSavePath() {
+	private void createCleanSavePath(String format) {
 		
 		try {
-			saveFile = File.createTempFile("output", ".mp4", fileExternDir);
+			saveFile = File.createTempFile("output", '.' + format, fileExternDir);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -1213,6 +1229,8 @@ public class VideoEditor extends Activity implements
     
     private void processVideo() {
     	
+    	createCleanSavePath(outFormat);
+		
     	mCancelled = false;
     	
     	mediaPlayer.pause();
@@ -1388,33 +1406,7 @@ public class VideoEditor extends Activity implements
 	private void askPostProcessAction ()
 	{
 
-		final AlertDialog.Builder b = new AlertDialog.Builder(this);
-		b.setIcon(android.R.drawable.ic_dialog_alert);
-		b.setTitle(R.string.app_name);
-		b.setMessage("What do you want to do with the video?");
-		b.setPositiveButton(R.string.play_video, new DialogInterface.OnClickListener ()
-		{
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				playVideo();
-				
-			}
-
-			
-		});
-		b.setNegativeButton(R.string.share_video,  new DialogInterface.OnClickListener ()
-		{
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				shareVideo();
-				
-			}
-
-			
-		});
-		b.show();
+		showDeleteOriginalDialog ();
 
 	}
 	private void playVideo() {
@@ -1447,11 +1439,18 @@ public class VideoEditor extends Activity implements
 		}
 	}
 	
+	boolean isPopupShowing = false;
+	
 	public void inflatePopup(boolean showDelayed, int x, int y) {
 		if (popupMenu == null)
 			initPopup();
 
-		popupMenu.show(regionsView, x, y);
+		if (!isPopupShowing)
+			popupMenu.show(regionsView, x, y);
+		else
+			popupMenu.dismiss();
+		
+		isPopupShowing = !isPopupShowing;
 	}
 	
 	private void initPopup ()
@@ -1760,7 +1759,6 @@ public class VideoEditor extends Activity implements
 			// set in point
 			activeRegionTrail.setStartTime(mediaPlayer.getCurrentPosition());
 			updateProgressBar(activeRegionTrail);
-			updateRegionDisplay(mediaPlayer.getCurrentPosition());
 			
 			
 			break;
@@ -1768,14 +1766,12 @@ public class VideoEditor extends Activity implements
 			// set out point
 			activeRegionTrail.setEndTime(mediaPlayer.getCurrentPosition());
 			updateProgressBar(activeRegionTrail);
-			updateRegionDisplay(mediaPlayer.getCurrentPosition());
 			
 			break;
 		case 2:
 			// Remove region
 			activeRegionTrail.removeRegion(activeRegion);
 			activeRegion = null;
-			updateRegionDisplay(mediaPlayer.getCurrentPosition());
 			
 			break;
 			
@@ -1784,12 +1780,12 @@ public class VideoEditor extends Activity implements
 			obscureTrails.remove(activeRegionTrail);
 			activeRegionTrail = null;
 			activeRegion = null;
-			updateRegionDisplay(mediaPlayer.getCurrentPosition());
 			
 			break;
 		
 		case 4:
 			activeRegionTrail.setObscureMode(RegionTrail.OBSCURE_MODE_REDACT);
+			
 			break;
 
 		case 5:
@@ -1798,6 +1794,98 @@ public class VideoEditor extends Activity implements
 			
 	}
 		
+		updateRegionDisplay(mediaPlayer.getCurrentPosition());
+		
 	}
+	
+	/*
+	 * Call this to delete the original image, will ask the user
+	 */
+	private void showDeleteOriginalDialog() 
+	{
+		final AlertDialog.Builder b = new AlertDialog.Builder(this);
+		b.setIcon(android.R.drawable.ic_dialog_alert);
+		b.setTitle(getString(R.string.app_name));
+		b.setMessage(getString(R.string.confirm_delete));
+		b.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+
+            	try
+            	{
+	                // User clicked OK so go ahead and delete
+	        		deleteOriginal();
+	            	playVideo();
+	            	
+            	}
+            	catch (IOException e)
+            	{
+            		Log.e(ObscuraApp.TAG, "error saving", e);
+            	}
+            	finally
+            	{
+            		finish();
+            	}
+            }
+        });
+		b.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+
+            	playVideo();
+            }
+        });
+		b.show();
+	}
+	
+	/*
+	 * Actual deletion of original
+	 */
+	private void deleteOriginal() throws IOException
+	{
+		
+		if (originalVideoUri != null)
+		{
+			if (originalVideoUri.getScheme().equals("file"))
+			{
+				String origFilePath = originalVideoUri.getPath();
+				File fileOrig = new File(origFilePath);
+
+				String[] columnsToSelect = { MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA };
+				
+				/*
+				ExifInterface ei = new ExifInterface(origFilePath);
+				long dateTaken = new Date(ei.getAttribute(ExifInterface.TAG_DATETIME)).getTime();
+				*/
+				
+				Uri[] uriBases = {MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media.INTERNAL_CONTENT_URI};
+				
+				for (Uri uriBase : uriBases)
+				{
+					
+			    	Cursor imageCursor = getContentResolver().query(uriBase, columnsToSelect, MediaStore.Images.Media.DATA + " = ?",  new String[] {origFilePath}, null );
+					//Cursor imageCursor = getContentResolver().query(uriBase, columnsToSelect, MediaStore.Images.Media.DATE_TAKEN + " = ?",  new String[] {dateTaken+""}, null );
+					
+			        while (imageCursor.moveToNext())
+			        {
+			        
+				       long _id = imageCursor.getLong(imageCursor.getColumnIndex(MediaStore.Images.Media._ID));
+				    	   
+				       getContentResolver().delete(ContentUris.withAppendedId(uriBase, _id), null, null);
+				       
+			    	}
+				}
+				
+				if (fileOrig.exists())
+					fileOrig.delete();
+				
+			}
+			else
+			{
+				getContentResolver().delete(originalVideoUri, null, null);
+			}
+		}
+		
+		originalVideoUri = null;
+	}
+	
 
 }
