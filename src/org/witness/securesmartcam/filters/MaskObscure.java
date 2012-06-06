@@ -28,6 +28,8 @@ public class MaskObscure implements RegionProcesser {
 	
 	Properties mProps;
 	
+	Bitmap mask;
+	
 	public MaskObscure(Context context, Paint painter) {
 		
 		_painter = painter;
@@ -36,28 +38,29 @@ public class MaskObscure implements RegionProcesser {
 		mProps = new Properties ();
 		mProps.put("path", "mask.png");
 		mProps.put("obfuscationType", this.getClass().getName());
-	}
-	
-	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitmap) {
-	
-		_bitmap = bitmap;		
 		
 		try
 		{
-		  Bitmap mask = loadBitmap(_context,mProps.getProperty("path"));
-		  canvas.drawBitmap(mask, null, rect, _painter);
+		  mask = loadBitmap(_context,mProps.getProperty("path"));
+		
 		}
 		catch (IOException e)
 		{
 			Log.e("anon",e.toString(),e);
 		}
 		
+	}
+	
+	public void processRegion(RectF rect, Canvas canvas,  Bitmap bitmap) {
+	
+		_bitmap = bitmap;		
+		
 		// return properties and data as a map
 		mProps.put("initialCoordinates", "[" + rect.top + "," + rect.left + "]");
 		mProps.put("regionWidth", Float.toString(Math.abs(rect.left - rect.right)));
 		mProps.put("regionHeight", Float.toString(Math.abs(rect.top - rect.bottom)));		
 			
-
+		canvas.drawBitmap(mask, null, rect, _painter);
 	}
 	
 	

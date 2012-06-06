@@ -272,7 +272,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
         setTitle(getString(R.string.app_name) + " (" + versNum + ")");
         
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+     //   requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.imageviewer);
 
 		// Calculate the minimum distance
@@ -284,19 +284,23 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// Buttons for zooming
 		zoomIn = (Button) this.findViewById(R.id.ZoomIn);
 		zoomOut = (Button) this.findViewById(R.id.ZoomOut);
+		zoomIn.setOnClickListener(this);
+		zoomOut.setOnClickListener(this);
+		
+		/*
 		btnNew = (Button) this.findViewById(R.id.New);
 		btnSave = (Button) this.findViewById(R.id.Save);
 		btnShare = (Button) this.findViewById(R.id.Share);
 		btnPreview = (Button) this.findViewById(R.id.Preview);
 		
 		// this, ImageEditor will be the onClickListener for the buttons
-		zoomIn.setOnClickListener(this);
-		zoomOut.setOnClickListener(this);
+	
 		btnNew.setOnClickListener(this);
 		btnSave.setOnClickListener(this);
 		btnShare.setOnClickListener(this);
 		btnPreview.setOnClickListener(this);
-
+	*/
+		
 		// Instantiate the vibrator
 		vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 		
@@ -383,20 +387,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				
 				// If both of the ratios are greater than 1,
 				// one of the sides of the image is greater than the screen
-				if (heightRatio > 1 && widthRatio > 1) {
-					if (heightRatio > widthRatio) {
-						// Height ratio is larger, scale according to it
-						inSampleSize = (int)heightRatio;
-					} else {
-						// Width ratio is larger, scale according to it
-						inSampleSize = (int)widthRatio;
-					}
+				if (heightRatio > widthRatio) {
+					// Height ratio is larger, scale according to it
+					inSampleSize = (int)heightRatio;
+				} else {
+					// Width ratio is larger, scale according to it
+					inSampleSize = (int)widthRatio;
 				}
-				else
-				{
-					inSampleSize = 1;
-				}
-				
+			
 				bmpFactoryOptions.inSampleSize = inSampleSize;
 		
 				// Decode it for real

@@ -33,6 +33,7 @@ public class SplashScreenActivity extends Activity implements OnClickListener {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
         // Use LayoutInflator for Views
         LayoutInflater inflater = LayoutInflater.from(this);        
         splashScreenView = inflater.inflate(R.layout.splashscreen, null);

@@ -79,7 +79,7 @@ public class ImageRegion implements OnActionItemClickListener
 	int mObscureType = PIXELATE;
 
 	//the other of these strings and resources determines the order in the popup menu
-	private final static String[] mFilterLabels = {"Redact","Pixelate","CrowdPixel","Mask","Identify"};
+	private final static String[] mFilterLabels = {"Redact","Pixelate","CrowdPixel","Mask"};
 	private final static int[] mFilterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_pixelate, R.drawable.ic_context_mask, R.drawable.ic_context_id};
 
 	public final Drawable unidentifiedBorder, identifiedBorder;
@@ -246,18 +246,21 @@ public class ImageRegion implements OnActionItemClickListener
 				@Override
 				 public void handleMessage(Message msg) {
 
-					float[] points = {mBounds.centerX(), mBounds.centerY()};		
-					mMatrix.mapPoints(points);
-					mPopupMenu.show(mImageEditor.getImageView());//, (int)points[0], (int)points[1]);
+					//float[] points = {mBounds.centerX(), mBounds.centerY()};		
+					//mMatrix.mapPoints(points);
+					
+			
+					//mPopupMenu.show(mImageEditor.getImageView(), (int)points[0], (int)points[1]);
+					mPopupMenu.show(mImageEditor.getImageView(), (int)mBounds.centerX(), (int)mBounds.centerY());
 			        }
-			}.sendMessageDelayed(new Message(), 500);
+			}.sendMessageDelayed(new Message(), 300);
 		} else {			
 
 			float[] points = {mBounds.centerX(), mBounds.centerY()};		
 			mMatrix.mapPoints(points);
 			
-			mPopupMenu.show(mImageEditor.getImageView());//, (int)points[0], (int)points[1]);
-			
+			//mPopupMenu.show(mImageEditor.getImageView(), (int)points[0], (int)points[1]);
+			mPopupMenu.show(mImageEditor.getImageView(), (int)mBounds.centerX(), (int)mBounds.centerY());
 		}
 		
 
@@ -267,14 +270,6 @@ public class ImageRegion implements OnActionItemClickListener
 	{
 		mPopupMenu = new QuickAction(mImageEditor);
 		
-		/*
-		editAction = new ActionItem();
-		editAction.setTitle("Edit Tag");
-		editAction.setIcon(this.getResources().getDrawable(R.drawable.ic_context_edit));
-		
-		qa.addActionItem(editAction);
-		*/
-
 		ActionItem aItem;
 		
 		for (int i = 0; i < mFilterLabels.length; i++)
@@ -290,7 +285,7 @@ public class ImageRegion implements OnActionItemClickListener
 		}
 		
 		aItem = new ActionItem();
-		aItem.setTitle("Delete Tag");
+		aItem.setTitle("Clear Tag");
 		aItem.setIcon(mImageEditor.getResources().getDrawable(R.drawable.ic_context_delete));
 
 		mPopupMenu.addActionItem(aItem);
