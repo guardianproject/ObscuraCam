@@ -272,73 +272,6 @@ public class VideoEditor extends Activity implements
 		regionsView.setOnTouchListener(this);
 		
 
-
-		videoView = (VideoView) this.findViewById(R.id.SurfaceView);
-		
-		surfaceHolder = videoView.getHolder();
-
-		surfaceHolder.addCallback(this);
-		surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-
-		mediaPlayer = new MediaPlayer();
-		mediaPlayer.setOnCompletionListener(this);
-		mediaPlayer.setOnErrorListener(this);
-		mediaPlayer.setOnInfoListener(this);
-		mediaPlayer.setOnPreparedListener(this);
-		mediaPlayer.setOnSeekCompleteListener(this);
-		mediaPlayer.setOnVideoSizeChangedListener(this);
-		mediaPlayer.setOnBufferingUpdateListener(this);
-
-		mediaPlayer.setLooping(false);
-		mediaPlayer.setScreenOnWhilePlaying(true);		
-		
-		try {
-			mediaPlayer.setDataSource(originalVideoUri.toString());
-		} catch (IllegalArgumentException e) {
-			Log.v(LOGTAG, e.getMessage());
-			finish();
-		} catch (IllegalStateException e) {
-			Log.v(LOGTAG, e.getMessage());
-			finish();
-		} catch (IOException e) {
-			Log.v(LOGTAG, e.getMessage());
-			finish();
-		}
-		
-			
-		progressBar = (InOutPlayheadSeekBar) this.findViewById(R.id.InOutPlayheadSeekBar);
-
-		progressBar.setIndeterminate(false);
-		progressBar.setSecondaryProgress(0);
-		progressBar.setProgress(0);
-		progressBar.setInOutPlayheadSeekBarChangeListener(this);
-		progressBar.setThumbsInactive();
-		progressBar.setOnTouchListener(this);
-
-		playPauseButton = (ImageButton) this.findViewById(R.id.PlayPauseImageButton);
-		playPauseButton.setOnClickListener(this);
-		
-		currentDisplay = getWindowManager().getDefaultDisplay();
-				
-		redactSettingsFile = new File(fileExternDir,"redact_unsort.txt");
-		
-		//regionBarArea = (RegionBarArea) this.findViewById(R.id.RegionBarArea);
-		//regionBarArea.obscureRegions = obscureRegions;
-		
-		obscuredPaint = new Paint();   
-        obscuredPaint.setColor(Color.WHITE);
-	    obscuredPaint.setStyle(Style.STROKE);
-	    obscuredPaint.setStrokeWidth(10f);
-	    
-	    selectedPaint = new Paint();
-	    selectedPaint.setColor(Color.GREEN);
-	    selectedPaint.setStyle(Style.STROKE);
-	    selectedPaint.setStrokeWidth(10f);
-	    
-		bitmapCornerUL = BitmapFactory.decodeResource(getResources(), R.drawable.edit_region_corner_ul);
-		bitmapCornerUR = BitmapFactory.decodeResource(getResources(), R.drawable.edit_region_corner_ur);
-		bitmapCornerLL = BitmapFactory.decodeResource(getResources(), R.drawable.edit_region_corner_ll);
-		bitmapCornerLR = BitmapFactory.decodeResource(getResources(), R.drawable.edit_region_corner_lr);
 	
 		mAutoDetectEnabled = true; //first time do autodetect
 		
@@ -967,13 +900,14 @@ public class VideoEditor extends Activity implements
 						}
 						
 					
-
-						activeRegion = newActiveRegion;
+						if (newActiveRegion != null)
+						{
+							activeRegion = newActiveRegion;
 						
-						activeRegionTrail.addRegion(activeRegion);
+							activeRegionTrail.addRegion(activeRegion);
 						
-						updateProgressBar(activeRegionTrail);
-						
+							updateProgressBar(activeRegionTrail);
+						}
 
 					}
 					
@@ -1559,6 +1493,70 @@ public class VideoEditor extends Activity implements
 	@Override
 	protected void onResume() {
 		super.onResume();
+
+
+		videoView = (VideoView) this.findViewById(R.id.SurfaceView);
+		
+		surfaceHolder = videoView.getHolder();
+
+		surfaceHolder.addCallback(this);
+		surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
+		mediaPlayer = new MediaPlayer();
+		mediaPlayer.setOnCompletionListener(this);
+		mediaPlayer.setOnErrorListener(this);
+		mediaPlayer.setOnInfoListener(this);
+		mediaPlayer.setOnPreparedListener(this);
+		mediaPlayer.setOnSeekCompleteListener(this);
+		mediaPlayer.setOnVideoSizeChangedListener(this);
+		mediaPlayer.setOnBufferingUpdateListener(this);
+
+		mediaPlayer.setLooping(false);
+		mediaPlayer.setScreenOnWhilePlaying(true);		
+		
+		try {
+			mediaPlayer.setDataSource(originalVideoUri.toString());
+		} catch (IllegalArgumentException e) {
+			Log.v(LOGTAG, e.getMessage());
+			finish();
+		} catch (IllegalStateException e) {
+			Log.v(LOGTAG, e.getMessage());
+			finish();
+		} catch (IOException e) {
+			Log.v(LOGTAG, e.getMessage());
+			finish();
+		}
+		
+			
+		progressBar = (InOutPlayheadSeekBar) this.findViewById(R.id.InOutPlayheadSeekBar);
+
+		progressBar.setIndeterminate(false);
+		progressBar.setSecondaryProgress(0);
+		progressBar.setProgress(0);
+		progressBar.setInOutPlayheadSeekBarChangeListener(this);
+		progressBar.setThumbsInactive();
+		progressBar.setOnTouchListener(this);
+
+		playPauseButton = (ImageButton) this.findViewById(R.id.PlayPauseImageButton);
+		playPauseButton.setOnClickListener(this);
+		
+		currentDisplay = getWindowManager().getDefaultDisplay();
+				
+		redactSettingsFile = new File(fileExternDir,"redact_unsort.txt");
+		
+		//regionBarArea = (RegionBarArea) this.findViewById(R.id.RegionBarArea);
+		//regionBarArea.obscureRegions = obscureRegions;
+		
+		obscuredPaint = new Paint();   
+        obscuredPaint.setColor(Color.WHITE);
+	    obscuredPaint.setStyle(Style.STROKE);
+	    obscuredPaint.setStrokeWidth(10f);
+	    
+	    selectedPaint = new Paint();
+	    selectedPaint.setColor(Color.GREEN);
+	    selectedPaint.setStyle(Style.STROKE);
+	    selectedPaint.setStrokeWidth(10f);
+	    
 		setPrefs();
 		
 	}
