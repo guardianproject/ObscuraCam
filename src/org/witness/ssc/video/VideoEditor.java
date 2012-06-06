@@ -355,6 +355,8 @@ public class VideoEditor extends Activity implements
 			try {
 				mediaPlayer.prepare();
 				mDuration = mediaPlayer.getDuration();
+				
+				progressBar.setMax(mDuration);
 	
 			} catch (Exception e) {
 				Log.v(LOGTAG, "IllegalStateException " + e.getMessage());
@@ -610,15 +612,16 @@ public class VideoEditor extends Activity implements
 				   if (mediaPlayer != null && mAutoDetectEnabled) 
 				   {						   
 					   mediaPlayer.start();
-					   mediaPlayer.setVolume(0f, 0f);
+					   
+					   //mediaPlayer.setVolume(0f, 0f);
 					   String rPath = recordingFile.getAbsolutePath();
 					   MediaMetadataRetriever retriever = new MediaMetadataRetriever();
 				       retriever.setDataSource(rPath);
 				            
 					   for (int f = 0; f < mDuration && mAutoDetectEnabled; f += timeInc)
 					   {
-						   mediaPlayer.seekTo(f);	
-						   progressBar.setProgress((int)(((float)mediaPlayer.getCurrentPosition()/(float)mDuration)*100));
+						   mediaPlayer.seekTo(f);
+						   progressBar.setProgress(mediaPlayer.getCurrentPosition());
 						
 						   //Bitmap bmp = getVideoFrame(rPath,f*1000);
 						   Bitmap bmp = retriever.getFrameAtTime(f*1000, MediaMetadataRetriever.OPTION_CLOSEST);
@@ -628,9 +631,10 @@ public class VideoEditor extends Activity implements
 						   
 					   }
 					   
-					   mediaPlayer.setVolume(1f, 1f);
+					   //mediaPlayer.setVolume(1f, 1f);
+					   
 					   mediaPlayer.seekTo(0);
-					   progressBar.setProgress((int)(((float)mediaPlayer.getCurrentPosition()/(float)mDuration)*100));
+					   progressBar.setProgress(mediaPlayer.getCurrentPosition());
 					   mediaPlayer.pause();
 					   
 					   
@@ -659,12 +663,12 @@ public class VideoEditor extends Activity implements
 		   
 		   try
 		   {
-			   if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-				   
+			   if (mediaPlayer != null && mediaPlayer.isPlaying())
+			   {
 				   int curr = mediaPlayer.getCurrentPosition();
-					   progressBar.setProgress((int)(((float)curr/(float)mDuration)*100));
-					   updateRegionDisplay(curr);
-					   mHandler.post(this);				   
+				   progressBar.setProgress(curr);
+				   updateRegionDisplay(curr);
+				   mHandler.post(this);				   
 			   }
 			   
 		   }
@@ -837,14 +841,16 @@ public class VideoEditor extends Activity implements
 		    	mediaPlayer.pause();
 		    	
 		    }
+			
 			/*
 			Log.v(LOGTAG,"" + event.getX() + " " + event.getX()/progressBar.getWidth());
 			Log.v(LOGTAG,"Seeking To: " + (int)(mDuration*(float)(event.getX()/progressBar.getWidth())));
 			Log.v(LOGTAG,"MediaPlayer Position: " + mediaPlayer.getCurrentPosition());
 			*/
-			int newTime = (int)(mediaPlayer.getDuration()*(float)(event.getX()/progressBar.getWidth()));
-			mediaPlayer.seekTo(newTime);
-			updateRegionDisplay(newTime);
+			//int newTime = (int)(mediaPlayer.getDuration()*(float)(event.getX()/progressBar.getWidth()));
+			
+			mediaPlayer.seekTo(progressBar.getProgress());
+			updateRegionDisplay(mediaPlayer.getCurrentPosition());
 			// Attempt to get the player to update it's view - NOT WORKING
 			
 			handled = false; // The progress bar doesn't get it if we have true here
@@ -970,8 +976,12 @@ public class VideoEditor extends Activity implements
 	                	
 						newActiveRegion = new ObscureRegion(mediaPlayer.getCurrentPosition(),startX,startY,endX,endY);
 						
+						activeRegion = newActiveRegion;
+
+						activeRegionTrail.addRegion(activeRegion);
+						
 					}
-					else
+					else if (!showingMenu)
 					{
 					
 						newActiveRegion = new ObscureRegion(mediaPlayer.getCurrentPosition(),x,y);
@@ -991,12 +1001,13 @@ public class VideoEditor extends Activity implements
 								
 								
 						}
-						
+					
+						activeRegion = newActiveRegion;
+
+						activeRegionTrail.addRegion(activeRegion);
+							
 					}
 					
-					activeRegion = newActiveRegion;
-					
-					activeRegionTrail.addRegion(activeRegion);
 					
 					handled = true;
 					
@@ -1447,45 +1458,45 @@ public class VideoEditor extends Activity implements
 	{
 		popupMenu = new QuickAction(this);
 
-		popupMenuItems = new ActionItem[6];
 		
-		popupMenuItems[0] = new ActionItem();
-		popupMenuItems[0].setTitle("Set In Point");
-		popupMenuItems[0].setActionId(0);
-		popupMenuItems[0].setIcon(getResources().getDrawable(R.drawable.ic_add));
-		
+		ActionItem menu = new ActionItem();
+		menu.setTitle("Set In Point");
+		menu.setActionId(0);
+		menu.setIcon(getResources().getDrawable(R.drawable.ic_add));
+		popupMenu.addActionItem(menu);
+
 		//popupMenuItems[0].setIcon(getResources().getDrawable(R.drawable.icon));			
 
-		popupMenuItems[1] = new ActionItem();
-		popupMenuItems[1].setActionId(1);
-		popupMenuItems[1].setTitle("Set Out Point");
-		popupMenuItems[1].setIcon(getResources().getDrawable(R.drawable.ic_add));
-		
+		menu = new ActionItem();
+		menu.setActionId(1);
+		menu.setTitle("Set Out Point");
+		menu.setIcon(getResources().getDrawable(R.drawable.ic_add));
+		popupMenu.addActionItem(menu);
+
+		/*
 		popupMenuItems[2] = new ActionItem();
 		popupMenuItems[2].setActionId(2);		
 		popupMenuItems[2].setTitle("Remove Keyframe");				
 		popupMenuItems[2].setIcon(getResources().getDrawable(R.drawable.ic_context_delete));
+*/
+		
+		menu = new ActionItem();
+		menu.setActionId(4);		
+		menu.setTitle("Set Redact");	
+		menu.setIcon(getResources().getDrawable(R.drawable.ic_context_fill));
+		popupMenu.addActionItem(menu);
 
-		popupMenuItems[3] = new ActionItem();
-		popupMenuItems[3].setActionId(3);		
-		popupMenuItems[3].setTitle("Remove Trail");	
-		popupMenuItems[3].setIcon(getResources().getDrawable(R.drawable.ic_context_delete));
-		
-		popupMenuItems[4] = new ActionItem();
-		popupMenuItems[4].setActionId(4);		
-		popupMenuItems[4].setTitle("Set Redact");	
-		popupMenuItems[4].setIcon(getResources().getDrawable(R.drawable.ic_context_fill));
-		
-		popupMenuItems[5] = new ActionItem();
-		popupMenuItems[5].setActionId(5);		
-		popupMenuItems[5].setTitle("Set Pixelate");	
-		popupMenuItems[5].setIcon(getResources().getDrawable(R.drawable.ic_context_pixelate));
-		
-		for (int i=0; i < popupMenuItems.length; i++) {
-			if (popupMenuItems[i] != null) {
-				popupMenu.addActionItem(popupMenuItems[i]);
-			}
-		}
+		menu = new ActionItem();
+		menu.setActionId(5);		
+		menu.setTitle("Set Pixelate");	
+		menu.setIcon(getResources().getDrawable(R.drawable.ic_context_pixelate));
+		popupMenu.addActionItem(menu);
+
+		menu = new ActionItem();
+		menu.setActionId(3);		
+		menu.setTitle("Remove Trail");	
+		menu.setIcon(getResources().getDrawable(R.drawable.ic_context_delete));
+		popupMenu.addActionItem(menu);
 			
 		popupMenu.setOnActionItemClickListener(this);
 	}
