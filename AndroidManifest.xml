@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.witness.sscphase1"
-      android:versionCode="26"
-      android:versionName="2.0-Alpha-1"
+      android:versionCode="28"
+      android:versionName="2.0-Alpha-4"
       android:installLocation="auto">
       
-    <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="11"/>
+    <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="11"/>
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher_ssc">
         <activity android:label="@string/app_name_label" android:name=".ObscuraApp"
-              android:configChanges="orientation|keyboardHidden">
+              android:configChanges="orientation|keyboardHidden"
+              android:theme="@android:style/Theme.Black.NoTitleBar"
+              >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -32,6 +34,7 @@
                  <data android:mimeType="image/*" />
              </intent-filter>        
         </activity>
+        
         <activity android:name="org.witness.securesmartcam.ImagePreview" android:label="@string/image_preview" android:configChanges="orientation|keyboardHidden" />
     	<activity android:name="org.witness.informa.InformaEditor" android:theme="@style/Theme.CustomDialog" />
     	
@@ -48,8 +51,9 @@
                  
                  <data android:mimeType="video/*" />
              </intent-filter>
-    	    </activity>
-    		    	<activity android:name="org.witness.ssc.video.VideoPreferences" />
+    	    
+    	</activity>
+       <activity android:name="org.witness.ssc.video.VideoPreferences" />
     	
     </application>
 </manifest> 
