@@ -197,16 +197,17 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
 	/**
 	 * Show popup mWindow
 	 */
-	public void show (View anchor) {
+	public void show (View anchor, int locX, int locY) {
 		preShow();
 
-		int[] location 		= new int[2];
+		//int[] location 		= new int[2];
+		
 		
 		mDidAction 			= false;
 		
-		anchor.getLocationOnScreen(location);
+	//	anchor.getLocationOnScreen(location);
 
-		Rect anchorRect 	= new Rect(location[0], location[1], location[0] + anchor.getWidth(), location[1] 
+		Rect anchorRect 	= new Rect(locX, locY, locX + anchor.getWidth(), locY 
 		                	+ anchor.getHeight());
 
 		//mRootView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
