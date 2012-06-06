@@ -28,10 +28,6 @@ public class ObscureRegion  {
 	
 	public static final String LOGTAG = ObscuraApp.TAG;
 
-	public static final String MODE_REDACT = "black";
-	public static final String MODE_MOSAIC = "pixel";
-	
-	public static final String DEFAULT_MODE = MODE_MOSAIC;
 
 	public static final float DEFAULT_X_SIZE = 150;
 	public static final float DEFAULT_Y_SIZE = 150;
@@ -46,9 +42,7 @@ public class ObscureRegion  {
 	
 	public RegionTrail regionTrail;
 	
-	public String currentMode = DEFAULT_MODE;
-	
-	public ObscureRegion(int _timeStamp, float _sx, float _sy, float _ex, float _ey, String _mode) {
+	public ObscureRegion(int _timeStamp, float _sx, float _sy, float _ex, float _ey) {
 		
 		timeStamp = _timeStamp;
 		sx = _sx;
@@ -61,18 +55,12 @@ public class ObscureRegion  {
 		} else if (sy < 0) {
 			sy = 0;
 		}
-		
-		currentMode = _mode;
 
 		
-	}
-
-	public ObscureRegion(int _startTime, float _sx, float _sy, float _ex, float _ey) {
-		this(_startTime, _sx, _sy, _ex, _ey, DEFAULT_MODE);
 	}
 
 	public ObscureRegion(int _startTime, float _sx, float _sy) {
-		this(_startTime, _sx - DEFAULT_X_SIZE/2, _sy - DEFAULT_Y_SIZE/2, _sx + DEFAULT_X_SIZE/2, _sy + DEFAULT_Y_SIZE/2, DEFAULT_MODE);
+		this(_startTime, _sx - DEFAULT_X_SIZE/2, _sy - DEFAULT_Y_SIZE/2, _sx + DEFAULT_X_SIZE/2, _sy + DEFAULT_Y_SIZE/2);
 	}
 
 	
@@ -97,7 +85,7 @@ public class ObscureRegion  {
 	
 	
 
-	public String getStringData(float widthMod, float heightMod, int duration) {
+	public String getStringData(float widthMod, float heightMod, int duration, String currentMode) {
 		//left, right, top, bottom
 		return "" + (float)timeStamp/(float)1000 + ',' + (float)(timeStamp+duration)/(float)1000 + ',' + (int)(sx*widthMod) + ',' + (int)(ex*widthMod) + ',' + (int)(sy*heightMod) + ',' + (int)(ey*heightMod) + ',' + currentMode;
 	}

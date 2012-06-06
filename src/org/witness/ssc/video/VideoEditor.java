@@ -614,13 +614,12 @@ public class VideoEditor extends Activity implements
 					   String rPath = recordingFile.getAbsolutePath();
 					   MediaMetadataRetriever retriever = new MediaMetadataRetriever();
 				       retriever.setDataSource(rPath);
-				       
-				       
 				            
 					   for (int f = 0; f < mDuration && mAutoDetectEnabled; f += timeInc)
 					   {
 						   mediaPlayer.seekTo(f);	
 						   progressBar.setProgress((int)(((float)mediaPlayer.getCurrentPosition()/(float)mDuration)*100));
+						
 						   //Bitmap bmp = getVideoFrame(rPath,f*1000);
 						   Bitmap bmp = retriever.getFrameAtTime(f*1000, MediaMetadataRetriever.OPTION_CLOSEST);
 						   
@@ -635,11 +634,10 @@ public class VideoEditor extends Activity implements
 					   mediaPlayer.pause();
 					   
 					   
-					   
 				   }   
 			   }
 			   catch (Exception e)
-			   {
+			   { 
 				   Log.e(LOGTAG,"autodetect errored out", e);
 			   }
 			   
@@ -1449,27 +1447,40 @@ public class VideoEditor extends Activity implements
 	{
 		popupMenu = new QuickAction(this);
 
-		popupMenuItems = new ActionItem[5];
+		popupMenuItems = new ActionItem[6];
 		
 		popupMenuItems[0] = new ActionItem();
 		popupMenuItems[0].setTitle("Set In Point");
 		popupMenuItems[0].setActionId(0);
+		popupMenuItems[0].setIcon(getResources().getDrawable(R.drawable.ic_add));
 		
 		//popupMenuItems[0].setIcon(getResources().getDrawable(R.drawable.icon));			
 
 		popupMenuItems[1] = new ActionItem();
 		popupMenuItems[1].setActionId(1);
-		
 		popupMenuItems[1].setTitle("Set Out Point");
-				
+		popupMenuItems[1].setIcon(getResources().getDrawable(R.drawable.ic_add));
+		
 		popupMenuItems[2] = new ActionItem();
 		popupMenuItems[2].setActionId(2);		
-		popupMenuItems[2].setTitle("Remove Region");				
+		popupMenuItems[2].setTitle("Remove Keyframe");				
+		popupMenuItems[2].setIcon(getResources().getDrawable(R.drawable.ic_context_delete));
 
 		popupMenuItems[3] = new ActionItem();
 		popupMenuItems[3].setActionId(3);		
-		popupMenuItems[3].setTitle("Remove Trail");				
-
+		popupMenuItems[3].setTitle("Remove Trail");	
+		popupMenuItems[3].setIcon(getResources().getDrawable(R.drawable.ic_context_delete));
+		
+		popupMenuItems[4] = new ActionItem();
+		popupMenuItems[4].setActionId(4);		
+		popupMenuItems[4].setTitle("Set Redact");	
+		popupMenuItems[4].setIcon(getResources().getDrawable(R.drawable.ic_context_fill));
+		
+		popupMenuItems[5] = new ActionItem();
+		popupMenuItems[5].setActionId(5);		
+		popupMenuItems[5].setTitle("Set Pixelate");	
+		popupMenuItems[5].setIcon(getResources().getDrawable(R.drawable.ic_context_pixelate));
+		
 		for (int i=0; i < popupMenuItems.length; i++) {
 			if (popupMenuItems[i] != null) {
 				popupMenu.addActionItem(popupMenuItems[i]);
@@ -1610,22 +1621,24 @@ public class VideoEditor extends Activity implements
 			ObscureRegion newRegion = new ObscureRegion(cTime,autodetectedRect.left,
 					autodetectedRect.top,
 					autodetectedRect.right,
-					autodetectedRect.bottom,
-					ObscureRegion.DEFAULT_MODE);
+					autodetectedRect.bottom);
 			
 			
 			if (activeRegion == null)
 			{
-				activeRegionTrail = new RegionTrail(0,mDuration);
+				activeRegionTrail = new RegionTrail(cTime,mDuration);
 				obscureTrails.add(activeRegionTrail);
 			}
 			else if (!activeRegion.getRectF().intersect(newRegion.getRectF()))
 			{
-				activeRegionTrail = new RegionTrail(0,mDuration);
+				activeRegionTrail = new RegionTrail(cTime,mDuration);
 				obscureTrails.add(activeRegionTrail);
 			}
-			
-			activeRegionTrail.addRegion(newRegion);
+			else
+			{
+				activeRegionTrail.addRegion(newRegion);
+				activeRegionTrail.setEndTime(cTime + FACE_TIME_BUFFER);
+			}
 			
 			activeRegion = newRegion;
 		}	
@@ -1647,6 +1660,7 @@ public class VideoEditor extends Activity implements
 			GoogleFaceDetection gfd = new GoogleFaceDetection(bmp);
 			int numFaces = gfd.findFaces();
 	        Log.d(ObscuraApp.TAG,"Num Faces Found: " + numFaces); 
+	        
 	        possibleFaceRects = gfd.getFaces();
 		} catch(NullPointerException e) {
 			possibleFaceRects = null;
@@ -1762,6 +1776,15 @@ public class VideoEditor extends Activity implements
 			updateRegionDisplay(mediaPlayer.getCurrentPosition());
 			
 			break;
+		
+		case 4:
+			activeRegionTrail.setObscureMode(RegionTrail.OBSCURE_MODE_REDACT);
+			break;
+
+		case 5:
+			activeRegionTrail.setObscureMode(RegionTrail.OBSCURE_MODE_PIXELATE);
+			break;
+			
 	}
 		
 	}

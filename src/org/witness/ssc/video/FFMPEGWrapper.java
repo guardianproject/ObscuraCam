@@ -148,7 +148,7 @@ public class FFMPEGWrapper {
 				
 				if (lastOr != null)
 				{
-					orData = lastOr.getStringData(widthMod, heightMod,or.timeStamp-lastOr.timeStamp);
+					orData = lastOr.getStringData(widthMod, heightMod,or.timeStamp-lastOr.timeStamp, trail.getObscureMode());
 				}
 				
 				redactSettingsPrintWriter.println(orData);
@@ -158,7 +158,7 @@ public class FFMPEGWrapper {
 			
 			if (or != null)
 			{
-				String orData = lastOr.getStringData(widthMod, heightMod,or.timeStamp-lastOr.timeStamp);
+				String orData = lastOr.getStringData(widthMod, heightMod,or.timeStamp-lastOr.timeStamp, trail.getObscureMode());
 				redactSettingsPrintWriter.println(orData);
 			}
 			

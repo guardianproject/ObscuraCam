@@ -3,16 +3,17 @@
     android:id="@+id/FrameLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg"
-    android:paddingTop="20sp" >
+    android:paddingTop="0sp" >
+    
+    <org.witness.securesmartcam.AnimatedBlockView  android:layout_width="fill_parent"
+	      android:layout_height="fill_parent"></org.witness.securesmartcam.AnimatedBlockView>
+        
 
-	<LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent"
-	    
-	    >
+	<LinearLayout android:gravity="center_vertical|center_horizontal" android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
 		 <ImageView android:src="@drawable/ic_ssc" 
 		 	android:layout_width="fill_parent" 
-  			android:layout_height="200dp"
-  			android:gravity="center_vertical|center_horizontal" android:layout_marginTop="20dp"/>
+  			android:layout_height="150dp"
+  			android:gravity="center_vertical|center_horizontal"/>
 		
 		<TextView android:text="@string/SplashTextViewString"
 			android:id="@+id/SplashTextView" android:layout_width="fill_parent"
@@ -20,33 +21,32 @@
 			android:gravity="center_vertical|center_horizontal" android:textColor="#FFFFff"
 			android:layout_height="wrap_content" android:textSize="40dp"/>
 		
-		
-		<LinearLayout android:orientation="horizontal" 
+		<LinearLayout android:orientation="vertical" 
 			android:layout_width="fill_parent" 
 			android:layout_height="wrap_content" android:gravity="center_vertical|center_horizontal"
 			android:background="#cc333333"
+			android:padding="10sp"
 			>
 			<Button  android:id="@+id/TakePictureButton" 
-				android:text="Camera" 
-							    android:layout_width="125dp"
-							    android:layout_height="match_parent"
-
-				android:drawableTop="@drawable/ic_camera"  android:layout_marginRight="5dp">
+				android:text="New Picture" 
+							    android:layout_width="fill_parent"
+							    android:layout_height="wrap_content"
+				android:drawableLeft="@drawable/ic_camera">
 			</Button>
 
 			<Button
 			    android:id="@+id/ChoosePictureButton"
-			    android:layout_width="125dp"
-			    android:layout_height="match_parent"
-			    android:drawableTop="@drawable/ic_gallery"
-			    android:text="Photos" >
+			    android:layout_width="fill_parent"
+			    android:layout_height="wrap_content"
+			    android:drawableLeft="@drawable/ic_gallery"
+			    android:text="Obscure Photo" >
 
 			</Button>
 			<Button  android:id="@+id/ChooseVideoButton" 
-				android:text="Videos" 
-				android:layout_width="125dp"
-							    android:layout_height="match_parent"				
-				android:drawableTop="@drawable/ic_video" android:layout_marginLeft="5dp">
+				android:text="Obscure Video" 
+				android:layout_width="fill_parent"
+							    android:layout_height="wrap_content"				
+				android:drawableLeft="@drawable/ic_video">
 			</Button>
 		</LinearLayout>
 	</LinearLayout>

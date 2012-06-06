@@ -16,6 +16,20 @@ public class RegionTrail {
 	private int startTime = 0;
 	private int endTime = 0;
 	
+
+	public static final String OBSCURE_MODE_REDACT = "black";
+	public static final String OBSCURE_MODE_PIXELATE = "pixel";
+	
+	private String obscureMode = OBSCURE_MODE_REDACT;
+	
+	public String getObscureMode() {
+		return obscureMode;
+	}
+
+	public void setObscureMode(String obscureMode) {
+		this.obscureMode = obscureMode;
+	}
+
 	public RegionTrail (int startTime, int endTime)
 	{
 		this.startTime = startTime;
