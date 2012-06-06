@@ -791,10 +791,14 @@ public class VideoEditor extends Activity implements
     	
 		obscuredCanvas.drawRect(paintingRect, obscuredPaint);
 	
-		obscuredCanvas.drawText(mode, paintingRect.left, paintingRect.bottom, obscuredPaint);
+		obscuredPaint.setTextSize(30);
+		obscuredPaint.setFakeBoldText(false);
+		
+		String modeText = "";
 		
     	if (mode.equals(RegionTrail.OBSCURE_MODE_PIXELATE))
     	{
+    		modeText = "P I X E L A T E";
     		/*
     		//TODO not really working well right now to do real pixelization in real time
     		 Bitmap bmp = retriever.getFrameAtTime(region.timeStamp*1000, MediaMetadataRetriever.OPTION_CLOSEST);
@@ -810,8 +814,14 @@ public class VideoEditor extends Activity implements
     		 obscuredCanvas.drawBitmap(bmp, rectSrc, paintingRect, obscuredPaint);
     		 */
     	}
+    	else if (mode.equals(RegionTrail.OBSCURE_MODE_REDACT))
+    	{
+    		modeText = "R E D A C T";
+    	}
     	
-			
+		
+    	obscuredCanvas.drawText(modeText, paintingRect.left, paintingRect.bottom, obscuredPaint);
+		
     
 	}
 	
