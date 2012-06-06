@@ -19,7 +19,7 @@
  		<LinearLayout
  			android:id="@+id/InnerLinearLayout"
  			android:layout_width="fill_parent"
- 			android:layout_height="30dp"
+ 			android:layout_height="40dp"
  			android:orientation="horizontal"
  			android:layout_gravity="bottom" 	
  			>
