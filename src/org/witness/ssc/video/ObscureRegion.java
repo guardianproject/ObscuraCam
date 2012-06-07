@@ -42,6 +42,8 @@ public class ObscureRegion  {
 	
 	public RegionTrail regionTrail;
 	
+	private RectF rectF;
+	
 	public ObscureRegion(int _timeStamp, float _sx, float _sy, float _ex, float _ey) {
 		
 		timeStamp = _timeStamp;
@@ -73,10 +75,16 @@ public class ObscureRegion  {
 		sy = _sy;
 		ex = _ex;
 		ey = _ey;
+		
+		rectF = null;
 	}
 	
 	public RectF getRectF() {
-		return new RectF(sx, sy, ex, ey);
+		
+		if (rectF == null)
+			rectF = new RectF(sx, sy, ex, ey);
+		
+		return rectF;
 	}
 	
 	public RectF getBounds() {
@@ -84,7 +92,6 @@ public class ObscureRegion  {
 	}
 	
 	
-
 	public String getStringData(float widthMod, float heightMod, int duration, String currentMode) {
 		//left, right, top, bottom
 		return "" + (float)timeStamp/(float)1000 + ',' + (float)(timeStamp+duration)/(float)1000 + ',' + (int)(sx*widthMod) + ',' + (int)(ex*widthMod) + ',' + (int)(sy*heightMod) + ',' + (int)(ey*heightMod) + ',' + currentMode;
