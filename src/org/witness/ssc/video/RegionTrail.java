@@ -18,6 +18,16 @@ public class RegionTrail {
 	
 	private String obscureMode = OBSCURE_MODE_PIXELATE;
 	
+	private boolean doTweening = false;
+	
+	public boolean isDoTweening() {
+		return doTweening;
+	}
+
+	public void setDoTweening(boolean doTweening) {
+		this.doTweening = doTweening;
+	}
+
 	public String getObscureMode() {
 		return obscureMode;
 	}
@@ -76,8 +86,10 @@ public class RegionTrail {
 		return regionKeys;
 	}
 	
-	public ObscureRegion getCurrentRegion (int time)
+	public ObscureRegion getCurrentRegion (int time, boolean doTween)
 	{
+
+		ObscureRegion regionResult = null;
 		
 		if (time < startTime || time > endTime)
 			return null;
@@ -87,21 +99,57 @@ public class RegionTrail {
 			
 			TreeSet<Integer> regionKeys = new TreeSet<Integer>(regionMap.keySet());
 			
-			Integer lastRegionKey = -1;
+			Integer lastRegionKey = -1, regionKey = -1;
 			
-			for (Integer regionKey:regionKeys)
+			Iterator<Integer> itKeys = regionKeys.iterator();
+			
+			while (itKeys.hasNext())
 			{
+				regionKey = itKeys.next();
 				int comp = regionKey.compareTo(time);
-				lastRegionKey = regionKey;
 				
 				if (comp == 0 || comp == 1)
+				{
+					ObscureRegion regionThis = regionMap.get(regionKey);
+					
+					if (lastRegionKey != -1 && doTween)
+					{
+						ObscureRegion regionLast = regionMap.get(lastRegionKey);
+					
+						float sx, sy, ex, ey;
+						
+						int timeDiff = regionThis.timeStamp - regionLast.timeStamp;
+						int timePassed = time - regionLast.timeStamp;
+						
+						float d = ((float)timePassed) / ((float)timeDiff);
+						
+						sx = regionLast.sx + ((regionThis.sx-regionLast.sx)*d);
+						sy = regionLast.sy + ((regionThis.sy-regionLast.sy)*d);
+						
+						ex = regionLast.ex + ((regionThis.ex-regionLast.ex)*d);
+						ey = regionLast.ey + ((regionThis.ey-regionLast.ey)*d);
+						
+						regionResult = new ObscureRegion(time, sx, sy, ex, ey);
+						
+					}
+					else
+						regionResult = regionThis;
+					
+					
 					break; //it is a match!
+				}
+			
+
+				lastRegionKey = regionKey;
 				
 			}
 			
-			return regionMap.get(lastRegionKey);
+			if (regionResult == null)
+				regionResult = regionMap.get(lastRegionKey);
+			
+			
 		}
-		else
-			return null;
+		
+		return regionResult;
 	}
 }
