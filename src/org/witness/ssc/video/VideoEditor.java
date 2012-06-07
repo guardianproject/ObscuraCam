@@ -11,16 +11,10 @@
 package org.witness.ssc.video;
 
 import java.io.File;
-import java.io.FileDescriptor;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Random;
-import java.util.Vector;
 
 import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
@@ -33,12 +27,10 @@ import org.witness.ssc.video.ShellUtils.ShellCallback;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
 
-import android.R.color;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -55,11 +47,9 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
-import android.media.MediaScannerConnection;
 import android.media.MediaPlayer.OnBufferingUpdateListener;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnErrorListener;
@@ -67,6 +57,7 @@ import android.media.MediaPlayer.OnInfoListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.media.MediaPlayer.OnSeekCompleteListener;
 import android.media.MediaPlayer.OnVideoSizeChangedListener;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -75,7 +66,6 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.provider.MediaStore.Images;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -89,7 +79,6 @@ import android.view.View.OnTouchListener;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.MediaController;
-import android.widget.Toast;
 import android.widget.VideoView;
 
 public class VideoEditor extends Activity implements
@@ -173,11 +162,14 @@ public class VideoEditor extends Activity implements
 	int outVWidth = -1;
 	int outVHeight = -1;
 	
-	private final static String DEFAULT_OUT_FPS = "30";
-	private final static String DEFAULT_OUT_RATE = "500";
+	private final static String DEFAULT_OUT_FPS = "15";
+	private final static String DEFAULT_OUT_RATE = "300";
 	private final static String DEFAULT_OUT_FORMAT = "3gp";
 	private final static String DEFAULT_OUT_VCODEC = "libx264";
 	private final static String DEFAULT_OUT_ACODEC = "copy";
+	private final static String DEFAULT_OUT_WIDTH = "480";
+	private final static String DEFAULT_OUT_HEIGHT = "320";
+	
 
 	private Handler mHandler = new Handler()
 	{
@@ -286,6 +278,10 @@ public class VideoEditor extends Activity implements
 
 		bitmapPixel = BitmapFactory.decodeResource(getResources(),
                 R.drawable.ic_context_pixelate);
+		
+
+		showAutoDetectDialog();
+		
 	}
 	
 	private void loadMedia ()
@@ -407,6 +403,11 @@ public class VideoEditor extends Activity implements
 		updateVideoLayout ();
 		mediaPlayer.seekTo(1);
 		
+		
+	}
+	
+	private void showAutoDetectDialog ()
+	{
 		DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
 		    @Override
 		    public void onClick(DialogInterface dialog, int which) {
@@ -426,8 +427,6 @@ public class VideoEditor extends Activity implements
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage("Would you like to detect faces in this video?").setPositiveButton("Yes", dialogClickListener)
 		    .setNegativeButton("No", dialogClickListener).show();
-		
-		
 		
 	}
 	
@@ -849,9 +848,9 @@ public class VideoEditor extends Activity implements
 			
 			// It's the progress bar/scrubber
 			if (event.getAction() == android.view.MotionEvent.ACTION_DOWN) {
-			    mediaPlayer.start();
+			   start();
 		    } else if (event.getAction() == android.view.MotionEvent.ACTION_UP) {
-		    	mediaPlayer.pause();
+		       pause();
 		    	
 		    }
 			
@@ -1066,6 +1065,8 @@ public class VideoEditor extends Activity implements
 		
 		try {
 			saveFile = File.createTempFile("output", '.' + format, fileExternDir);
+			redactSettingsFile = new File(fileExternDir,saveFile.getName()+".txt");
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -1305,7 +1306,7 @@ public class VideoEditor extends Activity implements
 				
 				// Could make some high/low quality presets	
 				ffmpeg.processVideo(redactSettingsFile, obscureTrails, recordingFile, saveFile, outFormat, 
-						videoWidth, videoHeight, processVWidth, processVHeight, outFrameRate, outBitRate, outVcodec, outAcodec, sc);
+						mDuration, videoWidth, videoHeight, processVWidth, processVHeight, outFrameRate, outBitRate, outVcodec, outAcodec, sc);
 			}
 			catch (Exception e)
 			{
@@ -1542,8 +1543,6 @@ public class VideoEditor extends Activity implements
 		playPauseButton.setOnClickListener(this);
 		
 				
-		redactSettingsFile = new File(fileExternDir,"redact_unsort.txt");
-		
 		//regionBarArea = (RegionBarArea) this.findViewById(R.id.RegionBarArea);
 		//regionBarArea.obscureRegions = obscureRegions;
 		
@@ -1577,8 +1576,8 @@ public class VideoEditor extends Activity implements
 		outAcodec =  prefs.getString("pref_out_acodec", DEFAULT_OUT_ACODEC).trim();
 		outVcodec =  prefs.getString("pref_out_vcodec", DEFAULT_OUT_VCODEC).trim();
 
-		outVWidth =   Integer.parseInt(prefs.getString("pref_out_vwidth", "480").trim());
-		outVHeight =   Integer.parseInt(prefs.getString("pref_out_vheight", "320").trim());
+		outVWidth =   Integer.parseInt(prefs.getString("pref_out_vwidth", DEFAULT_OUT_WIDTH).trim());
+		outVHeight =   Integer.parseInt(prefs.getString("pref_out_vheight", DEFAULT_OUT_HEIGHT).trim());
 		
 	}
 	
