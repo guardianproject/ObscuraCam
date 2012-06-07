@@ -162,11 +162,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     Paint obscuredPaint;
     
     //bitmaps for corners
+    /*
     private final static float CORNER_SIZE = 26;
+    
     Bitmap bitmapCornerUL;
     Bitmap bitmapCornerUR;
     Bitmap bitmapCornerLL;
-    Bitmap bitmapCornerLR;
+    Bitmap bitmapCornerLR;*/
     
     
     
@@ -445,6 +447,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			
 		}
 		
+		/*
 		bitmapCornerUL = BitmapFactory.decodeResource(getResources(),
                 R.drawable.edit_region_corner_ul);
 		bitmapCornerUR = BitmapFactory.decodeResource(getResources(),
@@ -453,7 +456,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
                 R.drawable.edit_region_corner_ll);
 		bitmapCornerLR = BitmapFactory.decodeResource(getResources(),
                 R.drawable.edit_region_corner_lr);
-		 
+		 */
 	}
 	
 	private void setBitmap (Bitmap nBitmap)
