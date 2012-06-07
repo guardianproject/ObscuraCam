@@ -6,14 +6,13 @@
 		android:title="@string/pref_out_fps_title"
 		android:summary="@string/pref_out_fps_summary"
 		android:dialogTitle="@string/pref_out_fps_title"
-		android:defaultValue="30"
 		/>
 
 	    <EditTextPreference android:key="pref_out_rate"
 		android:title="@string/pref_out_rate_title"
 		android:summary="@string/pref_out_rate_summary"
 		android:dialogTitle="@string/pref_out_rate_title"
-		android:defaultValue="500"
+		
 		/>
 	    
 	      <EditTextPreference android:key="pref_out_vwidth"
@@ -33,21 +32,18 @@
 		android:title="@string/pref_out_format_title"
 		android:summary="@string/pref_out_format_summary"
 		android:dialogTitle="@string/pref_out_format_title"
-		android:defaultValue="mp4"
 		/>
 	    
 	      <EditTextPreference android:key="pref_out_vcodec"
 		android:title="@string/pref_out_vcodec_title"
 		android:summary="@string/pref_out_vcodec_summary"
 		android:dialogTitle="@string/pref_out_vcodec_title"
-		android:defaultValue="libx264"
 		/>
 	      
 	        <EditTextPreference android:key="pref_out_acodec"
 		android:title="@string/pref_out_acodec_title"
 		android:summary="@string/pref_out_acodec_summary"
 		android:dialogTitle="@string/pref_out_acodec_title"
-		android:defaultValue="copy"
 		/>
 	    	    
 	</PreferenceCategory>
