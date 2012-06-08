@@ -86,6 +86,15 @@ public class RegionTrail {
 		return regionKeys;
 	}
 	
+	public boolean isWithinTime (int time)
+	{
+
+		if (time < startTime || time > endTime)
+			return false;
+		else
+			return true;
+	}
+	
 	public ObscureRegion getCurrentRegion (int time, boolean doTween)
 	{
 

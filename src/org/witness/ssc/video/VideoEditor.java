@@ -889,7 +889,7 @@ public class VideoEditor extends Activity implements
 						
 						updateProgressBar(activeRegionTrail);
 						
-						if (fingerCount == 1)
+						if (fingerCount == 1 && (!mediaPlayer.isPlaying()))
 							inflatePopup(false, (int)x, (int)y);
 						
 						activeRegion = newActiveRegion;
@@ -901,7 +901,7 @@ public class VideoEditor extends Activity implements
 						
 						if (activeRegion != null)
 						{
-							activeRegionTrail = findIntersectTrail(activeRegion);
+							activeRegionTrail = findIntersectTrail(activeRegion,mediaPlayer.getCurrentPosition());
 	
 							if (activeRegionTrail == null)
 							{
@@ -1648,7 +1648,7 @@ public class VideoEditor extends Activity implements
 			//if we have an existing/last region
 			
 			boolean foundTrail = false;
-			RegionTrail iTrail = findIntersectTrail(newRegion);
+			RegionTrail iTrail = findIntersectTrail(newRegion,cTime);
 			
 			if (iTrail != null)
 			{
@@ -1677,32 +1677,34 @@ public class VideoEditor extends Activity implements
 		return autodetectedRects.length;
 	}
 	
-	private RegionTrail findIntersectTrail (ObscureRegion region)
+	private RegionTrail findIntersectTrail (ObscureRegion region, int currentTime)
 	{
 		for (RegionTrail trail:obscureTrails)
 		{
-			float iLeft=-1,iTop=-1,iRight=-1,iBottom=-1;
-			
-			//intersects check points
-			RectF aRectF = region.getRectF();
-			float iBuffer = 15;
-			iLeft = aRectF.left - iBuffer;
-			iTop = aRectF.top - iBuffer;
-			iRight = aRectF.right + iBuffer;
-			iBottom = aRectF.bottom + iBuffer;
-			
-			Iterator<ObscureRegion> itRegions = trail.getRegionsIterator();
-			
-			while (itRegions.hasNext())
+			if (trail.isWithinTime(currentTime))
 			{
-				ObscureRegion testRegion = itRegions.next();
-					
-				if (testRegion.getRectF().intersects(iLeft,iTop,iRight,iBottom))
+				float iLeft=-1,iTop=-1,iRight=-1,iBottom=-1;
+				
+				//intersects check points
+				RectF aRectF = region.getRectF();
+				float iBuffer = 15;
+				iLeft = aRectF.left - iBuffer;
+				iTop = aRectF.top - iBuffer;
+				iRight = aRectF.right + iBuffer;
+				iBottom = aRectF.bottom + iBuffer;
+				
+				Iterator<ObscureRegion> itRegions = trail.getRegionsIterator();
+				
+				while (itRegions.hasNext())
 				{
-					return trail;
+					ObscureRegion testRegion = itRegions.next();
+						
+					if (testRegion.getRectF().intersects(iLeft,iTop,iRight,iBottom))
+					{
+						return trail;
+					}
 				}
 			}
-			
 		}
 		
 		return null;
