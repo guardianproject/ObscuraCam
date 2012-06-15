@@ -58,9 +58,10 @@ public class FFMPEGWrapper {
 			}
 
 			
+			/*
 		    if (process != null) {
 		    	process.destroy();        
-		    }
+		    }*/
 
 	}
 	
@@ -96,18 +97,21 @@ public class FFMPEGWrapper {
     	String ffmpegBin = new File(fileBinDir,"ffmpeg").getAbsolutePath();
 		Runtime.getRuntime().exec("chmod 700 " +ffmpegBin);
     	
-    	String[] ffmpegCommand = {ffmpegBin, "-v", "10", "-y", "-i", inputFile.getPath(), 
+    	String[] ffmpegCommand = {ffmpegBin, "-y", "-i", inputFile.getPath(), 
 				"-vcodec", vcodec, 
 				"-b", kbitRate+"k", 
 				"-s",  oWidth + "x" + oHeight, 
 				"-r", ""+frameRate,
-				"-acodec", "copy",
+				"-acodec", acodec,
 				"-f", format,
 				"-vf","redact=" + redactSettingsFile.getAbsolutePath(),
 				outputFile.getPath()};
     	
+    	//./ffmpeg -y -i test.mp4 -vframes 999999  -vf 'redact=blurbox.txt [out] [d], [d]nullsink' -acodec copy outputa.mp4
     	
-    	//ffmpeg -v 10 -y -i /sdcard/org.witness.sscvideoproto/videocapture1042744151.mp4 -vcodec libx264 -b 3000k -s 720x480 -r 30 -acodec copy -f mp4 -vf 'redact=/data/data/org.witness.sscvideoproto/redact_unsort.txt' /sdcard/org.witness.sscvideoproto/new.mp4
+    	//ffmpeg -v 10 -y -i /sdcard/org.witness.sscvideoproto/videocapture1042744151.mp4 -vcodec libx264
+    	//-b 3000k -s 720x480 -r 30 -acodec copy -f mp4 -vf 'redact=/data/data/org.witness.sscvideoproto/redact_unsort.txt'
+    	///sdcard/org.witness.sscvideoproto/new.mp4
     	
     	//"-vf" , "redact=" + Environment.getExternalStorageDirectory().getPath() + "/" + PACKAGENAME + "/redact_unsort.txt",
 

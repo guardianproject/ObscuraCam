@@ -1244,7 +1244,7 @@ public class VideoEditor extends Activity implements
 						
 						String line = new String(shellout);
 						
-						//Log.d(LOGTAG, line);
+						Log.d(LOGTAG, line);
 						
 						//progressDialog.setMessage(new String(msg));
 						//Duration: 00:00:00.99,
