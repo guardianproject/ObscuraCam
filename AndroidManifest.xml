@@ -5,7 +5,11 @@
       android:versionName="2.0-RC1"
       android:installLocation="auto">
       
-    <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="11"/>
+    <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="11"/>
+    
+    
+    <uses-permission android:name="android.permission.WRITE_MEDIA_STORAGE"/>
+    
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>

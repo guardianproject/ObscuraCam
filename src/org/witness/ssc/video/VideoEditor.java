@@ -1061,14 +1061,16 @@ public class VideoEditor extends Activity implements
     	return originalVideoFilePath;
     }
 	
-	private void createCleanSavePath(String format) {
+	private File createCleanSavePath(String format) {
 		
 		try {
 			saveFile = File.createTempFile("output", '.' + format, fileExternDir);
 			redactSettingsFile = new File(fileExternDir,saveFile.getName()+".txt");
 			
+			return redactSettingsFile;
 		} catch (IOException e) {
 			e.printStackTrace();
+			return null;
 		}
 	}
 	

@@ -18,7 +18,7 @@ public class RegionTrail {
 	
 	private String obscureMode = OBSCURE_MODE_PIXELATE;
 	
-	private boolean doTweening = false;
+	private boolean doTweening = true;
 	
 	public boolean isDoTweening() {
 		return doTweening;
