@@ -95,6 +95,8 @@ public class VideoEditor extends Activity implements
     private final static float REGION_CORNER_SIZE = 26;
     
     private final static String MIME_TYPE_MP4 = "video/mp4";
+    private final static String MIME_TYPE_VIDEO = "video/*";
+    
     private final static int FACE_TIME_BUFFER = 2000;
 	
     private final static int HUMAN_OFFSET_BUFFER = 50;
@@ -300,15 +302,16 @@ public class VideoEditor extends Activity implements
 		mediaPlayer.setScreenOnWhilePlaying(true);		
 		
 		try {
-			mediaPlayer.setDataSource(originalVideoUri.toString());
+			mediaPlayer.setDataSource(this,originalVideoUri);
+			
 		} catch (IllegalArgumentException e) {
-			Log.v(LOGTAG, e.getMessage());
+			Log.e(LOGTAG, originalVideoUri.toString() + ": " + e.getMessage());
 			finish();
 		} catch (IllegalStateException e) {
-			Log.v(LOGTAG, e.getMessage());
+			Log.e(LOGTAG, originalVideoUri.toString() + ": " +  e.getMessage());
 			finish();
 		} catch (IOException e) {
-			Log.v(LOGTAG, e.getMessage());
+			Log.e(LOGTAG, originalVideoUri.toString() + ": " +  e.getMessage());
 			finish();
 		}
 		
@@ -663,7 +666,6 @@ public class VideoEditor extends Activity implements
 	
 	private void updateRegionDisplay(int currentTime) {
 
-		
 		validateRegionView();
 		clearRects();
 		
@@ -693,6 +695,7 @@ public class VideoEditor extends Activity implements
 	}
 	
 	private void validateRegionView() {
+		
 		if (obscuredBmp == null && regionsView.getWidth() > 0 && regionsView.getHeight() > 0) {
 		//	Log.v(LOGTAG,"obscuredBmp is null, creating it now");
 			obscuredBmp = Bitmap.createBitmap(regionsView.getWidth(), regionsView.getHeight(), Bitmap.Config.ARGB_8888);
@@ -862,7 +865,6 @@ public class VideoEditor extends Activity implements
 			//int newTime = (int)(mediaPlayer.getDuration()*(float)(event.getX()/progressBar.getWidth()));
 			
 			mediaPlayer.seekTo(progressBar.getProgress());
-			updateRegionDisplay(mediaPlayer.getCurrentPosition());
 			// Attempt to get the player to update it's view - NOT WORKING
 			
 			handled = false; // The progress bar doesn't get it if we have true here
@@ -889,7 +891,7 @@ public class VideoEditor extends Activity implements
 						
 						updateProgressBar(activeRegionTrail);
 						
-						if (fingerCount == 1 && (!mediaPlayer.isPlaying()))
+						if (fingerCount == 1)
 							inflatePopup(false, (int)x, (int)y);
 						
 						activeRegion = newActiveRegion;
@@ -928,15 +930,27 @@ public class VideoEditor extends Activity implements
 				case MotionEvent.ACTION_MOVE:
 					// Calculate distance moved
 
+					
+					
 					if (Math.abs(x-downX)>MIN_MOVE
 						||Math.abs(y-downY)>MIN_MOVE)
 						{
-						activeRegion = makeNewRegion (fingerCount, x, y, event, HUMAN_OFFSET_BUFFER);
 						
-						if (activeRegion != null)
-							activeRegionTrail.addRegion(activeRegion);
-						
+						if (activeRegion != null && (!mediaPlayer.isPlaying()))
+						{
+							ObscureRegion oRegion = makeNewRegion (fingerCount, x, y, event, HUMAN_OFFSET_BUFFER);
+							
+							activeRegion.moveRegion(oRegion.sx, oRegion.sy, oRegion.ex, oRegion.ey);
+							
 						}
+						else
+						{
+							activeRegion = makeNewRegion (fingerCount, x, y, event, HUMAN_OFFSET_BUFFER);
+							
+							if (activeRegion != null)
+								activeRegionTrail.addRegion(activeRegion);
+						}
+					}
 					handled = true;
 					
 					
@@ -946,6 +960,7 @@ public class VideoEditor extends Activity implements
 		}
 		
 		updateRegionDisplay(mediaPlayer.getCurrentPosition());
+
 		
 		return handled; // indicate event was handled	
 	}
@@ -1378,16 +1393,20 @@ public class VideoEditor extends Activity implements
 	}
 	private void playVideo() {
 		
-    	Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
-    	intent.setDataAndType(Uri.parse(saveFile.getPath()), MIME_TYPE_MP4);    	
-   	 	startActivityForResult(intent,0);
-   	 	
+		if (saveFile != null && saveFile.exists())
+		{
+	    	Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
+	    	intent.setDataAndType(Uri.fromFile(saveFile), MIME_TYPE_VIDEO);    	
+	//    	intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+	
+	   	 	startActivity(intent);
+		}
 	}
 	
 	private void shareVideo() {
     	Intent intent = new Intent(Intent.ACTION_SEND);
-    	intent.setType(MIME_TYPE_MP4);
-    	intent.putExtra(Intent.EXTRA_STREAM, Uri.parse(saveFile.getPath()));
+    	intent.setType(MIME_TYPE_VIDEO);
+    	intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(saveFile));
     	startActivityForResult(Intent.createChooser(intent, "Share Video"),0);     
 	}
 	

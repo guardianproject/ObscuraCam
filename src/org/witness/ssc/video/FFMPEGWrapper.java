@@ -19,6 +19,8 @@ import java.util.Vector;
 import org.witness.ssc.video.ShellUtils.ShellCallback;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class FFMPEGWrapper {
@@ -27,18 +29,28 @@ public class FFMPEGWrapper {
 	File fileBinDir;
 	Context context;
 
+	private final static String FFMPEG_BINARY_VERSION = "0.10.4.1";
+	private final static String FFMPEG_VERSION_KEY = "ffmpegkey";
+	
 	public FFMPEGWrapper(Context _context) throws FileNotFoundException, IOException {
 		context = _context;
 		fileBinDir = context.getDir("bin",0);
 
-		if (!new File(fileBinDir,libraryAssets[0]).exists())
+		checkBinary();
+	}
+	
+	private void checkBinary () throws FileNotFoundException, IOException
+	{
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    	String currTorBinary = prefs.getString(FFMPEG_VERSION_KEY, null);
+    
+		if ((currTorBinary == null || (!currTorBinary.equals(FFMPEG_BINARY_VERSION))) 
+				|| !new File(fileBinDir,libraryAssets[0]).exists())
 		{
 			BinaryInstaller bi = new BinaryInstaller(context,fileBinDir);
 			bi.installFromRaw();
 		}
 	}
-	
-	
 	
 	private void execProcess(String[] cmds, ShellCallback sc) throws Exception {		
         
