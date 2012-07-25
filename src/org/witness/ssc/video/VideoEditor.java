@@ -20,6 +20,7 @@ import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
 import net.londatiga.android.QuickAction.OnActionItemClickListener;
 
+import org.witness.securesmartcam.detect.DetectedFace;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.ssc.video.InOutPlayheadSeekBar.InOutPlayheadSeekBarChangeListener;
@@ -149,7 +150,10 @@ public class VideoEditor extends Activity implements
 	private ObscureRegion activeRegion;
 	
 	boolean mAutoDetectEnabled = false;
+	boolean eyesOnly = false;
+	int autoDetectTimeInterval = 700; //ms
 	
+	   
 	FFMPEGWrapper ffmpeg;
 	
 	int timeNudgeOffset = 2;
@@ -286,6 +290,31 @@ public class VideoEditor extends Activity implements
 		
 	}
 	
+	private void resetMediaPlayer ()
+	{
+		Log.i(LOGTAG, "releasing/loading media Player");
+		
+		mediaPlayer.release();
+		
+		loadMedia();
+		
+		mediaPlayer.setDisplay(surfaceHolder);
+
+		mediaPlayer.setScreenOnWhilePlaying(true);
+		
+		try {
+			mediaPlayer.prepare();
+			mDuration = mediaPlayer.getDuration();
+			
+			progressBar.setMax(mDuration);
+
+		} catch (Exception e) {
+			Log.v(LOGTAG, "IllegalStateException " + e.getMessage());
+			finish();
+		}
+		 
+	}
+	
 	private void loadMedia ()
 	{
 
@@ -299,20 +328,19 @@ public class VideoEditor extends Activity implements
 		mediaPlayer.setOnBufferingUpdateListener(this);
 
 		mediaPlayer.setLooping(false);
-		mediaPlayer.setScreenOnWhilePlaying(true);		
 		
 		try {
 			mediaPlayer.setDataSource(this,originalVideoUri);
 			
 		} catch (IllegalArgumentException e) {
 			Log.e(LOGTAG, originalVideoUri.toString() + ": " + e.getMessage());
-			finish();
+			
 		} catch (IllegalStateException e) {
 			Log.e(LOGTAG, originalVideoUri.toString() + ": " +  e.getMessage());
-			finish();
+			
 		} catch (IOException e) {
 			Log.e(LOGTAG, originalVideoUri.toString() + ": " +  e.getMessage());
-			finish();
+			
 		}
 		
 	}
@@ -331,8 +359,10 @@ public class VideoEditor extends Activity implements
 		Log.v(LOGTAG, "surfaceCreated Called");
 		if (mediaPlayer != null)
 		{
-
+			
 			mediaPlayer.setDisplay(holder);
+			mediaPlayer.setScreenOnWhilePlaying(true);		
+			
 			try {
 				mediaPlayer.prepare();
 				mDuration = mediaPlayer.getDuration();
@@ -354,20 +384,21 @@ public class VideoEditor extends Activity implements
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 		
+		Log.i(LOGTAG, "SurfaceHolder changed");
 		
 		
 	}
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		//if (mediaPlayer != null)
-			//mediaPlayer.stop();
+
+		Log.i(LOGTAG, "SurfaceHolder destroyed");
+		
 	}
 
 	@Override
 	public void onCompletion(MediaPlayer mp) {
 		Log.i(LOGTAG, "onCompletion Called");
-		
 	
 		playPauseButton.setImageDrawable(this.getResources().getDrawable(android.R.drawable.ic_media_play));
 	}
@@ -377,9 +408,20 @@ public class VideoEditor extends Activity implements
 		Log.e(LOGTAG, "onError Called");
 		if (whatError == MediaPlayer.MEDIA_ERROR_SERVER_DIED) {
 			Log.e(LOGTAG, "Media Error, Server Died " + extra);
+			
+			boolean wasAutoDetect = mAutoDetectEnabled;
+			
+			//if (wasAutoDetect)
+			mAutoDetectEnabled = false;
+			
+			resetMediaPlayer();
+			
+			
 		} else if (whatError == MediaPlayer.MEDIA_ERROR_UNKNOWN) {
 			Log.e(LOGTAG, "Media Error, Error Unknown " + extra);
 		}
+		
+
 		return false;
 	}
 
@@ -592,35 +634,49 @@ public class VideoEditor extends Activity implements
 			   
 			   try
 			   {
-				   int timeInc = 250;
 				   
 				   if (mediaPlayer != null && mAutoDetectEnabled) 
 				   {						   
-					   mediaPlayer.start();
+					  // mediaPlayer.start();
 					   
 					   //turn volume off
-					   mediaPlayer.setVolume(0f, 0f);
-					        
-					   for (int f = 0; f < mDuration && mAutoDetectEnabled; f += timeInc)
+					  // mediaPlayer.setVolume(0f, 0f);
+					   
+					   for (int f = 0; f < mDuration && mAutoDetectEnabled; f += autoDetectTimeInterval)
 					   {
-						   seekTo(f);
-						   
-						   progressBar.setProgress(mediaPlayer.getCurrentPosition());
-						   
-						   //Bitmap bmp = getVideoFrame(rPath,f*1000);
-						   Bitmap bmp = retriever.getFrameAtTime(f*1000, MediaMetadataRetriever.OPTION_CLOSEST);
-						   
-						   if (bmp != null)
-							   autoDetectFrame(bmp,f, FACE_TIME_BUFFER, mDuration);
-						   
+						   try
+						   {
+							   seekTo(f);
+							   
+							   progressBar.setProgress(mediaPlayer.getCurrentPosition());
+							   
+							   //Bitmap bmp = getVideoFrame(rPath,f*1000);
+							   
+							   Bitmap bmp = retriever.getFrameAtTime(f*1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+							   
+							   if (bmp == null)
+							   {
+									resetMediaPlayer();
+									break;
+							   }
+							   else
+							   {
+								  autoDetectFrame(bmp,f, FACE_TIME_BUFFER, mDuration, eyesOnly);
+							   }
+						   }
+						   catch (Exception e)
+						   {
+							   Log.v(LOGTAG, "error occured on frame " + f,e);
+							   loadMedia();
+						   }
 					   }
 					   
 					   //turn volume on
-					   mediaPlayer.setVolume(1f, 1f);
+					 //  mediaPlayer.setVolume(1f, 1f);
 					   
 					   mediaPlayer.seekTo(0);
 					   progressBar.setProgress(mediaPlayer.getCurrentPosition());
-					   mediaPlayer.pause();
+					  // mediaPlayer.pause();
 					   
 					   
 				   }   
@@ -632,12 +688,10 @@ public class VideoEditor extends Activity implements
 			   
 			   finally
 			   {
-				   if (mAutoDetectEnabled)
-					{
-						mAutoDetectEnabled = false;
-						Message msg = mHandler.obtainMessage(0);
-						mHandler.sendMessage(msg);
-					}
+					mAutoDetectEnabled = false;
+					Message msg = mHandler.obtainMessage(0);
+					mHandler.sendMessage(msg);
+				
 			   }
 			   
 		   }
@@ -924,13 +978,13 @@ public class VideoEditor extends Activity implements
 					
 				case MotionEvent.ACTION_UP:
 									
+					activeRegion = null;
 					
 					break;
 										
 				case MotionEvent.ACTION_MOVE:
 					// Calculate distance moved
 
-					
 					
 					if (Math.abs(x-downX)>MIN_MOVE
 						||Math.abs(y-downY)>MIN_MOVE)
@@ -951,6 +1005,7 @@ public class VideoEditor extends Activity implements
 								activeRegionTrail.addRegion(activeRegion);
 						}
 					}
+					
 					handled = true;
 					
 					
@@ -1111,12 +1166,15 @@ public class VideoEditor extends Activity implements
     		case R.id.menu_new_region:
     			
     			//beginAutoDetect();
+    			/*
     			ObscureRegion region = makeNewRegion(mediaPlayer.getCurrentPosition(),(float)videoWidth/2,(float)videoHeight/2,null,0);
     			activeRegionTrail = new RegionTrail(0,mDuration);
 				obscureTrails.add(activeRegionTrail);
 				activeRegionTrail.addRegion(region);
 				updateRegionDisplay(mediaPlayer.getCurrentPosition());
-				
+				*/
+    			showAutoDetectDialog();
+    			
     			return true;
     			
         	case R.id.menu_save:
@@ -1216,7 +1274,6 @@ public class VideoEditor extends Activity implements
     	mCancelled = false;
     	
     	mediaPlayer.pause();
-    	//mediaPlayer.release();
     	
     	progressDialog = new ProgressDialog(this);
     	progressDialog.setMessage("Processing. Please wait...");
@@ -1496,6 +1553,7 @@ public class VideoEditor extends Activity implements
 		super.onPause();
 		mediaPlayer.reset();
 		
+		
 	}
 
 	@Override
@@ -1547,10 +1605,8 @@ public class VideoEditor extends Activity implements
 		surfaceHolder.addCallback(this);
 		surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
-
 		currentDisplay = getWindowManager().getDefaultDisplay();
 		
-			
 		progressBar = (InOutPlayheadSeekBar) this.findViewById(R.id.InOutPlayheadSeekBar);
 
 		progressBar.setIndeterminate(false);
@@ -1590,6 +1646,7 @@ public class VideoEditor extends Activity implements
 	{
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
+		eyesOnly = prefs.getBoolean("pref_eyes_only", false);
 		
 		outFrameRate = Integer.parseInt(prefs.getString("pref_out_fps", DEFAULT_OUT_FPS).trim());
 		outBitRate = Integer.parseInt(prefs.getString("pref_out_rate", DEFAULT_OUT_RATE).trim());
@@ -1649,22 +1706,30 @@ public class VideoEditor extends Activity implements
 			int _backgroundColor) {
 	 */
 	
-	private int autoDetectFrame(Bitmap bmp, int cTime, int cBuffer, int cDuration) 
+	private int autoDetectFrame(Bitmap bmp, int cTime, int cBuffer, int cDuration, boolean eyesOnly) 
 	{
 		
+		ArrayList<DetectedFace> dFaces = runFaceDetection(bmp);
 		
+		if (dFaces == null)
+			return 0;
 		
-		RectF[] autodetectedRects = runFaceDetection(bmp);
-		for (RectF autodetectedRect : autodetectedRects)
+		for (DetectedFace dFace : dFaces)
 		{
 
 			//float faceBuffer = -1 * (autodetectedRect.right-autodetectedRect.left)/15;			
 			//autodetectedRect.inset(faceBuffer, faceBuffer);
+
+			if (eyesOnly)
+			{
+				dFace.bounds.top = dFace.midpoint.y - dFace.eyeDistance/2.5f;
+				dFace.bounds.bottom = dFace.midpoint.y + dFace.eyeDistance/2.5f;	
+			}
 			
-			ObscureRegion newRegion = new ObscureRegion(cTime,autodetectedRect.left,
-					autodetectedRect.top,
-					autodetectedRect.right,
-					autodetectedRect.bottom);
+			ObscureRegion newRegion = new ObscureRegion(cTime,dFace.bounds.left,
+					dFace.bounds.top,
+					dFace.bounds.right,
+					dFace.bounds.bottom);
 			
 			//if we have an existing/last region
 			
@@ -1695,7 +1760,7 @@ public class VideoEditor extends Activity implements
 		Message msg = mHandler.obtainMessage(5);
 		mHandler.sendMessage(msg);
 		
-		return autodetectedRects.length;
+		return dFaces.size();
 	}
 	
 	private RegionTrail findIntersectTrail (ObscureRegion region, int currentTime)
@@ -1731,23 +1796,28 @@ public class VideoEditor extends Activity implements
 		return null;
 	}
 	
+	GoogleFaceDetection gfd = null;
+	
 	/*
 	 * The actual face detection calling method
 	 */
-	private RectF[] runFaceDetection(Bitmap bmp) {
-		RectF[] possibleFaceRects;
+	private ArrayList<DetectedFace> runFaceDetection(Bitmap bmp) {
+
+		ArrayList<DetectedFace> dFaces = null;
+		
+		if (gfd == null)
+			gfd = new GoogleFaceDetection(bmp.getWidth(), bmp.getHeight());
 		
 		try {
 			//Bitmap bProc = toGrayscale(bmp);
-			GoogleFaceDetection gfd = new GoogleFaceDetection(bmp);
-			int numFaces = gfd.findFaces();
-	       // Log.d(ObscuraApp.TAG,"Num Faces Found: " + numFaces); 
-	        
-	        possibleFaceRects = gfd.getFaces();
+			
+			int numFaces = gfd.findFaces(bmp);
+	       
+			dFaces = gfd.getFaces(numFaces);
 		} catch(NullPointerException e) {
-			possibleFaceRects = null;
+			dFaces = null;
 		}
-		return possibleFaceRects;				
+		return dFaces;				
 	}
 	
 	public Bitmap toGrayscale(Bitmap bmpOriginal)

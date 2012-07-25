@@ -2,6 +2,12 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 	<PreferenceCategory android:title="Output Format">
 
+	    <CheckBoxPreference 
+			android:title="Detect Eyes Only"
+			android:defaultValue="false" 
+			android:summary="Face detect should return 'Eyes Only' Box"
+			android:key="pref_eyes_only" />
+	    
 	    <EditTextPreference android:key="pref_out_fps"
 		android:title="@string/pref_out_fps_title"
 		android:summary="@string/pref_out_fps_summary"

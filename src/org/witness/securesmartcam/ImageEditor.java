@@ -23,6 +23,7 @@ import java.util.Vector;
 
 import org.witness.informa.InformaEditor;
 import org.witness.informa.utils.MetadataParser;
+import org.witness.securesmartcam.detect.DetectedFace;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
 import org.witness.securesmartcam.filters.ConsentTagger;
 import org.witness.securesmartcam.filters.MaskObscure;
@@ -609,13 +610,23 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	private int doAutoDetection() {
 		// This should be called via a pop-up/alert mechanism
 		
-		RectF[] autodetectedRects = runFaceDetection();
-		for (int adr = 0; adr < autodetectedRects.length; adr++) {
-
+		ArrayList<DetectedFace> dFaces = runFaceDetection();
+		
+		if (dFaces == null)
+			return 0;
+		
+	//	for (int adr = 0; adr < autodetectedRects.length; adr++) {
+		
+		Iterator<DetectedFace> itDFace = dFaces.iterator();
+		
+		while (itDFace.hasNext())
+		{
+			DetectedFace dFace = itDFace.next();
+			
 			//debug(ObscuraApp.TAG,"AUTODETECTED imageView Width, Height: " + imageView.getWidth() + " " + imageView.getHeight());
 			//debug(ObscuraApp.TAG,"UNSCALED RECT:" + autodetectedRects[adr].left + " " + autodetectedRects[adr].top + " " + autodetectedRects[adr].right + " " + autodetectedRects[adr].bottom);
 			
-			RectF autodetectedRectScaled = new RectF(autodetectedRects[adr].left, autodetectedRects[adr].top, autodetectedRects[adr].right, autodetectedRects[adr].bottom);
+			RectF autodetectedRectScaled = new RectF(dFace.bounds.left, dFace.bounds.top, dFace.bounds.right, dFace.bounds.bottom);
 			
 			//debug(ObscuraApp.TAG,"SCALED RECT:" + autodetectedRectScaled.left + " " + autodetectedRectScaled.top + " " + autodetectedRectScaled.right + " " + autodetectedRectScaled.bottom);
 
@@ -624,10 +635,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			
 			float faceBuffer = (autodetectedRectScaled.right-autodetectedRectScaled.left)/5;
 			
-			boolean isLast = false;
-			if (adr == autodetectedRects.length - 1) {
-				isLast = true;
-			}
+			boolean isLast = !itDFace.hasNext();
+			
 			createImageRegion(
 					(autodetectedRectScaled.left-faceBuffer),
 					(autodetectedRectScaled.top-faceBuffer),
@@ -637,25 +646,25 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					isLast);
 		}	 				
 		
-		return autodetectedRects.length;
+		return dFaces.size();
 	}
 	
 	/*
 	 * The actual face detection calling method
 	 */
-	private RectF[] runFaceDetection() {
-		RectF[] possibleFaceRects;
+	private ArrayList<DetectedFace> runFaceDetection() {
+		ArrayList<DetectedFace> dFaces;
 		
 		try {
 			Bitmap bProc = toGrayscale(imageBitmap);
-			GoogleFaceDetection gfd = new GoogleFaceDetection(bProc);
-			int numFaces = gfd.findFaces();
+			GoogleFaceDetection gfd = new GoogleFaceDetection(bProc.getWidth(),bProc.getHeight());
+			int numFaces = gfd.findFaces(bProc);
 	        debug(ObscuraApp.TAG,"Num Faces Found: " + numFaces); 
-	        possibleFaceRects = gfd.getFaces();
+	        dFaces = gfd.getFaces(numFaces);
 		} catch(NullPointerException e) {
-			possibleFaceRects = null;
+			dFaces = null;
 		}
-		return possibleFaceRects;				
+		return dFaces;				
 	}
 	
 	public Bitmap toGrayscale(Bitmap bmpOriginal)

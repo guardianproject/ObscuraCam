@@ -1,11 +1,12 @@
 package org.witness.securesmartcam.detect;
 
+import java.util.ArrayList;
+
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.graphics.RectF;
 
 public interface FaceDetection {
-	void setBitmap(Bitmap bmp);
-	int findFaces(); // returns number of faces
-	RectF[] getFaces(); // returns array of rectangles of found faces
+	int findFaces(Bitmap bmp); // returns number of faces
+	ArrayList<DetectedFace> getFaces(int numberFound); // returns array of rectangles of found faces
 }
