@@ -1,0 +1,8 @@
+# auto-generated files from Android builds
+bin/
+gen/
+build.xml
+default.properties
+local.properties
+proguard.cfg
+proguard-project.txt
