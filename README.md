@@ -1,9 +1,8 @@
-
 This project is to build a secure camera app for android.  It is a project of
 Guardian Project, Witness, and more.
 
 Learn more at:
-https://guardianproject.info/apps/securecam/about/
+https://guardianproject.info/apps/obscuracam/
 
 
 Building from the terminal
