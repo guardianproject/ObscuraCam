@@ -2039,4 +2039,11 @@ public class VideoEditor extends Activity implements
 	}
 	
 
+	public int getAudioSessionId()
+	{
+		return 1;
+	}
+
+
+
 }
