@@ -3,6 +3,7 @@
     <string name="hello">Hello World</string>
     <string name="app_name">ObscuraCam</string>
     <string name="app_name_label">ObscuraCam</string>
+    <string name="app_description">Obscuracam is a photo and video app for Android that keeps certain information private. Ever capture someone in a photo or video, then realize they may not want to be in it? Not comfortable posting a friend, family member or child’s face on the internet? Worried about the geolocation data in the picture giving away private hideaway? Tired of Facebook, Google and other sites “auto detecting” faces in your photos? Then this is for you, giving you the power to better protect the identity of those captures in your photos, before you post them online. Take a picture or load a photo or video from the Gallery, and ObscuraCam will automatically detect faces that you can pixelate, redact (blackout) or protect with funny nose and glasses. You can also invert pixelate, so that only the person you select is visible, and no one in the background can be recognized. This app will also remove all identifying data stored in photos including GPS location data and phone make and model. You can save the protected photo back to the Gallery, or share it directly to Facebook, Twitter or any other “Share” enabled app.</string>
     <string name="image_preview">ObscuraCam Image Preview</string>
 	<string name="SplashTextViewString">ObscuraCam</string>
 	<string name="CreditsTextViewString">Powered by the Guardian Project and Witness</string>
