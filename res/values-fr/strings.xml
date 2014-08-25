@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Bonjour tout le monde</string>
+    <string name="app_name">ObscuraCam</string>
+    <string name="app_name_label">ObscuraCam</string>
+    <string name="app_description">Obscuracam est une application photo et vidéo pour Android qui permet de garder certaines informations privées. Ne vous est-il jamais arrivé de prendre quelqu\'un en photo et ensuite de réaliser que cette personne ne le souhaitait peut être pas ? Vous n\'êtes pas à l\'aise à l\'idée de publier le visage d\'un amis, d\'un membre de votre famille ou d\'un enfant ? Vous êtes inquiet au sujet des données de géolocalisation contenues dans certaines photos et qui mettent à mal votre vie privée ? Vous en avez marre que Facebook, Google et d\'autres sites “auto détectent” les visages sur vos photos ? Alors cette application est pour vous. Elle vous donne la possibilité de protéger l\'identité  des personnes présentes sur vos photos, avant de les publiez. Prenez une photo ou chargez une photo ou une vidéo depuis la galerie et ObscuraCam détectera les visages  que vous pourrez ensuite pixeliser, masquer complètement ou déguiser avec un nez rigolo et des lunettes. Il est aussi possible d\'inverser la pixelisation, ainsi seul la personne sélectionnée est visible. Personne en arrière plan ne pourra être reconnu. Cette application effacera également toutes les données d\'identification stockées dans les photos, y compris la position GPS du cliché et le modèle de l\'appareil ayant pris la photo. Vous pouvez sauvegarder la photo protégée sur l\'appareil ou la partager directement sur Facebook, Twitter ou vers toute application accessible via la fonction “Partager”.</string>
+    <string name="image_preview">Aperçu ObscuraCam</string>
+    <string name="SplashTextViewString">ObscuraCam</string>
+    <string name="CreditsTextViewString">Propulsé par Guardian Project et Witness</string>
+    <string name="WalkThroughSkipButton">Passer</string>
+    <string name="WalkThroughContinueButton">Continuer</string>
+    <string name="WalkThroughTextView">Ceci est une application qui aide à protéger la vie privée des individus présents sur vos photos.</string>
+    <string name="WalkThroughPrefSliderLabel">Sélectionner le niveau de risque</string>
+    <string name="menu_new_region">Nouveau tag</string>
+    <string name="menu_detect">Détecter les visages</string>
+    <string name="menu_panic">Panic</string>
+    <string name="menu_image_prefs">Préférences de l\'image</string>
+    <string name="menu_save">Sauvegarder</string>
+    <string name="menu_share">Partager</string>
+    <string name="menu_send_hash">Envoyer le hash</string>
+    <string name="menu_prefs">Préférences</string>
+    <string name="menu_clear_regions">Effacer</string>
+    
+    <string name="imgprefs_h1">Préférences de cette image</string>
+    <string name="imgprefs_undo">Annuler</string>
+    <string name="imgprefs_save">Sauvegarder les préférences</string>
+    <string name="imgprefs_panic">P A N I C !</string>
+    <string name="imgprefs_eraseexif">Effacer toutes les données exif</string>
+    
+    <string name="idtaggerh1">Identifier</string>
+    <string name="idtaggerh12">Consentir</string>
+    <string name="idtaggerp">Saisir un nom (ou un identifiant quelconque), ou sélectionnez quelqu\'un que vous avez déjà taggé.</string>
+    <string name="idtaggerp2">Cochez si vous avez un consentement oral de la personne pour utiliser son image.</string>
+    <string name="idtaggersubmit">Envoyer</string>
+    <string name="encrypttaggerh1">Chiffrer ce tag</string>
+    <string name="encrypttaggerp">Vous pouvez chiffrer la région sélectionnée avec une clé publique spécifique. Ainsi, seul le détenteur de la clé privée sera en mesure de voir cette région.</string>
+    <string name="encrypttaggerhint">Appuyez pour choisir</string>
+    
+    <string name="confirm_delete">Voulez-vous supprimer le fichier original ?</string>
+    <string name="confirm_delete_region">Êtes-vous sûr de vouloir supprimer cette boite ?</string>
+    
+    <!-- Informa Options -->
+    <string name="informaOpt_consent">La personne a donné son consentement pour être prise en photo.</string>
+    <string name="informaOpt_autoFilter">Appliquer automatiquement ce type de filtre à chaque fois que cette personne apparaît dans une photo prise avec ObscuraCam.</string>
+    
+    <string name="mdHumanReadable_intro">Image prise/modifiée par ObscuraCam.</string>
+    <string name="mdHumanReadable_onDate">Image sauvegardée sur :</string>
+    <string name="mdHumanReadable_numTags">Nombre de regions éditées dans cette image :</string>
+    <string name="mdHumanReadable_consentIntro">Personnes sur cette image :</string>
+    <string name="mdHumanReadable_psudonym">Nom/Pseudonyme :</string>
+    <string name="mdHumanReadable_coordinates">Coordinates within this image:</string>
+    <string name="mdHumanReadable_consentGiven">La personne a t\'elle donné son consentement ?</string>
+    <string name="mdHumanReadable_persistObfuscation">Appliquee la même obfuscation sur cete personne pour chaque photo ?</string>
+    
+     <!-- APG related -->
+    <string name="apg_error_activity_not_found">Aucune application pour cette action.</string>
+    <string name="apg_error_apg_version_not_supported">La version d\'APG installée n\'est pas supportée.</string>
+    <string name="apg_btn_crypto_sign">Signer</string>
+    <string name="apg_btn_encrypt">Chiffrer</string>
+    <string name="apg_btn_decrypt">Déchiffrer</string>
+    <string name="apg_btn_verify">Vérifier</string>
+    <string name="apg_btn_select">Sélectionner</string>
+    
+    <string name="unknown_crypto_signature_user_id">&lt;unknown&gt;</string>
+    <string name="key_id">id: %s</string>
+    <string name="insufficient_apg_permissions">Cette application n\'a pas la permission d\'accéder totalement à APG d\'accéder, veuillez réinstaller le correctif de l\'application pour ne plus avoir ce problème.</string>
+    <string name="pgp_mime_unsupported">Les messages PGP/MIME ne sont pas encore supportés.</string>
+    <string name="attachment_encryption_unsupported">Attention : les pièces jointes ne sont PAS encore signées ou chiffrées.</string>
+    <string name="send_aborted">Envoi annulé</string>
+    <string name="menu_delete_original">Supprimer l\' original</string>
+    <string name="menu_about">À propos</string>
+    <string name="menu_preview">Lire</string>
+    
+    <string name="loading_image">Chargement de la photo&#8230;</string>
+    
+    <string name="about">Cette application a été développée par l\'équipe SecureSmartCam Team, en coopération avec WITNESS et Guardian Project.</string>
+
+    <string name="about2">Plus d\'infos sur\nhttp://witness.org et\nhttps://guardianproject.info</string>
+
+    <string name="about3">Ce logiciel est disponible sous les conditions de la licence libre GNU GPL v3.</string>
+
+    <string name="yes">Oui</string>
+    <string name="no">Non</string>
+
+
+    <string name="eula_title">Vous acceptez :</string>
+    <string name="eula_accept">Accepter</string>
+    <string name="eula_refuse">Refuser</string>
+    
+    <string name="welcomeSubMsg">fonctionne maintenant avec les vidéos !</string>
+    
+    <string name="play_video">Lire la vidéo</string>
+    <string name="share_video">Partager la vidéo</string>
+    
+    
+    <!-- video processing -->
+    <string name="pref_out_fps_title">Framerate en sortie (fps)</string>
+    <string name="pref_out_fps_summary">Nombre d\'images par secondes de la vidéo en sortie (15&#8211;30)</string>
+    
+    <string name="pref_out_rate_title">Bitrate en sortie (kbps)</string>
+    <string name="pref_out_rate_summary">Bitrate de la vidéo en sortie (300&#8211;1500)</string>
+    
+    <string name="pref_out_format_title">Format de sortie</string>
+    <string name="pref_out_format_summary">Conteneur  du fichier (mp4, 3gp, ogg)</string>
+    
+    <string name="pref_out_vcodec_title">Codec en sortie</string>
+    <string name="pref_out_vcodec_summary">codec vidéo (copy, libx264, etc)</string>
+    
+    <string name="pref_out_acodec_title">Codec audio en sortie</string>
+    <string name="pref_out_acodec_summary">codec audio (copy, aac, mp3, etc)</string>
+    
+    <string name="pref_out_vwidth_title">Largeur de la vidéo (px)</string>
+    <string name="pref_out_vwidth_summary">largeur de la vidéo en sortie</string>
+    
+    <string name="pref_out_vheight_title">Hauteur de la vidéo (px)</string>
+    <string name="pref_out_vheight_summary">hauteur de la vidéo en sortie</string>
+</resources>
