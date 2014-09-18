@@ -79,7 +79,7 @@ public class ImageRegion implements OnActionItemClickListener
 	int mObscureType = PIXELATE;
 
 	//the other of these strings and resources determines the order in the popup menu
-	private final static String[] mFilterLabels = {"Redact","Pixelate","CrowdPixel","Mask"};
+	private final static String[] mFilterLabels = {"Redact", "Pixelate", "CrowdPixelate", "Mask"};
 	private final static int[] mFilterIcons = {R.drawable.ic_context_fill,R.drawable.ic_context_pixelate,R.drawable.ic_context_pixelate, R.drawable.ic_context_mask, R.drawable.ic_context_id};
 
 	public final Drawable unidentifiedBorder, identifiedBorder;
@@ -237,8 +237,7 @@ public class ImageRegion implements OnActionItemClickListener
 	public void inflatePopup(boolean showDelayed) {
 
 		if (mPopupMenu == null)
-			initPopup();
-		
+			initPopup();		
 		
 		if (showDelayed) {
 			// We need layout to pass again, let's wait a second or two
@@ -285,7 +284,7 @@ public class ImageRegion implements OnActionItemClickListener
 		}
 		
 		aItem = new ActionItem();
-		aItem.setTitle("Clear Tag");
+		aItem.setTitle(mImageEditor.getResources().getString(R.string.pop_clear_tag));
 		aItem.setIcon(mImageEditor.getResources().getDrawable(R.drawable.ic_context_delete));
 
 		mPopupMenu.addActionItem(aItem);

@@ -94,6 +94,9 @@
     
     
     <!-- video processing -->
+    <string name="pref_detect_eyes_only">Ne détecter que les yeux</string>
+    <string name="pref_detect_eyes_only_summary">La détection de visage ne devrait trouver que les yeux des visages</string>
+    
     <string name="pref_out_fps_title">Framerate en sortie (fps)</string>
     <string name="pref_out_fps_summary">Nombre d\'images par secondes de la vidéo en sortie (15&#8211;30)</string>
     
@@ -114,4 +117,24 @@
     
     <string name="pref_out_vheight_title">Hauteur de la vidéo (px)</string>
     <string name="pref_out_vheight_summary">hauteur de la vidéo en sortie</string>
+    
+    <string name="main_menu_new_picture">Prendre une photo</string>
+    <string name="main_menu_obscure_photo">Masquer une photo</string>
+    <string name="main_menu_obscure_video">Masquer une vidéo</string>
+    
+    <string name="about_obscuracam">À propos d\'ObscuraCam</string>
+    <string name="detecting_faces">Détection des visages&#8230;</string>
+    
+    <string name="pop_redact">Noircir</string>
+    <string name="pop_pixelate">Pixeliser</string>
+    <string name="pop_crowdpixel">CrowdPixel</string>
+    <string name="pop_mask">Déguiser</string>
+    <string name="pop_clear_tag">Supprimer</string>
+    
+    <string name="saving">Sauvegarde&#8230;</string>
+    <string name="saving_temporary_file_failed">Échec de la sauvegarde du fichier temporaire !</string>
+    <string name="image_saved_to_gallery">Image sauvegardée dans la galerie</string>
+    <string name="would_you_like_to_detect_faces_in_this_video">Voulez-vous détecter les visages de cette vidéo ?</string>
+    <string name="processing_please_wait">Traitement en cours. Veuillez patienter&#8230;</string>  
+    
 </resources>

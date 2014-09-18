@@ -470,8 +470,9 @@ public class VideoEditor extends Activity implements
 		};
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage("Would you like to detect faces in this video?").setPositiveButton("Yes", dialogClickListener)
-		    .setNegativeButton("No", dialogClickListener).show();
+		builder.setMessage(getResources().getString(R.string.would_you_like_to_detect_faces_in_this_video))
+			.setPositiveButton(getResources().getString(R.string.yes), dialogClickListener)
+		    .setNegativeButton(getResources().getString(R.string.no), dialogClickListener).show();
 		
 	}
 	
@@ -479,8 +480,10 @@ public class VideoEditor extends Activity implements
 	{
 		mAutoDetectEnabled = true;
 		
+		String detecting_faces = getResources().getString(R.string.detecting_faces);
+		
 		progressDialog = new ProgressDialog(this);
-		progressDialog = ProgressDialog.show(this, "", "Detecting faces...", true, true);
+		progressDialog = ProgressDialog.show(this, "", detecting_faces, true, true);
     	progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressDialog.setCancelable(true);
         Message msg = mHandler.obtainMessage(2);
@@ -1275,8 +1278,9 @@ public class VideoEditor extends Activity implements
     	
     	mediaPlayer.pause();
     	
+    	String processing = getResources().getString(R.string.processing_please_wait);
     	progressDialog = new ProgressDialog(this);
-    	progressDialog.setMessage("Processing. Please wait...");
+    	progressDialog.setMessage(processing);
     	progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
     	progressDialog.setMax(100);
         progressDialog.setCancelable(true);

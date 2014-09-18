@@ -21,8 +21,6 @@
     <string name="menu_prefs">Preferences</string>
     <string name="menu_clear_regions">Clear</string>
     
-    
-    
     <string name="imgprefs_h1">Preferences for this image</string>
     <string name="imgprefs_undo">Undo</string>
     <string name="imgprefs_save">Save Preferences</string>
@@ -73,7 +71,7 @@
     <string name="menu_about">About</string>
     <string name="menu_preview">Play</string>
     
-    <string name="loading_image">Loading photo...</string>
+    <string name="loading_image">Loading photo&#8230;</string>
     
     <string name="about">This app was developed by the SecureSmartCam Team, a joint effort by WITNESS and the Guardian Project.</string>
 
@@ -84,7 +82,6 @@
 	<string name="yes">Yes</string>
 	<string name="no">No</string>
 	
-	
     <string name="eula_title">You agree to:</string>
     <string name="eula_accept">Accept</string>
     <string name="eula_refuse">Refuse</string>
@@ -94,13 +91,15 @@
     <string name="play_video">Play Video</string>
     <string name="share_video">Share Video</string>
     
-    
     <!--  video processing -->
+    <string name="pref_detect_eyes_only">Detect Eyes Only</string>
+    <string name="pref_detect_eyes_only_summary">Face detect should return \'Eyes Only\' Box</string>
+    
     <string name="pref_out_fps_title">Output Framerate (fps)</string>
-    <string name="pref_out_fps_summary">Frames per second to save output video at (15-30)</string>
+    <string name="pref_out_fps_summary">Frames per second to save output video at (15&#8211;30)</string>
     
     <string name="pref_out_rate_title">Output Bitrate (kbps)</string>
-    <string name="pref_out_rate_summary">Bitrate of video output (300-1500)</string>
+    <string name="pref_out_rate_summary">Bitrate of video output (300&#8211;1500)</string>
     
     <string name="pref_out_format_title">Output Format</string>
     <string name="pref_out_format_summary">File container format (mp4, 3gp, ogg)</string>
@@ -117,5 +116,23 @@
      <string name="pref_out_vheight_title">Custom Video Height (px)</string>
     <string name="pref_out_vheight_summary">custom video height for outputed video</string>
     
+    <string name="main_menu_new_picture">New Picture</string>
+    <string name="main_menu_obscure_photo">Obscure Photo</string>
+    <string name="main_menu_obscure_video">Obscure Video</string>
+    
+    <string name="about_obscuracam">About ObscuraCam</string>
+    <string name="detecting_faces">Detecting faces&#8230;</string>
+    
+    <string name="pop_redact">Redact</string>
+    <string name="pop_pixelate">Pixelate</string>
+    <string name="pop_crowdpixel">CrowdPixel</string>
+    <string name="pop_mask">Mask</string>
+    <string name="pop_clear_tag">Clear Tag</string>
+    
+    <string name="saving">Saving&#8230;</string>
+    <string name="saving_temporary_file_failed">Saving Temporary File Failed!</string>
+    <string name="image_saved_to_gallery">Image saved to Gallery</string>
+    <string name="would_you_like_to_detect_faces_in_this_video">Would you like to detect faces in this video?</string>
+    <string name="processing_please_wait">Processing. Please wait&#8230;</string>  
     
 </resources>

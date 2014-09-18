@@ -28,7 +28,7 @@
 			android:padding="10sp"
 			>
 			<Button  android:id="@+id/TakePictureButton" 
-				android:text="New Picture" 
+				android:text="@string/main_menu_new_picture" 
 							    android:layout_width="fill_parent"
 							    android:layout_height="wrap_content"
 				android:drawableLeft="@drawable/ic_camera">
@@ -39,11 +39,11 @@
 			    android:layout_width="fill_parent"
 			    android:layout_height="wrap_content"
 			    android:drawableLeft="@drawable/ic_gallery"
-			    android:text="Obscure Photo" >
+			    android:text="@string/main_menu_obscure_photo" >
 
 			</Button>
 			<Button  android:id="@+id/ChooseVideoButton" 
-				android:text="Obscure Video" 
+				android:text="@string/main_menu_obscure_video" 
 				android:layout_width="fill_parent"
 							    android:layout_height="wrap_content"				
 				android:drawableLeft="@drawable/ic_video">

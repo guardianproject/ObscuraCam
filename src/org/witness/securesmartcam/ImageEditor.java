@@ -326,8 +326,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 				if (autodetect)
 				{
-
-					mProgressDialog = ProgressDialog.show(this, "", "Detecting faces...", true, true);
+					String detecting_faces = getResources().getString(R.string.detecting_faces);
+					mProgressDialog = ProgressDialog.show(this, "", detecting_faces, true, true);
 					
 					doAutoDetectionThread();
 					
@@ -435,7 +435,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					{
 						// Do auto detect popup
 
-						mProgressDialog = ProgressDialog.show(this, "", "Detecting faces...", true, true);
+						String detecting_faces = getResources().getString(R.string.detecting_faces);
+						mProgressDialog = ProgressDialog.show(this, "", detecting_faces, true, true);
 					
 						doAutoDetectionThread();
 					}
@@ -1145,8 +1146,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 		else if (v == btnSave)
 		{
+			String saving = getResources().getString(R.string.saving);
+			
 			//Why does this not show?
-	    	mProgressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
+	    	mProgressDialog = ProgressDialog.show(this, "", saving, true, true);
 
     		mHandler.postDelayed(new Runnable() {
     			  @Override
@@ -1233,8 +1236,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     			
         	case R.id.menu_save:
 
-				//Why does this not show?
-		    	mProgressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
+    			String saving = getResources().getString(R.string.saving);
+    			
+    			//Why does this not show?
+    	    	mProgressDialog = ProgressDialog.show(this, "", saving, true, true);
 	
         		mHandler.postDelayed(new Runnable() {
         			  @Override
@@ -1351,7 +1356,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         	share.putExtra(Intent.EXTRA_STREAM, tmpImageUri);
         	startActivity(Intent.createChooser(share, "Share Image"));    	
     	} else {
-    		Toast t = Toast.makeText(this,"Saving Temporary File Failed!", Toast.LENGTH_SHORT); 
+    		String saving_failed = getResources().getString(R.string.saving_temporary_file_failed);
+    		Toast t = Toast.makeText(this,saving_failed, Toast.LENGTH_SHORT); 
     		t.show();
     	}
     }
@@ -1675,7 +1681,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				new String[] {MIME_TYPE_JPEG},
 				null);
 		
-		Toast t = Toast.makeText(this,"Image saved to Gallery", Toast.LENGTH_SHORT); 
+		String image_saved = getResources().getString(R.string.image_saved_to_gallery);
+		Toast t = Toast.makeText(this,image_saved, Toast.LENGTH_SHORT); 
 		t.show();
 
 		mProgressDialog.cancel();

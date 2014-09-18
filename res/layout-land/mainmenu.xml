@@ -47,19 +47,19 @@
 			>
 			
 			<Button  android:id="@+id/TakePictureButton" 
-				android:text="New Picture" 
+				android:text="@string/main_menu_new_picture" 
 				android:layout_width="150dp" 
 				android:layout_height="90dp"
 				android:drawableTop="@drawable/ic_camera">
 			</Button>
 			<Button  android:id="@+id/ChoosePictureButton" 
-				android:text="Obscure Photo" 
+				android:text="@string/main_menu_obscure_photo" 
 				android:layout_width="150dp"  
 				android:layout_height="90dp"
 				android:drawableTop="@drawable/ic_gallery">
 			</Button>
 			<Button  android:id="@+id/ChooseVideoButton" 
-				android:text="Obscure Video" 
+				android:text="@string/main_menu_obscure_video" 
 				android:layout_width="150dp"  
 				android:layout_height="90dp"
 				android:drawableTop="@drawable/ic_video" >

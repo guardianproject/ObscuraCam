@@ -319,9 +319,7 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
 		
-		String aboutString = "About ObscuraCam";
-		
-    	MenuItem aboutMenuItem = menu.add(Menu.NONE, ABOUT, Menu.NONE, aboutString);
+    	MenuItem aboutMenuItem = menu.add(Menu.NONE, ABOUT, Menu.NONE, R.string.about_obscuracam);
     	aboutMenuItem.setIcon(R.drawable.ic_menu_about);
     	
     	
