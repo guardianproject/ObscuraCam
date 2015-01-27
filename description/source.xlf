@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2">
+  <file datatype="plaintext" original="source.xlf" source-language="en_US">
+    <header>
+      <note>Google places strick character limits on the various text fields in Google Play. The title is 30 characters, the short description is 80 characters, and the rest of the strings, which all go together in the description, are limited to 4000 characters</note>
+    </header>
+    <body>
+      <trans-unit id="title" size-unit="char" maxwidth="30">
+        <source>ObscuraCam: The Privacy Camera</source>
+        <note>This is limited by Google to 30 characters</note>
+      </trans-unit>
+      <trans-unit id="shortdescription" size-unit="char" maxwidth="80">
+        <source>Picture anonymity: Take pictures &amp; blur identities with this privacy camera app</source>
+        <note>This is limited by Google to 80 characters</note>
+      </trans-unit>
+      <trans-unit id="intro">
+        <source>In a world of viral videos and facial recognition, ObscuraCam helps you share photos and videos while protecting the privacy of you and those you care about. With ObscuraCam you can blur and disguise faces in your photos and videos. Information that could identify you as the cameraperson is removed from the files for added security</source>
+      </trans-unit>
+      <trans-unit id="privacyforyourpictures">
+        <source>★ PRIVACY FOR YOUR PICTURES: ObscuraCam can be used as a camera to take photos, or to anonymize photos and videos you’ve already taken</source>
+      </trans-unit>
+      <trans-unit id="disguiseyourself">
+        <source>★ DISGUISE YOURSELF: Cover faces with pixelate, redact (blackout) or funny nose and glasses</source>
+      </trans-unit>
+      <trans-unit id="automaticfacedetection">
+        <source>★ AUTOMATIC FACE DETECTION: ObscuraCam automatically detects faces in both photos and videos, so you can quickly and easily anonymize a crowd or a long video</source>
+      </trans-unit>
+      <trans-unit id="multipleprivacymodes">
+        <source>★ MULTIPLE PRIVACY MODES: Faces can be pixelated, removed completely, or disguised with funny nose and glasses. You can also blur everything except a small portion of an image</source>
+      </trans-unit>
+      <trans-unit id="sharesecurely">
+        <source>★ SHARE SECURELY: We remove all identifying data stored in photos including GPS location data and phone make &amp; model so you can save the protected photo back to the Gallery, or share it directly to Facebook, Twitter or any other "Share" enabled app</source>
+      </trans-unit>
+      <trans-unit id="protectsidentity">
+        <source>★ PROTECTS THE IDENTITY OF THE PHOTOGRAPHER: Smartphones attach information to every photo they take, including where it was taken and by what type of camera. ObscuraCam removes all of this information</source>
+      </trans-unit>
+      <trans-unit id="awardwinning">
+        <source>★ AWARD-WINNING: ObscuraCam was a Winner of the 2013 Knight News Challenge</source>
+      </trans-unit>
+      <trans-unit id="learnmore">
+        <source>***Learn More***</source>
+      </trans-unit>
+      <trans-unit id="partnership">
+        <source>★ PARTNERSHIP: ObscuraCam is a partnership between the security experts at the Guardian Project and WITNESS.org, a non-profit using the power of video and storytelling to open the eyes of the world to human rights abuses</source>
+      </trans-unit>
+      <trans-unit id="">
+        <source>★ ABOUT US: Guardian Project is a group of developers that make secure mobile apps and open-source code for a better tomorrow</source>
+      </trans-unit>
+      <trans-unit id="ourwebsite">
+        <source>★ OUR WEBSITE: https://GuardianProject.info</source>
+      </trans-unit>
+      <trans-unit id="aboutwitness">
+        <source>★ ABOUT WITNESS: A non-profit using the power of video and storytelling to open the eyes of the world to human rights abuses</source>
+      </trans-unit>
+      <trans-unit id="witnesswebsite">
+        <source>★ WITNESS’ WEBSITE: http://witness.org</source>
+      </trans-unit>
+      <trans-unit id="ontwitter">
+        <source>★ ON TWITTER: https://twitter.com/guardianproject &amp; https://twitter.com/witnessorg</source>
+      </trans-unit>
+      <trans-unit id="opensource">
+        <source>★ OPEN-SOURCE: ObscuraCam is free software. You can take a look at our source code, or join the community to help make Orweb even better: https://github.com/guardianproject/ObscuraCam</source>
+      </trans-unit>
+      <trans-unit id="messageus">
+        <source>★ MESSAGE US: Are we missing your favorite feature? Found an annoying bug? Please tell us! We’d love to hear from you. Send us an email: support@guardianproject.info</source>
+      </trans-unit>
+      <trans-unit id="keywords">
+        <source>face detection, blur, pixelize, human rights, activism, orbot, tor, privacy, obscure, obscura, privacy camera, camera, photo editor, journalist, journalism, photoshop, video, video processing, mosaic, anonymity</source>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
