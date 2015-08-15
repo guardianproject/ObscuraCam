@@ -1,0 +1,37 @@
+# Issues now handled in github
+
+##################################################
+General notes.
+
+03/16/11 
+Seem to have Exif & IFD reading sorted out (read makernote as a block
+now). Not currently writing them out properly. (Exiftool says bad
+IFD1)
+
+Some unit tests. 
+
+todo: 
+
+Need to fill in API:
+  Load only.
+  Write current
+  Redact
+  Erase EXIF
+  Modify EXIF. (add tag, remove tag, remove all GPS, set tag, add EXIF)
+  Modify thumbnail too.
+  return data, reinject data.
+
+Bigger test suite (images from other cameras etc.)
+
+
+Describe the basic use case in the README. 
+
+06/15/11 
+Hooked up to ssc app.
+
+
+11/26/11 
+Need to 
+1) Create IDF
+2) Add tag
+3) Create tag.
