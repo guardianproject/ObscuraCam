@@ -6,3 +6,10 @@ default.properties
 local.properties
 proguard.cfg
 proguard-project.txt
+.gradle
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+app/build
