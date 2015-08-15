@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:id="@+id/SplashFrameLayout"
+  android:background="@drawable/bg"
+  android:orientation="vertical" 
+  >
+  <ImageView android:src="@drawable/ic_ssc" android:layout_width="fill_parent" 
+  android:layout_height="150dp"
+  android:gravity="center_horizontal"
+  android:id="@+id/SplashScreenImageView"
+  />
+	<TextView android:text="@string/SplashTextViewString" 
+		android:id="@+id/SplashTextView" 
+		android:layout_width="fill_parent" 
+		android:layout_height="fill_parent" 
+		android:layout_gravity="center_vertical|center_horizontal" 
+		android:gravity="center_vertical|center_horizontal"
+		android:textColor="#FFFFff"
+		android:textSize="30dp">
+	</TextView>
+	<TextView android:text="@string/CreditsTextViewString" 
+		android:id="@+id/CreditsTextView" 
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content" 
+		android:gravity="center_vertical|center_horizontal" android:layout_gravity="bottom|center_vertical"
+		android:textColor="#FFFFff"
+		android:textSize="15dp"
+		>
+	</TextView>
+</LinearLayout>
+<!-- From: file:/home/n8fr8/dev/repos/ObscuraCam3/app/src/main/res/layout-land/splashscreen.xml -->

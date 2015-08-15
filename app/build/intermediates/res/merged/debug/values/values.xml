@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:ns1="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- From: file:/home/n8fr8/dev/repos/ObscuraCam3/app/src/main/res/values/arrays.xml -->
+    <eat-comment/>
+    <string-array name="ExifTags">
+
+		<item>ExifInterface.TAG_DATETIME</item>
+		<item>ExifInterface.TAG_FLASH</item>
+		<item>ExifInterface.TAG_FOCAL_LENGTH</item>
+		<item>ExifInterface.TAG_GPS_DATESTAMP</item>
+		<item>ExifInterface.TAG_GPS_LATITUDE</item>
+		<item>ExifInterface.TAG_GPS_LATITUDE_REF</item>
+		<item>ExifInterface.TAG_GPS_LONGITUDE</item>
+		<item>ExifInterface.TAG_GPS_LONGITUDE_REF</item>
+		<item>ExifInterface.TAG_GPS_PROCESSING_METHOD</item>
+		<item>ExifInterface.TAG_GPS_TIMESTAMP</item>
+		<item>ExifInterface.TAG_IMAGE_LENGTH</item>
+		<item>ExifInterface.TAG_IMAGE_WIDTH</item>
+		<item>ExifInterface.TAG_MAKE</item>
+		<item>ExifInterface.TAG_MODEL</item>
+		<item>ExifInterface.TAG_ORIENTATION</item>
+		<item>ExifInterface.TAG_WHITE_BALANCE</item>
+	</string-array>
+    <string-array name="ExifTagsDB">
+		<item>d_tagDateTime</item>
+		<item>d_tagFlash</item>
+		<item>d_tagFocalLength</item>
+		<item>d_tagGPSDateStamp</item>
+		<item>d_tagGPSLatitude</item>
+		<item>d_tagGPSLatitudeRef</item>
+		<item>d_tagLongitude</item>
+		<item>d_tagLongitudeRef</item>
+		<item>d_tagGPSProcessingMethod</item>
+		<item>d_tagGPSTimeStamp</item>
+		<item>d_tagImageLength</item>
+		<item>d_tagImageWidth</item>
+		<item>d_tagMake</item>
+		<item>d_tagModel</item>
+		<item>d_tagOrientation</item>
+		<item>d_tagWhiteBalance</item>
+	</string-array>
+    <string-array name="OriginalImageHandlingPrefNames">
+		<item>Leave Original Alone</item>
+<!-- 		<item>Lock Original</item>  -->
+		<item>Delete Original</item>
+	</string-array>
+    <string-array name="OriginalImageHandlingPrefValues">
+		<item>0</item>
+	<!-- <item>1</item> -->	
+		<item>2</item>
+	</string-array>
+    <string-array name="PanicButtonPrefNames">
+		<item>Wipe Everything</item>
+		<item>Lock Down</item>
+	</string-array>
+    <string-array name="PanicButtonPrefValues">
+		<item>0</item>
+		<item>1</item>
+	</string-array>
+    <string-array name="UIMenuItemNames">
+		<item>Edit</item>
+		<item>ID</item>
+		<item>Encrypt</item>
+		<item>Erase</item>
+	</string-array>
+    <!-- From: file:/home/n8fr8/dev/repos/ObscuraCam3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.8.0/res/values/common_colors.xml -->
+    <eat-comment/>
+    <color name="common_action_bar_splitter">#d2d2d2</color>
+    <color name="common_signin_btn_dark_text_default">@android:color/white</color>
+    <color name="common_signin_btn_dark_text_disabled">#FFAAAAAA</color>
+    <color name="common_signin_btn_dark_text_focused">@android:color/white</color>
+    <color name="common_signin_btn_dark_text_pressed">@android:color/white</color>
+    <color name="common_signin_btn_default_background">#FFDD4B39</color>
+    <color name="common_signin_btn_light_text_default">#FF737373</color>
+    <color name="common_signin_btn_light_text_disabled">#FFAAAAAA</color>
+    <color name="common_signin_btn_light_text_focused">#FF737373</color>
+    <color name="common_signin_btn_light_text_pressed">@android:color/white</color>
+    <declare-styleable name="LoadingImageView"><attr format="enum" name="imageAspectRatioAdjust"><enum name="none" value="0"/><enum name="adjust_width" value="1"/><enum name="adjust_height" value="2"/></attr><attr format="float" name="imageAspectRatio"/><attr format="boolean" name="circleCrop"/></declare-styleable>
+    <!-- From: file:/home/n8fr8/dev/repos/ObscuraCam3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.8.0/res/values/version.xml -->
+    <eat-comment/>
+    <integer name="google_play_services_version">7895000</integer>
+    <!-- From: file:/home/n8fr8/dev/repos/ObscuraCam3/app/src/main/res/values/strings.xml -->
+    <eat-comment/>
+    <string name="CreditsTextViewString">Powered by the Guardian Project and Witness</string>
+    <string name="SplashTextViewString">ObscuraCam</string>
+    <string name="WalkThroughContinueButton">Continue</string>
+    <string name="WalkThroughPrefSliderLabel">Select Risk Level</string>
+    <string name="WalkThroughSkipButton">Skip</string>
+    <string name="WalkThroughTextView">This is an application which helps protect the privacy of individuals that may appear in pictures.</string>
+    <string name="about">This app was developed by the SecureSmartCam Team, a joint effort by WITNESS and the Guardian Project.</string>
+    <string name="about2">Learn more at http://witness.org and https://guardianproject.info</string>
+    <string name="about3">This software is freely licensed under the GNU GPL v3.</string>
+    <string name="apg_btn_crypto_sign">Sign</string>
+    <string name="apg_btn_decrypt">Decrypt</string>
+    <string name="apg_btn_encrypt">Encrypt</string>
+    <string name="apg_btn_select">Select</string>
+    <string name="apg_btn_verify">Verify</string>
+    <string name="apg_error_activity_not_found">No suitable application for this action found.</string>
+    <string name="apg_error_apg_version_not_supported">The installed APG version is not supported.</string>
+    <string name="app_description">Obscuracam is a photo and video app for Android that keeps certain information private. Ever capture someone in a photo or video, then realize they may not want to be in it? Not comfortable posting a friend, family member or child’s face on the internet? Worried about the geolocation data in the picture giving away private hideaway? Tired of Facebook, Google and other sites “auto detecting” faces in your photos? Then this is for you, giving you the power to better protect the identity of those captures in your photos, before you post them online. Take a picture or load a photo or video from the Gallery, and ObscuraCam will automatically detect faces that you can pixelate, redact (blackout) or protect with funny nose and glasses. You can also invert pixelate, so that only the person you select is visible, and no one in the background can be recognized. This app will also remove all identifying data stored in photos including GPS location data and phone make and model. You can save the protected photo back to the Gallery, or share it directly to Facebook, Twitter or any other “Share” enabled app.</string>
+    <string name="app_name">ObscuraCam</string>
+    <string name="app_name_label">ObscuraCam</string>
+    <string name="attachment_encryption_unsupported">Warning: attachments are NOT signed or encrypted yet.</string>
+    <!-- From: file:/home/n8fr8/dev/repos/ObscuraCam3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.8.0/res/values/auth_strings.xml -->
+    <eat-comment/>
+    <string name="auth_google_play_services_client_facebook_display_name">Facebook</string>
+    <string name="auth_google_play_services_client_google_display_name">Google</string>
+    <!-- From: file:/home/n8fr8/dev/repos/ObscuraCam3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.8.0/res/values/common_strings.xml -->
+    <eat-comment/>
+    <string name="common_android_wear_notification_needs_update_text"><ns1:g id="app_name">%1$s</ns1:g> requires an update to the Android Wear app.</string>
+    <string name="common_android_wear_update_text"><ns1:g id="app_name">%1$s</ns1:g> won\'t run unless you update the Android Wear app.</string>
+    <string msgid="6006316683626838685" name="common_android_wear_update_title">Update Android Wear</string>
+    <string name="common_google_play_services_api_unavailable_text"><ns1:g id="app_name">%1$s</ns1:g> requires one or more Google Play services that are not currently available. Please contact the developer for assistance.</string>
+    <string msgid="2523291102206661146" name="common_google_play_services_enable_button">Enable Google Play services</string>
+    <string msgid="227660514972886228" name="common_google_play_services_enable_text"><ns1:g id="app_name">%1$s</ns1:g> won\'t work unless you enable Google Play services.</string>
+    <string msgid="5122002158466380389" name="common_google_play_services_enable_title">Enable Google Play services</string>
+    <string name="common_google_play_services_error_notification_requested_by_msg">Requested by <ns1:g id="app_name">%1$s</ns1:g></string>
+    <string msgid="7153882981874058840" name="common_google_play_services_install_button">Get Google Play services</string>
+    <string msgid="2122112764540849864" name="common_google_play_services_install_text_phone"><ns1:g id="app_name">%1$s</ns1:g> won\'t run without Google Play services, which are missing from your phone.</string>
+    <string msgid="7351599665250191022" name="common_google_play_services_install_text_tablet"><ns1:g id="app_name">%1$s</ns1:g> won\'t run without Google Play services, which are missing from your tablet.</string>
+    <string msgid="7215213145546190223" name="common_google_play_services_install_title">Get Google Play services</string>
+    <string name="common_google_play_services_invalid_account_text">The specified account does not exist on this device. Please choose a different account.</string>
+    <string name="common_google_play_services_invalid_account_title">Invalid Account</string>
+    <string name="common_google_play_services_needs_enabling_title">An application requires Google Play services to be enabled.</string>
+    <string name="common_google_play_services_network_error_text">A data connection is required to connect to Google Play services.</string>
+    <string name="common_google_play_services_network_error_title">Network Error</string>
+    <string name="common_google_play_services_notification_needs_update_title">An application requires an update for Google Play services.</string>
+    <string name="common_google_play_services_notification_ticker">Google Play services error</string>
+    <string name="common_google_play_services_sign_in_failed_text">Error signing in the specified account. Please choose a different account.</string>
+    <string name="common_google_play_services_sign_in_failed_title">Sign in failed</string>
+    <string name="common_google_play_services_unknown_issue">Unknown issue with Google Play services.</string>
+    <string name="common_google_play_services_unsupported_text"><ns1:g id="app_name">%1$s</ns1:g> relies on Google Play services, which is not supported by your device. Contact the manufacturer for assistance.</string>
+    <string name="common_google_play_services_unsupported_title">Google Play services</string>
+    <string msgid="6556509956452265614" name="common_google_play_services_update_button">Update</string>
+    <string msgid="9053896323427875356" name="common_google_play_services_update_text"><ns1:g id="app_name">%1$s</ns1:g> won\'t run unless you update Google Play services.</string>
+    <string msgid="6006316683626838685" name="common_google_play_services_update_title">Update Google Play services</string>
+    <string name="common_google_play_services_updating_text"><ns1:g id="app_name">%1$s</ns1:g> won\'t run without Google Play services, which are currently updating.</string>
+    <string name="common_google_play_services_updating_title">Google Play services are updating</string>
+    <string name="common_open_on_phone">Open on phone</string>
+    <string name="common_signin_button_text">Sign in</string>
+    <string name="common_signin_button_text_long">Sign in with Google</string>
+    <!-- From: file:/home/n8fr8/dev/repos/ObscuraCam3/app/src/main/res/values/strings.xml -->
+    <eat-comment/>
+    <string name="confirm_delete">Do you want to delete the original media file?</string>
+    <string name="confirm_delete_region">Are you sure you want to remove this region box?</string>
+    <string name="encrypttaggerh1">Encrypt This Tag</string>
+    <string name="encrypttaggerhint">Tap To Choose</string>
+    <string name="encrypttaggerp">You can encrypt the selected region to a specific set of public keys, so that only the key holders will be able to view the original image region.</string>
+    <string name="eula_accept">Accept</string>
+    <string name="eula_refuse">Refuse</string>
+    <string name="eula_title">You agree to:</string>
+    <string name="hello">Hello World</string>
+    <string name="idtaggerh1">Identify</string>
+    <string name="idtaggerh12">Consentify</string>
+    <string name="idtaggerp">Type a name (or any identifier), or choose from people you\'ve already tagged.</string>
+    <string name="idtaggerp2">Check this box if you have your subject\s verbal consent to record his/her image.</string>
+    <string name="idtaggersubmit">Submit</string>
+    <string name="image_preview">ObscuraCam Image Preview</string>
+    <string name="imgprefs_eraseexif">Erase All Exif Data</string>
+    <string name="imgprefs_h1">Preferences for this image</string>
+    <string name="imgprefs_panic">P A N I C !</string>
+    <string name="imgprefs_save">Save Preferences</string>
+    <string name="imgprefs_undo">Undo</string>
+    <string name="informaOpt_autoFilter">Automatically apply this type of filter each time this person appears in an ObscuraCam photo.</string>
+    <string name="informaOpt_consent">Subject has given his/her informed consent to be photographed.</string>
+    <string name="insufficient_apg_permissions">This app doesn\'t have permission to access APG fully, please reinstall the app to fix that.</string>
+    <string name="key_id">id: %s</string>
+    <string name="loading_image">Loading photo...</string>
+    <string name="mdHumanReadable_consentGiven">Informed consent given?</string>
+    <string name="mdHumanReadable_consentIntro">Subjects contained in this image:</string>
+    <string name="mdHumanReadable_coordinates">Coordinates within this image:</string>
+    <string name="mdHumanReadable_intro">Image taken with/modified by ObscuraCam.</string>
+    <string name="mdHumanReadable_numTags">Number of edited regions in this image:</string>
+    <string name="mdHumanReadable_onDate">Image saved on:</string>
+    <string name="mdHumanReadable_persistObfuscation">Apply same obfuscation settings to this subject in every photo?</string>
+    <string name="mdHumanReadable_psudonym">Name/Pseudonym:</string>
+    <string name="menu_about">About</string>
+    <string name="menu_clear_regions">Clear</string>
+    <string name="menu_delete_original">Delete Original</string>
+    <string name="menu_detect">Detect Faces</string>
+    <string name="menu_image_prefs">Image Prefs</string>
+    <string name="menu_new_region">New Tag</string>
+    <string name="menu_panic">Panic</string>
+    <string name="menu_prefs">Preferences</string>
+    <string name="menu_preview">Play</string>
+    <string name="menu_save">Save</string>
+    <string name="menu_send_hash">Send Hash</string>
+    <string name="menu_share">Share</string>
+    <string name="no">No</string>
+    <string name="pgp_mime_unsupported">PGP/MIME messages are not supported yet.</string>
+    <string name="play_video">Play Video</string>
+    <string name="pref_out_acodec_summary">audio codec (copy, aac, mp3, etc)</string>
+    <string name="pref_out_acodec_title">Output Audio Codec</string>
+    <string name="pref_out_format_summary">File container format (mp4, 3gp, ogg)</string>
+    <string name="pref_out_format_title">Output Format</string>
+    <string name="pref_out_fps_summary">Frames per second to save output video at (15-30)</string>
+    <string name="pref_out_fps_title">Output Framerate (fps)</string>
+    <string name="pref_out_rate_summary">Bitrate of video output (300-1500)</string>
+    <string name="pref_out_rate_title">Output Bitrate (kbps)</string>
+    <string name="pref_out_vcodec_summary">video codec (copy, libx264, etc)</string>
+    <string name="pref_out_vcodec_title">Output Video Codec</string>
+    <string name="pref_out_vheight_summary">custom video height for outputed video</string>
+    <string name="pref_out_vheight_title">Custom Video Height (px)</string>
+    <string name="pref_out_vwidth_summary">custom video width for outputed video</string>
+    <string name="pref_out_vwidth_title">Custom Video Width (px)</string>
+    <string name="send_aborted">Send aborted.</string>
+    <string name="share_video">Share Video</string>
+    <string name="unknown_crypto_signature_user_id">&lt;unknown></string>
+    <string name="welcomeSubMsg">now with video!</string>
+    <string name="yes">Yes</string>
+    <!-- From: file:/home/n8fr8/dev/repos/ObscuraCam3/app/src/main/res/values/styles.xml -->
+    <eat-comment/>
+    <style name="Animations"/>
+    <style name="Animations.PopDownMenu"/>
+    <style name="Animations.PopDownMenu.Center">
+		<item name="@android:windowEnterAnimation">@anim/grow_from_top</item>
+		<item name="@android:windowExitAnimation">@anim/shrink_from_bottom</item>
+	</style>
+    <style name="Animations.PopDownMenu.Left">
+		<item name="@android:windowEnterAnimation">@anim/grow_from_topleft_to_bottomright</item>
+		<item name="@android:windowExitAnimation">@anim/shrink_from_bottomright_to_topleft</item>
+	</style>
+    <style name="Animations.PopDownMenu.Right">
+		<item name="@android:windowEnterAnimation">@anim/grow_from_topright_to_bottomleft</item>
+		<item name="@android:windowExitAnimation">@anim/shrink_from_bottomleft_to_topright</item>
+	</style>
+    <style name="Animations.PopUpMenu"/>
+    <style name="Animations.PopUpMenu.Center">
+		<item name="@android:windowEnterAnimation">@anim/grow_from_bottom</item>
+		<item name="@android:windowExitAnimation">@anim/shrink_from_top</item>
+	</style>
+    <style name="Animations.PopUpMenu.Left">
+		<item name="@android:windowEnterAnimation">@anim/grow_from_bottomleft_to_topright</item>
+		<item name="@android:windowExitAnimation">@anim/shrink_from_topright_to_bottomleft</item>
+	</style>
+    <style name="Animations.PopUpMenu.Right">
+		<item name="@android:windowEnterAnimation">@anim/grow_from_bottomright_to_topleft</item>
+		<item name="@android:windowExitAnimation">@anim/shrink_from_topleft_to_bottomright</item>
+	</style>
+    <style name="CustomTheme">        
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:paddingTop">10px</item>
+  </style>
+    <style name="Theme.CustomDialog" parent="android:style/Theme.Dialog">
+  	<item name="android:windowNoTitle">true</item>
+  	<item name="android:padding">10px</item>
+  </style>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+<item android:state_pressed="false"
+    android:drawable="@drawable/btn_preview_unpressed" />
+
+<item android:state_pressed="true"
+    android:drawable="@drawable/btn_preview_pressed" />
+
+</selector><!-- From: file:/home/n8fr8/dev/repos/ObscuraCam3/app/src/main/res/drawable/btn_preview.xml -->

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<translate
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:fromXDelta="100%p"
+    android:toXDelta="0"
+    android:duration="325" /><!-- From: file:/home/n8fr8/dev/repos/ObscuraCam3/app/src/main/res/anim/rail.xml -->

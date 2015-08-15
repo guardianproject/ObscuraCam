@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:orientation="vertical"
+   android:background="@drawable/bg"
+ 
+  >
+	<TextView android:text="@string/WalkThroughTextView" 
+		android:id="@+id/WalkThroughTextView" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content"
+		android:gravity="left"		
+		android:textSize="25dp"
+		android:textColor="#FFFFFF"
+		  android:layout_margin="20dip" 
+		>
+	</TextView>
+	<!-- 
+	<Button android:text="@string/WalkThroughSkipButton" 
+		android:id="@+id/WalkThroughSkipButton" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content"
+		android:gravity="center">
+	</Button>
+	-->
+	<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:orientation="vertical"
+  android:background="#ccffcc"
+  android:layout_margin="10dip" 
+  >
+	<TextView android:text="@string/WalkThroughPrefSliderLabel" 
+		android:id="@+id/WalkThroughPrefSliderLabel" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content"
+		android:gravity="left"
+		android:textSize="20dp"
+		android:textColor="#000000"
+		 android:layout_margin="10dip" 
+		></TextView>
+	
+	<SeekBar android:id="@+id/WalkThroughPrefSlider" 
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content" 
+		android:layout_margin="10dp"
+		></SeekBar>
+	
+	<TextView android:text="High Risk" 
+		android:id="@+id/WalkThroughPrefSliderOutput" 
+		android:layout_width="wrap_content" 
+		android:layout_height="wrap_content"
+		android:gravity="center"
+				android:textColor="#000000"
+		
+		></TextView>
+	</LinearLayout>
+	
+	<Button android:text="@string/WalkThroughContinueButton"
+		android:id="@+id/WalkThroughContinueButton"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:gravity="center"
+		android:textSize="25dp"
+		>
+	</Button>	
+</LinearLayout>
+<!-- From: file:/home/n8fr8/dev/repos/ObscuraCam3/app/src/main/res/layout/walkthrough.xml -->

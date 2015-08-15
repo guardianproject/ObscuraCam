@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/FrameLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="0sp" >
+    
+	<LinearLayout android:orientation="vertical"
+		android:layout_width="fill_parent" android:layout_height="fill_parent"
+android:gravity="center_vertical"	>
+		
+		<ImageView android:src="@drawable/ic_ssc"
+			android:layout_width="fill_parent" android:layout_height="200dp"
+			android:gravity="center_horizontal"  />
+	
+	<LinearLayout android:orientation="horizontal" android:gravity="center_horizontal"
+		android:layout_width="fill_parent" android:layout_height="fill_parent"  android:layout_marginTop="20dp">
+		<ProgressBar android:id="@+id/progressBar1"
+			android:layout_width="wrap_content" android:layout_height="50dp"
+			android:gravity="center_horizontal"
+			></ProgressBar>
+
+	</LinearLayout>
+	</LinearLayout>
+	</FrameLayout>
+<!-- From: file:/home/n8fr8/dev/repos/ObscuraCam3/app/src/main/res/layout/mainloading.xml -->

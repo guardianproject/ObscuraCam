@@ -1,0 +1,33 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 21
+    buildToolsVersion "22.0.1"
+
+    defaultConfig {
+        applicationId "org.witness.sscphase1"
+        minSdkVersion 10
+        targetSdkVersion 18
+
+        ndk {
+            moduleName "JpegRedaction"
+
+            stl "gnustl_static"
+            cFlags "-fexceptions"
+        }
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    compile 'com.google.guava:guava:18.0'
+    compile 'commons-codec:commons-codec:1.9'
+    compile 'com.google.android.gms:play-services-vision:7.8.0'
+}

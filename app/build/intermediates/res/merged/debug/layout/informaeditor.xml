@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#000000"
+    android:weightSum="1.0" >
+    <TextView 
+    	android:layout_width="fill_parent"
+    	android:layout_height="0dip"
+    	android:text="Identify"
+    	android:textSize="30dp"
+    	android:layout_weight="0.15" />
+    <LinearLayout
+    	xmlns:android="http://schemas.android.com/apk/res/android"
+    	android:orientation="horizontal"
+    	android:layout_width="fill_parent"
+    	android:layout_height="0dip"
+    	android:layout_weight="0.25"
+    	android:weightSum="1.0">
+    	
+    	<ImageView 
+    		android:layout_width="0dip"
+    		android:layout_height="wrap_content"
+    		android:layout_weight="0.25"
+    		android:id="@+id/imageRegionThumb"
+    		android:src="@drawable/ic_context_id" />
+    		 
+    	<EditText
+    		android:layout_width="0dip"
+    		android:layout_height="wrap_content"
+    		android:layout_weight="0.75"
+    		android:id="@+id/subjectNameHolder"
+    		android:hint="Subject's Name or Pseudonym" />
+    </LinearLayout>
+    <ListView
+    	android:layout_width="fill_parent"
+    	android:layout_height="wrap_content"
+    	android:layout_weight="0.45"
+    	android:id="@+id/otherInformaOptionsHolder" />    	
+    <Button
+    	android:layout_width="fill_parent"
+    	android:layout_height="0dip"
+    	android:layout_weight="0.15"
+    	android:text="OK"
+    	android:id="@+id/informaSubmit" />
+</LinearLayout>    <!-- From: file:/home/n8fr8/dev/repos/ObscuraCam3/app/src/main/res/layout/informaeditor.xml -->

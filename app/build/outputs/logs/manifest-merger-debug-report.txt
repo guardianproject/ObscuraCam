@@ -1,0 +1,147 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:2:1-67:12
+	xmlns:android
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:2:11-69
+	package
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:3:7-38
+		INJECTED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml
+		INJECTED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml
+	android:versionName
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:5:7-34
+	android:versionCode
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:4:7-31
+		INJECTED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml
+		INJECTED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml
+	android:installLocation
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:6:7-37
+uses-sdk
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:8:5-73
+MERGED from [com.google.android.gms:play-services-vision:7.8.0] /home/n8fr8/dev/repos/ObscuraCam3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-vision/7.8.0/AndroidManifest.xml:4:5-42
+MERGED from [com.google.android.gms:play-services-base:7.8.0] /home/n8fr8/dev/repos/ObscuraCam3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.8.0/AndroidManifest.xml:18:5-42
+MERGED from [com.android.support:support-v4:22.2.0] /home/n8fr8/dev/repos/ObscuraCam3/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.0/AndroidManifest.xml:20:5-43
+	android:targetSdkVersion
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:8:42-71
+		INJECTED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml
+		INJECTED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:8:15-41
+		INJECTED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml
+		INJECTED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml
+uses-permission#android.permission.READ_MEDIA_STORAGE
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:10:5-76
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:10:22-74
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:12:5-79
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:12:22-77
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:14:2-77
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:14:19-75
+uses-permission#android.permission.VIBRATE
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:15:5-65
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:15:22-63
+uses-permission#android.permission.WAKE_LOCK
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:16:5-67
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:16:22-65
+application
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:18:5-66:19
+MERGED from [com.google.android.gms:play-services-vision:7.8.0] /home/n8fr8/dev/repos/ObscuraCam3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-vision/7.8.0/AndroidManifest.xml:5:5-20
+MERGED from [com.google.android.gms:play-services-base:7.8.0] /home/n8fr8/dev/repos/ObscuraCam3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.8.0/AndroidManifest.xml:20:5-24:19
+MERGED from [com.android.support:support-v4:22.2.0] /home/n8fr8/dev/repos/ObscuraCam3/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.0/AndroidManifest.xml:22:5-20
+	android:label
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:18:18-50
+	android:icon
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:18:51-91
+	android:largeHeap
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:19:9-33
+activity#org.witness.sscphase1.ObscuraApp
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:21:9-30:20
+	android:label
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:21:19-57
+	android:configChanges
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:23:15-65
+	android:theme
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:24:15-68
+	android:description
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:22:15-60
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:21:58-84
+intent-filter#android.intent.action.MAIN+android.intent.category.LAUNCHER
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:26:13-29:29
+action#android.intent.action.MAIN
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:27:17-69
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:27:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:28:17-77
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:28:27-74
+activity#org.witness.securesmartcam.ImageEditor
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:31:9-44:20
+	android:configChanges
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:31:73-123
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:31:19-72
+intent-filter#android.intent.action.EDIT+android.intent.action.MAIN+android.intent.action.SEND+android.intent.category.ALTERNATIVE+android.intent.category.DEFAULT+android.intent.category.SELECTED_ALTERNATIVE
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:32:4-43:30
+action#android.intent.action.EDIT
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:34:8-60
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:34:16-57
+action#android.intent.action.SEND
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:35:18-70
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:35:26-67
+category#android.intent.category.DEFAULT
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:38:18-77
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:38:28-74
+category#android.intent.category.ALTERNATIVE
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:39:18-81
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:39:28-78
+category#android.intent.category.SELECTED_ALTERNATIVE
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:40:18-90
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:40:28-87
+data
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:42:18-53
+	android:mimeType
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:42:24-50
+activity#org.witness.securesmartcam.ImagePreview
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:46:9-165
+	android:label
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:46:74-111
+	android:configChanges
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:46:112-162
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:46:19-73
+activity#org.witness.informa.InformaEditor
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:47:6-109
+	android:theme
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:47:65-106
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:47:16-64
+activity#org.witness.ssc.video.VideoEditor
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:49:6-63:17
+	android:screenOrientation
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:49:66-103
+	android:configChanges
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:49:105-155
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:49:16-64
+activity#org.witness.ssc.video.VideoPreferences
+ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:64:8-74
+	android:name
+		ADDED from /home/n8fr8/dev/repos/ObscuraCam3/app/src/main/AndroidManifest.xml:64:18-71
+meta-data#com.google.android.gms.version
+ADDED from [com.google.android.gms:play-services-base:7.8.0] /home/n8fr8/dev/repos/ObscuraCam3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.8.0/AndroidManifest.xml:21:9-23:69
+	android:name
+		ADDED from [com.google.android.gms:play-services-base:7.8.0] /home/n8fr8/dev/repos/ObscuraCam3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.8.0/AndroidManifest.xml:22:13-58
+	android:value
+		ADDED from [com.google.android.gms:play-services-base:7.8.0] /home/n8fr8/dev/repos/ObscuraCam3/app/build/intermediates/exploded-aar/com.google.android.gms/play-services-base/7.8.0/AndroidManifest.xml:23:13-66
