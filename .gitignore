@@ -1,15 +1,36 @@
-# auto-generated files from Android builds
+# built application files
+*.apk
+*.ap_
+
+# files for the dex VM
+*.dex
+
+# Java class files
+*.class
+
+# generated files
 bin/
 gen/
-build.xml
-default.properties
+build/
+
+# Local configuration file (sdk path, etc)
 local.properties
-proguard.cfg
-proguard-project.txt
+
+# Eclipse project files
+.classpath
+.project
+*.java.bak
+.metadata
+.settings
+
+# Android Studio/Gradle project files
+*.iml
+.idea/
 .gradle
-/local.properties
-/.idea/workspace.xml
-/.idea/libraries
+
+app/lastbuild.flavor
+app/src/preprocessed/
+
+build.xml
 .DS_Store
-/build
-app/build
+*~
