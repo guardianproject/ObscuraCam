@@ -1,0 +1,6 @@
+<resources>
+    <dimen name="photo_column_size">100dp</dimen>
+    <dimen name="album_column_size">150dp</dimen>
+    <dimen name="photo_padding">3dp</dimen>
+    <dimen name="camera_frame_size">3dp</dimen>
+</resources>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:orientation="vertical"
+android:padding="10dp">
+
+    <org.witness.securesmartcam.views.SquareFrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:padding="10dp"
+            android:gravity="center"
+            android:background="@drawable/camera_frame"
+            android:text="@string/action_pick_external"
+            android:textAppearance="@style/TextAppearanceNormal"
+            android:textColor="@color/colorPrimary"
+            />
+    </org.witness.securesmartcam.views.SquareFrameLayout>
+
+<TextView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:textAppearance="@style/TextAppearanceNormal"
+    android:text="@string/action_pick_external_album_name"
+    android:textColor="@android:color/white"
+    android:id="@+id/tvAlbumName" />
+
+<TextView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:textAppearance="@style/TextAppearanceSmall"
+    android:text=""
+    android:id="@+id/tvAlbumCount"
+    android:textColor="@android:color/white"
+    />
+
+</LinearLayout>

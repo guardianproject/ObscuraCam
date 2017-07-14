@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <org.witness.securesmartcam.views.SquareImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/ivAlbumThumbnail"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearanceNormal"
+        android:text="Album Name"
+        android:textColor="@android:color/white"
+        android:id="@+id/tvAlbumName" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearanceSmall"
+        android:text="(4)"
+        android:id="@+id/tvAlbumCount"
+        android:textColor="@android:color/white"
+        />
+
+</LinearLayout>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_content"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="top"
+    android:focusableInTouchMode="true"
+    android:focusable="true"
+    android:descendantFocusability="beforeDescendants"
+    app:layout_behavior="org.witness.securesmartcam.ScrollViewBehaviorFix">
+    <RelativeLayout
+        android:id="@+id/rlNewMessage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="top"
+        android:gravity="top"
+        android:background="@drawable/main_background"
+        android:orientation="vertical"
+        android:clipToPadding="true">
+        <LinearLayout
+            android:id="@+id/gallery_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="24dp"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearanceNormal"
+                android:text="@string/gallery_info_message"
+                android:textColor="@color/colorGalleryText"
+                />
+            <Button
+                android:id="@+id/btnGalleryInfoOk"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:background="@null"
+                android:text="@string/gallery_info_ok"
+                android:textColor="@color/colorAccent" />
+        </LinearLayout>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recycler_view_albums"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/gallery_info"
+            android:layout_alignWithParentIfMissing="true"
+            android:layout_alignParentBottom="true"
+            android:padding="@dimen/photo_padding"
+            />
+
+    </RelativeLayout>
+
+
+</RelativeLayout>

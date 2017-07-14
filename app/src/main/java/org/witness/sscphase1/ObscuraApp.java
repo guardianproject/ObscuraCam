@@ -4,6 +4,7 @@ package org.witness.sscphase1;
 
 import java.io.File;
 
+import org.witness.securesmartcam.AlbumsActivity;
 import org.witness.securesmartcam.ImageEditor;
 import org.witness.ssc.video.VideoEditor;
 import org.witness.sscphase1.Eula.OnEulaAgreedTo;
@@ -19,6 +20,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -28,7 +30,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.Toast;
 
-public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgreedTo {
+public class ObscuraApp extends AppCompatActivity implements OnClickListener, OnEulaAgreedTo {
 	    
 	public final static String TAG = "SSC";
 		
@@ -112,20 +114,21 @@ public class ObscuraApp extends Activity implements OnClickListener, OnEulaAgree
 	public void onClick(View v) {
 		if (v == choosePictureButton) 
 		{
-			
-			try
-			{
-				 setContentView(R.layout.mainloading);
-				Intent intent = new Intent(Intent.ACTION_PICK);
-				intent.setType("image/*"); //limit to image types for now
-				startActivityForResult(intent, GALLERY_RESULT);
-				
-			}
-			catch (Exception e)
-			{
-				Toast.makeText(this, "Unable to open Gallery app", Toast.LENGTH_LONG).show();
-				Log.e(TAG, "error loading gallery app to choose photo: " + e.getMessage(), e);
-			}
+			Intent intentAlbums = new Intent(this, AlbumsActivity.class);
+			startActivityForResult(intentAlbums, 4711); //SELECT_FROM_ALBUMS_REQUEST);
+//			try
+//			{
+//				 setContentView(R.layout.mainloading);
+//				Intent intent = new Intent(Intent.ACTION_PICK);
+//				intent.setType("image/*"); //limit to image types for now
+//				startActivityForResult(intent, GALLERY_RESULT);
+//
+//			}
+//			catch (Exception e)
+//			{
+//				Toast.makeText(this, "Unable to open Gallery app", Toast.LENGTH_LONG).show();
+//				Log.e(TAG, "error loading gallery app to choose photo: " + e.getMessage(), e);
+//			}
 			
 		} 
 		else if (v == chooseVideoButton) 

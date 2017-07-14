@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="org.witness.sscphase1"
-      android:versionCode="35"
-      android:versionName="3.0.0"
       android:installLocation="auto">
-      
-    <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="21"/>
-    
+
     <uses-permission android:name="android.permission.READ_MEDIA_STORAGE"/>
     
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    
-	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="18" />
+    <uses-permission android:name="android.permission.VIBRATE" android:maxSdkVersion="18"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher_ssc"
         android:largeHeap="true"
         >
-        <activity android:label="@string/app_name_label" android:name=".ObscuraApp"
+        <activity android:label="@string/app_name_label" android:name=".MainActivity"
               android:description="@string/app_description"
               android:configChanges="orientation|keyboardHidden"
-              android:theme="@android:style/Theme.Black.NoTitleBar"
+            android:theme="@style/AppTheme.NoActionBar"
               >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -62,6 +62,21 @@
     	    
     	</activity>
        <activity android:name="org.witness.ssc.video.VideoPreferences" />
-    	
+        <activity
+            android:name="org.witness.securesmartcam.AlbumsActivity"
+            android:label="@string/title_albums"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize">
+        </activity>
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="org.witness.securesmartcam.camera_capture"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/camera_capture_paths" />
+        </provider>
     </application>
 </manifest> 

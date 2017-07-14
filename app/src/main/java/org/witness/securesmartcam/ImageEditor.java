@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 import java.util.Vector;
 
 import org.witness.informa.InformaEditor;
@@ -88,6 +89,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener {
 
@@ -346,7 +350,31 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 		// Load the image if it isn't null
 		if (originalImageUri != null) {
-			
+
+//			try {
+//				InputStream is;
+//				if (originalImageUri.getScheme() != null && originalImageUri.getScheme().contentEquals("content"))
+//					is = getContentResolver().openInputStream(originalImageUri);
+//				else
+//					is = new FileInputStream(new File(originalImageUri.toString()));
+//				if (is != null) {
+//					// Get orientation of image
+//					try {
+//						ExifInterface ei = new ExifInterface(is);
+//						originalImageOrientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+//						debug(ObscuraApp.TAG,"Orientation: " + originalImageOrientation);
+//					} catch (IOException e1) {
+//						debug(ObscuraApp.TAG,"Couldn't get Orientation");
+//						e1.printStackTrace();
+//					}
+//					is.close();
+//				}
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
+
+
 			// Get the orientation
 			File originalFilename = pullPathFromUri(originalImageUri);			
 			try {
@@ -368,7 +396,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				// Needs to be this config for Google Face Detection 
 				bmpFactoryOptions.inPreferredConfig = Bitmap.Config.RGB_565;
 				// Parse the image
-				Bitmap loadedBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(originalImageUri), null, bmpFactoryOptions);
+				InputStream inputStream = streamFromUri(originalImageUri);
+				Bitmap loadedBitmap = BitmapFactory.decodeStream(inputStream, null, bmpFactoryOptions);
+				inputStream.close();
 
 				// Hold onto the unscaled dimensions
 				originalImageWidth = bmpFactoryOptions.outWidth;
@@ -404,7 +434,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		
 				// Decode it for real
 				bmpFactoryOptions.inJustDecodeBounds = false;
-				loadedBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(originalImageUri), null, bmpFactoryOptions);
+				inputStream = streamFromUri(originalImageUri);
+				loadedBitmap = BitmapFactory.decodeStream(inputStream, null, bmpFactoryOptions);
+				inputStream.close();
 				debug(ObscuraApp.TAG,"Was: " + loadedBitmap.getConfig());
 
 				if (loadedBitmap == null) {
@@ -442,7 +474,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						doAutoDetectionThread();
 					}
 				}				
-			} catch (IOException e) {
+			} catch (Exception e) {
 				Log.e(ObscuraApp.TAG, "error loading bitmap from Uri: " + e.getMessage(), e);
 			}
 			
@@ -1400,7 +1432,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	if (obscuredBmp == null || (obscuredBmp.getWidth() != width))
     	{
     		// Create the bitmap that we'll output from this method
-    		obscuredBmp = Bitmap.createBitmap(width, height,imageBitmap.getConfig());
+			Bitmap.Config config = imageBitmap.getConfig();
+			if (config == null) {
+				config = Bitmap.Config.RGB_565;//TODO
+			}
+    		obscuredBmp = Bitmap.createBitmap(width, height, config);
     	
     		// Create the canvas to draw on
     		obscuredCanvas = new Canvas(obscuredBmp); 
@@ -1712,7 +1748,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      */
     public File pullPathFromUri(Uri originalUri) {
 
-    	String originalImageFilePath = null;
+    	String originalImageFilePath = originalUri.toString();
 
     	if (originalUri.getScheme() != null && originalUri.getScheme().equals("file"))
     	{
@@ -1722,10 +1758,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
     	{
 	    	String[] columnsToSelect = { MediaStore.Images.Media.DATA };
 	    	Cursor imageCursor = getContentResolver().query(originalUri, columnsToSelect, null, null, null );
-	    	if ( imageCursor != null && imageCursor.getCount() == 1 ) {
-		        imageCursor.moveToFirst();
-		        originalImageFilePath = imageCursor.getString(imageCursor.getColumnIndex(MediaStore.Images.Media.DATA));
-	    	}
+	    	if (imageCursor != null) {
+				if (imageCursor.moveToFirst()) {
+					originalImageFilePath = imageCursor.getString(imageCursor.getColumnIndex(MediaStore.Images.Media.DATA));
+				}
+				imageCursor.close();
+			}
     	}
 
     	return new File(originalImageFilePath);
@@ -1821,4 +1859,16 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	}
 
+	private InputStream streamFromUri(Uri uri) {
+		InputStream is = null;
+		try {
+			if (uri.getScheme() != null && uri.getScheme().contentEquals("content"))
+				is = getContentResolver().openInputStream(uri);
+			else
+				is = new FileInputStream(new File(uri.toString()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return is;
+	}
 }

@@ -116,6 +116,12 @@
     
      <string name="pref_out_vheight_title">Custom Video Height (px)</string>
     <string name="pref_out_vheight_summary">custom video height for outputed video</string>
-    
-    
+
+    <string name="title_albums">Albums</string>
+    <string name="action_pick_external">Pick from external app</string>
+    <string name="action_pick_external_album_name">Other</string>
+    <string name="gallery_info_message">Tap a photo to start</string>
+    <string name="gallery_info_ok">Got it</string>
+    <string name="gallery_need_permission">We need your permission to access your photos. Please tap anywhere to allow it.</string>
+
 </resources>

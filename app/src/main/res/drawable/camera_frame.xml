@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <color android:color="@color/colorPrimary" />
+    </item>
+    <item android:left="@dimen/camera_frame_size" android:top="@dimen/camera_frame_size" android:right="@dimen/camera_frame_size" android:bottom="@dimen/camera_frame_size">
+        <color android:color="@color/colorPrimaryDark" />
+    </item>
+</layer-list>
