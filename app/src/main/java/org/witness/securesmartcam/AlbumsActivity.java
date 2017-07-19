@@ -11,10 +11,10 @@ import android.view.View;
 import android.widget.Button;
 
 import org.witness.securesmartcam.adapters.AlbumAdapter;
-import org.witness.securesmartcam.adapters.PhotoAdapter;
+import org.witness.securesmartcam.adapters.GalleryCursorRecyclerViewAdapter;
 import org.witness.sscphase1.R;
 
-public class AlbumsActivity extends AppCompatActivity implements AlbumAdapter.AlbumAdapterListener, PhotoAdapter.PhotoAdapterListener {
+public class AlbumsActivity extends AppCompatActivity implements AlbumAdapter.AlbumAdapterListener, GalleryCursorRecyclerViewAdapter.GalleryCursorRecyclerViewAdapterListener {
 
     private static final boolean LOGGING = false;
     private static final String LOGTAG = "AlbumsActivity";
@@ -58,14 +58,14 @@ public class AlbumsActivity extends AppCompatActivity implements AlbumAdapter.Al
     @Override
     protected void onResume() {
         super.onResume();
-        if (mRecyclerView != null && mRecyclerView.getAdapter() instanceof PhotoAdapter) {
-            ((PhotoAdapter) mRecyclerView.getAdapter()).update();
+        if (mRecyclerView != null && mRecyclerView.getAdapter() instanceof GalleryCursorRecyclerViewAdapter) {
+            ((GalleryCursorRecyclerViewAdapter) mRecyclerView.getAdapter()).update();
         }
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            if (mRecyclerView.getAdapter() instanceof PhotoAdapter) {
+            if (mRecyclerView.getAdapter() instanceof GalleryCursorRecyclerViewAdapter) {
                 setAlbumAdapter();
                 return true;
             }
@@ -90,10 +90,19 @@ public class AlbumsActivity extends AppCompatActivity implements AlbumAdapter.Al
     }
 
     @Override
-    public void onPhotoSelected(String photo, final View thumbView, boolean isVideo) {
+    public void onPhotoSelected(String photo, final View thumbView) {
         Intent data = new Intent();
         data.putExtra("uri", photo);
-        data.putExtra("video", isVideo);
+        data.putExtra("video", false);
+        setResult(RESULT_OK, data);
+        finish();
+    }
+
+    @Override
+    public void onVideoSelected(String video, final View thumbView) {
+        Intent data = new Intent();
+        data.putExtra("uri", video);
+        data.putExtra("video", true);
         setResult(RESULT_OK, data);
         finish();
     }
@@ -108,7 +117,7 @@ public class AlbumsActivity extends AppCompatActivity implements AlbumAdapter.Al
 
     @Override
     public void onBackPressed() {
-        if (mRecyclerView.getAdapter() instanceof PhotoAdapter) {
+        if (mRecyclerView.getAdapter() instanceof GalleryCursorRecyclerViewAdapter) {
             setAlbumAdapter();
             return;
         }
@@ -127,7 +136,7 @@ public class AlbumsActivity extends AppCompatActivity implements AlbumAdapter.Al
 
     private void setPhotosAdapter(String album, boolean showCamera, boolean showAlbums) {
         mRecyclerView.setLayoutManager(mLayoutManager);
-        PhotoAdapter adapter = new PhotoAdapter(this, album, showCamera, showAlbums);
+        GalleryCursorRecyclerViewAdapter adapter = new GalleryCursorRecyclerViewAdapter(this, album, showCamera, showAlbums);
         adapter.setListener(this);
         int colWidth = getResources().getDimensionPixelSize(R.dimen.photo_column_size);
         mLayoutManager.setColumnWidth(colWidth);
@@ -138,7 +147,7 @@ public class AlbumsActivity extends AppCompatActivity implements AlbumAdapter.Al
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_EXTERNAL_REQUEST) {
             if (resultCode == RESULT_OK && data != null && data.getData() != null) {
-                onPhotoSelected(data.getData().toString(), null, false); //TODO - video
+                onPhotoSelected(data.getData().toString(), null); //TODO - video
             }
         }
     }

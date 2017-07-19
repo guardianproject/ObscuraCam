@@ -26,25 +26,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
-
 import org.witness.securesmartcam.AlbumLayoutManager;
 import org.witness.securesmartcam.AlbumsActivity;
 import org.witness.securesmartcam.ImageEditor;
 import org.witness.securesmartcam.adapters.AskForPermissionAdapter;
-import org.witness.securesmartcam.adapters.PhotoAdapter;
+import org.witness.securesmartcam.adapters.GalleryCursorRecyclerViewAdapter;
 import org.witness.ssc.video.VideoEditor;
 import org.witness.sscphase1.Eula.OnEulaAgreedTo;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.UUID;
 
-public class MainActivity extends AppCompatActivity implements OnEulaAgreedTo, PhotoAdapter.PhotoAdapterListener {
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity implements OnEulaAgreedTo, GalleryCursorRecyclerViewAdapter.GalleryCursorRecyclerViewAdapterListener {
 	    
 	public final static String TAG = "SSC";
 
@@ -334,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements OnEulaAgreedTo, P
 
 	private void setPhotosAdapter(String album, boolean showCamera, boolean showAlbums) {
 		recyclerViewPhotos.setLayoutManager(layoutManagerPhotos);
-		PhotoAdapter adapter = new PhotoAdapter(this, album, showCamera, showAlbums);
+		GalleryCursorRecyclerViewAdapter adapter = new GalleryCursorRecyclerViewAdapter(this, album, showCamera, showAlbums);
 		adapter.setListener(this);
 		int colWidth = getResources().getDimensionPixelSize(R.dimen.photo_column_size);
 		layoutManagerPhotos.setColumnWidth(colWidth);
@@ -342,51 +336,27 @@ public class MainActivity extends AppCompatActivity implements OnEulaAgreedTo, P
 	}
 
 	@Override
-	public void onPhotoSelected(String photo, View thumbView, boolean isVideo) {
+	public void onPhotoSelected(String photo, View thumbView) {
 		final Uri uri = Uri.parse(photo);
 		if (uri != null) {
 			try {
-				Intent passingIntent = new Intent(this, isVideo ? VideoEditor.class : ImageEditor.class);
+				Intent passingIntent = new Intent(this, ImageEditor.class);
 				passingIntent.setData(uri);
 				startActivityForResult(passingIntent, IMAGE_EDITOR);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
-//				if (mSelectedImageFile != null) {
-//					if (mSelectedImageFile.exists())
-//						mSelectedImageFile.delete();
-//				}
-//				mSelectedImageFile = App.getInstance().getFileManager().createFileForJob("selected_" + UUID.randomUUID().toString());
-//				InputStream is;
-//				if (uri.getScheme() != null && uri.getScheme().contentEquals("content"))
-//					is = getContentResolver().openInputStream(uri);
-//				else
-//					is = new FileInputStream(new File(uri.toString()));
-//				if (is != null) {
-//					FileOutputStream fos = new FileOutputStream(mSelectedImageFile, false);
-//					byte[] buffer = new byte[8196];
-//					int bytesRead;
-//					while ((bytesRead = is.read(buffer)) != -1) {
-//						fos.write(buffer, 0, bytesRead);
-//					}
-//					fos.close();
-//					is.close();
-//					mSelectedImageName = uri.getLastPathSegment();
-//					Picasso.with(this)
-//							.load(mSelectedImageFile)
-//							.fit()
-//							.centerCrop()
-//							.into(mPhotoView, new Callback() {
-//								@Override
-//								public void onSuccess() {
-//									onPostPhotoSelected(thumbView);
-//								}
-//
-//								@Override
-//								public void onError() {
-//									mPhotoView.setImageURI(uri);
-//									onPostPhotoSelected(thumbView);
-//								}
-//							});
-//				}
+	@Override
+	public void onVideoSelected(String photo, View thumbView) {
+		final Uri uri = Uri.parse(photo);
+		if (uri != null) {
+			try {
+				Intent passingIntent = new Intent(this, VideoEditor.class);
+				passingIntent.setData(uri);
+				startActivityForResult(passingIntent, VIDEO_EDITOR);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -461,14 +431,19 @@ public class MainActivity extends AppCompatActivity implements OnEulaAgreedTo, P
 				File storageDir = new File(getCacheDir(), CAMERA_CAPTURE_DIRNAME);
 				File image = new File(storageDir, CAMERA_CAPTURE_FILENAME);
 				if (image.exists()) {
-					onPhotoSelected(image.getAbsolutePath(), null, false);
+					onPhotoSelected(image.getAbsolutePath(), null);
 					//TODO image.delete();
 				}
 			} catch (Exception ignored) {
 			}
 		} else if (requestCode == SELECT_FROM_ALBUMS_REQUEST) {
 			if (resultCode == RESULT_OK && data != null && data.hasExtra("uri")) {
-				onPhotoSelected(data.getStringExtra("uri"), null, data.getBooleanExtra("video", false));
+				boolean isVideo = data.getBooleanExtra("video", false);
+				if (isVideo) {
+					onVideoSelected(data.getStringExtra("uri"), null);
+				} else {
+					onPhotoSelected(data.getStringExtra("uri"), null);
+				}
 			}
 		}
 	}
