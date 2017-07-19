@@ -34,6 +34,7 @@ import org.witness.securesmartcam.AlbumsActivity;
 import org.witness.securesmartcam.ImageEditor;
 import org.witness.securesmartcam.adapters.AskForPermissionAdapter;
 import org.witness.securesmartcam.adapters.PhotoAdapter;
+import org.witness.ssc.video.VideoEditor;
 import org.witness.sscphase1.Eula.OnEulaAgreedTo;
 import java.io.File;
 import java.io.FileInputStream;
@@ -341,13 +342,13 @@ public class MainActivity extends AppCompatActivity implements OnEulaAgreedTo, P
 	}
 
 	@Override
-	public void onPhotoSelected(String photo, View thumbView) {
+	public void onPhotoSelected(String photo, View thumbView, boolean isVideo) {
 		final Uri uri = Uri.parse(photo);
 		if (uri != null) {
 			try {
-				Intent passingIntent = new Intent(this, ImageEditor.class);
+				Intent passingIntent = new Intent(this, isVideo ? VideoEditor.class : ImageEditor.class);
 				passingIntent.setData(uri);
-				startActivityForResult(passingIntent,IMAGE_EDITOR);
+				startActivityForResult(passingIntent, IMAGE_EDITOR);
 
 //				if (mSelectedImageFile != null) {
 //					if (mSelectedImageFile.exists())
@@ -460,14 +461,14 @@ public class MainActivity extends AppCompatActivity implements OnEulaAgreedTo, P
 				File storageDir = new File(getCacheDir(), CAMERA_CAPTURE_DIRNAME);
 				File image = new File(storageDir, CAMERA_CAPTURE_FILENAME);
 				if (image.exists()) {
-					onPhotoSelected(image.getAbsolutePath(), null);
+					onPhotoSelected(image.getAbsolutePath(), null, false);
 					//TODO image.delete();
 				}
 			} catch (Exception ignored) {
 			}
 		} else if (requestCode == SELECT_FROM_ALBUMS_REQUEST) {
 			if (resultCode == RESULT_OK && data != null && data.hasExtra("uri")) {
-				onPhotoSelected(data.getStringExtra("uri"), null);
+				onPhotoSelected(data.getStringExtra("uri"), null, data.getBooleanExtra("video", false));
 			}
 		}
 	}

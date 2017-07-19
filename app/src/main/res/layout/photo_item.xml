@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<org.witness.securesmartcam.views.SquareFrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
 <org.witness.securesmartcam.views.SquareImageView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/ivPhoto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_margin="@dimen/photo_padding"
     android:scaleType="centerCrop" />
+    <ImageView
+        android:id="@+id/ivVideoIcon"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="top|end"
+        android:background="#ff0000"
+        />
+</org.witness.securesmartcam.views.SquareFrameLayout>

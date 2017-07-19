@@ -1,11 +1,14 @@
 package org.witness.securesmartcam.adapters;
 
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +24,7 @@ import java.util.ArrayList;
 public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
 
     public interface PhotoAdapterListener {
-        void onPhotoSelected(String photo, View thumbView);
+        void onPhotoSelected(String photo, View thumbView, boolean isVideo);
         void onCameraSelected();
         void onAlbumsSelected();
     }
@@ -40,10 +43,13 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
         mPhotos = new ArrayList<>();
         mShowCamera = showCamera;
         mShowAlbums = showAlbums;
+        getVideos();
         getPhotos();
     }
 
     public void update() {
+        mPhotos.clear();
+        getVideos();
         getPhotos();
         notifyDataSetChanged();
     }
@@ -53,7 +59,7 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
     }
 
     private void getPhotos() {
-        mPhotos.clear();
+        //mPhotos.clear();
         try {
             final String orderBy = MediaStore.Images.Media.DATE_TAKEN;
             String searchParams = null;
@@ -63,16 +69,47 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
 
             Cursor photoCursor = mContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     null, searchParams, null, orderBy + " DESC");
-
-            if (photoCursor.moveToFirst()) {
-                int dataColumn = photoCursor.getColumnIndex(MediaStore.Images.Media.DATA);
-                do {
-                    PhotoInfo photo = new PhotoInfo();
-                    photo.thumbnail = photoCursor.getString(dataColumn);
-                    mPhotos.add(photo);
-                } while (photoCursor.moveToNext());
+            if (photoCursor != null) {
+                if (photoCursor.moveToFirst()) {
+                    int dataColumn = photoCursor.getColumnIndex(MediaStore.Images.Media.DATA);
+                    do {
+                        PhotoInfo photo = new PhotoInfo();
+                        photo.thumbnail = photoCursor.getString(dataColumn);
+                        mPhotos.add(photo);
+                    } while (photoCursor.moveToNext());
+                }
+                photoCursor.close();
             }
-            photoCursor.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //TODO - make async!!!
+    private void getVideos() {
+        //mPhotos.clear();
+        try {
+            final String orderBy = MediaStore.Video.Media.DATE_TAKEN;
+            String searchParams = null;
+            if (!TextUtils.isEmpty(mAlbum)) {
+                searchParams = MediaStore.Video.Media.BUCKET_ID + " = \"" + mAlbum + "\"";
+            }
+
+            Cursor photoCursor = mContext.getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    null, searchParams, null, orderBy + " DESC");
+            if (photoCursor != null) {
+                if (photoCursor.moveToFirst()) {
+                    int idColumn = photoCursor.getColumnIndex(MediaStore.Video.Media._ID);
+                    int dataColumn = photoCursor.getColumnIndex(MediaStore.Video.Media.DATA);
+                    do {
+                        PhotoInfo photo = new PhotoInfo();
+                        photo.thumbnail = photoCursor.getString(dataColumn);
+                        photo.isVideo = true;
+                        mPhotos.add(photo);
+                    } while (photoCursor.moveToNext());
+                }
+                photoCursor.close();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -138,11 +175,21 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
         holder.mPhoto.setBackgroundColor(Color.TRANSPARENT);
         holder.mRootView.setOnClickListener(new ItemClickListener(position, holder.mPhoto));
         try {
-            Picasso.with(mContext)
-                    .load(new File(photo.thumbnail))
-                    .fit()
-                    .centerCrop()
-                    .into(holder.mPhoto);
+            holder.mVideoIcon.setVisibility(photo.isVideo ? View.VISIBLE : View.GONE);
+            if (photo.isVideo) {
+                Picasso.with(mContext)
+                        .load("video:" + photo.thumbnail)
+                        .placeholder(R.drawable.btn_preview)
+                        .fit()
+                        .centerCrop()
+                        .into(holder.mPhoto);
+            } else {
+                Picasso.with(mContext)
+                        .load(new File(photo.thumbnail))
+                        .fit()
+                        .centerCrop()
+                        .into(holder.mPhoto);
+            }
         } catch (Exception ignored) {}
     }
 
@@ -155,6 +202,7 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
         public PhotoInfo() {
         }
         public String thumbnail;
+        public boolean isVideo;
     }
 
     private class ItemClickListener implements View.OnClickListener {
@@ -170,7 +218,7 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
         public void onClick(View view) {
             PhotoInfo photo = mPhotos.get(mPosition);
             if (mListener != null) {
-                mListener.onPhotoSelected(photo.thumbnail, mThumbView);
+                mListener.onPhotoSelected(photo.thumbnail, mThumbView, photo.isVideo);
             }
         }
     }

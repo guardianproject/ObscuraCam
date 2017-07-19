@@ -1121,7 +1121,7 @@ public class VideoEditor extends Activity implements
 	}	
 
 	public String pullPathFromUri(Uri originalUri) {
-    	String originalVideoFilePath = null;
+    	String originalVideoFilePath = originalUri.toString();
     	String[] columnsToSelect = { MediaStore.Video.Media.DATA };
     	Cursor videoCursor = getContentResolver().query(originalUri, columnsToSelect, null, null, null );
     	if ( videoCursor != null && videoCursor.getCount() == 1 ) {

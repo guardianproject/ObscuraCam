@@ -90,9 +90,10 @@ public class AlbumsActivity extends AppCompatActivity implements AlbumAdapter.Al
     }
 
     @Override
-    public void onPhotoSelected(String photo, final View thumbView) {
+    public void onPhotoSelected(String photo, final View thumbView, boolean isVideo) {
         Intent data = new Intent();
         data.putExtra("uri", photo);
+        data.putExtra("video", isVideo);
         setResult(RESULT_OK, data);
         finish();
     }
@@ -137,7 +138,7 @@ public class AlbumsActivity extends AppCompatActivity implements AlbumAdapter.Al
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_EXTERNAL_REQUEST) {
             if (resultCode == RESULT_OK && data != null && data.getData() != null) {
-                onPhotoSelected(data.getData().toString(), null);
+                onPhotoSelected(data.getData().toString(), null, false); //TODO - video
             }
         }
     }
