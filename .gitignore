@@ -34,3 +34,6 @@ app/src/preprocessed/
 build.xml
 .DS_Store
 *~
+
+# NDK Build files
+.externalNativeBuild
