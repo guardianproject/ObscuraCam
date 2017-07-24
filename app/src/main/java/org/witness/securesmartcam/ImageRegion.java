@@ -14,6 +14,7 @@ import org.witness.securesmartcam.filters.RegionProcesser;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
 
+import android.content.res.Resources;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -23,11 +24,13 @@ import android.os.Message;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.view.ViewConfiguration;
 import android.widget.FrameLayout;
 import android.widget.PopupWindow.OnDismissListener;
 import android.widget.RelativeLayout;
@@ -71,6 +74,10 @@ public class ImageRegion implements OnActionItemClickListener
 	public static final int CORNER_LOWER_LEFT = 2;
 	public static final int CORNER_UPPER_RIGHT = 3;
 	public static final int CORNER_LOWER_RIGHT = 4;
+	public static final int CORNER_LEFT = 5;
+	public static final int CORNER_RIGHT = 6;
+	public static final int CORNER_UPPER = 7;
+	public static final int CORNER_LOWER = 8;
 	public static final int CORNER_NONE = -1;
 
 	/* Add each ObscureMethod to this list and update the 
@@ -99,7 +106,7 @@ public class ImageRegion implements OnActionItemClickListener
 	private final static float MIN_MOVE = 5f;
 
 	private final static float CORNER_MAX = 50f;
-	
+	private int handleTouchSlop;
 	private int cornerMode = -1;
 	
 	public RegionProcesser getRegionProcessor() {
@@ -112,14 +119,26 @@ public class ImageRegion implements OnActionItemClickListener
 	
 	public void setCornerMode (float x, float y)
 	{
-		float[] points = {x,y};        	
+		float[] points = {x,y, mBounds.left, mBounds.top, mBounds.right, mBounds.bottom};
     	iMatrix.mapPoints(points);
     	
     	float cSize = CORNER_MAX;
     	
     	cSize = iMatrix.mapRadius(cSize);
-    	
-    	if (Math.abs(mBounds.left-points[0])<cSize
+
+		if (inLeftHandle(points[0], points[1])) {
+			cornerMode = CORNER_LEFT;
+			return;
+		} else if (inRightHandle(points[0], points[1])) {
+			cornerMode = CORNER_RIGHT;
+			return;
+		} else if (inTopHandle(points[0], points[1])) {
+			cornerMode = CORNER_UPPER;
+			return;
+		} else if (inBottomHandle(points[0], points[1])) {
+			cornerMode = CORNER_LOWER;
+			return;
+		} else if (Math.abs(mBounds.left-points[0])<cSize
     			&& Math.abs(mBounds.top-points[1])<cSize
     			)
     	{
@@ -151,6 +170,40 @@ public class ImageRegion implements OnActionItemClickListener
     	cornerMode = CORNER_NONE;
 	}
 
+	private boolean inLeftHandle(float x, float y) {
+		float midY = mBounds.top + (mBounds.bottom - mBounds.top) / 2;
+		double dx = Math.pow(mBounds.left - x, 2);
+		double dy = Math.pow(midY - y, 2);
+		return ((dx + dy) < handleTouchSlop);
+	}
+
+	private boolean inRightHandle(float x, float y) {
+		float midY = mBounds.top + (mBounds.bottom - mBounds.top) / 2;
+		double dx = Math.pow(mBounds.right - x, 2);
+		double dy = Math.pow(midY - y, 2);
+		return ((dx + dy) < handleTouchSlop);
+	}
+
+	private boolean inTopHandle(float x, float y) {
+		float midX = mBounds.left + (mBounds.right - mBounds.left) / 2;
+		double dx = Math.pow(midX - x, 2);
+		double dy = Math.pow(mBounds.top - y, 2);
+		return ((dx + dy) < handleTouchSlop);
+	}
+
+	private boolean inBottomHandle(float x, float y) {
+		float midX = mBounds.left + (mBounds.right - mBounds.left) / 2;
+		double dx = Math.pow(midX - x, 2);
+		double dy = Math.pow(mBounds.bottom - y, 2);
+		return ((dx + dy) < handleTouchSlop);
+	}
+
+	public boolean containsPoint(float x, float y) {
+		float[] points = {x,y};
+		iMatrix.mapPoints(points);
+		return mBounds.contains(x, y) || inLeftHandle(x, y) || inRightHandle(x, y) || inTopHandle(x, y) || inBottomHandle(x, y);
+	}
+
 	
 	/* For touch events, whether or not to show the menu
 	 */
@@ -167,7 +220,12 @@ public class ImageRegion implements OnActionItemClickListener
 	{
 		//super(imageEditor);
 		super();
-		
+
+		// Handle
+		Resources r = imageEditor.getResources();
+		handleTouchSlop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, r.getDisplayMetrics());
+		handleTouchSlop = handleTouchSlop * handleTouchSlop; // Square it, we only use that in calculations
+
 		// Set the mImageEditor that this region belongs to to the one passed in
 		mImageEditor = imageEditor;
 		// set the borders for tags in Non-Edit mode
@@ -269,7 +327,13 @@ public class ImageRegion implements OnActionItemClickListener
 	private void initPopup ()
 	{
 		mPopupMenu = new QuickAction(mImageEditor);
-		
+//		mPopupMenu.setOnDismissListener(new OnDismissListener() {
+//			@Override
+//			public void onDismiss() {
+//				setSelected(false);
+//				mImageEditor.forceUpdateDisplayImage();
+//			}
+//		});
 		ActionItem aItem;
 		
 		for (int i = 0; i < mFilterLabels.length; i++)
@@ -344,8 +408,8 @@ public class ImageRegion implements OnActionItemClickListener
 			
 			case MotionEvent.ACTION_DOWN:
 				
-				mImageEditor.doRealtimePreview = true;
-				mImageEditor.updateDisplayImage();
+				mImageEditor.setRealtimePreview(true);
+				mImageEditor.forceUpdateDisplayImage();
 				//mTmpBounds = new RectF(mBounds);
 				
 				if (fingerCount == 1)
@@ -367,9 +431,8 @@ public class ImageRegion implements OnActionItemClickListener
 				return moved;
 				
 			case MotionEvent.ACTION_UP:
-
-				mImageEditor.doRealtimePreview = true;
-				mImageEditor.updateDisplayImage();
+				mImageEditor.setRealtimePreview(true);
+				mImageEditor.forceUpdateDisplayImage();
 				//mTmpBounds = null;
 
 				return moved;
@@ -420,43 +483,35 @@ public class ImageRegion implements OnActionItemClickListener
 	                	
 	                	if (cornerMode == CORNER_NONE)
 	                	{
-	                		
 	                		left = mBounds.left-diffX;
 	                		top = mBounds.top-diffY;
 	                		right = mBounds.right-diffX;
 	                		bottom = mBounds.bottom-diffY;
-	                	}
-	                	else if (cornerMode == CORNER_UPPER_LEFT)
-	                	{
-	                		left = mBounds.left-diffX;
-	                		top = mBounds.top-diffY;
-	                		right = mBounds.right;
-	                		bottom = mBounds.bottom;
-	                		
-	                	}
-	                	else if (cornerMode == CORNER_LOWER_LEFT)
-	                	{
-	                		left = mBounds.left-diffX;
-	                		top = mBounds.top;
-	                		right = mBounds.right;
-	                		bottom = mBounds.bottom-diffY;
-	                		
-	                	}
-	                	else if (cornerMode == CORNER_UPPER_RIGHT)
-	                	{
-	                		left = mBounds.left;
-	                		top = mBounds.top-diffY;
-	                		right = mBounds.right-diffX;
-	                		bottom = mBounds.bottom;
-	                	}
-	                	else if (cornerMode == CORNER_LOWER_RIGHT)
-	                	{
-	                		left = mBounds.left;
-	                		top = mBounds.top;
-	                		right = mBounds.right-diffX;
-	                		bottom = mBounds.bottom-diffY;
-	                	}
-	                	
+	                	} else {
+							if (cornerMode == CORNER_LEFT || cornerMode == CORNER_UPPER_LEFT || cornerMode == CORNER_LOWER_LEFT) {
+								left = mBounds.left - diffX;
+							} else {
+								left = mBounds.left;
+							}
+
+							if (cornerMode == CORNER_RIGHT || cornerMode == CORNER_UPPER_RIGHT || cornerMode == CORNER_LOWER_RIGHT) {
+								right = mBounds.right - diffX;
+							} else {
+								right = mBounds.right;
+							}
+
+							if (cornerMode == CORNER_UPPER || cornerMode == CORNER_UPPER_LEFT || cornerMode == CORNER_UPPER_RIGHT) {
+								top = mBounds.top-diffY;
+							} else {
+								top = mBounds.top;
+							}
+
+							if (cornerMode == CORNER_LOWER || cornerMode == CORNER_LOWER_LEFT || cornerMode == CORNER_LOWER_RIGHT) {
+								bottom = mBounds.bottom-diffY;
+							} else {
+								bottom = mBounds.bottom;
+							}
+						}
 
                 		if ((left+CORNER_MAX) > right || (top+CORNER_MAX) > bottom)
                 			return false;
