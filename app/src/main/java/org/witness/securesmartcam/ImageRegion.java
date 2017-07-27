@@ -223,7 +223,7 @@ public class ImageRegion implements OnActionItemClickListener
 
 		// Handle
 		Resources r = imageEditor.getResources();
-		handleTouchSlop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 20, r.getDisplayMetrics());
+		handleTouchSlop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, ImageEditor.SELECTION_HANDLE_TOUCH_RADIUS, r.getDisplayMetrics());
 		handleTouchSlop = handleTouchSlop * handleTouchSlop; // Square it, we only use that in calculations
 
 		// Set the mImageEditor that this region belongs to to the one passed in
@@ -407,23 +407,9 @@ public class ImageRegion implements OnActionItemClickListener
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			
 			case MotionEvent.ACTION_DOWN:
-				
-				mImageEditor.setRealtimePreview(true);
-				mImageEditor.forceUpdateDisplayImage();
-				//mTmpBounds = new RectF(mBounds);
-				
-				if (fingerCount == 1)
-				{
-					//float[] points = {event.getX(), event.getY()};                	
-                	//iMatrix.mapPoints(points);
-					//mStartPoint = new PointF(points[0],points[1]);
-					mStartPoint = new PointF(event.getX(),event.getY());
-					//Log.v(LOGTAG,"startPoint: " + mStartPoint.x + " " + mStartPoint.y);
-				}
-				
 				moved = false;
-				
-				return false;
+				mStartPoint = new PointF(event.getX(),event.getY());
+				return true;
 			case MotionEvent.ACTION_POINTER_UP:
 
 				Log.v(LOGTAG, "second finger removed - pointer up!");
@@ -564,7 +550,11 @@ public class ImageRegion implements OnActionItemClickListener
 		
 	}
 
-	
+	public void setObscureType(int obscureType) {
+		mObscureType = obscureType;
+		updateRegionProcessor(obscureType);
+	}
+
 	private void updateRegionProcessor (int obscureType)
 	{
 		switch (obscureType) {

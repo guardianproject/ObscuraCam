@@ -24,6 +24,7 @@ import java.util.Vector;
 
 import org.witness.informa.InformaEditor;
 import org.witness.informa.utils.MetadataParser;
+import org.witness.securesmartcam.adapters.ImageRegionOptionsRecyclerViewAdapter;
 import org.witness.securesmartcam.detect.DetectedFace;
 import org.witness.securesmartcam.detect.FaceDetection;
 import org.witness.securesmartcam.detect.GoogleFaceDetection;
@@ -80,7 +81,10 @@ import android.provider.MediaStore.Images.Media;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -100,7 +104,7 @@ import android.widget.Toast;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
-public class ImageEditor extends Activity implements OnTouchListener, OnClickListener {
+public class ImageEditor extends Activity implements OnTouchListener, OnClickListener, ImageRegionOptionsRecyclerViewAdapter.ImageRegionOptionsRecyclerViewAdapterListener {
 
 
 	public final static String MIME_TYPE_JPEG = "image/jpeg";
@@ -117,6 +121,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public final static int SAVE_MENU_ITEM = 2;
 	public final static int SHARE_MENU_ITEM = 3;
 	public final static int NEW_REGION_MENU_ITEM = 4;
+
+	// Selection sizes in DP
+	public final static int SELECTION_BORDER_WIDTH = 5;
+	public final static int SELECTION_HANDLE_RADIUS = 10;
+	public final static int SELECTION_HANDLE_TOUCH_RADIUS = 15;
 
 	// Constants for Informa
 	public final static int FROM_INFORMA = 100;
@@ -249,6 +258,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	private final static String EXPORT_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
 	private View imageViewOverlay;
+	private RecyclerView recyclerViewRegionOptions;
 
     /*
 	 private class mAutoDetectTask extends AsyncTask<Integer, Integer, Long> {
@@ -296,7 +306,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// The ImageView that contains the image we are working with
 		imageView = (ImageView) findViewById(R.id.ImageEditorImageView);
 		imageViewOverlay = new RegionOverlayView(this);
-		imageViewOverlay.setBackgroundColor(Color.TRANSPARENT);
+		imageViewOverlay.setBackgroundColor(0x01000000);
 		((ViewGroup) imageView.getParent()).addView(imageViewOverlay);
 		imageView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
 			@Override
@@ -309,6 +319,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				imageViewOverlay.setLayoutParams(params);
 			}
 		});
+
+		recyclerViewRegionOptions = (RecyclerView) findViewById(R.id.recycler_view_region_options);
+		recyclerViewRegionOptions.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+		ImageRegionOptionsRecyclerViewAdapter adapter = new ImageRegionOptionsRecyclerViewAdapter(this);
+		adapter.setListener(this);
+		recyclerViewRegionOptions.setAdapter(adapter);
+		recyclerViewRegionOptions.bringToFront();
+		recyclerViewRegionOptions.setVisibility(View.GONE);
 
 		// Buttons for zooming
 		zoomIn = (Button) this.findViewById(R.id.ZoomIn);
@@ -671,8 +689,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				mHandler.sendMessage(msg);
 			}
 		};
-		//TEMP TEMP
-		//thread.start();
+		thread.start();
 	}
 	/*
 	 * Do actual auto detection and create regions
@@ -833,118 +850,46 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	ImageRegion currRegion = null;
 
+	private ImageRegion getCurrentRegion() {
+		return currRegion;
+	}
+
+	private void setCurrentRegion(ImageRegion region) {
+		currRegion = region;
+		for (ImageRegion ir : imageRegions) {
+			ir.setSelected(ir == region);
+		}
+		// Reorder to the front
+		if (imageRegions.remove(region)) {
+			imageRegions.add(region);
+		}
+		if (region != null) {
+			((ImageRegionOptionsRecyclerViewAdapter)recyclerViewRegionOptions.getAdapter()).setCurrentItem(region.mObscureType);
+			recyclerViewRegionOptions.setVisibility(View.VISIBLE);
+		} else {
+			recyclerViewRegionOptions.setVisibility(View.GONE);
+		}
+	}
+
 	/*
 	 * Handles touches on ImageView
 	 */
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
-		if (currRegion != null && (mode == DRAG || currRegion.containsPoint(event.getX(), event.getY())))
-			return onTouchRegion(v, event, currRegion);
-		else
-			return onTouchImage(v, event);
-	}
-
-	public ImageRegion findRegion(MotionEvent event) {
-		ImageRegion result = null;
-		Matrix iMatrix = new Matrix();
-		matrix.invert(iMatrix);
-
-		float[] points = {event.getX(), event.getY()};
-		iMatrix.mapPoints(points);
-
-		for (ImageRegion region : imageRegions) {
-
-			if (region.containsPoint(points[0], points[1])) {
-				result = region;
-				break;
-			}
-
-		}
-
-
-		return result;
-	}
-
-	public boolean onTouchRegion(View v, MotionEvent event, ImageRegion iRegion) {
-		boolean handled = false;
-
-		currRegion.setMatrix(matrix);
-
-		switch (event.getAction() & MotionEvent.ACTION_MASK) {
-			case MotionEvent.ACTION_DOWN:
-				clearImageRegionsEditMode();
-				currRegion.setSelected(true);
-				currRegion.setCornerMode(event.getX(), event.getY());
-
-				mode = DRAG;
-				handled = iRegion.onTouch(v, event);
-
-				break;
-
-			case MotionEvent.ACTION_UP:
-				mode = NONE;
-				handled = currRegion.onTouch(v, event);
-				//currRegion.setSelected(false);
-
-				break;
-
-			case MotionEvent.ACTION_MOVE:
-				mode = DRAG;
-				handled = currRegion.onTouch(v, event);
-				//handled = iRegion.onTouch(v, event);
-				//currRegion.setSelected(false);
-
-				break;
-
-			default:
-				mode = NONE;
-
-		}
-
-		return handled;
-
-
-	}
-
-	public boolean onTouchImage(View v, MotionEvent event) {
 		boolean handled = false;
 
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {
 			case MotionEvent.ACTION_DOWN:
-				// Single Finger down
 				mode = TAP;
-				ImageRegion newRegion = findRegion(event);
-
-				if (newRegion != null) {
-					currRegion = newRegion;
-					currRegion.setSelected(true);
-					return onTouchRegion(v, event, currRegion);
-				} else if (currRegion == null) {
-
-					// 	Save the Start point. 
-					startPoint.set(event.getX(), event.getY());
-				} else {
-					currRegion.setSelected(false);
-					currRegion = null;
-
-				}
-
-
+				startPoint.set(event.getX(), event.getY());
 				break;
 
 			case MotionEvent.ACTION_POINTER_DOWN:
 				// Two Fingers down
-
-				// Don't do realtime preview while touching screen
-				//doRealtimePreview = false;
-				//updateDisplayImage();
-
 				// Get the spacing of the fingers, 2 fingers
 				float sx = event.getX(0) - event.getX(1);
 				float sy = event.getY(0) - event.getY(1);
 				startFingerSpacing = (float) Math.sqrt(sx * sx + sy * sy);
-
-				//Log.d(ObscuraApp.TAG, "Start Finger Spacing=" + startFingerSpacing);
 
 				// Get the midpoint
 				float xsum = event.getX(0) + event.getX(1);
@@ -952,33 +897,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				startFingerSpacingMidPoint.set(xsum / 2, ysum / 2);
 
 				mode = ZOOM;
-				//Log.d(ObscuraApp.TAG, "mode=ZOOM");
-
-				clearImageRegionsEditMode();
-
+				setCurrentRegion(null);
+				updateDisplayImage();
 				break;
 
 			case MotionEvent.ACTION_UP:
 				// Single Finger Up
-
-				// Re-enable realtime preview
 				setRealtimePreview(true);
 				needsUpdate = true;
 				updateDisplayImage();
-
-				//debug(ObscuraApp.TAG,"mode=NONE");
-
-				break;
-
-			case MotionEvent.ACTION_POINTER_UP:
-				// Multiple Finger Up
-
-				// Re-enable realtime preview
-				setRealtimePreview(true);
-				needsUpdate = true;
-				updateDisplayImage();
-
-				//Log.d(ObscuraApp.TAG, "mode=NONE");
 				break;
 
 			case MotionEvent.ACTION_MOVE:
@@ -1062,23 +989,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		return handled; // indicate event was handled
 	}
 
-	/*
-	public void moveAndZoom (float x, float y, float scale)
-	{
-		matrix.postTranslate(x - startPoint.x, y - startPoint.y);
-		imageView.setImageMatrix(matrix);
-//		// Reset the start point
-		startPoint.set(x, y);
-		
-		matrix.postScale(scale, scale, startFingerSpacingMidPoint.x, startFingerSpacingMidPoint.y);
-		
-		imageView.setImageMatrix(matrix);
-		
-		putOnScreen();
-		redrawRegions();
-		
-	}*/
-
 	public void setRealtimePreview(boolean realtimePreview) {
 		if (realtimePreview != doRealtimePreview) {
 			doRealtimePreview = realtimePreview;
@@ -1140,24 +1050,11 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	}
 
-	/* 
-	 * Put all regions into normal mode, out of edit mode
-	 */
-	public void clearImageRegionsEditMode() {
-		Iterator<ImageRegion> itRegions = imageRegions.iterator();
-
-		while (itRegions.hasNext()) {
-			itRegions.next().setSelected(false);
-		}
-
-	}
-
 	/*
 	 * Create new ImageRegion
 	 */
 	public void createImageRegion(float left, float top, float right, float bottom, boolean showPopup, boolean updateNow) {
-
-		clearImageRegionsEditMode();
+		setCurrentRegion(null);
 
 		ImageRegion imageRegion = new ImageRegion(
 				this,
@@ -1205,10 +1102,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	@Override
 	public void onClick(View v) {
 
-		if (currRegion != null) {
-			currRegion.inflatePopup(false);
-			currRegion = null;
-		} else if (v == zoomIn) {
+		if (v == zoomIn) {
 			float scale = 1.5f;
 
 			PointF midpoint = new PointF(imageView.getWidth() / 2, imageView.getHeight() / 2);
@@ -1487,38 +1381,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 			if (mode != DRAG)
 				om.processRegion(regionRect, obscuredCanvas, obscuredBmp);
-//
-//			if (showBorders) {
-//				if (currentRegion.isSelected())
-//					obscuredPaint.setColor(Color.GREEN);
-//				else
-//					obscuredPaint.setColor(Color.WHITE);
-//
-//				obscuredPaint.setStyle(Style.STROKE);
-//				obscuredPaint.setStrokeWidth(10f);
-//				obscuredCanvas.drawRect(regionRect, obscuredPaint);
-//
-//				// Draw drag handles
-//				int handleRadius = 10;
-//				if (currentRegion.isSelected()) {
-//					obscuredCanvas.drawCircle(regionRect.centerX(), regionRect.top, handleRadius, obscuredPaint);
-//					obscuredCanvas.drawCircle(regionRect.centerX(), regionRect.bottom, handleRadius, obscuredPaint);
-//					obscuredCanvas.drawCircle(regionRect.left, regionRect.centerY(), handleRadius, obscuredPaint);
-//					obscuredCanvas.drawCircle(regionRect.right, regionRect.centerY(), handleRadius, obscuredPaint);
-//				}
-//		    	/*
-//		    	float cSize = CORNER_SIZE;
-//
-//		    	if (currentRegion.isSelected())
-//		    	{
-//		    		obscuredCanvas.drawBitmap(bitmapCornerUL, regionRect.left-cSize, regionRect.top-cSize, obscuredPaint);
-//		    		obscuredCanvas.drawBitmap(bitmapCornerLL, regionRect.left-cSize, regionRect.bottom-(cSize/2), obscuredPaint);
-//		    		obscuredCanvas.drawBitmap(bitmapCornerUR, regionRect.right-(cSize/2), regionRect.top-cSize, obscuredPaint);
-//		    		obscuredCanvas.drawBitmap(bitmapCornerLR, regionRect.right-(cSize/2), regionRect.bottom-(cSize/2), obscuredPaint);
-//
-//		    	}*/
-//
-//			}
 		}
 
 		return obscuredBmp;
@@ -1893,16 +1755,37 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		return is;
 	}
 
-	private class RegionOverlayView extends View {
+	@Override
+	public void onOptionSelected(int operation) {
+		if (getCurrentRegion() != null) {
+			if (operation == -1) {
+				deleteRegion(getCurrentRegion());
+				setCurrentRegion(null);
+				updateDisplayImage();
+			} else {
+				getCurrentRegion().setObscureType(operation);
+				((ImageRegionOptionsRecyclerViewAdapter)recyclerViewRegionOptions.getAdapter()).setCurrentItem(getCurrentRegion().mObscureType);
+				forceUpdateDisplayImage();
+			}
+		}
+	}
+
+	private class RegionOverlayView extends View implements OnTouchListener {
 		private Paint paint;
 		private RectF mappedRect;
+		private int mode;
+		private final int selectionHandleRadius;
 
 		public RegionOverlayView(Context context) {
 			super(context);
 			paint = new Paint();
 			paint.setStyle(Style.STROKE);
-			paint.setStrokeWidth(10f);
+			Resources r = context.getResources();
+			int selectionWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, SELECTION_BORDER_WIDTH, r.getDisplayMetrics());
+			selectionHandleRadius = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, SELECTION_HANDLE_RADIUS, r.getDisplayMetrics());
+			paint.setStrokeWidth(selectionWidth);
 			mappedRect = new RectF();
+			setOnTouchListener(this);
 		}
 
 		@Override
@@ -1922,16 +1805,101 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 					// Draw drag handles
 					paint.setStyle(Style.FILL);
-					int handleRadius = 15;
 					if (currentRegion.isSelected()) {
-						canvas.drawCircle(mappedRect.centerX(), mappedRect.top, handleRadius, paint);
-						canvas.drawCircle(mappedRect.centerX(), mappedRect.bottom, handleRadius, paint);
-						canvas.drawCircle(mappedRect.left, mappedRect.centerY(), handleRadius, paint);
-						canvas.drawCircle(mappedRect.right, mappedRect.centerY(), handleRadius, paint);
+						canvas.drawCircle(mappedRect.centerX(), mappedRect.top, selectionHandleRadius, paint);
+						canvas.drawCircle(mappedRect.centerX(), mappedRect.bottom, selectionHandleRadius, paint);
+						canvas.drawCircle(mappedRect.left, mappedRect.centerY(), selectionHandleRadius, paint);
+						canvas.drawCircle(mappedRect.right, mappedRect.centerY(), selectionHandleRadius, paint);
 					}
 				}
 			} catch (Exception ignored) {
 			}
+		}
+
+
+		@Override
+		public boolean onTouch(View v, MotionEvent event) {
+			if (currRegion != null && (mode == DRAG || currRegion.containsPoint(event.getX(), event.getY())))
+				return onTouchRegion(v, event, currRegion);
+			else
+				return onTouchImage(v, event);
+		}
+
+		public ImageRegion findRegion(MotionEvent event) {
+			ImageRegion result = null;
+			Matrix iMatrix = new Matrix();
+			matrix.invert(iMatrix);
+
+			float[] points = {event.getX(), event.getY()};
+			iMatrix.mapPoints(points);
+
+			for (ImageRegion region : imageRegions) {
+				if (region.containsPoint(points[0], points[1])) {
+					result = region;
+					break;
+				}
+			}
+			return result;
+		}
+
+		public boolean onTouchRegion(View v, MotionEvent event, ImageRegion iRegion) {
+			boolean handled = false;
+
+			currRegion.setMatrix(matrix);
+
+			switch (event.getAction() & MotionEvent.ACTION_MASK) {
+				case MotionEvent.ACTION_DOWN:
+					setRealtimePreview(false);
+					currRegion.setCornerMode(event.getX(), event.getY());
+					mode = DRAG;
+					handled = iRegion.onTouch(v, event);
+
+					break;
+
+				case MotionEvent.ACTION_UP:
+					mode = NONE;
+					handled = currRegion.onTouch(v, event);
+					setRealtimePreview(true);
+					//currRegion.setSelected(false);
+
+					break;
+
+				case MotionEvent.ACTION_MOVE:
+					mode = DRAG;
+					handled = currRegion.onTouch(v, event);
+					//handled = iRegion.onTouch(v, event);
+					//currRegion.setSelected(false);
+
+					break;
+
+				default:
+					mode = NONE;
+
+			}
+
+			return handled;
+
+
+		}
+
+		public boolean onTouchImage(View v, MotionEvent event) {
+			switch (event.getAction() & MotionEvent.ACTION_MASK) {
+				case MotionEvent.ACTION_DOWN:
+					ImageRegion newRegion = findRegion(event);
+					if (newRegion != null) {
+						setCurrentRegion(newRegion);
+						updateDisplayImage();
+						return onTouchRegion(v, event, currRegion);
+					} else {
+						if (getCurrentRegion() != null) {
+							setCurrentRegion(null);
+							forceUpdateDisplayImage();
+							return true;
+						}
+						return false;
+					}
+			}
+			return false;
 		}
 	}
 }

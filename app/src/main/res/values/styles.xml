@@ -80,4 +80,14 @@
 		<item name="android:textColor">@android:color/white</item>
 		<item name="android:textSize">11sp</item>
 	</style>
+
+	<style name="TextAppearanceObscureOption" parent="@android:style/TextAppearance.Small">
+		<item name="android:textColor">@android:color/white</item>
+		<item name="android:textSize">11sp</item>
+	</style>
+
+	<style name="TextAppearanceObscureOptionSelected" parent="TextAppearanceObscureOption">
+		<item name="android:textStyle">bold</item>
+	</style>
+
 </resources>
