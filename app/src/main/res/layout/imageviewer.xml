@@ -26,6 +26,10 @@
 		android:foregroundGravity="center_vertical"
 		android:layout_gravity="bottom"
 		android:background="#b0000000"
+		android:scrollbars="horizontal"
+		android:scrollbarThumbHorizontal="@android:color/white"
+		android:scrollbarSize="5dp"
+		android:scrollbarStyle="insideOverlay"
 		>
 	</android.support.v7.widget.RecyclerView>
 </FrameLayout>

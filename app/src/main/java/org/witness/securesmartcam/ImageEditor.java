@@ -1120,7 +1120,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		} else if (v == btnNew) {
 			newDefaultRegion();
 		} else if (v == btnPreview) {
-			showPreview();
+			showPreview(true);
 		} else if (v == btnSave) {
 			//Why does this not show?
 			mProgressDialog = ProgressDialog.show(this, "", "Saving...", true, true);
@@ -1136,24 +1136,31 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			// Share Image
 			shareImage();
 		} else if (mode != DRAG && mode != ZOOM) {
-			float defaultSize = imageView.getWidth() / 4;
-			float halfSize = defaultSize / 2;
+			// Don't create new areas when previewing!
+			if (!isPreviewing()) {
+				float defaultSize = imageView.getWidth() / 4;
+				float halfSize = defaultSize / 2;
 
-			RectF newBox = new RectF();
+				RectF newBox = new RectF();
 
-			newBox.left = startPoint.x - halfSize;
-			newBox.top = startPoint.y - halfSize;
+				newBox.left = startPoint.x - halfSize;
+				newBox.top = startPoint.y - halfSize;
 
-			newBox.right = startPoint.x + halfSize;
-			newBox.bottom = startPoint.y + halfSize;
+				newBox.right = startPoint.x + halfSize;
+				newBox.bottom = startPoint.y + halfSize;
 
-			Matrix iMatrix = new Matrix();
-			matrix.invert(iMatrix);
-			iMatrix.mapRect(newBox);
+				Matrix iMatrix = new Matrix();
+				matrix.invert(iMatrix);
+				iMatrix.mapRect(newBox);
 
-			createImageRegion(newBox.left, newBox.top, newBox.right, newBox.bottom, true, true);
+				createImageRegion(newBox.left, newBox.top, newBox.right, newBox.bottom, true, true);
+			}
 		}
 
+	}
+
+	private boolean isPreviewing() {
+		return imageViewOverlay.getVisibility() == View.GONE;
 	}
 
 	/*
@@ -1242,8 +1249,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				return true;
 
 			case R.id.menu_preview:
-				showPreview();
-
+				boolean checked = item.isChecked();
+				item.setChecked(!checked);
+				showPreview(!checked);
 				return true;
 
 			default:
@@ -1298,16 +1306,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	/*
 	 * Display preview image
 	 */
-	private void showPreview() {
-
-		// Open Preview Activity
-		Uri tmpImageUri = saveTmpImage();
-
-		if (tmpImageUri != null) {
-			Intent intent = new Intent(this, ImagePreview.class);
-			intent.putExtra(ImagePreview.IMAGEURI, tmpImageUri.toString());
-			startActivity(intent);
-		}
+	private void showPreview(boolean preview) {
+		imageViewOverlay.setVisibility(preview ? View.GONE : View.VISIBLE);
 	}
 
 	/*

@@ -17,6 +17,8 @@
     <item android:id="@+id/menu_preview"
         android:title="@string/menu_preview" 
         android:icon="@drawable/ic_menu_preview"
+        android:checkable="true"
+        android:checked="false"
          android:showAsAction="always"
         />
 
