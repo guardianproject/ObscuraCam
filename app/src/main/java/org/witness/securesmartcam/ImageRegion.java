@@ -78,96 +78,100 @@ public class ImageRegion
 	public void setCornerMode (float x, float y)
 	{
 		float[] points = {x,y, mBounds.left, mBounds.top, mBounds.right, mBounds.bottom};
-    	iMatrix.mapPoints(points);
-    	
-    	float cSize = CORNER_MAX;
-    	
-    	cSize = iMatrix.mapRadius(cSize);
+    	mImageEditor.getMatrixInverted().mapPoints(points);
+		double radiusSquared = mImageEditor.getMatrixInverted().mapRadius(handleTouchSlop);
+		radiusSquared = radiusSquared * radiusSquared;
 
-		if (inLeftHandle(points[0], points[1])) {
+//    	float cSize = CORNER_MAX;
+//    	cSize = iMatrix.mapRadius(cSize);
+
+		if (inLeftHandle(points[0], points[1], radiusSquared)) {
 			cornerMode = CORNER_LEFT;
 			return;
-		} else if (inRightHandle(points[0], points[1])) {
+		} else if (inRightHandle(points[0], points[1], radiusSquared)) {
 			cornerMode = CORNER_RIGHT;
 			return;
-		} else if (inTopHandle(points[0], points[1])) {
+		} else if (inTopHandle(points[0], points[1], radiusSquared)) {
 			cornerMode = CORNER_UPPER;
 			return;
-		} else if (inBottomHandle(points[0], points[1])) {
+		} else if (inBottomHandle(points[0], points[1], radiusSquared)) {
 			cornerMode = CORNER_LOWER;
 			return;
-		} else if (Math.abs(mBounds.left-points[0])<cSize
-    			&& Math.abs(mBounds.top-points[1])<cSize
-    			)
-    	{
-    		cornerMode = CORNER_UPPER_LEFT;
-    		return;
-    	}
-    	else if (Math.abs(mBounds.left-points[0])<cSize
-    			&& Math.abs(mBounds.bottom-points[1])<cSize
-    			)
-    	{
-    		cornerMode = CORNER_LOWER_LEFT;
-			return;
 		}
-    	else if (Math.abs(mBounds.right-points[0])<cSize
-    			&& Math.abs(mBounds.top-points[1])<cSize
-    			)
-    	{
-    			cornerMode = CORNER_UPPER_RIGHT;
-    			return;
-		}
-    	else if (Math.abs(mBounds.right-points[0])<cSize
-        			&& Math.abs(mBounds.bottom-points[1])<cSize
-        			)
-    	{
-    		cornerMode = CORNER_LOWER_RIGHT;
-    		return;
-    	}
-    	
+//		else if (Math.abs(mBounds.left-points[0])<cSize
+//    			&& Math.abs(mBounds.top-points[1])<cSize
+//    			)
+//    	{
+//    		cornerMode = CORNER_UPPER_LEFT;
+//    		return;
+//    	}
+//    	else if (Math.abs(mBounds.left-points[0])<cSize
+//    			&& Math.abs(mBounds.bottom-points[1])<cSize
+//    			)
+//    	{
+//    		cornerMode = CORNER_LOWER_LEFT;
+//			return;
+//		}
+//    	else if (Math.abs(mBounds.right-points[0])<cSize
+//    			&& Math.abs(mBounds.top-points[1])<cSize
+//    			)
+//    	{
+//    			cornerMode = CORNER_UPPER_RIGHT;
+//    			return;
+//		}
+//    	else if (Math.abs(mBounds.right-points[0])<cSize
+//        			&& Math.abs(mBounds.bottom-points[1])<cSize
+//        			)
+//    	{
+//    		cornerMode = CORNER_LOWER_RIGHT;
+//    		return;
+//    	}
+//
     	cornerMode = CORNER_NONE;
 	}
 
-	private boolean inLeftHandle(float x, float y) {
+	private boolean inLeftHandle(float x, float y, double radiusSquared) {
 		float midY = mBounds.top + (mBounds.bottom - mBounds.top) / 2;
 		double dx = Math.pow(mBounds.left - x, 2);
 		double dy = Math.pow(midY - y, 2);
-		return ((dx + dy) < handleTouchSlop);
+		return ((dx + dy) < radiusSquared);
 	}
 
-	private boolean inRightHandle(float x, float y) {
+	private boolean inRightHandle(float x, float y, double radiusSquared) {
 		float midY = mBounds.top + (mBounds.bottom - mBounds.top) / 2;
 		double dx = Math.pow(mBounds.right - x, 2);
 		double dy = Math.pow(midY - y, 2);
-		return ((dx + dy) < handleTouchSlop);
+		return ((dx + dy) < radiusSquared);
 	}
 
-	private boolean inTopHandle(float x, float y) {
+	private boolean inTopHandle(float x, float y, double radiusSquared) {
 		float midX = mBounds.left + (mBounds.right - mBounds.left) / 2;
 		double dx = Math.pow(midX - x, 2);
 		double dy = Math.pow(mBounds.top - y, 2);
-		return ((dx + dy) < handleTouchSlop);
+		return ((dx + dy) < radiusSquared);
 	}
 
-	private boolean inBottomHandle(float x, float y) {
+	private boolean inBottomHandle(float x, float y, double radiusSquared) {
 		float midX = mBounds.left + (mBounds.right - mBounds.left) / 2;
 		double dx = Math.pow(midX - x, 2);
 		double dy = Math.pow(mBounds.bottom - y, 2);
-		return ((dx + dy) < handleTouchSlop);
+		return ((dx + dy) < radiusSquared);
 	}
 
 	public boolean containsPoint(float x, float y) {
 		float[] points = {x,y};
-		iMatrix.mapPoints(points);
-		return mBounds.contains(x, y) || inLeftHandle(x, y) || inRightHandle(x, y) || inTopHandle(x, y) || inBottomHandle(x, y);
+		mImageEditor.getMatrixInverted().mapPoints(points);
+		double radiusSquared = mImageEditor.getMatrixInverted().mapRadius(handleTouchSlop);
+		radiusSquared = radiusSquared * radiusSquared;
+		x = points[0];
+		y = points[1];
+		return mBounds.contains(x, y) || inLeftHandle(x, y, radiusSquared) || inRightHandle(x, y, radiusSquared) || inTopHandle(x, y, radiusSquared) || inBottomHandle(x, y, radiusSquared);
 	}
 
 	
 	/* For touch events, whether or not to show the menu
 	 */
 	boolean moved = false;
-				
-	Matrix mMatrix, iMatrix;
 
 	int fingerCount = 0;
 	
@@ -181,7 +185,6 @@ public class ImageRegion
 		// Handle
 		Resources r = imageEditor.getResources();
 		handleTouchSlop = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, ImageEditor.SELECTION_HANDLE_TOUCH_RADIUS, r.getDisplayMetrics());
-		handleTouchSlop = handleTouchSlop * handleTouchSlop; // Square it, we only use that in calculations
 
 		// Set the mImageEditor that this region belongs to to the one passed in
 		mImageEditor = imageEditor;
@@ -189,22 +192,11 @@ public class ImageRegion
 		identifiedBorder = imageEditor.getResources().getDrawable(R.drawable.border_idtag);
 		unidentifiedBorder = imageEditor.getResources().getDrawable(R.drawable.border);
 
-		mMatrix = matrix;
-		iMatrix = new Matrix();
-    	mMatrix.invert(iMatrix);
-
 		mBounds = new RectF(left, top, right, bottom);	
 
         //set default processor
         this.setRegionProcessor(new PixelizeObscure());
     }		
-	
-	public void setMatrix (Matrix matrix)
-	{
-		mMatrix = matrix;
-		iMatrix = new Matrix();
-    	mMatrix.invert(iMatrix);
-	}
 
 	boolean isSelected ()
 	{
@@ -261,9 +253,8 @@ public class ImageRegion
 				
                 if (fingerCount > 1)
                 {
-                	
                 	float[] points = {event.getX(0), event.getY(0), event.getX(1), event.getY(1)};                	
-                	iMatrix.mapPoints(points);
+                	mImageEditor.getMatrixInverted().mapPoints(points);
                 	
 					mStartPoint = new PointF(points[0],points[1]);
 					
@@ -293,7 +284,7 @@ public class ImageRegion
 	                	
 	                	float[] points = {mStartPoint.x, mStartPoint.y, event.getX(), event.getY()};
 	                	
-	                	iMatrix.mapPoints(points);
+	                	mImageEditor.getMatrixInverted().mapPoints(points);
 	                	
 	                	float diffX = points[0]-points[2];
 	                	float diffY = points[1]-points[3];

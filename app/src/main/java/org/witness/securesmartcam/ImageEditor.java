@@ -133,6 +133,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	// Image Matrix
 	Matrix matrix = new Matrix();
+	Matrix matrix_inverted = new Matrix();
 
 	// Saved Matrix for not allowing a current operation (over max zoom)
 	Matrix savedMatrix = new Matrix();
@@ -285,6 +286,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		matrix.invert(matrix_inverted);
 
 		String versNum = "";
 
@@ -604,6 +606,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		imageView.setImageMatrix(matrix);
 
 
+	}
+
+	public Matrix getMatrix() {
+		return matrix;
+	}
+
+	public Matrix getMatrixInverted() {
+		return matrix_inverted;
 	}
 
 	/*
@@ -1046,8 +1056,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		matrix.postTranslate(deltaX, deltaY);
 		imageView.setImageMatrix(matrix);
+		matrix_inverted = new Matrix();
+		matrix.invert(matrix_inverted);
 		updateDisplayImage();
-
 	}
 
 	/*
@@ -1827,14 +1838,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		public ImageRegion findRegion(MotionEvent event) {
 			ImageRegion result = null;
-			Matrix iMatrix = new Matrix();
-			matrix.invert(iMatrix);
-
-			float[] points = {event.getX(), event.getY()};
-			iMatrix.mapPoints(points);
-
 			for (ImageRegion region : imageRegions) {
-				if (region.containsPoint(points[0], points[1])) {
+				if (region.containsPoint(event.getX(), event.getY())) {
 					result = region;
 					break;
 				}
@@ -1844,9 +1849,6 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		public boolean onTouchRegion(View v, MotionEvent event, ImageRegion iRegion) {
 			boolean handled = false;
-
-			currRegion.setMatrix(matrix);
-
 			switch (event.getAction() & MotionEvent.ACTION_MASK) {
 				case MotionEvent.ACTION_DOWN:
 					setRealtimePreview(false);
