@@ -303,7 +303,10 @@ public class MainActivity extends AppCompatActivity implements OnEulaAgreedTo, G
 	}
 
 	public void askForReadExternalStoragePermission() {
-		ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+		ActivityCompat.requestPermissions(this, new String[]{
+					Manifest.permission.READ_EXTERNAL_STORAGE,
+					Manifest.permission.WRITE_EXTERNAL_STORAGE
+				},
 				READ_EXTERNAL_STORAGE_PERMISSION_REQUEST);
 	}
 
@@ -312,8 +315,9 @@ public class MainActivity extends AppCompatActivity implements OnEulaAgreedTo, G
 		switch (requestCode) {
 			case READ_EXTERNAL_STORAGE_PERMISSION_REQUEST: {
 				// If request is cancelled, the result arrays are empty.
-				if (grantResults.length > 0
-						&& grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+				if (grantResults.length > 1
+						&& grantResults[0] == PackageManager.PERMISSION_GRANTED
+						&& grantResults[1] == PackageManager.PERMISSION_GRANTED) {
 					applyCurrentMode();
 				}
 			}

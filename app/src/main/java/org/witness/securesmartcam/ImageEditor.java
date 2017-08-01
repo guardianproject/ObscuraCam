@@ -24,6 +24,7 @@ import java.util.Vector;
 
 import org.witness.informa.InformaEditor;
 import org.witness.informa.utils.MetadataParser;
+import org.witness.securesmartcam.adapters.AskForPermissionAdapter;
 import org.witness.securesmartcam.adapters.ImageRegionOptionsRecyclerViewAdapter;
 import org.witness.securesmartcam.detect.DetectedFace;
 import org.witness.securesmartcam.detect.FaceDetection;
@@ -36,6 +37,7 @@ import org.witness.securesmartcam.jpegredaction.JpegRedaction;
 import org.witness.sscphase1.ObscuraApp;
 import org.witness.sscphase1.R;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -44,6 +46,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -69,6 +72,7 @@ import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -81,6 +85,8 @@ import android.provider.MediaStore.Images.Media;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -106,6 +112,7 @@ import com.squareup.picasso.Picasso;
 
 public class ImageEditor extends Activity implements OnTouchListener, OnClickListener, ImageRegionOptionsRecyclerViewAdapter.ImageRegionOptionsRecyclerViewAdapterListener {
 
+	private static final int WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST = 1;
 
 	public final static String MIME_TYPE_JPEG = "image/jpeg";
 
@@ -133,6 +140,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 	// Image Matrix
 	Matrix matrix = new Matrix();
+	Matrix matrix_inverted = new Matrix();
 
 	// Saved Matrix for not allowing a current operation (over max zoom)
 	Matrix savedMatrix = new Matrix();
@@ -285,6 +293,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		matrix.invert(matrix_inverted);
 
 		String versNum = "";
 
@@ -592,7 +601,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// Set the OnTouch and OnLongClick listeners to this (ImageEditor)
 		imageView.setOnTouchListener(this);
 		imageView.setOnClickListener(this);
-
+		imageView.setSoundEffectsEnabled(false);
 
 		//PointF midpoint = new PointF((float)imageBitmap.getWidth()/2f, (float)imageBitmap.getHeight()/2f);
 		matrix.postScale(matrixScale, matrixScale);
@@ -604,6 +613,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		imageView.setImageMatrix(matrix);
 
 
+	}
+
+	public Matrix getMatrix() {
+		return matrix;
+	}
+
+	public Matrix getMatrixInverted() {
+		return matrix_inverted;
 	}
 
 	/*
@@ -1046,8 +1063,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		matrix.postTranslate(deltaX, deltaY);
 		imageView.setImageMatrix(matrix);
+		matrix_inverted = new Matrix();
+		matrix.invert(matrix_inverted);
 		updateDisplayImage();
-
 	}
 
 	/*
@@ -1129,7 +1147,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				@Override
 				public void run() {
 					// this will be done in the Pipeline Thread
-					saveImage();
+					checkWritePermissionThenSave();
 				}
 			}, 500);
 		} else if (v == btnShare) {
@@ -1221,7 +1239,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					@Override
 					public void run() {
 						// this will be done in the Pipeline Thread
-						saveImage();
+						checkWritePermissionThenSave();
 					}
 				}, 500);
 
@@ -1308,6 +1326,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	 */
 	private void showPreview(boolean preview) {
 		imageViewOverlay.setVisibility(preview ? View.GONE : View.VISIBLE);
+		setCurrentRegion(null);
 	}
 
 	/*
@@ -1379,7 +1398,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 			RectF regionRect = new RectF(currentRegion.getBounds());
 
-			if (mode != DRAG)
+			if (doRealtimePreview)
 				om.processRegion(regionRect, obscuredCanvas, obscuredBmp);
 		}
 
@@ -1532,6 +1551,36 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			mProgressDialog.cancel();
 			e.printStackTrace();
 			return null;
+		}
+	}
+
+	private void checkWritePermissionThenSave() {
+		int permissionCheck = ContextCompat.checkSelfPermission(this,
+				Manifest.permission.WRITE_EXTERNAL_STORAGE);
+		if (Build.VERSION.SDK_INT <= 18)
+			permissionCheck = PackageManager.PERMISSION_GRANTED; // For old devices we ask in the manifest!
+		if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+			ActivityCompat.requestPermissions(this, new String[]{
+							Manifest.permission.READ_EXTERNAL_STORAGE,
+							Manifest.permission.WRITE_EXTERNAL_STORAGE},
+					WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST);
+		} else {
+			saveImage();
+		}
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+		switch (requestCode) {
+			case WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST: {
+				// If request is cancelled, the result arrays are empty.
+				if (grantResults.length > 1
+						&& grantResults[0] == PackageManager.PERMISSION_GRANTED
+						&& grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+					saveImage();
+				}
+			}
+			break;
 		}
 	}
 
@@ -1827,14 +1876,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		public ImageRegion findRegion(MotionEvent event) {
 			ImageRegion result = null;
-			Matrix iMatrix = new Matrix();
-			matrix.invert(iMatrix);
-
-			float[] points = {event.getX(), event.getY()};
-			iMatrix.mapPoints(points);
-
 			for (ImageRegion region : imageRegions) {
-				if (region.containsPoint(points[0], points[1])) {
+				if (region.containsPoint(event.getX(), event.getY())) {
 					result = region;
 					break;
 				}
@@ -1845,8 +1888,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		public boolean onTouchRegion(View v, MotionEvent event, ImageRegion iRegion) {
 			boolean handled = false;
 
-			currRegion.setMatrix(matrix);
-
+			// No touches in regions while previewing
+			if (isPreviewing()) {
+				return false;
+			}
 			switch (event.getAction() & MotionEvent.ACTION_MASK) {
 				case MotionEvent.ACTION_DOWN:
 					setRealtimePreview(false);
@@ -1857,9 +1902,12 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					break;
 
 				case MotionEvent.ACTION_UP:
+				case MotionEvent.ACTION_CANCEL:
 					mode = NONE;
 					handled = currRegion.onTouch(v, event);
 					setRealtimePreview(true);
+					updateDisplayImage();
+
 					//currRegion.setSelected(false);
 
 					break;
@@ -1898,6 +1946,10 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 						}
 						return false;
 					}
+				case MotionEvent.ACTION_CANCEL:
+				case MotionEvent.ACTION_UP:
+					setRealtimePreview(true);
+					updateDisplayImage();
 			}
 			return false;
 		}
