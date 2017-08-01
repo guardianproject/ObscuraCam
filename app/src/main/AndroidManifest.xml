@@ -29,7 +29,7 @@
             </intent-filter>
         </activity>
         <activity android:name="org.witness.securesmartcam.ImageEditor"
-            android:configChanges="orientation|keyboardHidden"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:theme="@style/AppTheme"
             >
 			<intent-filter>

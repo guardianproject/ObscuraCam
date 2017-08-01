@@ -1726,18 +1726,12 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 	public void onConfigurationChanged(Configuration conf) {
 		super.onConfigurationChanged(conf);
 
-		Thread thread = new Thread() {
-			public void run() {
-				mHandler.postDelayed(new Runnable() {
-					public void run() {
-						putOnScreen();
-					}
-				}, 100);
-			}
-		};
-
-
-		thread.start();
+        mHandler.postDelayed(new Runnable() {
+            public void run() {
+                putOnScreen();
+            }
+        }, 100);
+    
 	}
 
 	public void launchInforma(ImageRegion ir) {
