@@ -82,6 +82,7 @@ import android.view.View.OnTouchListener;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.MediaController;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 public class VideoEditor extends Activity implements
@@ -280,15 +281,21 @@ public class VideoEditor extends Activity implements
 		mAutoDetectEnabled = true; //first time do autodetect
 		
 		setPrefs();
-		
-	    retriever.setDataSource(recordingFile.getAbsolutePath());
 
-		bitmapPixel = BitmapFactory.decodeResource(getResources(),
-                R.drawable.ic_context_pixelate);
-		
+		try {
+			retriever.setDataSource(recordingFile.getAbsolutePath());
 
-		showAutoDetectDialog();
-		
+			bitmapPixel = BitmapFactory.decodeResource(getResources(),
+					R.drawable.ic_context_pixelate);
+
+
+			showAutoDetectDialog();
+		}
+		catch (RuntimeException re)
+		{
+			Toast.makeText(this, "There was an error with the video file",Toast.LENGTH_LONG).show();
+			finish();
+		}
 	}
 	
 	private void resetMediaPlayer ()
