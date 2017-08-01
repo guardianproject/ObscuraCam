@@ -30,3 +30,7 @@ SDK. After posting question about it on google groups and stack overflow, i
 got the solution for it from Qberticus (thanx Qberticus!)."
 http://code.google.com/p/simple-quickactions/
 http://www.londatiga.net/it/how-to-create-quickaction-dialog-in-android/
+
+Images
+-----------
+Mr Smiley Face: https://commons.wikimedia.org/wiki/File:Mr._Smiley_Face.svg

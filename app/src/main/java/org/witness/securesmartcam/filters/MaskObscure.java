@@ -29,18 +29,34 @@ public class MaskObscure implements RegionProcesser {
 	Properties mProps;
 	
 	Bitmap mask;
-	
+
+	String[] maskArray = {"mask.png","MrSmileyFace.png","lucha.png"};
+	int maskArrayIdx = -1;
+
 	public MaskObscure(Context context, Paint painter) {
-		
+
 		_painter = painter;
 		_context = context;
 
-		mProps = new Properties ();
-		mProps.put("path", "mask.png");
+		mProps = new Properties();
+
 		mProps.put("obfuscationType", this.getClass().getName());
-		
+
+        rotateMask();
+	}
+
+	public void rotateMask ()
+	{
 		try
 		{
+
+			maskArrayIdx++;
+
+			if (maskArrayIdx > maskArray.length-1)
+				maskArrayIdx = 0;
+
+			mProps.put("path", maskArray[maskArrayIdx]);
+
 		  mask = loadBitmap(_context,mProps.getProperty("path"));
 		
 		}

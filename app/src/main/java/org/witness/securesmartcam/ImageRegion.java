@@ -390,7 +390,12 @@ public class ImageRegion
 		
 		case ImageRegion.MASK:
 			Log.v(ObscuraApp.TAG,"obscureType: ANON");
-			setRegionProcessor(new MaskObscure(mImageEditor.getApplicationContext(), mImageEditor.getPainter()));
+			if (mRProc != null && mRProc instanceof MaskObscure)
+			{
+				((MaskObscure)mRProc).rotateMask();
+			}
+			else
+				setRegionProcessor(new MaskObscure(mImageEditor.getApplicationContext(), mImageEditor.getPainter()));
 
 			break;
 			
