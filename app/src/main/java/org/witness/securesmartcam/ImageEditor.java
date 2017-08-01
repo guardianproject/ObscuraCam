@@ -1731,7 +1731,7 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
                 putOnScreen();
             }
         }, 100);
-    
+
 	}
 
 	public void launchInforma(ImageRegion ir) {
@@ -1854,10 +1854,15 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 				for (ImageRegion currentRegion : imageRegions) {
 					RectF regionRect = currentRegion.getBounds();
 					imageMatrix.mapRect(mappedRect, regionRect);
-					if (currentRegion.isSelected())
-						paint.setColor(0xffb6ff66);
-					else
-						paint.setColor(Color.WHITE);
+					if (currentRegion.isSelected()) {
+                        paint.setColor(0xffb6ff66);
+                        paint.setStrokeWidth(3f);
+                    }
+					else {
+                        paint.setColor(Color.WHITE);
+                        paint.setStrokeWidth(1f);
+                    }
+
 					paint.setStyle(Style.STROKE);
 					canvas.drawRect(mappedRect, paint);
 
