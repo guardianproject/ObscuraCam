@@ -660,16 +660,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	private void deleteOriginal() throws IOException {
 
 		if (originalImageUri != null) {
-			if (originalImageUri.getScheme().equals("file")) {
-				String origFilePath = originalImageUri.getPath();
-				File fileOrig = new File(origFilePath);
+
+			String origFilePath = originalImageUri.getPath();
+			File fileOrig = new File(origFilePath);
+
+			if (fileOrig.exists()) {
 
 				String[] columnsToSelect = {MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA};
-				
-				/*
-				ExifInterface ei = new ExifInterface(origFilePath);
-				long dateTaken = new Date(ei.getAttribute(ExifInterface.TAG_DATETIME)).getTime();
-				*/
 
 				Uri[] uriBases = {MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media.INTERNAL_CONTENT_URI};
 
