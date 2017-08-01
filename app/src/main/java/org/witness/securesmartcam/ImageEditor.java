@@ -17,8 +17,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
-import org.witness.informa.InformaEditor;
-import org.witness.informa.utils.MetadataParser;
 import org.witness.securesmartcam.adapters.ImageRegionOptionsRecyclerViewAdapter;
 import org.witness.securesmartcam.detect.AndroidFaceDetection;
 import org.witness.securesmartcam.detect.DetectedFace;
@@ -34,7 +32,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -56,7 +53,6 @@ import android.graphics.PixelFormat;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.media.ExifInterface;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -65,15 +61,12 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
 import android.provider.MediaStore;
-import android.provider.MediaStore.Images;
-import android.provider.MediaStore.Images.Media;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
@@ -184,7 +177,6 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 
 	// Vector to hold ImageRegions 
 	ArrayList<ImageRegion> imageRegions = new ArrayList<ImageRegion>();
-	MetadataParser mp;
 
 	// The original image dimensions (not scaled)
 	int originalImageWidth;
@@ -1734,22 +1726,6 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 
 	}
 
-	public void launchInforma(ImageRegion ir) {
-		Intent informa = new Intent(this, InformaEditor.class);
-		informa.putExtra("mProps", ir.getRegionProcessor().getProperties());
-		informa.putExtra("irIndex", imageRegions.indexOf(ir));
-
-		ir.getRegionProcessor().processRegion(new RectF(ir.getBounds()), obscuredCanvas, obscuredBmp);
-
-		if (ir.getRegionProcessor().getBitmap() != null) {
-			Bitmap b = ir.getRegionProcessor().getBitmap();
-			ByteArrayOutputStream bs = new ByteArrayOutputStream();
-			b.compress(Bitmap.CompressFormat.PNG, 50, bs);
-			informa.putExtra("byteArray", bs.toByteArray());
-		}
-
-		startActivityForResult(informa, FROM_INFORMA);
-	}
 
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {

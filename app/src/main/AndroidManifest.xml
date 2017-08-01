@@ -47,9 +47,8 @@
         </activity>
         
         <activity android:name="org.witness.securesmartcam.ImagePreview" android:label="@string/image_preview" android:configChanges="orientation|keyboardHidden" />
-    	<activity android:name="org.witness.informa.InformaEditor" android:theme="@style/Theme.CustomDialog" />
-    	
-    	<activity android:name="org.witness.ssc.video.VideoEditor"  android:screenOrientation="landscape"  android:configChanges="orientation|keyboardHidden">
+
+        <activity android:name="org.witness.ssc.video.VideoEditor"  android:screenOrientation="landscape"  android:configChanges="orientation|keyboardHidden">
     	    <intent-filter>
                  
                  <action android:name="android.intent.action.EDIT" />
