@@ -740,27 +740,27 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		ArrayList<DetectedFace> dFaces = new ArrayList<DetectedFace>();
 
 		try {
-			//Bitmap bProc = toGrayscale(imageBitmap);
 
-			FaceDetection fd = new GooglePlayMVFaceDetection(this, false);
+			FaceDetection fd = new AndroidFaceDetection(imageBitmap.getWidth(), imageBitmap.getHeight());
 			int numFaces = fd.findFaces(imageBitmap);
-			//debug(ObscuraApp.TAG,"Num Faces Found: " + numFaces);
 
 			if (numFaces > 0)
 				dFaces.addAll(fd.getFaces(numFaces));
-
-			fd.release();
-
-			fd = new AndroidFaceDetection(imageBitmap.getWidth(), imageBitmap.getHeight());
-			numFaces = fd.findFaces(imageBitmap);
-
-			if (numFaces > 0)
-				dFaces.addAll(fd.getFaces(numFaces));
+            else
+            {
+                fd.release();
+                Bitmap imageGrayScale = toGrayscale(imageBitmap);
+                fd = new AndroidFaceDetection(imageGrayScale.getWidth(), imageGrayScale.getHeight());
+                numFaces = fd.findFaces(imageGrayScale);
+                if (numFaces > 0)
+                    dFaces.addAll(fd.getFaces(numFaces));
+            }
 
 			fd.release();
 
 		} catch (NullPointerException e) {
 			dFaces = null;
+            Log.e(getClass().getName(),"error detecting faces",e);
 		}
 		return dFaces;
 	}
