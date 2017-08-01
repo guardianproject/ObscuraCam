@@ -20,10 +20,8 @@ import net.londatiga.android.ActionItem;
 import net.londatiga.android.QuickAction;
 import net.londatiga.android.QuickAction.OnActionItemClickListener;
 
+import org.witness.securesmartcam.detect.AndroidFaceDetection;
 import org.witness.securesmartcam.detect.DetectedFace;
-import org.witness.securesmartcam.detect.FaceDetection;
-import org.witness.securesmartcam.detect.GoogleFaceDetection;
-import org.witness.securesmartcam.detect.GooglePlayMVFaceDetection;
 import org.witness.securesmartcam.filters.PixelizeObscure;
 import org.witness.ssc.video.InOutPlayheadSeekBar.InOutPlayheadSeekBarChangeListener;
 import org.witness.ssc.video.ShellUtils.ShellCallback;
@@ -1568,11 +1566,9 @@ public class VideoEditor extends Activity implements
 
         super.onDestroy ();
 
-        if (fd1 != null)
-            fd1.release();
+        if (fd != null)
+            fd.release();
 
-        if (fd2 != null)
-            fd2.release();
     }
 
 
@@ -1821,8 +1817,7 @@ public class VideoEditor extends Activity implements
 		return null;
 	}
 
-	GooglePlayMVFaceDetection fd1 = null;
-	GoogleFaceDetection fd2 = null;
+	AndroidFaceDetection fd= null;
 	/*
 	 * The actual face detection calling method
 	 */
@@ -1830,24 +1825,21 @@ public class VideoEditor extends Activity implements
 
 		ArrayList<DetectedFace> dFaces = new ArrayList<DetectedFace>();
 		
-		if (fd1 == null)
-			fd1 = new GooglePlayMVFaceDetection(this, false);
-
-		if (fd2 == null)
-			fd2 = new GoogleFaceDetection(bmp.getWidth(),bmp.getHeight());
+		if (fd == null)
+			fd = new AndroidFaceDetection(bmp.getWidth(),bmp.getHeight());
 
 		try {
 			//Bitmap bProc = toGrayscale(bmp);
 			
-			int numFaces = fd1.findFaces(bmp);
+			int numFaces = fd.findFaces(bmp);
 
 			if (numFaces > 0)
-				dFaces.addAll(fd1.getFaces(numFaces));
+				dFaces.addAll(fd.getFaces(numFaces));
 
-			numFaces = fd2.findFaces(bmp);
+			numFaces = fd.findFaces(bmp);
 
 			if (numFaces > 0)
-				dFaces.addAll(fd2.getFaces(numFaces));
+				dFaces.addAll(fd.getFaces(numFaces));
 
 		} catch(NullPointerException e) {
 			dFaces = null;

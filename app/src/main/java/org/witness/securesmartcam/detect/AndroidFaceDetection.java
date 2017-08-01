@@ -10,9 +10,9 @@ import android.media.FaceDetector;
 import android.media.FaceDetector.Face;
 import android.util.Log;
 
-public class GoogleFaceDetection implements FaceDetection {
+public class AndroidFaceDetection implements FaceDetection {
 
-	public static final String LOGTAG = "GoogleFaceDetection"; 
+	public static final String LOGTAG = "AndroidFaceDetection";
 	
 	public static int MAX_FACES = 10;
 
@@ -23,7 +23,7 @@ public class GoogleFaceDetection implements FaceDetection {
 
 	public final static float CONFIDENCE_FILTER = .15f;
 	
-	public GoogleFaceDetection(int width, int height) {
+	public AndroidFaceDetection(int width, int height) {
 		
 		faceDetector = new FaceDetector(width, height, MAX_FACES);
 	
