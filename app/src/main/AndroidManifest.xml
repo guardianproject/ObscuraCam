@@ -16,6 +16,7 @@
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher_ssc"
         android:largeHeap="true"
         android:name=".App"
+        android:theme="@style/AppTheme"
         >
         <activity android:label="@string/app_name_label" android:name=".MainActivity"
               android:description="@string/app_description"
@@ -27,7 +28,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="org.witness.securesmartcam.ImageEditor" android:configChanges="orientation|keyboardHidden">
+        <activity android:name="org.witness.securesmartcam.ImageEditor"
+            android:configChanges="orientation|keyboardHidden"
+            android:theme="@style/AppTheme"
+            >
 			<intent-filter>
             
 			    <action android:name="android.intent.action.EDIT" />

@@ -67,10 +67,13 @@ import android.os.Vibrator;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
 import android.provider.MediaStore.Images.Media;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
@@ -87,7 +90,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-public class ImageEditor extends Activity implements OnTouchListener, OnClickListener, ImageRegionOptionsRecyclerViewAdapter.ImageRegionOptionsRecyclerViewAdapterListener {
+public class ImageEditor extends AppCompatActivity implements OnTouchListener, OnClickListener, View.OnLongClickListener, ImageRegionOptionsRecyclerViewAdapter.ImageRegionOptionsRecyclerViewAdapterListener {
 
 	private static final int WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST = 1;
 
@@ -270,6 +273,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+        getSupportActionBar().setTitle("");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
 		matrix.invert(matrix_inverted);
 
 		String versNum = "";
@@ -435,9 +441,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 				Display currentDisplay = getWindowManager().getDefaultDisplay();
 
 				// Ratios between the display and the image
+                /**
 				double widthRatio = Math.floor(bmpFactoryOptions.outWidth / currentDisplay.getWidth());
 				double heightRatio = Math.floor(bmpFactoryOptions.outHeight / currentDisplay.getHeight());
-
 
 				// If both of the ratios are greater than 1,
 				// one of the sides of the image is greater than the screen
@@ -449,14 +455,29 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 					inSampleSize = (int) widthRatio;
 				}
 
-				bmpFactoryOptions.inSampleSize = inSampleSize * 2;
+				bmpFactoryOptions.inSampleSize = inSampleSize;
+                 **/
 
-				// Decode it for real
-				bmpFactoryOptions.inJustDecodeBounds = false;
-				inputStream = streamFromUri(originalImageUri);
-				loadedBitmap = BitmapFactory.decodeStream(inputStream, null, bmpFactoryOptions);
-				inputStream.close();
-				debug(ObscuraApp.TAG, "Was: " + loadedBitmap.getConfig());
+                bmpFactoryOptions.inSampleSize = 2;
+                boolean notLoaded = true;
+
+                while (notLoaded) {
+
+                    try {
+                        // Decode it for real
+                        bmpFactoryOptions.inJustDecodeBounds = false;
+                        inputStream = streamFromUri(originalImageUri);
+                        loadedBitmap = BitmapFactory.decodeStream(inputStream, null, bmpFactoryOptions);
+                        inputStream.close();
+                        debug(ObscuraApp.TAG, "Was: " + loadedBitmap.getConfig());
+                        notLoaded = false;
+                    }
+                    catch (OutOfMemoryError oom)
+                    {
+                        bmpFactoryOptions.inSampleSize *= 2;
+                        //try again but smaller!
+                    }
+                }
 
 				if (loadedBitmap == null) {
 					debug(ObscuraApp.TAG, "bmp is null");
@@ -578,6 +599,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		// Set the OnTouch and OnLongClick listeners to this (ImageEditor)
 		imageView.setOnTouchListener(this);
 		imageView.setOnClickListener(this);
+        imageView.setOnLongClickListener(this);
 		imageView.setSoundEffectsEnabled(false);
 
 		//PointF midpoint = new PointF((float)imageBitmap.getWidth()/2f, (float)imageBitmap.getHeight()/2f);
@@ -1234,9 +1256,9 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
         		
         		return true;
 */
-			case R.id.menu_about:
-				// Pull up about screen
-				displayAbout();
+            case android.R.id.home:
+                // Pull up about screen
+				finish();
 
 				return true;
 
@@ -1328,9 +1350,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	private void viewImage(Uri imgView) {
 
 		Intent iView = new Intent(Intent.ACTION_VIEW);
-		iView.setType(MIME_TYPE_JPEG);
-		iView.putExtra(Intent.EXTRA_STREAM, imgView);
 		iView.setDataAndType(imgView, MIME_TYPE_JPEG);
+        iView.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
 		startActivity(Intent.createChooser(iView, "View Image"));
 
@@ -1402,14 +1423,8 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      */
 	private Uri processNativeRes(Uri sourceImage) throws Exception {
 
-		File tmpFileDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-		if (!tmpFileDirectory.exists()) {
-			tmpFileDirectory.mkdirs();
-		}
-
-
-		File tmpInFile = new File(tmpFileDirectory, 'i' + TMP_FILE_NAME);
-		File fileTarget = new File(tmpFileDirectory, TMP_FILE_NAME);
+		File tmpInFile = new File(getCacheDir(), 'i' + TMP_FILE_NAME);
+		File fileTarget = new File(getCacheDir(), TMP_FILE_NAME);
 
 		if (tmpInFile.exists())
 			tmpInFile.delete();
@@ -1430,7 +1445,15 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 	}
 
 	private void copy(Uri uriSrc, File fileTarget) throws IOException {
-		InputStream is = getContentResolver().openInputStream(uriSrc);
+		InputStream is = null;
+
+        try {
+            is = getContentResolver().openInputStream(uriSrc);
+        }
+        catch (FileNotFoundException fe)
+        {
+            is = new FileInputStream(uriSrc.getPath());
+        }
 
 		OutputStream os = new FileOutputStream(fileTarget);
 
@@ -1516,7 +1539,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 			OutputStream imageFileOS;
 
-			int quality = 75;
+			int quality = 100;
 			imageFileOS = getContentResolver().openOutputStream(tmpImageUri);
 			obscuredBmp.compress(CompressFormat.JPEG, quality, imageFileOS);
 
@@ -1564,12 +1587,14 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
      */
 	private boolean saveImage() {
 
+        SimpleDateFormat dateFormat = new SimpleDateFormat(EXPORT_DATE_FORMAT);
+        Date date = new Date();
+        String dateString = dateFormat.format(date);
+
+        /**
 		ContentValues cv = new ContentValues();
 
 		// Add a date so it shows up in a reasonable place in the gallery - Should we do this??
-		SimpleDateFormat dateFormat = new SimpleDateFormat(EXPORT_DATE_FORMAT);
-		Date date = new Date();
-		String dateString = dateFormat.format(date);
 
 		// Which one?
 		cv.put(Images.Media.DATE_ADDED, dateString);
@@ -1588,9 +1613,17 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		if (savedImageUri == null)
 			return false;
+         **/
+
+        File fileImageOut =
+                new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                        "obscura" + new Date().getTime() + ".jpg");
+
+        savedImageUri = Uri.fromFile(fileImageOut);
 
 		boolean nativeSuccess = false;
 
+        /**
 		if (canDoNative()) {
 			try {
 				Uri savedNativeTmp = processNativeRes(originalImageUri);
@@ -1602,7 +1635,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 			} catch (Exception e) {
 				Log.e(ObscuraApp.TAG, "error doing native redact", e);
 			}
-		}
+		}**/
 
 
 		if (!nativeSuccess) {
@@ -1623,6 +1656,7 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 
 		}
 
+		/**
 		// package and insert exif data
 		mp = new MetadataParser(dateFormat.format(date), pullPathFromUri(savedImageUri), this);
 		Iterator<ImageRegion> i = imageRegions.iterator();
@@ -1631,21 +1665,25 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 
 		mp.flushMetadata();
+         **/
 
-		// force mediascanner to update file
-		MediaScannerConnection.scanFile(
-				this,
-				new String[]{pullPathFromUri(savedImageUri).getAbsolutePath()},
-				new String[]{MIME_TYPE_JPEG},
-				null);
+        Intent intent =
+                new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        intent.setData(savedImageUri);
+        sendBroadcast(intent);
 
-		Toast t = Toast.makeText(this, "Image saved to Gallery", Toast.LENGTH_SHORT);
-		t.show();
+        mProgressDialog.cancel();
 
-		mProgressDialog.cancel();
+//                        showDeleteOriginalDialog();
 
-		showDeleteOriginalDialog();
-
+        Snackbar snackbar = Snackbar.make(findViewById(R.id.frameRoot),"Open",Snackbar.LENGTH_INDEFINITE);
+        snackbar.setAction("Open", new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                viewImage(savedImageUri);
+            }
+        });
+        snackbar.show();
 
 		return true;
 	}
@@ -1793,7 +1831,13 @@ public class ImageEditor extends Activity implements OnTouchListener, OnClickLis
 		}
 	}
 
-	private class RegionOverlayView extends View implements OnTouchListener {
+    @Override
+    public boolean onLongClick(View view) {
+        showPreview(true);
+        return false;
+    }
+
+    private class RegionOverlayView extends View implements OnTouchListener {
 		private Paint paint;
 		private RectF mappedRect;
 		private int mode;
