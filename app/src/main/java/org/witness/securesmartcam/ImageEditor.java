@@ -90,7 +90,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-public class ImageEditor extends AppCompatActivity implements OnTouchListener, OnClickListener, View.OnLongClickListener, ImageRegionOptionsRecyclerViewAdapter.ImageRegionOptionsRecyclerViewAdapterListener {
+public class ImageEditor extends AppCompatActivity implements OnTouchListener, OnClickListener, ImageRegionOptionsRecyclerViewAdapter.ImageRegionOptionsRecyclerViewAdapterListener {
 
 	private static final int WRITE_EXTERNAL_STORAGE_PERMISSION_REQUEST = 1;
 
@@ -599,7 +599,6 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 		// Set the OnTouch and OnLongClick listeners to this (ImageEditor)
 		imageView.setOnTouchListener(this);
 		imageView.setOnClickListener(this);
-        imageView.setOnLongClickListener(this);
 		imageView.setSoundEffectsEnabled(false);
 
 		//PointF midpoint = new PointF((float)imageBitmap.getWidth()/2f, (float)imageBitmap.getHeight()/2f);
@@ -1067,7 +1066,7 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 	/*
 	 * Create new ImageRegion
 	 */
-	public void createImageRegion(float left, float top, float right, float bottom, boolean showPopup, boolean updateNow) {
+	public ImageRegion createImageRegion(float left, float top, float right, float bottom, boolean showPopup, boolean updateNow) {
 		setCurrentRegion(null);
 
 		ImageRegion imageRegion = new ImageRegion(
@@ -1087,6 +1086,8 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 				}
 			});
 		}
+
+		return imageRegion;
 	}
 
 	/*
@@ -1167,7 +1168,8 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 				matrix.invert(iMatrix);
 				iMatrix.mapRect(newBox);
 
-				createImageRegion(newBox.left, newBox.top, newBox.right, newBox.bottom, true, true);
+				ImageRegion region = createImageRegion(newBox.left, newBox.top, newBox.right, newBox.bottom, true, true);
+			    setCurrentRegion(region);
 			}
 		}
 
@@ -1322,7 +1324,7 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 	 */
 	private void showPreview(boolean preview) {
 		imageViewOverlay.setVisibility(preview ? View.GONE : View.VISIBLE);
-		setCurrentRegion(null);
+	//	setCurrentRegion(null);
 	}
 
 	/*
@@ -1831,11 +1833,6 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 		}
 	}
 
-    @Override
-    public boolean onLongClick(View view) {
-        showPreview(true);
-        return false;
-    }
 
     private class RegionOverlayView extends View implements OnTouchListener {
 		private Paint paint;
@@ -1906,14 +1903,10 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 		public boolean onTouchRegion(View v, MotionEvent event, ImageRegion iRegion) {
 			boolean handled = false;
 
-			// No touches in regions while previewing
-			if (isPreviewing()) {
-				return false;
-			}
 			switch (event.getAction() & MotionEvent.ACTION_MASK) {
 				case MotionEvent.ACTION_DOWN:
 					setRealtimePreview(false);
-					currRegion.setCornerMode(event.getX(), event.getY());
+					iRegion.setCornerMode(event.getX(), event.getY());
 					mode = DRAG;
 					handled = iRegion.onTouch(v, event);
 
@@ -1922,19 +1915,15 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 				case MotionEvent.ACTION_UP:
 				case MotionEvent.ACTION_CANCEL:
 					mode = NONE;
-					handled = currRegion.onTouch(v, event);
+					handled = iRegion.onTouch(v, event);
 					setRealtimePreview(true);
 					updateDisplayImage();
-
-					//currRegion.setSelected(false);
 
 					break;
 
 				case MotionEvent.ACTION_MOVE:
 					mode = DRAG;
-					handled = currRegion.onTouch(v, event);
-					//handled = iRegion.onTouch(v, event);
-					//currRegion.setSelected(false);
+					handled = iRegion.onTouch(v, event);
 
 					break;
 
@@ -1955,7 +1944,7 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 					if (newRegion != null) {
 						setCurrentRegion(newRegion);
 						updateDisplayImage();
-						return onTouchRegion(v, event, currRegion);
+						return onTouchRegion(v, event, newRegion);
 					} else {
 						if (getCurrentRegion() != null) {
 							setCurrentRegion(null);
