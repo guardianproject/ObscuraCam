@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "org.witness.sscphase1"
-        minSdkVersion 14
+        minSdkVersion 16
         targetSdkVersion 25
         versionCode 38
         versionName "4.0.0"
@@ -42,5 +42,6 @@ dependencies {
     compile 'commons-codec:commons-codec:1.9'
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support:design:25.3.1'
+    compile 'com.writingminds:FFmpegAndroid:0.3.2'
     compile(name:'picasso-2.6.0', ext:'aar')
 }

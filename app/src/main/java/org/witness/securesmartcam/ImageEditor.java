@@ -1,32 +1,5 @@
 package org.witness.securesmartcam;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.channels.FileChannel;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-
-import org.witness.securesmartcam.adapters.ImageRegionOptionsRecyclerViewAdapter;
-import org.witness.securesmartcam.detect.AndroidFaceDetection;
-import org.witness.securesmartcam.detect.DetectedFace;
-import org.witness.securesmartcam.detect.FaceDetection;
-import org.witness.securesmartcam.filters.MaskObscure;
-import org.witness.securesmartcam.filters.RegionProcesser;
-import org.witness.securesmartcam.jpegredaction.JpegRedaction;
-import org.witness.sscphase1.ObscuraApp;
-import org.witness.sscphase1.R;
-
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -82,6 +55,32 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import org.witness.securesmartcam.adapters.ImageRegionOptionsRecyclerViewAdapter;
+import org.witness.securesmartcam.detect.AndroidFaceDetection;
+import org.witness.securesmartcam.detect.DetectedFace;
+import org.witness.securesmartcam.detect.FaceDetection;
+import org.witness.securesmartcam.filters.MaskObscure;
+import org.witness.securesmartcam.filters.RegionProcesser;
+import org.witness.securesmartcam.jpegredaction.JpegRedaction;
+import org.witness.sscphase1.ObscuraApp;
+import org.witness.sscphase1.R;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
 
 public class ImageEditor extends AppCompatActivity implements OnTouchListener, OnClickListener, ImageRegionOptionsRecyclerViewAdapter.ImageRegionOptionsRecyclerViewAdapterListener {
 
@@ -1214,12 +1213,6 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 
 		switch (item.getItemId()) {
 
-			case R.id.menu_new_region:
-
-				newDefaultRegion();
-
-				return true;
-
 			case R.id.menu_save:
 
 				//Why does this not show?
@@ -1670,7 +1663,7 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 
 //                        showDeleteOriginalDialog();
 
-        Snackbar snackbar = Snackbar.make(findViewById(R.id.frameRoot),"Open",Snackbar.LENGTH_INDEFINITE);
+        Snackbar snackbar = Snackbar.make(findViewById(R.id.frameRoot),R.string.processing_complete,Snackbar.LENGTH_INDEFINITE);
         snackbar.setAction("Open", new OnClickListener() {
             @Override
             public void onClick(View view) {

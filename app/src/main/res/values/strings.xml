@@ -126,4 +126,5 @@
     <string name="gallery_info_ok">Got it</string>
     <string name="gallery_need_permission">We need your permission to access your photos. Please tap anywhere to allow it.</string>
 
+    <string name="processing_complete">Obscured successfully!</string>
 </resources>
