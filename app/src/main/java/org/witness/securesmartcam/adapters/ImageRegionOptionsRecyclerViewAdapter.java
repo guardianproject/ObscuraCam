@@ -51,7 +51,7 @@ public class ImageRegionOptionsRecyclerViewAdapter extends RecyclerView.Adapter<
     private ObscureOption[] options = new ObscureOption[] {
         new ObscureOption("Redact", R.drawable.ic_context_fill, ImageRegion.REDACT),
         new ObscureOption("Pixelate", R.drawable.ic_context_pixelate, ImageRegion.PIXELATE),
-        new ObscureOption("CrowdPixel", R.drawable.ic_context_pixelate, ImageRegion.BG_PIXELATE),
+        new ObscureOption("CrowdPixel", R.drawable.ic_context_pixelate_crowd, ImageRegion.BG_PIXELATE),
         new ObscureOption("Mask", R.drawable.ic_context_mask, ImageRegion.MASK),
         new ObscureOption("Clear Tag", R.drawable.ic_context_delete, -1)
     };
