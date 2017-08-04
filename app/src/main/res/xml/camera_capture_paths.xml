@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <cache-path name="camera_capture" path="camera/" />
+    <cache-path name="movie_output" path=" /storage/emulated/0/Movies/"/>
+    <cache-path name="movie_output" path=" /storage/emulated/1/Movies/"/>
 </paths>

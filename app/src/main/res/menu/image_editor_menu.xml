@@ -1,34 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
 
-    <!-- 
-    <item android:id="@+id/menu_new_region"
-        android:title="@string/menu_new_region"
-        android:icon="@drawable/ic_menu_new_region" />
- -->
- 
+    >
+
     <item android:id="@+id/menu_share"
         android:title="@string/menu_share"
-        android:icon="@drawable/ic_menu_share" />
+        app:showAsAction="never"
+        />
 
     <item android:id="@+id/menu_preview"
-        android:title="@string/menu_preview" 
-        android:icon="@drawable/ic_menu_preview"
-        android:checkable="true"
-        android:checked="false"
+        android:title="@string/menu_preview_image"
+        app:showAsAction="never"
         />
 
     <item android:id="@+id/menu_save"
         android:title="@string/menu_save"
-        android:icon="@drawable/ic_menu_save" />
-<!--        
-	<item android:id="@+id/menu_delete_original" 
-    	android:title="@string/menu_delete_original"
-    	android:icon="@drawable/ic_menu_trash" />
--->
-	
-    <item android:id="@+id/menu_about" 
-    	android:title="@string/menu_about"
-    	android:icon="@drawable/ic_menu_about" />
-        
+        app:showAsAction="always|withText"
+        />
+
+
 </menu>

@@ -72,7 +72,9 @@
     <string name="menu_delete_original">Delete Original</string>
     <string name="menu_about">About</string>
     <string name="menu_preview">Play</string>
-    
+    <string name="menu_preview_image">Preview</string>
+
+
     <string name="loading_image">Loading photo...</string>
     
     <string name="about">This app was developed by the SecureSmartCam Team, a joint effort by WITNESS and the Guardian Project.</string>
@@ -124,4 +126,5 @@
     <string name="gallery_info_ok">Got it</string>
     <string name="gallery_need_permission">We need your permission to access your photos. Please tap anywhere to allow it.</string>
 
+    <string name="processing_complete">Obscured successfully!</string>
 </resources>

@@ -6,14 +6,13 @@ android {
 
     defaultConfig {
         applicationId "org.witness.sscphase1"
-        minSdkVersion 14
+        minSdkVersion 16
         targetSdkVersion 25
         versionCode 38
         versionName "4.0.0"
         ndk {
             moduleName "JpegRedaction"
-
-            stl "gnustl_static"
+            stl "stlport_static"
             cFlags "-fexceptions"
         }
 
@@ -41,8 +40,8 @@ repositories {
 dependencies {
     compile 'com.google.guava:guava:20.0'
     compile 'commons-codec:commons-codec:1.9'
-    compile 'com.google.android.gms:play-services-vision:11.0.1'
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support:design:25.3.1'
+    compile 'com.writingminds:FFmpegAndroid:0.3.2'
     compile(name:'picasso-2.6.0', ext:'aar')
 }

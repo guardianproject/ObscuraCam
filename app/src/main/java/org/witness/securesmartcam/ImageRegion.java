@@ -390,7 +390,12 @@ public class ImageRegion
 		
 		case ImageRegion.MASK:
 			Log.v(ObscuraApp.TAG,"obscureType: ANON");
-			setRegionProcessor(new MaskObscure(mImageEditor.getApplicationContext(), mImageEditor.getPainter()));
+			if (mRProc != null && mRProc instanceof MaskObscure)
+			{
+				((MaskObscure)mRProc).rotateMask();
+			}
+			else
+				setRegionProcessor(new MaskObscure(mImageEditor.getApplicationContext(), mImageEditor.getPainter()));
 
 			break;
 			
@@ -402,15 +407,6 @@ public class ImageRegion
 		case ImageRegion.PIXELATE:
 			Log.v(ObscuraApp.TAG,"obscureType: PIXELIZE");
 			setRegionProcessor(new PixelizeObscure());
-			break;
-		case ImageRegion.CONSENT:
-			Log.v(ObscuraApp.TAG,"obscureType: CONSENTIFY!");
-			// If the region processor is already a consent tagger, the user wants to edit.
-			// so no need to change the region processor.
-			if(!(getRegionProcessor() instanceof ConsentTagger))
-				setRegionProcessor(new ConsentTagger());
-			
-			mImageEditor.launchInforma(this);
 			break;
 		case ImageRegion.BLUR:
 			Log.v(ObscuraApp.TAG,"obscureType: NONE/BLUR");
