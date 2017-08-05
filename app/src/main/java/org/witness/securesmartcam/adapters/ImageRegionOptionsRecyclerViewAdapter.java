@@ -38,10 +38,10 @@ public class ImageRegionOptionsRecyclerViewAdapter extends RecyclerView.Adapter<
     private int mCurrentItem = 0;
 
     private class ObscureOption {
-        public String name;
+        public int name;
         public int icon;
         public int operation;
-        public ObscureOption(String name, int icon, int operation) {
+        public ObscureOption(int name, int icon, int operation) {
             this.name = name;
             this.icon = icon;
             this.operation = operation;
@@ -49,11 +49,11 @@ public class ImageRegionOptionsRecyclerViewAdapter extends RecyclerView.Adapter<
     }
 
     private ObscureOption[] options = new ObscureOption[] {
-        new ObscureOption("Redact", R.drawable.ic_context_fill, ImageRegion.REDACT),
-        new ObscureOption("Pixelate", R.drawable.ic_context_pixelate, ImageRegion.PIXELATE),
-        new ObscureOption("CrowdPixel", R.drawable.ic_context_pixelate_crowd, ImageRegion.BG_PIXELATE),
-        new ObscureOption("Mask", R.drawable.ic_context_mask, ImageRegion.MASK),
-        new ObscureOption("Clear Tag", R.drawable.ic_context_delete, -1)
+        new ObscureOption(R.string.obscure_option_redact, R.drawable.ic_context_fill, ImageRegion.REDACT),
+        new ObscureOption(R.string.obscure_option_pixelate, R.drawable.ic_context_pixelate, ImageRegion.PIXELATE),
+        new ObscureOption(R.string.obscure_option_inverse, R.drawable.ic_context_pixelate_crowd, ImageRegion.BG_PIXELATE),
+        new ObscureOption(R.string.obscure_option_mask, R.drawable.ic_context_mask, ImageRegion.MASK),
+        new ObscureOption(R.string.obscure_option_remove, R.drawable.ic_context_delete, -1)
     };
 
     public ImageRegionOptionsRecyclerViewAdapter(Context context) {
@@ -82,7 +82,7 @@ public class ImageRegionOptionsRecyclerViewAdapter extends RecyclerView.Adapter<
 
     @Override
     public long getItemId(int position) {
-        return options[position].name.hashCode();
+        return options[position].name;
     }
 
     @Override

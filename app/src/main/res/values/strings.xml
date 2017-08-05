@@ -127,4 +127,11 @@
     <string name="gallery_need_permission">We need your permission to access your photos. Please tap anywhere to allow it.</string>
 
     <string name="processing_complete">Obscured successfully!</string>
+
+    <string name="obscure_option_remove">Remove</string>
+    <string name="obscure_option_redact">Redact</string>
+    <string name="obscure_option_pixelate">Pixelate</string>
+    <string name="obscure_option_inverse">Inverse</string>
+    <string name="obscure_option_mask">Mask</string>
+
 </resources>
