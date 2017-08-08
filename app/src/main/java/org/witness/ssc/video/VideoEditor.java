@@ -82,7 +82,10 @@ import org.witness.sscphase1.R;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Random;
 
@@ -190,7 +193,26 @@ public class VideoEditor extends AppCompatActivity implements
                 case 1: //status
 
                     progressDialog.setMessage(msg.getData().getString("status"));
-                    progressDialog.setProgress(msg.getData().getInt("progress"));
+
+                    //progressDialog.setProgress(msg.getData().getInt("progress"));
+
+                    try {
+                        if (msg.getData().getString("time") != null) {
+                            //00:00:05.01
+                            String time = msg.getData().getString("time");
+                            time = time.substring(0,time.indexOf("."));
+                            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                            Date dateProgress = sdf.parse(time);
+                            long progress = dateProgress.getSeconds()*1000;
+                            int percentComplete = (int)((((float)progress)/((float)mDuration))*100f);
+                            progressDialog.setProgress(percentComplete);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        //handle text parsing errors
+                    }
+
                     break;
 
                 case 2: //cancelled
@@ -660,7 +682,7 @@ public class VideoEditor extends AppCompatActivity implements
                     //  mediaPlayer.setVolume(1f, 1f);
 
                     mediaPlayer.seekTo(0);
-                    progressBar.setProgress(mediaPlayer.getCurrentPosition());
+                   // progressBar.setProgress(mediaPlayer.getCurrentPosition());
                     // mediaPlayer.pause();
 
 
@@ -683,7 +705,7 @@ public class VideoEditor extends AppCompatActivity implements
             try {
                 if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                     int curr = mediaPlayer.getCurrentPosition();
-                    progressBar.setProgress(curr);
+                   // progressBar.setProgress(curr);
                     updateRegionDisplay(curr);
                     mHandler.post(this);
                 }
@@ -1188,6 +1210,7 @@ public class VideoEditor extends AppCompatActivity implements
         progressDialog.setMessage("Processing. Please wait...");
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setMax(100);
+        progressDialog.setProgress(0);
         progressDialog.setCancelable(true);
 
         Message msg = mHandler.obtainMessage(2);
@@ -1230,6 +1253,13 @@ public class VideoEditor extends AppCompatActivity implements
 
                             Message msg = mHandler.obtainMessage(1);
                             msg.getData().putString("status", message);
+
+                            if (message.indexOf("time=")!=-1) {
+                                int timeidx = message.indexOf("time=")+5;
+                                String time = message.substring(timeidx,message.indexOf(" ",timeidx));
+                                msg.getData().putString("time", time);
+                            }
+
                             mHandler.sendMessage(msg);
 
                         }
