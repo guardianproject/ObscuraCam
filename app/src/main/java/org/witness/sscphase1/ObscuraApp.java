@@ -7,8 +7,6 @@ import java.io.File;
 import org.witness.securesmartcam.AlbumsActivity;
 import org.witness.securesmartcam.ImageEditor;
 import org.witness.ssc.video.VideoEditor;
-import org.witness.sscphase1.Eula.OnEulaAgreedTo;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ContentValues;
@@ -30,7 +28,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.Toast;
 
-public class ObscuraApp extends AppCompatActivity implements OnClickListener, OnEulaAgreedTo {
+public class ObscuraApp extends AppCompatActivity implements OnClickListener {
 	    
 	public final static String TAG = "SSC";
 		
@@ -76,8 +74,6 @@ public class ObscuraApp extends AppCompatActivity implements OnClickListener, On
         
         setLayout();
         deleteTmpFile();
-        
-        Eula.show(this);
 
     }
     
@@ -85,14 +81,7 @@ public class ObscuraApp extends AppCompatActivity implements OnClickListener, On
 	protected void onResume() {
 
 		super.onResume();
-		
-		 final SharedPreferences preferences = getSharedPreferences(Eula.PREFERENCES_EULA,
-	                Activity.MODE_PRIVATE);
-		  
-	        if (preferences.getBoolean(Eula.PREFERENCE_EULA_ACCEPTED, false)) {
-		
-	        }
-				
+
 	
 	}
 
@@ -356,10 +345,5 @@ public class ObscuraApp extends AppCompatActivity implements OnClickListener, On
         setLayout();
     }
 
-	@Override
-	public void onEulaAgreedTo() {
-		// TODO Auto-generated method stub
-		
-	}
-    
+
 }

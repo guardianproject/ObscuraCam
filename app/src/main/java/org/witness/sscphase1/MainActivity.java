@@ -32,13 +32,12 @@ import org.witness.securesmartcam.ImageEditor;
 import org.witness.securesmartcam.adapters.AskForPermissionAdapter;
 import org.witness.securesmartcam.adapters.GalleryCursorRecyclerViewAdapter;
 import org.witness.ssc.video.VideoEditor;
-import org.witness.sscphase1.Eula.OnEulaAgreedTo;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements OnEulaAgreedTo, GalleryCursorRecyclerViewAdapter.GalleryCursorRecyclerViewAdapterListener {
+public class MainActivity extends AppCompatActivity implements GalleryCursorRecyclerViewAdapter.GalleryCursorRecyclerViewAdapterListener {
 	    
 	public final static String TAG = "SSC";
 
@@ -99,15 +98,7 @@ public class MainActivity extends AppCompatActivity implements OnEulaAgreedTo, G
 	protected void onResume() {
 
 		super.onResume();
-		
-		 final SharedPreferences preferences = getSharedPreferences(Eula.PREFERENCES_EULA,
-	                Activity.MODE_PRIVATE);
-		  
-	        if (preferences.getBoolean(Eula.PREFERENCE_EULA_ACCEPTED, false)) {
-		
-	        }
-				
-	
+
 	}
 
 	private void setLayout() {
@@ -281,12 +272,6 @@ public class MainActivity extends AppCompatActivity implements OnEulaAgreedTo, G
         // Reset the layout to use the landscape config
         setLayout();
     }
-
-	@Override
-	public void onEulaAgreedTo() {
-		// TODO Auto-generated method stub
-		
-	}
 
 	private void setCurrentMode() {
 		int permissionCheck = ContextCompat.checkSelfPermission(this,
