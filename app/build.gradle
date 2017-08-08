@@ -8,8 +8,8 @@ android {
         applicationId "org.witness.sscphase1"
         minSdkVersion 16
         targetSdkVersion 25
-        versionCode 38
-        versionName "4.0.0"
+        versionCode 39
+        versionName "4.0.0-alpha-1"
         ndk {
             moduleName "JpegRedaction"
             stl "stlport_static"
