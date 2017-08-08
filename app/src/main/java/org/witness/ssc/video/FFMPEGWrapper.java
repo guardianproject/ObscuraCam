@@ -14,6 +14,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class FFMPEGWrapper {
@@ -56,6 +57,8 @@ public class FFMPEGWrapper {
 			ArrayList<RegionTrail> regionTrails, File inputFile, File outputFile, String format, int mDuration,
 			int iWidth, int iHeight, int oWidth, int oHeight, int frameRate, int kbitRate, String vcodec, String acodec, ExecuteBinaryResponseHandler listener) throws Exception {
 
+        DecimalFormat df = new DecimalFormat("####0.00");
+
         ArrayList<String> alCmds = new ArrayList<>();
 
         alCmds.add("-y");
@@ -68,11 +71,15 @@ public class FFMPEGWrapper {
 		
 	//	writeRedactData(redactSettingsFile, obscureRegionTrails, widthMod, heightMod, mDuration);
 
+        alCmds.add("-b:v");
+        alCmds.add("1M");
+
+        alCmds.add("-b:a");
+        alCmds.add("64k");
 
         alCmds.add("-vf");
 
         StringBuffer filters = new StringBuffer();
-
 
 
             for (RegionTrail trail : regionTrails)
@@ -93,15 +100,18 @@ public class FFMPEGWrapper {
                             int height = (int)or.getBounds().height();
                             int width = (int)or.getBounds().width();
                             String color = "black";
-                            int timeStart = or.timeStamp/100;
-                            int timeStop = or.timeStamp+1;
+                            float timeStart = ((float)or.timeStamp)/1000f;
+                            float timeStop = (((float)or.timeStamp)+100)/1000f;
+
+                            float timeEnd = ((float)mDuration)/1000f;
+                            timeStop = Math.max(timeStop,timeEnd);
 
                             filters.append("drawbox=x=" + x + ":y=" + y
                                     + ":w=" + width + ":h=" + height
                                     + ":color=" + color
                                     + ":t=max"
                                     + ":enable='between(t,"
-                                    + timeStart + "," + timeStop + ")',");
+                                    + df.format(timeStart) + "," + df.format(timeStop) + ")',");
                         }
                     }
 
@@ -118,8 +128,6 @@ public class FFMPEGWrapper {
                         int height = (int)or.getBounds().height();
                         int width = (int)or.getBounds().width();
                         String color = "black";
-                        int timeStart = or.timeStamp/100;
-                        int timeStop = or.timeStamp+1;
 
                         filters.append("drawbox=x=" + x + ":y=" + y
                                 + ":w=" + width + ":h=" + height
