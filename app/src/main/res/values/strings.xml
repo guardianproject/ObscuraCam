@@ -133,5 +133,14 @@
     <string name="obscure_option_pixelate">Pixelate</string>
     <string name="obscure_option_inverse">Inverse</string>
     <string name="obscure_option_mask">Mask</string>
+    <string name="prompt_detect_faces">Would you like to detect faces in this video?</string>
+    <string name="action_yes">Yes</string>
+    <string name="action_no">No</string>
+    <string name="video_set_out">Set Out Point</string>
+    <string name="video_type_redact">Set Redact</string>
+    <string name="video_type_pixelate">Set Pixelate</string>
+    <string name="video_remote_trail">Remove Trail</string>
+    <string name="do_tweet">Do Tween</string>
+    <string name="video_remove_keyframe">Remove Keyframe</string>
 
 </resources>

@@ -53,9 +53,9 @@ public class FFMPEGWrapper {
 	
 
 
-	public void processVideo(File redactSettingsFile, 
-			ArrayList<RegionTrail> regionTrails, File inputFile, File outputFile, String format, int mDuration,
-			int iWidth, int iHeight, int oWidth, int oHeight, int frameRate, int kbitRate, String vcodec, String acodec, ExecuteBinaryResponseHandler listener) throws Exception {
+	public void processVideo(
+			ArrayList<RegionTrail> regionTrails, File inputFile, File outputFile, int frameRate, int mDuration, int mOutputLength,
+			boolean compressVideo, int obscureVideoAmount, int obscureAudioAmount, ExecuteBinaryResponseHandler listener) throws Exception {
 
         DecimalFormat df = new DecimalFormat("####0.00");
 
@@ -65,46 +65,74 @@ public class FFMPEGWrapper {
         alCmds.add("-i");
         alCmds.add(inputFile.getCanonicalPath());
 
+        if (mOutputLength > 0)
+        {
+            alCmds.add("-t");
+            alCmds.add(mOutputLength+"");
+        }
 
-        float widthMod = ((float)oWidth)/((float)iWidth);
-		float heightMod = ((float)oHeight)/((float)iHeight);
-		
-	//	writeRedactData(redactSettingsFile, obscureRegionTrails, widthMod, heightMod, mDuration);
+        if (frameRate > 0)
+        {
+            alCmds.add("-r");
+            alCmds.add(frameRate+"");
+        }
 
-        alCmds.add("-b:v");
-        alCmds.add("1M");
+        if (compressVideo) {
+            alCmds.add("-b:v");
+            alCmds.add("500K");
 
-        alCmds.add("-b:a");
-        alCmds.add("64k");
+        }
 
-        alCmds.add("-vf");
+        if (obscureAudioAmount > 0) {
+            alCmds.add("-filter_complex");
+            alCmds.add("vibrato=f=" + obscureAudioAmount);
+
+            alCmds.add("-b:a");
+            alCmds.add("4K");
+
+            alCmds.add("-ab");
+            alCmds.add("4K");
+
+            alCmds.add("-ar");
+            alCmds.add("11025");
+
+            alCmds.add("-ac");
+            alCmds.add("1");
+        }
 
         StringBuffer filters = new StringBuffer();
 
+        if (obscureVideoAmount > 0) {
+            int pixelScale = obscureVideoAmount;
 
-            for (RegionTrail trail : regionTrails)
-            {
+            //scale down and up to fully pixelize
+            filters.append("scale=iw/" + pixelScale + ":ih/" + pixelScale + ",scale=" + pixelScale + "*iw:" + pixelScale + "*ih:flags=neighbor,");
+        }
 
-                if (trail.isDoTweening())
-                {
+
+        if (regionTrails.size() == 0) {
+            //do what?
+        }
+        else {
+            for (RegionTrail trail : regionTrails) {
+
+                if (trail.isDoTweening() && trail.getRegionCount() > 1) {
                     int timeInc = 100;
 
-                    for (int i = 0; i < mDuration; i = i+timeInc)
-                    {
+                    for (int i = 0; i < mDuration; i = i + timeInc) {
                         ObscureRegion or = trail.getCurrentRegion(i, trail.isDoTweening());
-                        if (or != null)
-                        {
+                        if (or != null) {
 
-                            int x = (int)or.getBounds().left;
-                            int y = (int)or.getBounds().top;
-                            int height = (int)or.getBounds().height();
-                            int width = (int)or.getBounds().width();
+                            int x = (int) or.getBounds().left;
+                            int y = (int) or.getBounds().top;
+                            int height = (int) or.getBounds().height();
+                            int width = (int) or.getBounds().width();
                             String color = "black";
-                            float timeStart = ((float)or.timeStamp)/1000f;
-                            float timeStop = (((float)or.timeStamp)+100)/1000f;
+                            float timeStart = ((float) or.timeStamp) / 1000f;
+                            float timeStop = (((float) or.timeStamp) + 100) / 1000f;
 
-                            float timeEnd = ((float)mDuration)/1000f;
-                            timeStop = Math.max(timeStop,timeEnd);
+                            float timeEnd = ((float) mDuration) / 1000f;
+                            timeStop = Math.max(timeStop, timeEnd);
 
                             filters.append("drawbox=x=" + x + ":y=" + y
                                     + ":w=" + width + ":h=" + height
@@ -115,18 +143,15 @@ public class FFMPEGWrapper {
                         }
                     }
 
-                }
-                else
-                {
+                } else {
 
-                    for (Integer orKey : trail.getRegionKeys())
-                    {
+                    for (Integer orKey : trail.getRegionKeys()) {
                         ObscureRegion or = trail.getRegion(orKey);
 
-                        int x = (int)or.getBounds().left;
-                        int y = (int)or.getBounds().top;
-                        int height = (int)or.getBounds().height();
-                        int width = (int)or.getBounds().width();
+                        int x = (int) or.getBounds().left;
+                        int y = (int) or.getBounds().top;
+                        int height = (int) or.getBounds().height();
+                        int width = (int) or.getBounds().width();
                         String color = "black";
 
                         filters.append("drawbox=x=" + x + ":y=" + y
@@ -134,24 +159,29 @@ public class FFMPEGWrapper {
                                 + ":color=" + color
                                 + ":t=max");
 
-                      }
+                    }
 
 
                 }
             }
+        }
 
 
-            Log.d(getClass().getName(),"filters: " + filters.toString());
+        if (filters.toString().length() > 0) {
+			Log.d(getClass().getName(), "filters: " + filters.toString());
 
-            String filterCmd = filters.toString();
+			alCmds.add("-vf");
 
-            alCmds.add(filterCmd.substring(0,filterCmd.length()-1));
+			String filterCmd = filters.toString();
 
-            alCmds.add(outputFile.getCanonicalPath());
+			alCmds.add(filterCmd.substring(0, filterCmd.length() - 1));
+		}
 
-            String[] cmd = alCmds.toArray(new String[alCmds.size()]);
+        alCmds.add(outputFile.getCanonicalPath());
 
-            try {
+        String[] cmd = alCmds.toArray(new String[alCmds.size()]);
+
+        try {
 
 
             FFmpeg ffmpeg = FFmpeg.getInstance(context);

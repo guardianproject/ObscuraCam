@@ -73,7 +73,6 @@ public class MainActivity extends AppCompatActivity implements GalleryCursorRecy
 		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 		setSupportActionBar(toolbar);
         deleteTmpFile();
-        Eula.show(this);
 
 		layoutGalleryInfo = findViewById(R.id.gallery_info);
 		Button btnOk = (Button) layoutGalleryInfo.findViewById(R.id.btnGalleryInfoOk);

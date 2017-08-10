@@ -1,29 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="fill_parent"
-	android:layout_height="fill_parent"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
 	android:id="@+id/frameRoot"
+    android:background="#000000"
 	>
   	
   	<VideoView 
   		android:id="@+id/SurfaceView" 
 	  	android:layout_height="wrap_content" 
-  		android:layout_width="fill_parent"
+  		android:layout_width="match_parent"
   		android:layout_gravity="center"
   		/>
 	<ImageView 
 		android:id="@+id/VideoEditorImageView" 
-		android:layout_width="fill_parent" 
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		  		android:layout_gravity="center"
 		/>
+	<LinearLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:layout_gravity="bottom"
+        android:padding="3dp"
+        android:background="#99FFFFFF"
+		>
  		<LinearLayout
  			android:id="@+id/InnerLinearLayout"
- 			android:layout_width="fill_parent"
- 			android:layout_height="40dp"
+ 			android:layout_width="match_parent"
+ 			android:layout_height="wrap_content"
  			android:orientation="horizontal"
- 			android:layout_gravity="bottom" 	
  			>
  			<ImageButton 
  				android:layout_width="wrap_content" 
@@ -42,14 +49,58 @@
 				android:secondaryProgress="0" 
 				android:progressDrawable="@android:drawable/progress_horizontal"
 				/>
-			<!-- 
-			<org.witness.sscvideoproto.RegionBarArea
-				android:id="@+id/RegionBarArea"
-				android:layout_height="30dp" 
-				android:layout_width="fill_parent">
-			</org.witness.sscvideoproto.RegionBarArea>
-			 -->
+
 	
-	</LinearLayout>		
-  	
+	</LinearLayout>
+
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal"
+			>
+            <!--
+			<Button
+				android:id="@+id/button_auto"
+				android:layout_width="wrap_content"
+				android:layout_height="match_parent"
+				android:text="Auto-Detect"
+				/>-->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="Pixelize:"
+                android:gravity="center_vertical|right"
+                />
+			<SeekBar
+				android:id="@+id/seekbar_video_obscure"
+				android:layout_width="80dp"
+				android:layout_height="match_parent"
+				android:max="128"
+
+				/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="Distort:"
+                android:gravity="center_vertical|right"
+                />
+			<SeekBar
+				android:id="@+id/seekbar_audio_obscure"
+                android:layout_width="80dp"
+				android:layout_height="match_parent"
+				android:max="64"
+
+				/>
+            <Button
+                android:id="@+id/button_preview"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:text="Preview"
+                />
+
+		</LinearLayout>
+	</LinearLayout>
+
+
 </FrameLayout>

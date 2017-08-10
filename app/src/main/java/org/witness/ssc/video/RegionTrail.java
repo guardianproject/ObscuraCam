@@ -78,7 +78,12 @@ public class RegionTrail {
 	{
 		return regionMap.get(key);
 	}
-	
+
+	public int getRegionCount ()
+	{
+		return regionMap.size();
+	}
+
 	public TreeSet<Integer> getRegionKeys ()
 	{
 		TreeSet<Integer> regionKeys = new TreeSet<Integer>(regionMap.keySet());
