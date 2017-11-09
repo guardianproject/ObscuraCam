@@ -38,7 +38,7 @@
  				android:src="@android:drawable/ic_media_play" 
  				android:layout_height="wrap_content" 				
  				/>	
-			<org.witness.ssc.video.InOutPlayheadSeekBar 
+			<org.witness.obscuracam.video.InOutPlayheadSeekBar
 				android:id="@+id/InOutPlayheadSeekBar" 
 				android:layout_height="fill_parent" 
 				android:layout_width="0dip" 

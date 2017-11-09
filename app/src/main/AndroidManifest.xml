@@ -15,10 +15,10 @@
 
     <application android:label="@string/app_name" android:icon="@drawable/ic_launcher_ssc"
         android:largeHeap="true"
-        android:name=".App"
+        android:name="org.witness.obscuracam.App"
         android:theme="@style/AppTheme"
         >
-        <activity android:label="@string/app_name_label" android:name=".MainActivity"
+        <activity android:label="@string/app_name_label" android:name="org.witness.obscuracam.MainActivity"
               android:description="@string/app_description"
               android:configChanges="orientation|keyboardHidden"
             android:theme="@style/AppTheme.NoActionBar"
@@ -28,7 +28,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="org.witness.securesmartcam.ImageEditor"
+        <activity android:name="org.witness.obscuracam.ui.ImageEditor"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:theme="@style/AppTheme"
             >
@@ -46,9 +46,9 @@
              </intent-filter>        
         </activity>
         
-        <activity android:name="org.witness.securesmartcam.ImagePreview" android:label="@string/image_preview" android:configChanges="orientation|keyboardHidden" />
+        <activity android:name="org.witness.obscuracam.ui.ImagePreview" android:label="@string/image_preview" android:configChanges="orientation|keyboardHidden" />
 
-        <activity android:name="org.witness.ssc.video.VideoEditor"  android:configChanges="orientation|keyboardHidden|screenSize">
+        <activity android:name="org.witness.obscuracam.video.VideoEditor"  android:configChanges="orientation|keyboardHidden|screenSize">
     	    <intent-filter>
                  
                  <action android:name="android.intent.action.EDIT" />
@@ -63,9 +63,9 @@
              </intent-filter>
     	    
     	</activity>
-       <activity android:name="org.witness.ssc.video.VideoPreferences" />
+       <activity android:name="org.witness.obscuracam.video.VideoPreferences" />
         <activity
-            android:name="org.witness.securesmartcam.AlbumsActivity"
+            android:name="org.witness.obscuracam.ui.AlbumsActivity"
             android:label="@string/title_albums"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar"

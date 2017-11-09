@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<org.witness.securesmartcam.views.SquareImageView xmlns:android="http://schemas.android.com/apk/res/android"
+<org.witness.obscuracam.ui.views.SquareImageView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/ivPhoto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"

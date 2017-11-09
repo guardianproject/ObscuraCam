@@ -5,8 +5,9 @@
     android:layout_height="match_parent"
     android:paddingTop="0sp" >
     
-    <org.witness.securesmartcam.AnimatedBlockView  android:layout_width="fill_parent"
-	      android:layout_height="fill_parent"></org.witness.securesmartcam.AnimatedBlockView>
+    <org.witness.obscuracam.ui.AnimatedBlockView
+        android:layout_width="fill_parent"
+	      android:layout_height="fill_parent"></org.witness.obscuracam.ui.AnimatedBlockView>
         
 
 	<LinearLayout android:gravity="center_vertical|center_horizontal" android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
