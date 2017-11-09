@@ -64,15 +64,13 @@ import android.view.View.OnTouchListener;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.MediaController;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
 
-import net.londatiga.android.ActionItem;
-import net.londatiga.android.QuickAction;
-import net.londatiga.android.QuickAction.OnActionItemClickListener;
 
 import org.witness.securesmartcam.detect.AndroidFaceDetection;
 import org.witness.securesmartcam.detect.DetectedFace;
@@ -96,7 +94,7 @@ public class VideoEditor extends AppCompatActivity implements
         OnBufferingUpdateListener, OnPreparedListener, OnSeekCompleteListener,
         OnVideoSizeChangedListener, SurfaceHolder.Callback,
         MediaController.MediaPlayerControl, OnTouchListener,
-        InOutPlayheadSeekBarChangeListener, OnActionItemClickListener {
+        InOutPlayheadSeekBarChangeListener {
 
     public static final String LOGTAG = ObscuraApp.TAG;
 
@@ -111,7 +109,6 @@ public class VideoEditor extends AppCompatActivity implements
 
     private final static int HUMAN_OFFSET_BUFFER = 50;
 
-    ProgressDialog progressDialog;
     int completeActionFlag = 3;
 
     Uri originalVideoUri;
@@ -140,7 +137,7 @@ public class VideoEditor extends AppCompatActivity implements
 
     Bitmap bitmapPixel;
 
-    InOutPlayheadSeekBar progressBar;
+    InOutPlayheadSeekBar mVideoSeekbar;
     //RegionBarArea regionBarArea;
 
     int videoWidth = 0;
@@ -181,6 +178,7 @@ public class VideoEditor extends AppCompatActivity implements
     private final static String DEFAULT_OUT_WIDTH = "480";
     private final static String DEFAULT_OUT_HEIGHT = "320";
 
+    private ProgressBar mProgressBar;
 
     private Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
@@ -201,7 +199,7 @@ public class VideoEditor extends AppCompatActivity implements
                             Date dateProgress = sdf.parse(time);
                             long progress = dateProgress.getSeconds()*1000;
                             int percentComplete = (int)((((float)progress)/((float)mDuration))*100f);
-                            progressDialog.setProgress(percentComplete);
+                            mProgressBar.setProgress(percentComplete);
                         }
                     }
                     catch (Exception e)
@@ -215,13 +213,13 @@ public class VideoEditor extends AppCompatActivity implements
                     mCancelled = true;
                     mAutoDetectEnabled = false;
                     killVideoProcessor();
-
+                    mProgressBar.setVisibility(View.GONE);
                     break;
 
                 case 3: //completed
-                    progressDialog.dismiss();
                     askPostProcessAction();
 
+                    mProgressBar.setVisibility(View.GONE);
                     break;
 
                 case 5:
@@ -312,7 +310,7 @@ public class VideoEditor extends AppCompatActivity implements
             mediaPlayer.prepare();
             mDuration = mediaPlayer.getDuration();
 
-            progressBar.setMax(mDuration);
+            mVideoSeekbar.setMax(mDuration);
 
         } catch (Exception e) {
             Log.v(LOGTAG, "IllegalStateException " + e.getMessage());
@@ -375,7 +373,7 @@ public class VideoEditor extends AppCompatActivity implements
                 mediaPlayer.prepare();
                 mDuration = mediaPlayer.getDuration();
 
-                progressBar.setMax(mDuration);
+                mVideoSeekbar.setMax(mDuration);
 
             } catch (Exception e) {
                 Log.v(LOGTAG, "IllegalStateException " + e.getMessage());
@@ -461,16 +459,6 @@ public class VideoEditor extends AppCompatActivity implements
 
     private void beginAutoDetect() {
         mAutoDetectEnabled = true;
-
-        progressDialog = new ProgressDialog(this);
-        progressDialog = ProgressDialog.show(this, "", "Detecting faces...", true, true);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setCancelable(true);
-        Message msg = mHandler.obtainMessage(2);
-        msg.getData().putString("status", "cancelled");
-        progressDialog.setCancelMessage(msg);
-
-        progressDialog.show();
 
         new Thread(doAutoDetect).start();
 
@@ -623,7 +611,7 @@ public class VideoEditor extends AppCompatActivity implements
                         try {
                             seekTo(f);
 
-                            progressBar.setProgress(mediaPlayer.getCurrentPosition());
+                            mVideoSeekbar.setProgress(mediaPlayer.getCurrentPosition());
 
                             //Bitmap bmp = getVideoFrame(rPath,f*1000);
 
@@ -668,7 +656,7 @@ public class VideoEditor extends AppCompatActivity implements
             try {
                 if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                     int curr = mediaPlayer.getCurrentPosition();
-                    progressBar.setProgress(curr);
+                    mVideoSeekbar.setProgress(curr);
                     updateRegionDisplay(curr);
                     mHandler.post(this);
                 }
@@ -835,7 +823,7 @@ public class VideoEditor extends AppCompatActivity implements
 
         boolean handled = false;
 
-        if (v == progressBar) {
+        if (v == mVideoSeekbar) {
 
             if (currentUri != originalVideoUri)
             {
@@ -853,7 +841,7 @@ public class VideoEditor extends AppCompatActivity implements
                 }
 
 
-                mediaPlayer.seekTo(progressBar.getProgress());
+                mediaPlayer.seekTo(mVideoSeekbar.getProgress());
                 // Attempt to get the player to update it's view - NOT WORKING
             }
 
@@ -1042,7 +1030,7 @@ public class VideoEditor extends AppCompatActivity implements
 
             case R.id.menu_save:
 
-
+                resetMediaPlayer(originalVideoUri);
                 processVideo(false);
 
                 return true;
@@ -1068,34 +1056,35 @@ public class VideoEditor extends AppCompatActivity implements
 
     PowerManager.WakeLock wl;
 
-    private void processVideo(boolean isPreview) {
+    private synchronized void processVideo(boolean isPreview) {
+
+        if (ffmpeg != null
+        && ffmpeg.getFFMPEG().isFFmpegCommandRunning())
+            ffmpeg.getFFMPEG().killRunningProcesses();
 
         mIsPreview = isPreview;
+
+        mProgressBar.setVisibility(View.VISIBLE);
+        mProgressBar.setProgress(0);
 
         if (isPreview)
         {
             saveFile = new File(fileExternDir,"obscuracam-preview-tmp." + outFormat);
         }
         else {
+            if (saveFile != null
+                && saveFile.exists() && saveFile.getName().contains("preview"))
+                    saveFile.delete();
+
             createCleanSavePath(outFormat);
+
+            mSnackbar = Snackbar.make(findViewById(R.id.frameRoot), R.string.processing, Snackbar.LENGTH_INDEFINITE);
+            mSnackbar.show();
         }
 
         mCancelled = false;
 
         mediaPlayer.pause();
-
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Processing. Please wait...");
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        progressDialog.setMax(100);
-        progressDialog.setProgress(0);
-        progressDialog.setCancelable(true);
-
-        Message msg = mHandler.obtainMessage(2);
-        msg.getData().putString("status", "cancelled");
-        progressDialog.setCancelMessage(msg);
-
-        progressDialog.show();
 
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
@@ -1105,22 +1094,24 @@ public class VideoEditor extends AppCompatActivity implements
             if (ffmpeg == null)
                 ffmpeg = new FFMPEGWrapper(VideoEditor.this.getBaseContext());
 
-            int outputLength = -1;
             int frameRate = 0;
+
+            float startTime = ((float)mediaPlayer.getCurrentPosition())/1000f;
+            float duration = (float)mDuration/1000f;
 
             if (isPreview) {
                 frameRate = 1;
-                outputLength = Math.min(mDuration, 5);
-                mDuration = outputLength;
+                duration = Math.min(duration - startTime, 1f);
             }
+
             else if (mObscureVideoAmount > 0)
             {
-                frameRate = 15;
+                frameRate = 3;
             }
 
             // Could make some high/low quality presets
             ffmpeg.processVideo(obscureTrails, recordingFile, saveFile,
-                    frameRate, mDuration, outputLength, mCompressVideo, mObscureVideoAmount, mObscureAudioAmount,
+                    frameRate, startTime, duration, mCompressVideo, mObscureVideoAmount, mObscureAudioAmount,
                     new ExecuteBinaryResponseHandler() {
 
                         @Override
@@ -1187,6 +1178,8 @@ public class VideoEditor extends AppCompatActivity implements
         sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(saveFile)));
     }
 
+    Snackbar mSnackbar;
+
     private void askPostProcessAction() {
         if (saveFile != null && saveFile.exists()) {
 
@@ -1194,14 +1187,21 @@ public class VideoEditor extends AppCompatActivity implements
             start();
 
             if (!mIsPreview) {
-                Snackbar snackbar = Snackbar.make(findViewById(R.id.frameRoot), R.string.processing_complete, Snackbar.LENGTH_LONG);
-                snackbar.setAction("Open", new OnClickListener() {
+
+                if (mSnackbar != null)
+                {
+                    mSnackbar.dismiss();
+                    mSnackbar = null;
+                }
+
+                mSnackbar = Snackbar.make(findViewById(R.id.frameRoot), R.string.processing_complete, Snackbar.LENGTH_LONG);
+                mSnackbar.setAction("Open", new OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         playVideoExternal();
                     }
                 });
-                snackbar.show();
+                mSnackbar.show();
             }
         }
 
@@ -1313,6 +1313,8 @@ public class VideoEditor extends AppCompatActivity implements
 
         videoView = (VideoView) this.findViewById(R.id.SurfaceView);
 
+        mProgressBar = (ProgressBar) this.findViewById(R.id.progress_spinner);
+
         regionsView = (ImageView) this.findViewById(R.id.VideoEditorImageView);
         regionsView.setOnClickListener(new OnClickListener() {
             @Override
@@ -1320,7 +1322,7 @@ public class VideoEditor extends AppCompatActivity implements
                 resetMediaPlayer(originalVideoUri);
             }
         });
-       // regionsView.setOnTouchListener(this);
+        regionsView.setOnTouchListener(this);
 
         surfaceHolder = videoView.getHolder();
 
@@ -1329,14 +1331,14 @@ public class VideoEditor extends AppCompatActivity implements
 
         currentDisplay = getWindowManager().getDefaultDisplay();
 
-        progressBar = (InOutPlayheadSeekBar) this.findViewById(R.id.InOutPlayheadSeekBar);
+        mVideoSeekbar = (InOutPlayheadSeekBar) this.findViewById(R.id.InOutPlayheadSeekBar);
 
-        progressBar.setIndeterminate(false);
-        progressBar.setSecondaryProgress(0);
-        progressBar.setProgress(0);
-        progressBar.setInOutPlayheadSeekBarChangeListener(this);
-        progressBar.setThumbsInactive();
-        progressBar.setOnTouchListener(this);
+        mVideoSeekbar.setIndeterminate(false);
+        mVideoSeekbar.setSecondaryProgress(0);
+        mVideoSeekbar.setProgress(0);
+        mVideoSeekbar.setInOutPlayheadSeekBarChangeListener(this);
+        mVideoSeekbar.setThumbsInactive();
+        mVideoSeekbar.setOnTouchListener(this);
 
         playPauseButton = (ImageButton) this.findViewById(R.id.PlayPauseImageButton);
         playPauseButton.setOnClickListener(new OnClickListener() {
@@ -1347,6 +1349,11 @@ public class VideoEditor extends AppCompatActivity implements
                     playPauseButton.setImageDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
                     mAutoDetectEnabled = false;
                 } else {
+                    if (currentUri != originalVideoUri)
+                    {
+                        resetMediaPlayer(originalVideoUri);
+                        seekTo(0);
+                    }
                     start();
 
 
@@ -1376,13 +1383,6 @@ public class VideoEditor extends AppCompatActivity implements
             }
         });**/
 
-        findViewById(R.id.button_preview).setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                processVideo(true);
-            }
-        });
-
         ((SeekBar)findViewById(R.id.seekbar_video_obscure)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
@@ -1393,6 +1393,7 @@ public class VideoEditor extends AppCompatActivity implements
                 }
 
                 mObscureVideoAmount = i;
+
             }
 
             @Override
@@ -1403,6 +1404,7 @@ public class VideoEditor extends AppCompatActivity implements
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
 
+                processVideo(true);
             }
         });
 
@@ -1420,6 +1422,7 @@ public class VideoEditor extends AppCompatActivity implements
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
 
+                processVideo(true);
             }
         });
 
@@ -1688,7 +1691,7 @@ public class VideoEditor extends AppCompatActivity implements
 
     }
 
-    @Override
+    /**
     public void onItemClick(QuickAction source, int pos, int actionId) {
 
         switch (actionId) {
@@ -1742,7 +1745,7 @@ public class VideoEditor extends AppCompatActivity implements
         updateRegionDisplay(mediaPlayer.getCurrentPosition());
 
     }
-
+    **/
 
     /*
      * Actual deletion of original

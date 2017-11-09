@@ -20,12 +20,14 @@ import java.util.ArrayList;
 public class FFMPEGWrapper {
 
 	Context context;
+    FFmpeg ffmpeg;
 
 	public FFMPEGWrapper(Context _context) throws FileNotFoundException, IOException {
 		context = _context;
 
-		FFmpeg ffmpeg = FFmpeg.getInstance(context);
-		try {
+		ffmpeg = FFmpeg.getInstance(context);
+
+        try {
 			ffmpeg.loadBinary(new LoadBinaryResponseHandler() {
 
 				@Override
@@ -54,7 +56,7 @@ public class FFMPEGWrapper {
 
 
 	public void processVideo(
-			ArrayList<RegionTrail> regionTrails, File inputFile, File outputFile, int frameRate, int mDuration, int mOutputLength,
+			ArrayList<RegionTrail> regionTrails, File inputFile, File outputFile, int frameRate, float startTime, float duration,
 			boolean compressVideo, int obscureVideoAmount, int obscureAudioAmount, ExecuteBinaryResponseHandler listener) throws Exception {
 
         DecimalFormat df = new DecimalFormat("####0.00");
@@ -65,10 +67,13 @@ public class FFMPEGWrapper {
         alCmds.add("-i");
         alCmds.add(inputFile.getCanonicalPath());
 
-        if (mOutputLength > 0)
+        if (duration > 0)
         {
+            alCmds.add("-ss");
+            alCmds.add(df.format(startTime));
+
             alCmds.add("-t");
-            alCmds.add(mOutputLength+"");
+            alCmds.add(df.format(duration));
         }
 
         if (frameRate > 0)
@@ -119,7 +124,7 @@ public class FFMPEGWrapper {
                 if (trail.isDoTweening() && trail.getRegionCount() > 1) {
                     int timeInc = 100;
 
-                    for (int i = 0; i < mDuration; i = i + timeInc) {
+                    for (int i = 0; i < ((int)duration); i = i + timeInc) {
                         ObscureRegion or = trail.getCurrentRegion(i, trail.isDoTweening());
                         if (or != null) {
 
@@ -131,7 +136,7 @@ public class FFMPEGWrapper {
                             float timeStart = ((float) or.timeStamp) / 1000f;
                             float timeStop = (((float) or.timeStamp) + 100) / 1000f;
 
-                            float timeEnd = ((float) mDuration) / 1000f;
+                            float timeEnd = duration / 1000f;
                             timeStop = Math.max(timeStop, timeEnd);
 
                             filters.append("drawbox=x=" + x + ":y=" + y
@@ -184,7 +189,6 @@ public class FFMPEGWrapper {
         try {
 
 
-            FFmpeg ffmpeg = FFmpeg.getInstance(context);
             // to execute "ffmpeg -version" command you just need to pass "-version"
             ffmpeg.execute(cmd,listener);
         } catch (FFmpegCommandAlreadyRunningException e) {
@@ -251,7 +255,11 @@ public class FFMPEGWrapper {
 
 				
 	}
-	
+
+	public FFmpeg getFFMPEG ()
+    {
+        return ffmpeg;
+    }
 
 }
 

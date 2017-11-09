@@ -49,7 +49,12 @@
 				android:secondaryProgress="0" 
 				android:progressDrawable="@android:drawable/progress_horizontal"
 				/>
-
+			<ProgressBar
+				android:layout_width="wrap_content"
+				android:layout_height="match_parent"
+				android:id="@+id/progress_spinner"
+                android:visibility="gone"
+				/>
 	
 	</LinearLayout>
 
@@ -58,48 +63,73 @@
 			android:layout_height="wrap_content"
 			android:orientation="horizontal"
 			>
-            <!--
-			<Button
-				android:id="@+id/button_auto"
-				android:layout_width="wrap_content"
-				android:layout_height="match_parent"
-				android:text="Auto-Detect"
-				/>-->
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="60dp"
                 android:layout_height="match_parent"
                 android:text="Pixelize:"
                 android:gravity="center_vertical|right"
                 />
 			<SeekBar
 				android:id="@+id/seekbar_video_obscure"
-				android:layout_width="80dp"
+				android:layout_width="120dp"
 				android:layout_height="match_parent"
 				android:max="128"
 
 				/>
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="60dp"
                 android:layout_height="match_parent"
                 android:text="Distort:"
                 android:gravity="center_vertical|right"
                 />
 			<SeekBar
 				android:id="@+id/seekbar_audio_obscure"
-                android:layout_width="80dp"
+                android:layout_width="120dp"
 				android:layout_height="match_parent"
 				android:max="64"
 
 				/>
-            <Button
-                android:id="@+id/button_preview"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:text="Preview"
-                />
+
 
 		</LinearLayout>
+<!--
+		<LinearLayout
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal"
+			>
+
+			<TextView
+				android:layout_width="60dp"
+				android:layout_height="match_parent"
+				android:text="Brighten:"
+				android:gravity="center_vertical|right"
+				/>
+			<SeekBar
+				android:id="@+id/seekbar_video_brightness"
+				android:layout_width="120dp"
+				android:layout_height="match_parent"
+				android:max="128"
+
+				/>
+			<TextView
+				android:layout_width="60dp"
+				android:layout_height="match_parent"
+				android:text="Saturate:"
+				android:gravity="center_vertical|right"
+				/>
+			<SeekBar
+				android:id="@+id/seekbar_video_saturate"
+				android:layout_width="120dp"
+				android:layout_height="match_parent"
+				android:max="64"
+
+				/>
+
+
+		</LinearLayout>
+		-->
 	</LinearLayout>
 
 

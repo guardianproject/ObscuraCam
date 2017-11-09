@@ -27,6 +27,8 @@
 	<style name="Animations" />
 
 	<!-- PopDownMenu -->
+	<!--
+
 	<style name="Animations.PopDownMenu" />
 	
 	<style name="Animations.PopDownMenu.Left">
@@ -43,8 +45,10 @@
 		<item name="@android:windowEnterAnimation">@anim/grow_from_top</item>
 		<item name="@android:windowExitAnimation">@anim/shrink_from_bottom</item>
 	</style>
-	
+	-->
+
 	<!-- PopUpMenu -->
+	<!--
 	<style name="Animations.PopUpMenu" />
 	
 	<style name="Animations.PopUpMenu.Left">
@@ -61,7 +65,8 @@
 		<item name="@android:windowEnterAnimation">@anim/grow_from_bottom</item>
 		<item name="@android:windowExitAnimation">@anim/shrink_from_top</item>
 	</style>
-	
+	-->
+
 	<style name="CustomTheme">        
     <item name="android:windowNoTitle">true</item>
     <item name="android:paddingTop">10px</item>

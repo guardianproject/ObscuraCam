@@ -142,5 +142,6 @@
     <string name="video_remote_trail">Remove Trail</string>
     <string name="do_tweet">Do Tween</string>
     <string name="video_remove_keyframe">Remove Keyframe</string>
+    <string name="processing">Processing...</string>
 
 </resources>
