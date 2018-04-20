@@ -30,6 +30,7 @@ import org.witness.obscuracam.ui.ImageEditor;
 import org.witness.obscuracam.ui.adapters.AskForPermissionAdapter;
 import org.witness.obscuracam.ui.adapters.GalleryCursorRecyclerViewAdapter;
 import org.witness.obscuracam.video.VideoEditor;
+import org.witness.sscphase1.BuildConfig;
 import org.witness.sscphase1.R;
 
 import java.io.File;
@@ -377,7 +378,7 @@ public class MainActivity extends AppCompatActivity implements GalleryCursorRecy
 				image.createNewFile();
 
 				Uri photoURI = FileProvider.getUriForFile(this,
-						"org.witness.securesmartcam.camera_capture",
+						BuildConfig.APPLICATION_ID + ".provider",
 						image);
 				takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
 

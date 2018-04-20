@@ -9,7 +9,7 @@
     android:focusableInTouchMode="true"
     android:focusable="true"
     android:descendantFocusability="beforeDescendants"
-    app:layout_behavior="org.witness.securesmartcam.ScrollViewBehaviorFix">
+    app:layout_behavior="org.witness.obscuracam.ui.ScrollViewBehaviorFix">
     <RelativeLayout
         android:id="@+id/rlNewMessage"
         android:layout_width="match_parent"

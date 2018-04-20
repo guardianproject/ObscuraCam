@@ -150,7 +150,7 @@ public class AlbumAdapter extends RecyclerView.Adapter<AlbumViewHolder> {
         try {
             holder.mAlbumThumbnail.setBackgroundResource(0);
             try {
-                Picasso.with(mContext)
+                Picasso.get()
                         .load(new File(album.thumbnail))
                         .fit()
                         .centerCrop()

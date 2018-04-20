@@ -40,7 +40,8 @@ public class ImageRegionOptionsRecyclerViewAdapter extends RecyclerView.Adapter<
         new ObscureOption(R.string.obscure_option_pixelate, R.drawable.ic_context_pixelate, ImageRegion.PIXELATE),
         new ObscureOption(R.string.obscure_option_inverse, R.drawable.ic_context_pixelate_crowd, ImageRegion.BG_PIXELATE),
         new ObscureOption(R.string.obscure_option_mask, R.drawable.ic_context_mask, ImageRegion.MASK),
-        new ObscureOption(R.string.obscure_option_remove, R.drawable.ic_context_delete, -1)
+            new ObscureOption(R.string.mode_equalais, R.drawable.equalais, ImageRegion.EQUALAIS),
+            new ObscureOption(R.string.obscure_option_remove, R.drawable.ic_context_delete, -1)
     };
 
     public ImageRegionOptionsRecyclerViewAdapter(Context context) {

@@ -13,6 +13,7 @@ import android.view.View;
 import org.witness.obscuracam.photo.filters.BlurObscure;
 import org.witness.obscuracam.photo.filters.ConsentTagger;
 import org.witness.obscuracam.photo.filters.CrowdPixelizeObscure;
+import org.witness.obscuracam.photo.filters.EqualaisObscure;
 import org.witness.obscuracam.photo.filters.MaskObscure;
 import org.witness.obscuracam.photo.filters.PixelizeObscure;
 import org.witness.obscuracam.photo.filters.RegionProcesser;
@@ -36,8 +37,10 @@ public class ImageRegion
 	public static final int MASK = 3; // MaskObscure	
 	public static final int CONSENT = 4; // PixelizeObscure
 	public static final int BLUR = 5; // PixelizeObscure
-	
-	boolean selected = false;
+    public static final int EQUALAIS = 6; // PixelizeObscure
+
+
+    boolean selected = false;
 	
 	public static final int CORNER_UPPER_LEFT = 1;
 	public static final int CORNER_LOWER_LEFT = 2;
@@ -390,6 +393,7 @@ public class ImageRegion
 		
 		case ImageRegion.MASK:
 			Log.v(ObscuraApp.TAG,"obscureType: ANON");
+
 			if (mRProc != null && mRProc instanceof MaskObscure)
 			{
 				((MaskObscure)mRProc).rotateMask();
@@ -398,7 +402,10 @@ public class ImageRegion
 				setRegionProcessor(new MaskObscure(mImageEditor.getApplicationContext(), mImageEditor.getPainter()));
 
 			break;
-			
+        case ImageRegion.EQUALAIS:
+            setRegionProcessor(new EqualaisObscure(mImageEditor.getApplicationContext(), mImageEditor.getPainter()));
+
+            break;
 		case ImageRegion.REDACT:
 			Log.v(ObscuraApp.TAG,"obscureType: SOLID");
 			setRegionProcessor(new SolidObscure());

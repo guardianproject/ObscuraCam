@@ -3,4 +3,6 @@
     <cache-path name="camera_capture" path="camera/" />
     <cache-path name="movie_output" path=" /storage/emulated/0/Movies/"/>
     <cache-path name="movie_output" path=" /storage/emulated/1/Movies/"/>
+    <external-path name="external_files" path="."/>
+
 </paths>

@@ -3,6 +3,8 @@
       package="org.witness.sscphase1"
       android:installLocation="auto">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <uses-permission android:name="android.permission.READ_MEDIA_STORAGE"/>
     
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
@@ -73,7 +75,7 @@
         </activity>
         <provider
             android:name="android.support.v4.content.FileProvider"
-            android:authorities="org.witness.securesmartcam.camera_capture"
+            android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
@@ -81,4 +83,5 @@
                 android:resource="@xml/camera_capture_paths" />
         </provider>
     </application>
+
 </manifest> 

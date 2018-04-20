@@ -184,14 +184,15 @@ public class GalleryCursorRecyclerViewAdapter extends RecyclerView.Adapter<Photo
         try {
             holder.mVideoIcon.setVisibility(isVideo ? View.VISIBLE : View.GONE);
             if (isVideo) {
-                Picasso.with(mContext)
+
+                Picasso.get()
                         .load("video:" + data)
                         .placeholder(R.drawable.btn_preview)
                         .fit()
                         .centerCrop()
                         .into(holder.mPhoto);
             } else {
-                Picasso.with(mContext)
+                Picasso.get()
                         .load(new File(data))
                         .fit()
                         .centerCrop()

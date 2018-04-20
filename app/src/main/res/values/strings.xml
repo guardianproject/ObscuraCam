@@ -143,5 +143,7 @@
     <string name="do_tweet">Do Tween</string>
     <string name="video_remove_keyframe">Remove Keyframe</string>
     <string name="processing">Processing...</string>
+    <string name="view_image">View Image</string>
+    <string name="mode_equalais">EqualAIs</string>
 
 </resources>

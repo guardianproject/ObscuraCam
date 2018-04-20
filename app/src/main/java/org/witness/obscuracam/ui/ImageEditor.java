@@ -37,6 +37,7 @@ import android.provider.MediaStore;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -56,6 +57,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import org.witness.obscuracam.MainActivity;
 import org.witness.obscuracam.ui.adapters.ImageRegionOptionsRecyclerViewAdapter;
 import org.witness.obscuracam.photo.detect.AndroidFaceDetection;
 import org.witness.obscuracam.photo.detect.DetectedFace;
@@ -64,6 +66,7 @@ import org.witness.obscuracam.photo.filters.MaskObscure;
 import org.witness.obscuracam.photo.filters.RegionProcesser;
 import org.witness.obscuracam.photo.jpegredaction.JpegRedaction;
 import org.witness.obscuracam.ObscuraApp;
+import org.witness.sscphase1.BuildConfig;
 import org.witness.sscphase1.R;
 
 import java.io.File;
@@ -1321,7 +1324,7 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 
 		if ((tmpImageUri = saveTmpImage()) != null) {
 			Intent share = new Intent(Intent.ACTION_SEND);
-			share.setType("image/jpeg");
+			share.setType(MIME_TYPE_JPEG);
 			share.putExtra(Intent.EXTRA_STREAM, tmpImageUri);
 			startActivity(Intent.createChooser(share, "Share Image"));
 		} else {
@@ -1336,11 +1339,17 @@ public class ImageEditor extends AppCompatActivity implements OnTouchListener, O
 	 */
 	private void viewImage(Uri imgView) {
 
-		Intent iView = new Intent(Intent.ACTION_VIEW);
-		iView.setDataAndType(imgView, MIME_TYPE_JPEG);
-        iView.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		Uri uriToShare = null;
 
-		startActivity(Intent.createChooser(iView, "View Image"));
+		if (imgView.getScheme() == null || imgView.getScheme().equals("file"))
+			uriToShare = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".provider",new File(imgView.getPath()));
+		else
+			uriToShare = imgView;
+
+		Intent iView = new Intent(Intent.ACTION_SEND);
+        iView.setType(MIME_TYPE_JPEG);
+        iView.putExtra(Intent.EXTRA_STREAM, uriToShare);
+		startActivity(Intent.createChooser(iView, getString(R.string.view_image)));
 
 	}
 

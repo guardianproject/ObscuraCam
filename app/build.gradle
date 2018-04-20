@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
 
     defaultConfig {
         applicationId "org.witness.sscphase1"
         minSdkVersion 16
-        targetSdkVersion 25
+        targetSdkVersion 27
         versionCode 4002
         versionName "4.0.0.2"
         ndk {
@@ -16,6 +16,11 @@ android {
             cFlags "-fexceptions"
         }
 
+    }
+
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
     }
 
     buildTypes {
@@ -45,10 +50,11 @@ repositories {
 }
 
 dependencies {
-    compile 'com.google.guava:guava:22.0'
-    compile 'commons-codec:commons-codec:1.9'
-    compile 'com.android.support:appcompat-v7:25.4.0'
-    compile 'com.android.support:design:25.4.0'
-    compile 'com.writingminds:FFmpegAndroid:0.3.2'
-    compile 'com.squareup.picasso:picasso:2.6.0-SNAPSHOT'
+    implementation 'com.google.guava:guava:23.0-android'
+    implementation 'commons-codec:commons-codec:1.9'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:design:27.1.1'
+    implementation 'com.writingminds:FFmpegAndroid:0.3.2'
+    implementation 'com.squareup.picasso:picasso:2.71828'
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
 }
