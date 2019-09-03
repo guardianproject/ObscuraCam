@@ -1,0 +1,33 @@
+Dans un monde de vidéos virales et de reconnaissance faciale, ObscuraCam vous aide à partager avec vos amis photos et vidéos tout en protégeant leur caractère confidentiel. Avec ObscuraCam, vous pouvez rendre flous et déguiser les visages sur vos photos et vidéos. Pour une sécurité accrue, les informations qui pourraient vous identifier comme cadreur sont supprimées des fichiers.
+
+★ VOS IMAGES, EN TOUTE CONFIDENTIALITÉ : ObscuraCam peut être utilisée pour prendre des photos ou pour anonymiser les photos et vidéos que vous avez déjà prises
+
+★ DÉGUISEZ-VOUS : couvrez les visages par pixélisation, avec des drôles de nez et des lunettes, ou en les noircissant
+
+★ DÉTECTION AUTOMATIQUE DES VISAGES : ObscuraCam détecte automatiquement les visages dans les photos et les vidéos afin que vous puissiez rapidement et facilement anonymiser une foule ou une longue vidéo
+
+★ DIFFÉRENTS MODES DE PROTECTION : les visages peuvent être pixelisés, complètement supprimés ou déguisés avec des drôles de nez et des lunettes. Vous pouvez aussi rendre toute l'image floue, sauf une petite partie
+
+★ PARTAGEZ EN TOUTE SÉCURITÉ : nous supprimons toutes les données signalétiques intégrées aux photos incluant l'emplacement GPS, la marque et le modèle du téléphone afin que vous puissiez réenregistrer dans la galerie la photo protégée ou la partager directement par Facebook, Twitter ou toute autre appli acceptant le partage
+
+★ PROTÈGE L'IDENTITÉ DU PHOTOGRAPHE : les téléphones intelligents joignent des informations à chaque photo qu'ils prennent, incluant le lieu de la prise et le type d'appareil. ObscuraCam supprime toutes ces informations
+
+★ PRIMÉ : ObscuraCam était l'un des lauréats du « Knight News Challenge 2013 »
+
+***En apprendre davantage***
+
+★ PARTENARIAT : ObscuraCam est un partenariat entre les experts en sécurité du Projet Guardian et WITNESS.org, une organisation sans but lucratif qui utilise la puissance de la vidéo et de la narration pour exposer au grand jour les violations des droits de la personne
+
+★ NOTRE SITE WEB : https://GuardianProject.info
+
+★ À PROPOS DE WITNESS : une organisation sans but lucratif qui utilise la puissance de la vidéo et de la narration pour exposer au grand jour les violations des droits de la personne
+
+★ SITE WEB DE WITNESS : https://witness.org
+
+★ SUR TWITTER : https://twitter.com/guardianproject et https://twitter.com/witnessorg
+
+★ CODE SOURCE OUVERT : ObscuraCam est un logiciel libre. Vous pouvez examiner notre code source ou vous joindre à la communauté pour aider à encore améliorer ObscuraCam : https://github.com/guardianproject/ObscuraCam
+
+★ CONTACTEZ-NOUS : votre fonction favorite est absente ? Vous avez trouvé un bogue ennuyant ? Nous aimerions que vous nous en fassiez part ! Envoyez-nous un courriel : support@guardianproject.info
+
+détection du visage, reconnaissance faciale, flou, pixellisation, droits de la personne, droits humains, activisme, orbot, tor, confidentialité, obscurcissement, caméra confidentielle, appareil photo, éditeur de photos, journaliste, journalisme, photoshop, vidéo, traitement vidéo, mosaïque, anonymat

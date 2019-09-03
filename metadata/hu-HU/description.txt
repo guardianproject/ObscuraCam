@@ -1,0 +1,34 @@
+A vírusvideók és arcfelismerők világában az ObscuraCam segít fotókat és videókat megosztani, miközben védi a magánéledet és azokét, akikkel törődsz. Az ObscuraCam-al elhomályosíthatsz és elrejthetsz arcokat a fotóidban és videóidban. Az információ, ami azonosíthat téged mint operatőr, el vannak távolítva a fájlból a hozzáadott biztonságért.
+
+★ ADATVÉDELEM A KÉPEIDNEK: Az ObscuraCam használható kameraként fotókészítéshez, vagy hogy anonimizáld az általad készített fotókat és videókat.
+
+★ ÁLCÁZD MAGAD: Takarj el arcokat képpontosítással, szerkesztéssel (elsötétítéssel) vagy vicces orral és szemüveggel
+
+★ AUTOMATIKUS ARCFELISMERÉS: Az ObscuraCam automatikusan felismeri az arcokat a fotókon és videókon is, így gyorsan és könnyen tudsz anonimizálni egy tömeget vagy egy hosszú videót
+
+★ TÖBBFÉLE ADATVÉDELMI MÓD: Az arcok képpontosíthatók, teljesen eltávolíthatók, vagy álcázhatók vicces orral és szemüveggel. A kép egy kis részét kivéve mindent el tudsz homályosítani
+
+★ OSZD MEG BIZTONSÁGOSAN: Eltávolítjuk a fotókban tárolt összes azonosítási adatot, beleértve a GPS helymeghatározási adatot és a telefon gyártóját és modellét, így visszamentheted a védett fotót a Galériába, vagy megoszthatod közvetlenül Facebook-on, Twitter-en vagy egyéb másik "Megosztás" engedélyezett alkalmazással
+
+★ MEGVÉDI A FÉNYKÉPÉSZ SZEMÉLYAZONOSSÁGÁT: Az okostelefonok minden készített fényképhez információt csatolnak, tartalmazva, hogy hol és milyen típusú kamerával készült. Az ObscuraCam eltávolítja ezt az összes információt
+
+★ DÍJNYERTES: Az ObscuraCam volt a nyertese a 2013 Knight News Challenge-nek
+
+***További Tudnivalók***
+
+★ EGYÜTTMŰKÖDÉS: Az ObscuraCam egy együttműködés a Guardian Project és WITNESS.org biztonsági szakértői között, egy non-profit felhasználása a videó és a történetmesélésnek, hogy felnyissa a világ szemét az emberi jogi visszaélésekre
+
+★ WEBOLDALUNK: https://GuardianProject.info
+
+★ A WITNESS-RŐL: Egy non-profit felhasználása a videó és a történetmesélés erejének, hogy felnyissa a világ szemét az emberi jogi visszaélésekre
+
+★ WITNESS’ WEBOLDAL: http://witness.org
+
+★ TWITTEREN: https://twitter.com/guardianproject & https://twitter.com/witnessorg
+
+★ NYÍLT-FORRÁSKÓD: Az ObscuraCam ingyenes szoftver. Vethetsz egy pillantást a forráskódunkra, vagy csatlakozhatsz a közösséghez, hogy segíts az ObscuraCam
+-ot még jobbá tenni: https://github.com/guardianproject/ObscuraCam
+
+★ ÜZENJ NEKÜNK: Kihagytuk a kedvenc funkciódat? Találtál egy zavaró hibát? Mondd el nekünk! Szeretnénk hallani rólad. Küldj nekünk emailt: support@guardianproject.info
+
+face detection, blur, pixelize, human rights, activism, orbot, tor, privacy, obscure, obscura, privacy camera, camera, photo editor, journalist, journalism, photoshop, video, video processing, mosaic, anonymity
