@@ -28,6 +28,6 @@ I en verden der virale videoer og ansiktsgjenkjenning hjelper KameraHullet deg m
 
 ★ FRIPROG: KameraHullet er fri programvare. Du kan sjekke ut kildekoden, og ta del i kameratskapet for å bidra til å gjøre KameraHullet enda bedre: https://github.com/guardianproject/ObscuraCam
 
-SEND OSS EN MELDING: Mangler vi din favoritt-funksjon? Funnet en irriterende feil? Vi vil gjerne høre fra deg! Send oss ​​en e-post: support@guardianproject.info
+SEND OSS EN MELDING: Mangler vi din favoritt-funksjon? Funnet en irriterende feil? Vi vil gjerne høre fra deg! Send oss en e-post: support@guardianproject.info
 
 ansiktsgjenkjenning, utvasking, pikselering, menneskerettigheter, aktivisme, orbot, tor, personvern, obskur, obscura, privat kamera, billedbehandler, journalist, journalistikk, photoshop, video, videobehanding, mosaikk, anonymitet
