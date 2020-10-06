@@ -18,13 +18,13 @@
 
 مشارکت: ObscuraCam مشارکتی میان متخصصان امنیت در پروژه پشتیبان و WITNESS.org (سازمانی غیرانتفاعی که با استفاده از قدرت تصویر و داستان‌گویی، چشمان جهان را بر نقض حقوق بشر می‌گشاید) است.
 
-★ وب سایت ما: https://GuardianProject.info
+* وب سایت ما: https://GuardianProject.info
 
 درباره شهادت: سازمانی غیرانتفاعی که با استفاده از قدرت تصویر و داستان‌گویی، چشمان جهان را بر نقض حقوق بشر می‌گشاید.
 
-★ شاهد وب سایت: http://witness.org
+* شاهد وب سایت: http://witness.org
 
-★ در توییتر: https://twitter.com/guardianproject و https://twitter.com/witnessorg
+* در توییتر: https://twitter.com/guardianproject و https://twitter.com/witnessorg
 
 منبع باز: ObscuraCam یک نرم‌افزار رایگان است  شما می‌توانید به کدهای منبع ما نگاهی بیندازید، یا برای کمک به بهترشدن وب‌سایت به این مجموعه بپیوندید: https://github.com/guardianproject/ObscuraCam
 

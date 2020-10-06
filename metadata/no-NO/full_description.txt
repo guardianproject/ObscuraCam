@@ -1,32 +1,32 @@
 I en verden der virale videoer og ansiktsgjenkjenning hjelper KameraHullet deg med å dele videoer samtidig som du beskytter personvernet til dem du bryr deg om. Med KameraHullet kan du fordekke og viske ut identiteten til folk i dine bilder og videoer. Informasjon som kan identifisere deg som fotograf blir fjernet fra filene for ekstra sikkerhet.
 
-★ DINE BILDER ER DINE: KameraHullet kan brukes som kamera for å ta bilder, eller å anonymisere bilder og videoer du allerede har tatt.
+* DINE BILDER ER DINE: KameraHullet kan brukes som kamera for å ta bilder, eller å anonymisere bilder og videoer du allerede har tatt.
 
-★ TRÅ INN I SKYGGEN: Dekk til ansikter med pikselering, full fordekning eller morsom nese og briller
+* TRÅ INN I SKYGGEN: Dekk til ansikter med pikselering, full fordekning eller morsom nese og briller
 
-★ AUTOMATISK ANSIKTSGJENKJENNING: KameraHullet oppdager automatisk ansikter i både video og bilder, så det går fort å anonymisere en hel bøling, eller en lang video
+* AUTOMATISK ANSIKTSGJENKJENNING: KameraHullet oppdager automatisk ansikter i både video og bilder, så det går fort å anonymisere en hel bøling, eller en lang video
 
-★ FLERFOLDIGE PERSONVERNSMODI: Fjes kan pikseleres, fjernes helt, eller fordekkes med morsomme neser og briller. Du kan også dekke alt bortsett fra en liten del av et bilde
+* FLERFOLDIGE PERSONVERNSMODI: Fjes kan pikseleres, fjernes helt, eller fordekkes med morsomme neser og briller. Du kan også dekke alt bortsett fra en liten del av et bilde
 
-★ SIKRET DELING: Like enkelt som du er vant til, det være seg til galleriet eller hvilket som helst annen delings-app. Vær trygg, identitets-basert informasjon som GPS-lokalisering, telefonmerke og modell er fjernet fra mediafilen.
+* SIKRET DELING: Like enkelt som du er vant til, det være seg til galleriet eller hvilket som helst annen delings-app. Vær trygg, identitets-basert informasjon som GPS-lokalisering, telefonmerke og modell er fjernet fra mediafilen.
 
-★ BESKYTTER IDENTITETEN TIL PERSONEN BAK KAMERAET: Smart-telefoner legger masse ekstra informasjon til hvert bilde de tar, som når bildet ble tatt og hvilket kamera som ble brukt. KameraHullet fjerner all denne informasjonen.
+* BESKYTTER IDENTITETEN TIL PERSONEN BAK KAMERAET: Smart-telefoner legger masse ekstra informasjon til hvert bilde de tar, som når bildet ble tatt og hvilket kamera som ble brukt. KameraHullet fjerner all denne informasjonen.
 
-★ PRISVINNENDE: KameraHullet vant Knight News Challenge i 2013
+* PRISVINNENDE: KameraHullet vant Knight News Challenge i 2013
 
 ***Lær mer***
 
-★ PARTNERSKAP: KameraHullet er et samarbeid mellom sikkerhetsekspertene i Guardian-prosjektet og WITNESS.org, en veldedig organisasjon som bruker bildets makt gjennom video og historiefortelling til å formidle til verden, og for å få øynene opp for menneskerettighetsbrudd.
+* PARTNERSKAP: KameraHullet er et samarbeid mellom sikkerhetsekspertene i Guardian-prosjektet og WITNESS.org, en veldedig organisasjon som bruker bildets makt gjennom video og historiefortelling til å formidle til verden, og for å få øynene opp for menneskerettighetsbrudd.
 
-★ VÅR NETTSIDE: https://GuardianProject.info
+* VÅR NETTSIDE: https://GuardianProject.info
 
-★ OM WITNESS: En veldedig organisasjon som bruker bildets makt gjennom video og historiefortelling til å formidle til verden, og for å få øynene opp for menneskerettighetsbrudd.
+* OM WITNESS: En veldedig organisasjon som bruker bildets makt gjennom video og historiefortelling til å formidle til verden, og for å få øynene opp for menneskerettighetsbrudd.
 
-★ WITNESS SIN NETTSIDE: http://witness.org
+* WITNESS SIN NETTSIDE: http://witness.org
 
-★ PÅ TWITTER: https://twitter.com/guardianproject og https://twitter.com/witnessorg
+* PÅ TWITTER: https://twitter.com/guardianproject og https://twitter.com/witnessorg
 
-★ FRIPROG: KameraHullet er fri programvare. Du kan sjekke ut kildekoden, og ta del i kameratskapet for å bidra til å gjøre KameraHullet enda bedre: https://github.com/guardianproject/ObscuraCam
+* FRIPROG: KameraHullet er fri programvare. Du kan sjekke ut kildekoden, og ta del i kameratskapet for å bidra til å gjøre KameraHullet enda bedre: https://github.com/guardianproject/ObscuraCam
 
 SEND OSS EN MELDING: Mangler vi din favoritt-funksjon? Funnet en irriterende feil? Vi vil gjerne høre fra deg! Send oss en e-post: support@guardianproject.info
 

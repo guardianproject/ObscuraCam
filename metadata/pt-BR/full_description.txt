@@ -1,21 +1,21 @@
 Em um mundo de vídeos virais e reconhecimento facial o ObscuraCam ajuda você a compartilhar fotos e vídeos ao mesmo tempo que protege a sua privacidade e daqueles que você gosta. Com o ObscuraCam é possível desfocar e disfarçar os rostos nas suas fotos e vídeos. Informações que podem identificá-lo como o operador de câmera são removidas dos arquivos para uma melhor segurança
 
-★ PRIVACIDADE PARA AS SUAS FOTOS: O ObscuraCam pode ser usado como uma câmera para tirar fotos ou para tornar anônimas as fotos e os vídeos que você já tirou
-★ DISFARCE-SE: Cubra os rostos com pixels, edite (escureça) ou faça um nariz e óculos engraçados
-★ DETECÇÃO FACIAL AUTOMÁTICA: O ObscuraCam detecta automaticamente os rostos nas fotos e nos vídeos para que você possa anonimizar de forma rápida e eficiente um público ou um vídeo de longa duração
-★ DIVERSOS MODOS DE PRIVACIDADE: Os rostos podem ser pixelizados, removidos completamente ou disfarçados com um nariz ou óculos engraçados. Você pode também desfocar tudo, exceto uma pequena parte de uma imagem
-★ COMPARTILHE DE FORMA SEGURA: Removemos todos os dados de identificação que estão armazenados nas fotos, incluindo os dados de localização GPS, marca e modelo do telefone para que você possa salvar a foto protegida na Galeria ou compartilhá-la diretamente no Facebook, Twitter ou qualquer outro aplicativo que tenha a opção "Compartilhar"
-★ PROTEGE A IDENTIDADE DO FOTÓGRAFO: Os smartphones anexam informações em todas as fotos que tiram, incluindo de onde foram tiradas e de que tipo de câmera. ObscuraCam remove todas estas informações
-★ PREMIADO: A ObscuraCam foi o vencedor do prêmio Knight News Challenge em 2013
+* PRIVACIDADE PARA AS SUAS FOTOS: O ObscuraCam pode ser usado como uma câmera para tirar fotos ou para tornar anônimas as fotos e os vídeos que você já tirou
+* DISFARCE-SE: Cubra os rostos com pixels, edite (escureça) ou faça um nariz e óculos engraçados
+* DETECÇÃO FACIAL AUTOMÁTICA: O ObscuraCam detecta automaticamente os rostos nas fotos e nos vídeos para que você possa anonimizar de forma rápida e eficiente um público ou um vídeo de longa duração
+* DIVERSOS MODOS DE PRIVACIDADE: Os rostos podem ser pixelizados, removidos completamente ou disfarçados com um nariz ou óculos engraçados. Você pode também desfocar tudo, exceto uma pequena parte de uma imagem
+* COMPARTILHE DE FORMA SEGURA: Removemos todos os dados de identificação que estão armazenados nas fotos, incluindo os dados de localização GPS, marca e modelo do telefone para que você possa salvar a foto protegida na Galeria ou compartilhá-la diretamente no Facebook, Twitter ou qualquer outro aplicativo que tenha a opção "Compartilhar"
+* PROTEGE A IDENTIDADE DO FOTÓGRAFO: Os smartphones anexam informações em todas as fotos que tiram, incluindo de onde foram tiradas e de que tipo de câmera. ObscuraCam remove todas estas informações
+* PREMIADO: A ObscuraCam foi o vencedor do prêmio Knight News Challenge em 2013
 
 ***Saiba Mais***
 
-★ PARCERIA: O ObscuraCam existe através de uma parceria entre os especialistas em segurança do The Guardian Project e o WITNESS.org, uma organização sem fins lucrativos que usa o poder da filmagem para contar histórias visando abrir os olhos do mundo para os abusos dos direitos humanos
-★ O NOSSO SITE: https://GuardianProject.info
-★ SOBRE A WITNESS: É uma organização sem fins lucrativos que usa o poder da filmagem para contar histórias visando abrir os olhos do mundo para os abusos dos direitos humanos
-★ SITE DA WITNESS: http://witness.org
-★ NO TWITTER: https://twitter.com/guardianproject & https://twitter.com/witnessorg
-★ SOFTWARE LIVRE: O ObscuraCam é um software livre. Você pode dar uma olhada no nosso código-fonte ou entrar na comunidade para ajudar a tornar o Orweb ainda melhor: https://github.com/guardianproject/ObscuraCam
-★ CONTATE-NOS: Não encontrou algum recurso? Encontrou algum problema chato? Fale conosco! Nós adoraríamos ouvir de você. Mande-nos um e-mail: support@guardianproject.info
+* PARCERIA: O ObscuraCam existe através de uma parceria entre os especialistas em segurança do The Guardian Project e o WITNESS.org, uma organização sem fins lucrativos que usa o poder da filmagem para contar histórias visando abrir os olhos do mundo para os abusos dos direitos humanos
+* O NOSSO SITE: https://GuardianProject.info
+* SOBRE A WITNESS: É uma organização sem fins lucrativos que usa o poder da filmagem para contar histórias visando abrir os olhos do mundo para os abusos dos direitos humanos
+* SITE DA WITNESS: http://witness.org
+* NO TWITTER: https://twitter.com/guardianproject & https://twitter.com/witnessorg
+* SOFTWARE LIVRE: O ObscuraCam é um software livre. Você pode dar uma olhada no nosso código-fonte ou entrar na comunidade para ajudar a tornar o Orweb ainda melhor: https://github.com/guardianproject/ObscuraCam
+* CONTATE-NOS: Não encontrou algum recurso? Encontrou algum problema chato? Fale conosco! Nós adoraríamos ouvir de você. Mande-nos um e-mail: support@guardianproject.info
 
 detecção de rosto, borrão, pixelize, direitos humanos, ativismo, orbot, tor, privacidade, obscuro, obscura, câmera de privacidade, câmera, editor de fotos, jornalista, jornalismo, photoshop, vídeo, processamento de vídeo, mosaico, anonimato

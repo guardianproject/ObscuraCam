@@ -1,33 +1,33 @@
 I en värld av virala videor och ansiktsigenkänning, ObscuraCam hjälper dig att dela foton och videoklipp och samtidigt skydda privatlivet för dig och de du bryr dig om. Med ObscuraCam kan du sudda och dölja ansikten i dina foton och videoklipp. Information som kan identifiera dig som kameraperson tas bort från filerna för extra säkerhet
 
-★ SEKRETESS FÖR DINA BILDER: ObscuraCam kan användas som en kamera för att ta bilder, eller för att anonymisera foton och videoklipp som du redan har tagit
+* SEKRETESS FÖR DINA BILDER: ObscuraCam kan användas som en kamera för att ta bilder, eller för att anonymisera foton och videoklipp som du redan har tagit
 
-★ DÖLJA DIG SJÄLV: täcka ansikten med pixelate, redact (blackout) eller rolig näsa och glasögon
+* DÖLJA DIG SJÄLV: täcka ansikten med pixelate, redact (blackout) eller rolig näsa och glasögon
 
-★ AUTOMATISK ANSIKTSIGENKÄNNING: ObscuraCam upptäcker automatiskt ansikten i både foton och videoklipp, så att du snabbt och enkelt kan anonymisera en folkmassa eller en lång video
+* AUTOMATISK ANSIKTSIGENKÄNNING: ObscuraCam upptäcker automatiskt ansikten i både foton och videoklipp, så att du snabbt och enkelt kan anonymisera en folkmassa eller en lång video
 
-★ FLERA SEKRETESSLÄGEN: Ansikten kan pixeleras, tas bort helt eller förklädd med rolig näsa och glasögon. Du kan också sudda allt utom en liten del av en bild
+* FLERA SEKRETESSLÄGEN: Ansikten kan pixeleras, tas bort helt eller förklädd med rolig näsa och glasögon. Du kan också sudda allt utom en liten del av en bild
 
-★ DELA SÄKERT: Vi tar bort alla identifierande data som lagras i bilder, inklusive GPS - platsdata och telefontillverkning &amp; modell så att du kan spara det skyddade fotot tillbaka till galleriet, eller dela det direkt till Facebook, Twitter eller någon annan "Dela" aktiverad app
+* DELA SÄKERT: Vi tar bort alla identifierande data som lagras i bilder, inklusive GPS - platsdata och telefontillverkning &amp; modell så att du kan spara det skyddade fotot tillbaka till galleriet, eller dela det direkt till Facebook, Twitter eller någon annan "Dela" aktiverad app
 
-★ SKYDDAR FOTOGRAFENS IDENTITET: Smarttelefoner bifogar information till varje foto de tar, inklusive var det togs och av vilken typ av kamera. ObscuraCam tar bort all sådan information
+* SKYDDAR FOTOGRAFENS IDENTITET: Smarttelefoner bifogar information till varje foto de tar, inklusive var det togs och av vilken typ av kamera. ObscuraCam tar bort all sådan information
 
-★ PRISBELÖNT: ObscuraCam var en vinnare av 2013 Knight News Challenge
+* PRISBELÖNT: ObscuraCam var en vinnare av 2013 Knight News Challenge
 
 ***Lär dig mer***
 
-★ PARTNERSKAP: ObscuraCam är ett partnerskap mellan säkerhetsexperter på Guardian-projektet och WITNESS.org, en ideell organisation med hjälp av krafter i video- och berättande för att öppna världens ögon för de mänskliga rättigheterna
+* PARTNERSKAP: ObscuraCam är ett partnerskap mellan säkerhetsexperter på Guardian-projektet och WITNESS.org, en ideell organisation med hjälp av krafter i video- och berättande för att öppna världens ögon för de mänskliga rättigheterna
 
-★ VÅR WEBBPLATS: https://GuardianProject.info
+* VÅR WEBBPLATS: https://GuardianProject.info
 
-★ OM WITNESS: En ideell organisation som användning av krafter i video och berättande för att öppna världens ögon för de mänskliga rättigheterna
+* OM WITNESS: En ideell organisation som användning av krafter i video och berättande för att öppna världens ögon för de mänskliga rättigheterna
 
-★ WITNESS-WEBBPLATS: http://witness.org
+* WITNESS-WEBBPLATS: http://witness.org
 
-★ PÅ TWITTER: https://twitter.com/guardianproject & https://twitter.com/witnessorg
+* PÅ TWITTER: https://twitter.com/guardianproject & https://twitter.com/witnessorg
 
-★ ÖPPEN KÄLLKOD: ObscuraCam är fri programvara. Du kan ta en titt på vår källkod, eller gå med i samhället för att göra Orweb ännu bättre: https://github.com/guardianproject/ObscuraCam
+* ÖPPEN KÄLLKOD: ObscuraCam är fri programvara. Du kan ta en titt på vår källkod, eller gå med i samhället för att göra Orweb ännu bättre: https://github.com/guardianproject/ObscuraCam
 
-★ MEDDELA OSS: Saknar vi din favoritfunktion? Hittade ett irriterande problem? Snälla, berätta! Vi vill gärna höra från dig. Skicka oss ett mejl: support@guardianproject.info
+* MEDDELA OSS: Saknar vi din favoritfunktion? Hittade ett irriterande problem? Snälla, berätta! Vi vill gärna höra från dig. Skicka oss ett mejl: support@guardianproject.info
 
 ansiktsigenkänning, oskärpa, pixelera, mänskliga rättigheter, aktivism, orbot, tor, integritet, obscura, sekretesskamera, kamera, fotoredigerare, journalist, journalistik, photoshop, video, videobearbetning, mosaik, anonymitet

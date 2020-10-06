@@ -1,3 +1,3 @@
 在海量視頻和麵部識別的世界中，ObscuraCam 可以幫助您分享照片和視頻的同時，保護您和您周邊人的隱私。 借助 ObscuraCam，您可以在照片和視頻中模糊和偽裝臉部。 通過移除可以識別您身份的信息以保障您的安全
 
-★ 我們的網站： https://GuardianProject.info
+* 我們的網站： https://GuardianProject.info
