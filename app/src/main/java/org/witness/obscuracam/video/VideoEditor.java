@@ -11,7 +11,6 @@
 package org.witness.obscuracam.video;
 
 import android.content.ContentUris;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -41,12 +40,11 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.os.PowerManager;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
+import com.google.android.material.snackbar.Snackbar;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -64,8 +62,6 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.Toast;
 import android.widget.VideoView;
-
-import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
 
 
 import org.witness.obscuracam.photo.detect.AndroidFaceDetection;
@@ -1138,7 +1134,7 @@ public class VideoEditor extends AppCompatActivity implements
                         public void onFinish() {
 
                             Log.i(getClass().getName(), "FINISHED");
-            
+
 
                         }
                     });

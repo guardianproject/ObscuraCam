@@ -20,7 +20,7 @@
 			<Button android:id="@+id/ZoomOut" android:background="@drawable/zoom_out" android:layout_height="wrap_content" android:layout_width="wrap_content"></Button>
 			<Button android:id="@+id/ZoomIn" android:background="@drawable/zoom_in" android:layout_height="wrap_content" android:layout_width="wrap_content"></Button>
 		</LinearLayout>
-	<android.support.v7.widget.RecyclerView
+	<androidx.recyclerview.widget.RecyclerView
 		android:id="@+id/recycler_view_region_options"
 		android:layout_width="match_parent"
 		android:layout_height="110dp"
@@ -32,5 +32,5 @@
 		android:scrollbarSize="5dp"
 		android:scrollbarStyle="insideOverlay"
 		>
-	</android.support.v7.widget.RecyclerView>
+	</androidx.recyclerview.widget.RecyclerView>
 </FrameLayout>
