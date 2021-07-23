@@ -144,5 +144,8 @@
     <string name="video_remove_keyframe">Remove Keyframe</string>
     <string name="processing">Processing...</string>
     <string name="view_image">View Image</string>
+    <string name="action_open">Open</string>
+    <string name="colorize">Colorize:</string>
+    <string name="pixelize">Pixelize:</string>
 
 </resources>

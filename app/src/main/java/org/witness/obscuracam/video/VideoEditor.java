@@ -10,9 +10,11 @@
 
 package org.witness.obscuracam.video;
 
+import android.Manifest;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -35,7 +37,9 @@ import android.media.MediaPlayer.OnInfoListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.media.MediaPlayer.OnSeekCompleteListener;
 import android.media.MediaPlayer.OnVideoSizeChangedListener;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -43,8 +47,22 @@ import android.os.Message;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+
+import com.daasuu.gpuv.composer.FillMode;
+import com.daasuu.gpuv.composer.GPUMp4Composer;
+import com.daasuu.gpuv.composer.Rotation;
+import com.daasuu.gpuv.egl.filter.GlBoxBlurFilter;
+import com.daasuu.gpuv.egl.filter.GlFilter;
+import com.daasuu.gpuv.egl.filter.GlFilterGroup;
+import com.daasuu.gpuv.egl.filter.GlMonochromeFilter;
+import com.daasuu.gpuv.egl.filter.GlPixelationFilter;
+import com.daasuu.gpuv.egl.filter.GlPosterizeFilter;
+import com.daasuu.gpuv.egl.filter.GlVignetteFilter;
+import com.daasuu.gpuv.egl.filter.GlZoomBlurFilter;
 import com.google.android.material.snackbar.Snackbar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -64,6 +82,7 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 
+import org.apache.commons.io.IOUtils;
 import org.witness.obscuracam.photo.detect.AndroidFaceDetection;
 import org.witness.obscuracam.photo.detect.DetectedFace;
 import org.witness.obscuracam.photo.filters.PixelizeObscure;
@@ -71,17 +90,21 @@ import org.witness.obscuracam.ObscuraApp;
 import org.witness.sscphase1.R;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 
+import static android.os.Environment.DIRECTORY_MOVIES;
+
 public class VideoEditor extends AppCompatActivity implements
         OnCompletionListener, OnErrorListener, OnInfoListener,
         OnBufferingUpdateListener, OnPreparedListener, OnSeekCompleteListener,
         OnVideoSizeChangedListener, SurfaceHolder.Callback,
-        MediaController.MediaPlayerControl, OnTouchListener,
+        MediaController.MediaPlayerControl,
         InOutPlayheadSeekBar.InOutPlayheadSeekBarChangeListener {
 
     public static final String LOGTAG = ObscuraApp.TAG;
@@ -142,7 +165,7 @@ public class VideoEditor extends AppCompatActivity implements
     int autoDetectTimeInterval = 300; //ms
 
     boolean mCompressVideo = true;
-    int mObscureAudioAmount = 0;
+    int mObscureBlurAmount = 0;
     int mObscureVideoAmount = 0;
 
     int timeNudgeOffset = 2;
@@ -167,6 +190,7 @@ public class VideoEditor extends AppCompatActivity implements
 
     private ProgressBar mProgressBar;
 
+
     private Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
             switch (msg.what) {
@@ -178,15 +202,8 @@ public class VideoEditor extends AppCompatActivity implements
 
 
                     try {
-                        if (msg.getData().getString("time") != null) {
-                            //00:00:05.01
-                            String time = msg.getData().getString("time");
-                            time = time.substring(0,time.indexOf("."));
-                            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-                            Date dateProgress = sdf.parse(time);
-                            long progress = dateProgress.getSeconds()*1000;
-                            int percentComplete = (int)((((float)progress)/((float)mDuration))*100f);
-                            mProgressBar.setProgress(percentComplete);
+                        if (msg.getData().containsKey("progress")) {
+                            mProgressBar.setProgress((int)(msg.getData().getDouble("progress")*100f));
                         }
                     }
                     catch (Exception e)
@@ -210,7 +227,7 @@ public class VideoEditor extends AppCompatActivity implements
                     break;
 
                 case 5:
-                    updateRegionDisplay(mediaPlayer.getCurrentPosition());
+
                     break;
                 default:
                     super.handleMessage(msg);
@@ -264,7 +281,7 @@ public class VideoEditor extends AppCompatActivity implements
             }
         }
 
-        fileExternDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES);
+        fileExternDir = Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES);
 
         mAutoDetectEnabled = false; //first time do autodetect
 
@@ -402,12 +419,6 @@ public class VideoEditor extends AppCompatActivity implements
         if (whatError == MediaPlayer.MEDIA_ERROR_SERVER_DIED) {
             Log.e(LOGTAG, "Media Error, Server Died " + extra);
 
-            boolean wasAutoDetect = mAutoDetectEnabled;
-
-            //if (wasAutoDetect)
-            mAutoDetectEnabled = false;
-
-            resetMediaPlayer(originalVideoUri);
 
 
         } else if (whatError == MediaPlayer.MEDIA_ERROR_UNKNOWN) {
@@ -441,13 +452,6 @@ public class VideoEditor extends AppCompatActivity implements
         updateVideoLayout();
         mediaPlayer.seekTo(1);
 
-
-    }
-
-    private void beginAutoDetect() {
-        mAutoDetectEnabled = true;
-
-        new Thread(doAutoDetect).start();
 
     }
 
@@ -505,7 +509,7 @@ public class VideoEditor extends AppCompatActivity implements
 
             //Commit the layout parameters
             videoView.setLayoutParams(lp);
-            regionsView.setLayoutParams(lp);
+//            regionsView.setLayoutParams(lp);
 
             // Log.v(LOGTAG, "view size: " + screenWidth + "x" + videoScaledHeight);
 
@@ -583,60 +587,6 @@ public class VideoEditor extends AppCompatActivity implements
 
     }
 
-    private Runnable doAutoDetect = new Runnable() {
-        public void run() {
-
-            try {
-
-                if (mediaPlayer != null && mAutoDetectEnabled) {
-                    // mediaPlayer.start();
-
-                    //turn volume off
-                    // mediaPlayer.setVolume(0f, 0f);
-
-                    for (int f = 0; f < mDuration && mAutoDetectEnabled; f += autoDetectTimeInterval) {
-                        try {
-                            seekTo(f);
-
-                            mVideoSeekbar.setProgress(mediaPlayer.getCurrentPosition());
-
-                            //Bitmap bmp = getVideoFrame(rPath,f*1000);
-
-                            Bitmap bmp = retriever.getFrameAtTime(f * 1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
-
-                            if (bmp == null) {
-                                resetMediaPlayer(originalVideoUri);
-                                break;
-                            } else {
-                                autoDetectFrame(bmp, f, FACE_TIME_BUFFER, mDuration, eyesOnly);
-                            }
-                        } catch (Exception e) {
-                            Log.v(LOGTAG, "error occured on frame " + f, e);
-
-                        }
-                    }
-
-                    //turn volume on
-                    //  mediaPlayer.setVolume(1f, 1f);
-
-                    mediaPlayer.seekTo(0);
-                   // progressBar.setProgress(mediaPlayer.getCurrentPosition());
-                    // mediaPlayer.pause();
-
-
-                }
-            } catch (Exception e) {
-                Log.e(LOGTAG, "autodetect errored out", e);
-            } finally {
-                mAutoDetectEnabled = false;
-                Message msg = mHandler.obtainMessage(0);
-                mHandler.sendMessage(msg);
-
-            }
-
-        }
-    };
-
     private Runnable updatePlayProgress = new Runnable() {
         public void run() {
 
@@ -644,7 +594,7 @@ public class VideoEditor extends AppCompatActivity implements
                 if (mediaPlayer != null && mediaPlayer.isPlaying()) {
                     int curr = mediaPlayer.getCurrentPosition();
                     mVideoSeekbar.setProgress(curr);
-                    updateRegionDisplay(curr);
+
                     mHandler.post(this);
                 }
 
@@ -654,321 +604,6 @@ public class VideoEditor extends AppCompatActivity implements
         }
     };
 
-    private void updateRegionDisplay(int currentTime) {
-
-        validateRegionView();
-        clearRects();
-
-        for (RegionTrail regionTrail : obscureTrails) {
-            ;
-            ObscureRegion region;
-
-            if ((region = regionTrail.getCurrentRegion(currentTime, regionTrail.isDoTweening())) != null) {
-                int currentColor = Color.WHITE;
-                boolean selected = regionTrail == activeRegionTrail;
-
-                if (selected) {
-                    currentColor = Color.GREEN;
-                    displayRegionTrail(regionTrail, selected, currentColor, currentTime);
-                }
-
-                displayRegion(region, selected, currentColor, regionTrail.getObscureMode());
-            }
-        }
-
-
-        regionsView.invalidate();
-        //seekBar.invalidate();
-    }
-
-    private void validateRegionView() {
-
-        if (obscuredBmp == null && regionsView.getWidth() > 0 && regionsView.getHeight() > 0) {
-            //	Log.v(LOGTAG,"obscuredBmp is null, creating it now");
-            obscuredBmp = Bitmap.createBitmap(regionsView.getWidth(), regionsView.getHeight(), Bitmap.Config.ARGB_8888);
-            obscuredCanvas = new Canvas(obscuredBmp);
-            regionsView.setImageBitmap(obscuredBmp);
-        }
-    }
-
-    private void displayRegionTrail(RegionTrail trail, boolean selected, int color, int currentTime) {
-
-
-        RectF lastRect = null;
-
-        obscuredPaint.setStyle(Style.FILL);
-        obscuredPaint.setColor(color);
-        obscuredPaint.setStrokeWidth(10f);
-
-        for (Integer regionKey : trail.getRegionKeys()) {
-
-            ObscureRegion region = trail.getRegion(regionKey);
-
-            if (region.timeStamp < currentTime) {
-                int alpha = 150;//Math.min(255,Math.max(0, ((currentTime - region.timeStamp)/1000)));
-
-                RectF nRect = new RectF();
-                nRect.set(region.getBounds());
-                nRect.left *= vRatio;
-                nRect.right *= vRatio;
-                nRect.top *= vRatio;
-                nRect.bottom *= vRatio;
-
-                obscuredPaint.setAlpha(alpha);
-
-                if (lastRect != null) {
-                    obscuredCanvas.drawLine(lastRect.centerX(), lastRect.centerY(), nRect.centerX(), nRect.centerY(), obscuredPaint);
-                }
-
-                lastRect = nRect;
-            }
-        }
-
-
-    }
-
-
-    private void displayRegion(ObscureRegion region, boolean selected, int color, String mode) {
-
-        RectF paintingRect = new RectF();
-        paintingRect.set(region.getBounds());
-        paintingRect.left *= vRatio;
-        paintingRect.right *= vRatio;
-        paintingRect.top *= vRatio;
-        paintingRect.bottom *= vRatio;
-
-        if (mode.equals(RegionTrail.OBSCURE_MODE_PIXELATE)) {
-            obscuredPaint.setAlpha(150);
-            obscuredCanvas.drawBitmap(bitmapPixel, null, paintingRect, obscuredPaint);
-
-
-        } else if (mode.equals(RegionTrail.OBSCURE_MODE_REDACT)) {
-
-            obscuredPaint.setStyle(Style.FILL);
-            obscuredPaint.setColor(Color.BLACK);
-            obscuredPaint.setAlpha(150);
-
-            obscuredCanvas.drawRect(paintingRect, obscuredPaint);
-        }
-
-        obscuredPaint.setStyle(Style.STROKE);
-        obscuredPaint.setStrokeWidth(10f);
-        obscuredPaint.setColor(color);
-
-        obscuredCanvas.drawRect(paintingRect, obscuredPaint);
-
-
-    }
-
-    private void clearRects() {
-        Paint clearPaint = new Paint();
-        clearPaint.setXfermode(new PorterDuffXfermode(Mode.CLEAR));
-
-        if (obscuredCanvas != null)
-            obscuredCanvas.drawPaint(clearPaint);
-    }
-
-    int fingerCount = 0;
-    int regionCornerMode = 0;
-    float downX = -1;
-    float downY = -1;
-    float MIN_MOVE = 10;
-
-    public static final int NONE = 0;
-    public static final int DRAG = 1;
-    //int mode = NONE;
-
-    public ObscureRegion findRegion(float x, float y, int currentTime) {
-        ObscureRegion region = null;
-
-        if (activeRegion != null && activeRegion.getRectF().contains(x, y))
-            return activeRegion;
-
-        for (RegionTrail regionTrail : obscureTrails) {
-            if (currentTime != -1) {
-                region = regionTrail.getCurrentRegion(currentTime, false);
-                if (region != null && region.getRectF().contains(x, y)) {
-                    return region;
-                }
-            } else {
-                for (Integer regionKey : regionTrail.getRegionKeys()) {
-                    region = regionTrail.getRegion(regionKey);
-
-                    if (region.getRectF().contains(x, y)) {
-                        return region;
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-
-        boolean handled = false;
-
-        if (v == mVideoSeekbar) {
-
-            if (currentUri != originalVideoUri)
-            {
-                resetMediaPlayer(originalVideoUri);
-                seekTo(0);
-            }
-            else {
-
-                // It's the progress bar/scrubber
-                if (event.getAction() == android.view.MotionEvent.ACTION_DOWN) {
-                    start();
-                } else if (event.getAction() == android.view.MotionEvent.ACTION_UP) {
-                    pause();
-
-                }
-
-
-                mediaPlayer.seekTo(mVideoSeekbar.getProgress());
-                // Attempt to get the player to update it's view - NOT WORKING
-            }
-
-            handled = false; // The progress bar doesn't get it if we have true here
-        } else {
-            float x = event.getX() / vRatio;
-            float y = event.getY() / vRatio;
-
-            fingerCount = event.getPointerCount();
-
-            switch (event.getAction() & MotionEvent.ACTION_MASK) {
-
-                case MotionEvent.ACTION_DOWN:
-
-                    downX = x;
-                    downY = y;
-
-                    ObscureRegion newActiveRegion = findRegion(x, y, mediaPlayer.getCurrentPosition());
-
-                    if (newActiveRegion != null) {
-                        activeRegionTrail = newActiveRegion.getRegionTrail();
-
-                      //  updateProgressBar(activeRegionTrail);
-
-                        activeRegion = newActiveRegion;
-
-                        if (fingerCount == 3)
-                        {
-                            obscureTrails.remove(activeRegionTrail);
-                            activeRegionTrail = null;
-                            activeRegion = null;
-                        }
-                    } else {
-
-                        activeRegion = makeNewRegion(fingerCount, x, y, event, HUMAN_OFFSET_BUFFER);
-
-                        if (activeRegion != null) {
-                            activeRegionTrail = findIntersectTrail(activeRegion, mediaPlayer.getCurrentPosition());
-
-                            if (activeRegionTrail == null) {
-                                activeRegionTrail = new RegionTrail(0, mDuration);
-                                obscureTrails.add(activeRegionTrail);
-                            }
-
-                            activeRegionTrail.addRegion(activeRegion);
-
-                            updateProgressBar(activeRegionTrail);
-                        }
-                    }
-
-
-                    handled = true;
-
-                    break;
-
-                case MotionEvent.ACTION_UP:
-
-                    activeRegion = null;
-
-                    break;
-
-                case MotionEvent.ACTION_MOVE:
-                    // Calculate distance moved
-
-
-                    if (Math.abs(x - downX) > MIN_MOVE
-                            || Math.abs(y - downY) > MIN_MOVE) {
-
-                        if (activeRegion != null && (!mediaPlayer.isPlaying())) {
-                            ObscureRegion oRegion = makeNewRegion(fingerCount, x, y, event, HUMAN_OFFSET_BUFFER);
-
-                            activeRegion.moveRegion(oRegion.sx, oRegion.sy, oRegion.ex, oRegion.ey);
-
-                        } else {
-                            activeRegion = makeNewRegion(fingerCount, x, y, event, HUMAN_OFFSET_BUFFER);
-
-                            if (activeRegion != null)
-                                activeRegionTrail.addRegion(activeRegion);
-                        }
-                    }
-
-                    handled = true;
-
-
-                    break;
-
-            }
-        }
-
-        updateRegionDisplay(mediaPlayer.getCurrentPosition());
-
-
-        return handled; // indicate event was handled
-    }
-
-    private ObscureRegion makeNewRegion(int fingerCount, float x, float y, MotionEvent event, int timeOffset) {
-        ObscureRegion result = null;
-
-        int regionTime = mediaPlayer.getCurrentPosition() - timeOffset;
-
-        if (fingerCount > 1 && event != null) {
-            float[] points = {event.getX(0) / vRatio, event.getY(0) / vRatio, event.getX(1) / vRatio, event.getY(1) / vRatio};
-
-            float startX = Math.min(points[0], points[2]);
-            float endX = Math.max(points[0], points[2]);
-            float startY = Math.min(points[1], points[3]);
-            float endY = Math.max(points[1], points[3]);
-
-            result = new ObscureRegion(regionTime, startX, startY, endX, endY);
-
-        } else {
-            result = new ObscureRegion(mediaPlayer.getCurrentPosition(), x, y);
-
-            if (activeRegion != null && RectF.intersects(activeRegion.getBounds(), result.getBounds())) {
-                //newActiveRegion.ex = newActiveRegion.sx + (activeRegion.ex-activeRegion.sx);
-                //newActiveRegion.ey = newActiveRegion.sy + (activeRegion.ey-activeRegion.sy);
-                float arWidth = activeRegion.ex - activeRegion.sx;
-                float arHeight = activeRegion.ey - activeRegion.sy;
-
-                float sx = x - arWidth / 2;
-                float ex = sx + arWidth;
-
-                float sy = y - arHeight / 2;
-                float ey = sy + arHeight;
-
-                result = new ObscureRegion(regionTime, sx, sy, ex, ey);
-
-            }
-
-
-        }
-
-        return result;
-
-    }
-
-    private void updateProgressBar(RegionTrail rTrail) {
-     //   progressBar.setThumbsActive((int) ((double) rTrail.getStartTime() / (double) mDuration * 100), (int) ((double) rTrail.getEndTime() / (double) mDuration * 100));
-
-    }
 
     public String pullPathFromUri(Uri originalUri) {
         String originalVideoFilePath = originalUri.toString();
@@ -980,19 +615,6 @@ public class VideoEditor extends AppCompatActivity implements
         }
 
         return originalVideoFilePath;
-    }
-
-    private File createCleanSavePath(String format) {
-
-        try {
-            saveFile = File.createTempFile("obscuracam-output", '.' + format, fileExternDir);
-            redactSettingsFile = new File(fileExternDir, saveFile.getName() + ".txt");
-
-            return redactSettingsFile;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
 
@@ -1017,8 +639,8 @@ public class VideoEditor extends AppCompatActivity implements
 
             case R.id.menu_save:
 
-                resetMediaPlayer(originalVideoUri);
-                processVideo(false);
+                if (saveFile != null && saveFile.exists())
+                    addVideoToGallery(saveFile);
 
                 return true;
 
@@ -1040,46 +662,94 @@ public class VideoEditor extends AppCompatActivity implements
         }
     }
 
-    private synchronized void processVideo(boolean isPreview) {
+    private GPUMp4Composer mVideoProc = null;
 
-        mIsPreview = isPreview;
+    private synchronized void processVideo() {
 
+        if (mVideoProc != null)
+        {
+            mVideoProc.cancel();
+            saveFile.delete();
+        }
+
+        mProgressBar.setIndeterminate(false);
         mProgressBar.setVisibility(View.VISIBLE);
         mProgressBar.setProgress(0);
 
-        if (isPreview)
-        {
-            saveFile = new File(fileExternDir,"obscuracam-preview-tmp." + outFormat);
-        }
-        else {
-            if (saveFile != null
-                && saveFile.exists() && saveFile.getName().contains("preview"))
-                    saveFile.delete();
-
-            createCleanSavePath(outFormat);
-
-            mSnackbar = Snackbar.make(findViewById(R.id.frameRoot), R.string.processing, Snackbar.LENGTH_INDEFINITE);
-            mSnackbar.show();
+        try {
+            saveFile = File.createTempFile("obscura","mp4");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         mCancelled = false;
 
         mediaPlayer.pause();
 
-            int frameRate = 0;
+            GlPixelationFilter filterPixel = null;
 
-            float startTime = ((float)mediaPlayer.getCurrentPosition())/1000f;
-            float duration = (float)mDuration/1000f;
-
-            if (isPreview) {
-                frameRate = 1;
-                duration = Math.min(duration - startTime, 1f);
+            if (mObscureVideoAmount > 0) {
+                filterPixel = new GlPixelationFilter();
+                filterPixel.setPixel(mObscureVideoAmount);
             }
 
-            else if (mObscureVideoAmount > 0)
-            {
-                frameRate = 3;
+            GlPosterizeFilter filterBlur = null;
+
+            if (mObscureBlurAmount > 0) {
+                filterBlur = new GlPosterizeFilter();
+                //filterBlur.setBlurSize(mObscureBlurAmount);
+                filterBlur.setColorLevels(mObscureBlurAmount);
             }
+
+            GlFilterGroup filterGroup = null;
+
+
+            if (filterPixel != null && filterBlur != null)
+                filterGroup = new GlFilterGroup(filterPixel,filterBlur);
+            else if (filterPixel != null)
+                filterGroup = new GlFilterGroup(filterPixel);
+            else if (filterBlur != null)
+                filterGroup = new GlFilterGroup(filterBlur);
+
+
+        mVideoProc = new GPUMp4Composer(recordingFile.getAbsolutePath(), saveFile.getAbsolutePath())
+                .fillMode(FillMode.PRESERVE_ASPECT_FIT)
+                .filter(filterGroup)
+                .listener(new GPUMp4Composer.Listener() {
+                    @Override
+                    public void onProgress(double progress) {
+                        Log.d(LOGTAG, "onProgress = " + progress);
+
+
+                        Message msg = mHandler.obtainMessage(1);
+                        msg.getData().putDouble("progress", progress);
+                        mHandler.sendMessage(msg);
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        Log.d(LOGTAG, "onCompleted()");
+                        runOnUiThread(() -> {
+
+
+                            Message msg = mHandler.obtainMessage(completeActionFlag);
+                            msg.getData().putString("status", "complete");
+                            mHandler.sendMessage(msg);
+                        });
+                    }
+
+                    @Override
+                    public void onCanceled() {
+                        Log.d(LOGTAG, "onCanceled");
+                    }
+
+                    @Override
+                    public void onFailed(Exception exception) {
+                        Log.e(LOGTAG, "onFailed()", exception);
+                    }
+                });
+
+        mVideoProc.start();
 
             // Could make some high/low quality presets
             /**
@@ -1146,7 +816,69 @@ public class VideoEditor extends AppCompatActivity implements
     }
 
     private void addVideoToGallery(File videoToAdd) {
-        sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(saveFile)));
+
+        if (mSnackbar != null)
+        {
+            mSnackbar.dismiss();
+            mSnackbar = null;
+        }
+
+        File fileExport = saveVideoExternal(videoToAdd);
+
+        if (fileExport != null) {
+            mSnackbar = Snackbar.make(findViewById(R.id.frameRoot), R.string.processing_complete, Snackbar.LENGTH_LONG);
+            mSnackbar.setAction(R.string.action_open, new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    playVideoExternal(fileExport);
+                }
+            });
+            mSnackbar.show();
+
+            sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(fileExport)));
+        }
+
+    }
+
+    public boolean isStoragePermissionGranted() {
+        String TAG = "Storage Permission";
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (this.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                Log.v(TAG, "Permission is granted");
+                return true;
+            } else {
+                Log.v(TAG, "Permission is revoked");
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                return false;
+            }
+        }
+        else { //permission is automatically granted on sdk<23 upon installation
+            Log.v(TAG,"Permission is granted");
+            return true;
+        }
+    }
+
+    public File saveVideoExternal(File saveFile) {
+        if (isStoragePermissionGranted()) { // check or ask permission
+            File fileMediaExport = null;
+            try {
+                fileMediaExport = new File(Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES),saveFile.getName());
+
+
+                IOUtils.copyLarge(new FileInputStream(saveFile),new FileOutputStream(fileMediaExport));
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if (fileMediaExport != null)
+            MediaScannerConnection.scanFile(this, new String[]{fileMediaExport.toString()}, new String[]{fileMediaExport.getName()}, null);
+
+            return fileMediaExport;
+        }
+
+        return null;
     }
 
     Snackbar mSnackbar;
@@ -1157,23 +889,6 @@ public class VideoEditor extends AppCompatActivity implements
             resetMediaPlayer(Uri.fromFile(saveFile));
             start();
 
-            if (!mIsPreview) {
-
-                if (mSnackbar != null)
-                {
-                    mSnackbar.dismiss();
-                    mSnackbar = null;
-                }
-
-                mSnackbar = Snackbar.make(findViewById(R.id.frameRoot), R.string.processing_complete, Snackbar.LENGTH_LONG);
-                mSnackbar.setAction("Open", new OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        playVideoExternal();
-                    }
-                });
-                mSnackbar.show();
-            }
         }
 
     }
@@ -1184,12 +899,12 @@ public class VideoEditor extends AppCompatActivity implements
         snackbar.show();
     }
 
-    private void playVideoExternal() {
+    private void playVideoExternal(File fileExported) {
 
         if (saveFile != null && saveFile.exists()) {
 
             Intent intent = new Intent(android.content.Intent.ACTION_VIEW);
-            intent.setDataAndType(Uri.fromFile(saveFile), MIME_TYPE_VIDEO);
+            intent.setDataAndType(Uri.fromFile(fileExported), MIME_TYPE_VIDEO);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
             startActivity(intent);
@@ -1237,9 +952,6 @@ public class VideoEditor extends AppCompatActivity implements
 
         super.onDestroy();
 
-        if (fd != null)
-            fd.release();
-
     }
 
 
@@ -1261,15 +973,6 @@ public class VideoEditor extends AppCompatActivity implements
 
         mProgressBar = (ProgressBar) this.findViewById(R.id.progress_spinner);
 
-        regionsView = (ImageView) this.findViewById(R.id.VideoEditorImageView);
-        regionsView.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                resetMediaPlayer(originalVideoUri);
-            }
-        });
-        regionsView.setOnTouchListener(this);
-
         surfaceHolder = videoView.getHolder();
 
         surfaceHolder.addCallback(this);
@@ -1284,7 +987,14 @@ public class VideoEditor extends AppCompatActivity implements
         mVideoSeekbar.setProgress(0);
         mVideoSeekbar.setInOutPlayheadSeekBarChangeListener(this);
         mVideoSeekbar.setThumbsInactive();
-        mVideoSeekbar.setOnTouchListener(this);
+        mVideoSeekbar.setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                mediaPlayer.seekTo(mVideoSeekbar.getProgress());
+
+                return false;
+            }
+        });
 
         playPauseButton = (ImageButton) this.findViewById(R.id.PlayPauseImageButton);
         playPauseButton.setOnClickListener(new OnClickListener() {
@@ -1350,14 +1060,15 @@ public class VideoEditor extends AppCompatActivity implements
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
 
-                processVideo(true);
+                processVideo();
             }
         });
 
-        ((SeekBar)findViewById(R.id.seekbar_audio_obscure)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+        ((SeekBar)findViewById(R.id.seekbar_blur)).setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                mObscureAudioAmount = i;
+                mObscureBlurAmount = i;
             }
 
             @Override
@@ -1368,7 +1079,7 @@ public class VideoEditor extends AppCompatActivity implements
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
 
-                processVideo(true);
+                processVideo();
             }
         });
 
@@ -1393,348 +1104,6 @@ public class VideoEditor extends AppCompatActivity implements
         outVWidth = Integer.parseInt(prefs.getString("pref_out_vwidth", DEFAULT_OUT_WIDTH).trim());
         outVHeight = Integer.parseInt(prefs.getString("pref_out_vheight", DEFAULT_OUT_HEIGHT).trim());
 
-    }
-	
-	/*
-	private void doAutoDetectionThread()
-	{
-		Thread thread = new Thread ()
-		{
-			public void run ()
-			{
-				long cTime = mediaPlayer.getCurrentPosition();
-				Bitmap bmp = getVideoFrame(recordingFile.getAbsolutePath(),cTime);
-				doAutoDetection(bmp, cTime, 500);
-
-			//	Message msg = mHandler.obtainMessage(3);
-		     //   mHandler.sendMessage(msg);
-			}
-		};
-		thread.start();
-	}*/
-	
-	/*
-	public static Bitmap getVideoFrame(String videoPath,long frameTime) {
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        try {
-            retriever.setDataSource(videoPath);                   
-            return retriever.getFrameAtTime(frameTime, MediaMetadataRetriever.OPTION_CLOSEST);
-        } catch (IllegalArgumentException ex) {
-            ex.printStackTrace();
-        } catch (RuntimeException ex) {
-            ex.printStackTrace();
-        } finally {
-            try {
-                retriever.release();
-            } catch (RuntimeException ex) {
-            }
-        }
-        return null;
-    }*/
-	
-	/*
-	 * Do actual auto detection and create regions
-	 * 
-	 * public void createImageRegion(int _scaledStartX, int _scaledStartY, 
-			int _scaledEndX, int _scaledEndY, 
-			int _scaledImageWidth, int _scaledImageHeight, 
-			int _imageWidth, int _imageHeight, 
-			int _backgroundColor) {
-	 */
-
-    private int autoDetectFrame(Bitmap bmp, int cTime, int cBuffer, int cDuration, boolean eyesOnly) {
-
-        ArrayList<DetectedFace> dFaces = runFaceDetection(bmp);
-
-        if (dFaces == null)
-            return 0;
-
-        for (DetectedFace dFace : dFaces) {
-
-            //float faceBuffer = -1 * (autodetectedRect.right-autodetectedRect.left)/15;
-            //autodetectedRect.inset(faceBuffer, faceBuffer);
-
-            if (eyesOnly) {
-                dFace.bounds.top = dFace.midpoint.y - dFace.eyeDistance / 2.5f;
-                dFace.bounds.bottom = dFace.midpoint.y + dFace.eyeDistance / 2.5f;
-            }
-
-            //move the facet detect time back a few MS
-            int faceTime = cTime;
-            if (faceTime > autoDetectTimeInterval * 2)
-                faceTime -= autoDetectTimeInterval * 2;
-
-            ObscureRegion newRegion = new ObscureRegion(faceTime, dFace.bounds.left,
-                    dFace.bounds.top,
-                    dFace.bounds.right,
-                    dFace.bounds.bottom);
-
-            //if we have an existing/last region
-
-            boolean foundTrail = false;
-            RegionTrail iTrail = findIntersectTrail(newRegion, cTime);
-
-            if (iTrail != null) {
-                iTrail.addRegion(newRegion);
-                activeRegionTrail = iTrail;
-                foundTrail = true;
-                break;
-            }
-
-            if (!foundTrail) {
-                activeRegionTrail = new RegionTrail(cTime, mDuration);
-                obscureTrails.add(activeRegionTrail);
-
-                activeRegionTrail.addRegion(newRegion);
-
-            }
-
-            activeRegion = newRegion;
-            foundTrail = false;
-        }
-
-        Message msg = mHandler.obtainMessage(5);
-        mHandler.sendMessage(msg);
-
-        return dFaces.size();
-    }
-
-    private RegionTrail findIntersectTrail(ObscureRegion region, int currentTime) {
-        for (RegionTrail trail : obscureTrails) {
-            if (trail.isWithinTime(currentTime)) {
-                float iLeft = -1, iTop = -1, iRight = -1, iBottom = -1;
-
-                //intersects check points
-                RectF aRectF = region.getRectF();
-                float iBuffer = 15;
-                iLeft = aRectF.left - iBuffer;
-                iTop = aRectF.top - iBuffer;
-                iRight = aRectF.right + iBuffer;
-                iBottom = aRectF.bottom + iBuffer;
-
-                Iterator<ObscureRegion> itRegions = trail.getRegionsIterator();
-
-                while (itRegions.hasNext()) {
-                    ObscureRegion testRegion = itRegions.next();
-
-                    if (testRegion.getRectF().intersects(iLeft, iTop, iRight, iBottom)) {
-                        return trail;
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    AndroidFaceDetection fd = null;
-
-    /*
-     * The actual face detection calling method
-     */
-    private ArrayList<DetectedFace> runFaceDetection(Bitmap bmp) {
-
-        ArrayList<DetectedFace> dFaces = new ArrayList<DetectedFace>();
-
-        if (fd == null)
-            fd = new AndroidFaceDetection(bmp.getWidth(), bmp.getHeight());
-
-        try {
-            //Bitmap bProc = toGrayscale(bmp);
-
-            int numFaces = fd.findFaces(bmp);
-
-            if (numFaces > 0)
-                dFaces.addAll(fd.getFaces(numFaces));
-
-            numFaces = fd.findFaces(bmp);
-
-            if (numFaces > 0)
-                dFaces.addAll(fd.getFaces(numFaces));
-
-        } catch (NullPointerException e) {
-            dFaces = null;
-        }
-        return dFaces;
-    }
-
-    public Bitmap toGrayscale(Bitmap bmpOriginal) {
-        int width, height;
-        height = bmpOriginal.getHeight();
-        width = bmpOriginal.getWidth();
-
-        Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-        Canvas c = new Canvas(bmpGrayscale);
-        Paint paint = new Paint();
-        ColorMatrix cm = new ColorMatrix();
-        cm.setSaturation(0);
-
-        ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
-
-        paint.setColorFilter(f);
-
-        c.drawBitmap(bmpOriginal, 0, 0, paint);
-
-
-        return bmpGrayscale;
-    }
-
-    public static Bitmap createContrast(Bitmap src, double value) {
-        // image size
-        int width = src.getWidth();
-        int height = src.getHeight();
-        // create output bitmap
-        Bitmap bmOut = Bitmap.createBitmap(width, height, src.getConfig());
-        // color information
-        int A, R, G, B;
-        int pixel;
-        // get contrast value
-        double contrast = Math.pow((100 + value) / 100, 2);
-
-        // scan through all pixels
-        for (int x = 0; x < width; ++x) {
-            for (int y = 0; y < height; ++y) {
-                // get pixel color
-                pixel = src.getPixel(x, y);
-                A = Color.alpha(pixel);
-                // apply filter contrast for every channel R, G, B
-                R = Color.red(pixel);
-                R = (int) (((((R / 255.0) - 0.5) * contrast) + 0.5) * 255.0);
-                if (R < 0) {
-                    R = 0;
-                } else if (R > 255) {
-                    R = 255;
-                }
-
-                G = Color.red(pixel);
-                G = (int) (((((G / 255.0) - 0.5) * contrast) + 0.5) * 255.0);
-                if (G < 0) {
-                    G = 0;
-                } else if (G > 255) {
-                    G = 255;
-                }
-
-                B = Color.red(pixel);
-                B = (int) (((((B / 255.0) - 0.5) * contrast) + 0.5) * 255.0);
-                if (B < 0) {
-                    B = 0;
-                } else if (B > 255) {
-                    B = 255;
-                }
-
-                // set new pixel color to output bitmap
-                bmOut.setPixel(x, y, Color.argb(A, R, G, B));
-            }
-        }
-
-        // return final image
-        return bmOut;
-    }
-
-    public void showPrefs() {
-        Intent intent = new Intent(this, VideoPreferences.class);
-        startActivityForResult(intent, 0);
-
-    }
-
-    /**
-    public void onItemClick(QuickAction source, int pos, int actionId) {
-
-        switch (actionId) {
-            case 0:
-                // set in point
-                activeRegionTrail.setStartTime(mediaPlayer.getCurrentPosition());
-                updateProgressBar(activeRegionTrail);
-
-
-                break;
-            case 1:
-                // set out point
-                activeRegionTrail.setEndTime(mediaPlayer.getCurrentPosition());
-                updateProgressBar(activeRegionTrail);
-                activeRegion = null;
-                activeRegionTrail = null;
-
-
-                break;
-            case 2:
-                // Remove region
-                if (activeRegion != null) {
-                    activeRegionTrail.removeRegion(activeRegion);
-                    activeRegion = null;
-                }
-                break;
-
-            case 3:
-                // Remove region
-                obscureTrails.remove(activeRegionTrail);
-                activeRegionTrail = null;
-                activeRegion = null;
-
-                break;
-
-            case 4:
-                activeRegionTrail.setObscureMode(RegionTrail.OBSCURE_MODE_REDACT);
-
-                break;
-
-            case 5:
-                activeRegionTrail.setObscureMode(RegionTrail.OBSCURE_MODE_PIXELATE);
-                break;
-
-            case 6:
-                activeRegionTrail.setDoTweening(!activeRegionTrail.isDoTweening());
-                break;
-
-        }
-
-        updateRegionDisplay(mediaPlayer.getCurrentPosition());
-
-    }
-    **/
-
-    /*
-     * Actual deletion of original
-     */
-    private void deleteOriginal() throws IOException {
-
-        if (originalVideoUri != null) {
-            if (originalVideoUri.getScheme().equals("file")) {
-                String origFilePath = originalVideoUri.getPath();
-                File fileOrig = new File(origFilePath);
-
-                String[] columnsToSelect = {MediaStore.Images.Media._ID, MediaStore.Images.Media.DATA};
-				
-				/*
-				ExifInterface ei = new ExifInterface(origFilePath);
-				long dateTaken = new Date(ei.getAttribute(ExifInterface.TAG_DATETIME)).getTime();
-				*/
-
-                Uri[] uriBases = {MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media.INTERNAL_CONTENT_URI};
-
-                for (Uri uriBase : uriBases) {
-
-                    Cursor imageCursor = getContentResolver().query(uriBase, columnsToSelect, MediaStore.Images.Media.DATA + " = ?", new String[]{origFilePath}, null);
-                    //Cursor imageCursor = getContentResolver().query(uriBase, columnsToSelect, MediaStore.Images.Media.DATE_TAKEN + " = ?",  new String[] {dateTaken+""}, null );
-
-                    while (imageCursor.moveToNext()) {
-
-                        long _id = imageCursor.getLong(imageCursor.getColumnIndex(MediaStore.Images.Media._ID));
-
-                        getContentResolver().delete(ContentUris.withAppendedId(uriBase, _id), null, null);
-
-                    }
-                }
-
-                if (fileOrig.exists())
-                    fileOrig.delete();
-
-            } else {
-                getContentResolver().delete(originalVideoUri, null, null);
-            }
-        }
-
-        originalVideoUri = null;
     }
 
 
