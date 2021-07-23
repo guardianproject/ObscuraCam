@@ -13,7 +13,6 @@ import android.view.View;
 import org.witness.obscuracam.photo.filters.BlurObscure;
 import org.witness.obscuracam.photo.filters.ConsentTagger;
 import org.witness.obscuracam.photo.filters.CrowdPixelizeObscure;
-import org.witness.obscuracam.photo.filters.EqualaisObscure;
 import org.witness.obscuracam.photo.filters.MaskObscure;
 import org.witness.obscuracam.photo.filters.PixelizeObscure;
 import org.witness.obscuracam.photo.filters.RegionProcesser;
@@ -402,10 +401,6 @@ public class ImageRegion
 				setRegionProcessor(new MaskObscure(mImageEditor.getApplicationContext(), mImageEditor.getPainter()));
 
 			break;
-        case ImageRegion.EQUALAIS:
-            setRegionProcessor(new EqualaisObscure(mImageEditor.getApplicationContext(), mImageEditor.getPainter()));
-
-            break;
 		case ImageRegion.REDACT:
 			Log.v(ObscuraApp.TAG,"obscureType: SOLID");
 			setRegionProcessor(new SolidObscure());
