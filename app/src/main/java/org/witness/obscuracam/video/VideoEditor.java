@@ -145,7 +145,6 @@ public class VideoEditor extends AppCompatActivity implements
     boolean eyesOnly = false;
     int autoDetectTimeInterval = 300; //ms
 
-    FFMPEGWrapper ffmpeg;
     boolean mCompressVideo = true;
     int mObscureAudioAmount = 0;
     int mObscureVideoAmount = 0;
@@ -1045,14 +1044,7 @@ public class VideoEditor extends AppCompatActivity implements
         }
     }
 
-
-    PowerManager.WakeLock wl;
-
     private synchronized void processVideo(boolean isPreview) {
-
-        if (ffmpeg != null
-        && ffmpeg.getFFMPEG().isFFmpegCommandRunning())
-            ffmpeg.getFFMPEG().killRunningProcesses();
 
         mIsPreview = isPreview;
 
@@ -1078,14 +1070,6 @@ public class VideoEditor extends AppCompatActivity implements
 
         mediaPlayer.pause();
 
-        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wl = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
-        wl.acquire();
-
-        try {
-            if (ffmpeg == null)
-                ffmpeg = new FFMPEGWrapper(VideoEditor.this.getBaseContext());
-
             int frameRate = 0;
 
             float startTime = ((float)mediaPlayer.getCurrentPosition())/1000f;
@@ -1102,6 +1086,7 @@ public class VideoEditor extends AppCompatActivity implements
             }
 
             // Could make some high/low quality presets
+            /**
             ffmpeg.processVideo(obscureTrails, recordingFile, saveFile,
                     frameRate, startTime, duration, mCompressVideo, mObscureVideoAmount, mObscureAudioAmount,
                     new ExecuteBinaryResponseHandler() {
@@ -1153,7 +1138,7 @@ public class VideoEditor extends AppCompatActivity implements
                         public void onFinish() {
 
                             Log.i(getClass().getName(), "FINISHED");
-                            wl.release();
+            
 
                         }
                     });
@@ -1161,10 +1146,8 @@ public class VideoEditor extends AppCompatActivity implements
             Log.e(LOGTAG, "error with ffmpeg", e);
         }
 
-
+            **/
     }
-
-    ;
 
     private void addVideoToGallery(File videoToAdd) {
         sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(saveFile)));
@@ -1271,32 +1254,7 @@ public class VideoEditor extends AppCompatActivity implements
     }
 
     private void killVideoProcessor() {
-        int killDelayMs = 300;
 
-        String ffmpegBin = new File(getDir("bin", 0), "ffmpeg").getAbsolutePath();
-
-        int procId = -1;
-
-        while ((procId = ShellUtils.findProcessId(ffmpegBin)) != -1) {
-
-            Log.d(LOGTAG, "Found PID=" + procId + " - killing now...");
-
-            String[] cmd = {ShellUtils.SHELL_CMD_KILL + ' ' + procId + ""};
-
-            try {
-                ShellUtils.doShellCommand(cmd, new ShellUtils.ShellCallback() {
-
-                    @Override
-                    public void shellOut(char[] msg) {
-                        // TODO Auto-generated method stub
-
-                    }
-
-                }, false, false);
-                Thread.sleep(killDelayMs);
-            } catch (Exception e) {
-            }
-        }
     }
 
     @Override
