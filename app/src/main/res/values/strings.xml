@@ -147,5 +147,6 @@
     <string name="action_open">Open</string>
     <string name="colorize">Colorize:</string>
     <string name="pixelize">Pixelize:</string>
+    <string name="mute">Mute</string>
 
 </resources>

@@ -60,33 +60,43 @@
 			>
 
             <TextView
-                android:layout_width="60dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:text="@string/pixelize"
                 android:gravity="center_vertical|right"
                 />
 			<SeekBar
 				android:id="@+id/seekbar_video_obscure"
-				android:layout_width="120dp"
+				android:layout_width="100dp"
 				android:layout_height="match_parent"
-				android:max="256"
+				android:max="128"
 
 				/>
 
             <TextView
-                android:layout_width="60dp"
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:text="@string/colorize"
                 android:gravity="center_vertical|right"
                 />
 			<SeekBar
 				android:id="@+id/seekbar_blur"
-                android:layout_width="120dp"
+                android:layout_width="100dp"
 				android:layout_height="match_parent"
-				android:max="4"
+				android:max="6"
 
 				/>
 
+			<TextView
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text="@string/mute"
+				/>
+
+			<CheckBox
+				android:id="@+id/cb_audio_mute"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"/>
 
 		</LinearLayout>
 

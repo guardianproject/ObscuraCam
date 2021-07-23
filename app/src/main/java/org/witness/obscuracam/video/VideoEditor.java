@@ -73,6 +73,7 @@ import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.MediaController;
@@ -93,10 +94,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.UUID;
 
 import static android.os.Environment.DIRECTORY_MOVIES;
 
@@ -670,6 +673,7 @@ public class VideoEditor extends AppCompatActivity implements
         {
             mVideoProc.cancel();
             saveFile.delete();
+
         }
 
         mProgressBar.setIndeterminate(false);
@@ -677,7 +681,7 @@ public class VideoEditor extends AppCompatActivity implements
         mProgressBar.setProgress(0);
 
         try {
-            saveFile = File.createTempFile("obscura","mp4");
+            saveFile = File.createTempFile("obscura",".mp4");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -711,14 +715,17 @@ public class VideoEditor extends AppCompatActivity implements
             else if (filterBlur != null)
                 filterGroup = new GlFilterGroup(filterBlur);
 
+            boolean muteAudio = ((CheckBox)findViewById(R.id.cb_audio_mute)).isChecked();
+
 
         mVideoProc = new GPUMp4Composer(recordingFile.getAbsolutePath(), saveFile.getAbsolutePath())
                 .fillMode(FillMode.PRESERVE_ASPECT_FIT)
                 .filter(filterGroup)
+                .mute(muteAudio)
                 .listener(new GPUMp4Composer.Listener() {
                     @Override
                     public void onProgress(double progress) {
-                        Log.d(LOGTAG, "onProgress = " + progress);
+                     //   Log.d(LOGTAG, "onProgress = " + progress);
 
 
                         Message msg = mHandler.obtainMessage(1);
@@ -863,7 +870,12 @@ public class VideoEditor extends AppCompatActivity implements
         if (isStoragePermissionGranted()) { // check or ask permission
             File fileMediaExport = null;
             try {
-                fileMediaExport = new File(Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES),saveFile.getName());
+                SecureRandom random = new SecureRandom();
+                int num = random.nextInt(0x1000000);
+                String formatted = String.format("%06x", num);
+                String fileName = formatted + "-" + saveFile.getName();
+
+                fileMediaExport = new File(Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES),fileName);
 
 
                 IOUtils.copyLarge(new FileInputStream(saveFile),new FileOutputStream(fileMediaExport));
