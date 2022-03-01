@@ -45,7 +45,7 @@
     <string name="eula_accept">Acepto</string>
     <string name="eula_title">Aceptas:</string>
     <string name="no">No</string>
-    <string name="yes">Si</string>
+    <string name="yes">Sí</string>
     <string name="about3">Este software tiene licencia gratuita bajo GNU GPL v3.</string>
     <string name="about2">Obtenga más información en http://witness.org y https://guardianproject.info</string>
     <string name="about">Esta aplicación fue desarrollada por SecureSmartCam Team, un esfuerzo conjunto de WITNESS y The Guardian Project.</string>
@@ -112,4 +112,8 @@
     <string name="app_name">ObscuraCam</string>
     <string name="hello">Hola Mundo</string>
     <string name="idtaggerh12">Consentir</string>
+    <string name="action_open">Abrir</string>
+    <string name="colorize">Colorear:</string>
+    <string name="pixelize">Pixelizar:</string>
+    <string name="mute">Silenciar</string>
 </resources>
