@@ -24,6 +24,7 @@
               android:description="@string/app_description"
               android:configChanges="orientation|keyboardHidden"
             android:theme="@style/AppTheme.NoActionBar"
+            android:exported="true"
               >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,6 +34,7 @@
         <activity android:name="org.witness.obscuracam.ui.ImageEditor"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:theme="@style/AppTheme"
+            android:exported="true"
             >
 			<intent-filter>
             
@@ -50,7 +52,9 @@
         
         <activity android:name="org.witness.obscuracam.ui.ImagePreview" android:label="@string/image_preview" android:configChanges="orientation|keyboardHidden" />
 
-        <activity android:name="org.witness.obscuracam.video.VideoEditor"  android:configChanges="orientation|keyboardHidden|screenSize">
+        <activity android:name="org.witness.obscuracam.video.VideoEditor"  android:configChanges="orientation|keyboardHidden|screenSize"
+            android:exported="true"
+            >
     	    <intent-filter>
                  
                  <action android:name="android.intent.action.EDIT" />
