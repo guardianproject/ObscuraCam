@@ -4,7 +4,7 @@
     <string name="view_image">Ver Imagen</string>
     <string name="processing">Procesando...</string>
     <string name="video_remove_keyframe">Eliminar fotograma clave</string>
-    <string name="do_tweet">Hacer interpolación</string>
+    <string name="do_tweet">Tuitear</string>
     <string name="video_remote_trail">Eliminar rastro</string>
     <string name="video_type_pixelate">Establecer Pixelate</string>
     <string name="video_type_redact">Establecer censura</string>
@@ -87,11 +87,11 @@
     <string name="idtaggerp">Escribe tu nombre ( o cualquier identificador ),o escoge entre las personas que ya has etiquetado.</string>
     <string name="idtaggerh1">Identificar</string>
     <string name="imgprefs_eraseexif">Eliminar todos los datos Exif</string>
-    <string name="imgprefs_panic">P A N I C !</string>
+    <string name="imgprefs_panic">¡P Á N I C O !</string>
     <string name="imgprefs_save">Guardar Preferencias</string>
     <string name="imgprefs_undo">Deshacer</string>
     <string name="imgprefs_h1">Preferencias para esta imagen</string>
-    <string name="menu_clear_regions">Limpiar</string>
+    <string name="menu_clear_regions">Borrar</string>
     <string name="menu_prefs">Preferencias</string>
     <string name="menu_send_hash">Enviar Hash</string>
     <string name="menu_share">Compartir</string>
@@ -106,8 +106,8 @@
     <string name="WalkThroughSkipButton">Saltar</string>
     <string name="CreditsTextViewString">Creado por Guardian Project y Witness</string>
     <string name="SplashTextViewString">ObscuraCam</string>
-    <string name="image_preview">ObscuraCam Vista previa de imagenes</string>
-    <string name="app_description">"Obscuracam es una aplicación de fotos y videos para Android que mantiene cierta información privada. ¿Alguna vez capturaste a alguien en una foto o video y luego te dioste cuenta de que es posible que no quiera estar en ella\? ¿No te sientes cómodo publicando la cara de un amigo, familiar o niño en Internet\? ¿Preocupado por los datos de geolocalización en la imagen que revelan un escondite privado\? ¿Estás cansado de que Facebook, Google y otros sitios \"detecten automáticamente\" rostros en tus fotos\? Entonces esto es para ti,  ObscuraCam te brinda el poder de proteger mejor la identidad de esas capturas en sus fotos, antes de publicarlas en línea. Toma una foto o carga una foto o un video de la Galería, y ObscuraCam detectará automáticamente las caras que puede pixelar, censurar (oscurecer) o proteger con nariz y gafas divertidas. También puede invertir el pixelado, de modo que solo esté visible la persona que seleccione y no se pueda reconocer a nadie en el fondo. Esta aplicación también eliminará todos los datos de identificación almacenados en las fotos, incluidos los datos de ubicación GPS y la marca y modelo del teléfono. Puedes guardar la foto protegida en la Galería o compartirla directamente en Facebook, Twitter o cualquier otra aplicación habilitada para \"Compartir\"."</string>
+    <string name="image_preview">Vista previa de la imagen de ObscuraCam</string>
+    <string name="app_description">Obscuracam es una aplicación de fotos y vídeos para Android que mantiene cierta información en privado. ¿Alguna vez has captado a alguien en una foto o un vídeo y luego te has dado cuenta de que tal vez no quiera salir en ella\? ¿No te sientes cómodo publicando la cara de un amigo, familiar o hijo en Internet\? ¿Te preocupa que los datos de geolocalización de la foto delaten su escondite privado\? ¿Cansado de que Facebook, Google y otros sitios \"autodetecten\" las caras en tus fotos\? Entonces esta aplicación es para ti, ya que te da el poder de proteger mejor la identidad de las personas que aparecen en tus fotos, antes de publicarlas en Internet. Toma una foto o carga una foto o vídeo de la Galería, y ObscuraCam detectará automáticamente las caras que puedes pixelar, redactar (oscurecer) o proteger con nariz y gafas divertidas. También puedes invertir el pixelado, para que sólo sea visible la persona que selecciones y no se reconozca a nadie del fondo. Esta aplicación también eliminará todos los datos identificativos almacenados en las fotos, incluidos los datos de localización GPS y la marca y modelo del teléfono. Puedes volver a guardar la foto protegida en la Galería, o compartirla directamente en Facebook, Twitter o cualquier otra aplicación habilitada para \"Compartir\".</string>
     <string name="app_name_label">ObscuraCam</string>
     <string name="app_name">ObscuraCam</string>
     <string name="hello">Hola Mundo</string>
