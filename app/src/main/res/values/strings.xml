@@ -5,30 +5,26 @@
     <string name="app_name_label">ObscuraCam</string>
     <string name="app_description">Obscuracam is a photo and video app for Android that keeps certain information private. Ever capture someone in a photo or video, then realize they may not want to be in it? Not comfortable posting a friend, family member or child’s face on the internet? Worried about the geolocation data in the picture giving away private hideaway? Tired of Facebook, Google and other sites “auto detecting” faces in your photos? Then this is for you, giving you the power to better protect the identity of those captures in your photos, before you post them online. Take a picture or load a photo or video from the Gallery, and ObscuraCam will automatically detect faces that you can pixelate, redact (blackout) or protect with funny nose and glasses. You can also invert pixelate, so that only the person you select is visible, and no one in the background can be recognized. This app will also remove all identifying data stored in photos including GPS location data and phone make and model. You can save the protected photo back to the Gallery, or share it directly to Facebook, Twitter or any other “Share” enabled app.</string>
     <string name="image_preview">ObscuraCam Image Preview</string>
-	<string name="SplashTextViewString">ObscuraCam</string>
-	<string name="CreditsTextViewString">Powered by the Guardian Project and Witness</string>
-	<string name="WalkThroughSkipButton">Skip</string>
-	<string name="WalkThroughContinueButton">Continue</string>
-	<string name="WalkThroughTextView">This is an application which helps protect the privacy of individuals that may appear in pictures.</string>
-	<string name="WalkThroughPrefSliderLabel">Select Risk Level</string>
+    <string name="SplashTextViewString">ObscuraCam</string>
+    <string name="CreditsTextViewString">Powered by the Guardian Project and Witness</string>
+    <string name="WalkThroughSkipButton">Skip</string>
+    <string name="WalkThroughContinueButton">Continue</string>
+    <string name="WalkThroughTextView">This is an application which helps protect the privacy of individuals that may appear in pictures.</string>
+    <string name="WalkThroughPrefSliderLabel">Select Risk Level</string>
     <string name="menu_new_region">New Tag</string>
-    <string name="menu_detect">Detect Faces</string>    
+    <string name="menu_detect">Detect Faces</string>
     <string name="menu_panic">Panic</string>
- 	<string name="menu_image_prefs">Image Prefs</string>
+    <string name="menu_image_prefs">Image Prefs</string>
     <string name="menu_save">Save</string>
     <string name="menu_share">Share</string>
     <string name="menu_send_hash">Send Hash</string>
     <string name="menu_prefs">Preferences</string>
     <string name="menu_clear_regions">Clear</string>
-    
-    
-    
     <string name="imgprefs_h1">Preferences for this image</string>
     <string name="imgprefs_undo">Undo</string>
     <string name="imgprefs_save">Save Preferences</string>
     <string name="imgprefs_panic">P A N I C !</string>
     <string name="imgprefs_eraseexif">Erase All Exif Data</string>
-    
     <string name="idtaggerh1">Identify</string>
     <string name="idtaggerh12">Consentify</string>
     <string name="idtaggerp">Type a name (or any identifier), or choose from people you\'ve already tagged.</string>
@@ -37,14 +33,11 @@
     <string name="encrypttaggerh1">Encrypt This Tag</string>
     <string name="encrypttaggerp">You can encrypt the selected region to a specific set of public keys, so that only the key holders will be able to view the original image region.</string>
     <string name="encrypttaggerhint">Tap To Choose</string>
-    
     <string name="confirm_delete">Do you want to delete the original media file?</string>
     <string name="confirm_delete_region">Are you sure you want to remove this region box?</string>
-    
     <!-- Informa Options -->
     <string name="informaOpt_consent">Subject has given his/her informed consent to be photographed.</string>
     <string name="informaOpt_autoFilter">Automatically apply this type of filter each time this person appears in an ObscuraCam photo.</string>
-    
     <string name="mdHumanReadable_intro">Image taken with/modified by ObscuraCam.</string>
     <string name="mdHumanReadable_onDate">Image saved on:</string>
     <string name="mdHumanReadable_numTags">Number of edited regions in this image:</string>
@@ -53,8 +46,7 @@
     <string name="mdHumanReadable_coordinates">Coordinates within this image:</string>
     <string name="mdHumanReadable_consentGiven">Informed consent given?</string>
     <string name="mdHumanReadable_persistObfuscation">Apply same obfuscation settings to this subject in every photo?</string>
-    
-     <!-- APG related -->
+    <!-- APG related -->
     <string name="apg_error_activity_not_found">No suitable application for this action found.</string>
     <string name="apg_error_apg_version_not_supported">The installed APG version is not supported.</string>
     <string name="apg_btn_crypto_sign">Sign</string>
@@ -62,7 +54,6 @@
     <string name="apg_btn_decrypt">Decrypt</string>
     <string name="apg_btn_verify">Verify</string>
     <string name="apg_btn_select">Select</string>
-    
     <string name="unknown_crypto_signature_user_id">&lt;unknown&gt;</string>
     <string name="key_id">id: %s</string>
     <string name="insufficient_apg_permissions">This app doesn\'t have permission to access APG fully, please reinstall the app to fix that.</string>
@@ -73,61 +64,40 @@
     <string name="menu_about">About</string>
     <string name="menu_preview">Play</string>
     <string name="menu_preview_image">Preview</string>
-
-
     <string name="loading_image">Loading photo...</string>
-    
     <string name="about">This app was developed by the SecureSmartCam Team, a joint effort by WITNESS and the Guardian Project.</string>
-
-	<string name="about2">Learn more at http://witness.org and https://guardianproject.info</string>
-	
-	<string name="about3">This software is freely licensed under the GNU GPL v3.</string>
-	
-	<string name="yes">Yes</string>
-	<string name="no">No</string>
-	
-	
+    <string name="about2">Learn more at http://witness.org and https://guardianproject.info</string>
+    <string name="about3">This software is freely licensed under the GNU GPL v3.</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
     <string name="eula_title">You agree to:</string>
     <string name="eula_accept">Accept</string>
     <string name="eula_refuse">Refuse</string>
-    
     <string name="welcomeSubMsg">now with video!</string>
-    
     <string name="play_video">Play Video</string>
     <string name="share_video">Share Video</string>
-    
-    
     <!--  video processing -->
     <string name="pref_out_fps_title">Output Framerate (fps)</string>
     <string name="pref_out_fps_summary">Frames per second to save output video at (15-30)</string>
-    
     <string name="pref_out_rate_title">Output Bitrate (kbps)</string>
     <string name="pref_out_rate_summary">Bitrate of video output (300-1500)</string>
-    
     <string name="pref_out_format_title">Output Format</string>
     <string name="pref_out_format_summary">File container format (mp4, 3gp, ogg)</string>
-    
-     <string name="pref_out_vcodec_title">Output Video Codec</string>
+    <string name="pref_out_vcodec_title">Output Video Codec</string>
     <string name="pref_out_vcodec_summary">video codec (copy, libx264, etc)</string>
-    
-     <string name="pref_out_acodec_title">Output Audio Codec</string>
+    <string name="pref_out_acodec_title">Output Audio Codec</string>
     <string name="pref_out_acodec_summary">audio codec (copy, aac, mp3, etc)</string>
-    
     <string name="pref_out_vwidth_title">Custom Video Width (px)</string>
     <string name="pref_out_vwidth_summary">custom video width for outputed video</string>
-    
-     <string name="pref_out_vheight_title">Custom Video Height (px)</string>
+    <string name="pref_out_vheight_title">Custom Video Height (px)</string>
     <string name="pref_out_vheight_summary">custom video height for outputed video</string>
-
     <string name="title_albums">Albums</string>
     <string name="action_pick_external">Pick from external app</string>
     <string name="action_pick_external_album_name">Other</string>
     <string name="gallery_info_message">Tap a photo to start</string>
     <string name="gallery_info_ok">Got it</string>
     <string name="gallery_need_permission">We need your permission to access your photos. Please tap anywhere to allow it.</string>
-
     <string name="processing_complete">Obscured successfully!</string>
-
     <string name="obscure_option_remove">Remove</string>
     <string name="obscure_option_redact">Redact</string>
     <string name="obscure_option_pixelate">Pixelate</string>
@@ -140,7 +110,7 @@
     <string name="video_type_redact">Set Redact</string>
     <string name="video_type_pixelate">Set Pixelate</string>
     <string name="video_remote_trail">Remove Trail</string>
-    <string name="do_tweet">Do Tween</string>
+    <string name="do_tweet">Do Tweet</string>
     <string name="video_remove_keyframe">Remove Keyframe</string>
     <string name="processing">Processing...</string>
     <string name="view_image">View Image</string>
@@ -148,5 +118,4 @@
     <string name="colorize">Colorize:</string>
     <string name="pixelize">Pixelize:</string>
     <string name="mute">Mute</string>
-
 </resources>
